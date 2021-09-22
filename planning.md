@@ -1,4 +1,4 @@
-# Inclubit 360 continuation
+# Inclubit 360 version 2
 
 ## Glossary / phrasing explanations
 **"Camera Station"**: This refers to a computer or laptop physically (with e.g. usb-cable) connected to a 360 camera.
@@ -10,14 +10,12 @@
 
 ## Common parts
 ### Core
-| SFU media server (SFU = Selective Forwarding Unit)     |    |
-| ------------------------------------------------------ |  ---   |
-| [40h] infrastructure for many to many media streams. |   40h   |
-| [40h] Possibility (for admins and/or users depending on config) to create rooms. A room can have many senders and many receivers. One client can (technically) both send and receive at the same time.  |  40h  |
+- SFU media server (SFU = Selective Forwarding Unit)
+  - [40h] infrastructure for many to many media streams.
+  - [40h] Possibility (for admins and/or users depending on config) to create rooms. A room can have many senders and many receivers. One client can (technically) both send and receive at the same time.
   - [40h] Can handle streaming from some ( < 10 ) sender-clients to many ( ~50 ) receiver-clients simultaneously. Each receiver only receives one stream at a time.
   <!-- - [20h] Receiveing clients can switch/choose between the sending streams. -->
   - [40h] Clients can jump between rooms.
-
 
 
 - [20h] Possibility to send 360 video to the media server. For **each** "camera station" the following is required:
@@ -27,10 +25,14 @@
 - [60h] Backend that handles authentication and permissions for users with different roles as well as the admin account
   - admin can create and edit user accounts
 
+**Total for Core functionality:** 240h
+
 ### Extravaganza
 - [60h] Testing methdodology in place for measuring the load capability of the application.
 
 - [60h] Scalable to accomodate a larger amount of simultaneous clients. If the number of connected clients become large the application will create new separate processes on the server(s) to scale up the applications ability to handle the larger number of concurrent users.
+
+
 
 
 
@@ -48,6 +50,8 @@
   - The shared screen capture is vizualized as a "hovering frame" inside the VR environment for the students.
 
 - [40h] Camera stations have functionality for covering parts of the viewing angle with black color. What part is covered is controlled from the camera station, but the processing is performed client-side at the receivers. The implication of this is that the whole video frame (including the censored parts) always is transmitted to the receivers.
+
+**Total for core functionality:** 160h
 
 ### Extravaganza
 - [100h] Camera stations visualizes the students currently in the room as 3D-heads that turn according to the students orientation wearing the VR-headset.
@@ -73,6 +77,8 @@
   - If a client tries to use an url that is already inside the event, they will receive some helpful feedback that the ticket-url is already connected and in use. Perhaps they have several tabs and/or devices active?
 
 - [20h] An admin can get an overview of the number of clients currently connected to the event (audience size).
+
+**Total for core functionality:** 170h
 
 ### Extravaganza
 - [100h] Admin can from within the VR-environment assign relative directions of the different camera stations in relation to each other.

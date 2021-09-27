@@ -6,6 +6,8 @@
 - https://github.com/webrtc/KITE
 
 ## VR headsets
+Comparison video: https://www.youtube.com/watch?v=WJy8VU1mV08&ab_channel=TyrielWood-VRTech
+
 - Pico 2 neo. https://www.pico-interactive.com/us/neo2.html
 - JSX VR.
 - DPVR. https://dpvr.eu/

@@ -53,7 +53,7 @@
 
 - [40h] Camera stations have functionality for covering parts of the viewing angle with black color. What part is covered is controlled from the camera station, but the processing is performed client-side at the receivers. The implication of this is that the whole video frame (including the censored parts) always is transmitted to the receivers.
 
-**Total for core functionality:** 160h
+**Total for core functionality:** 170h
 
 ### Extravaganza
 - [100h] Camera stations visualizes the students currently in the room as 3D-heads that turn according to the students orientation wearing the VR-headset.

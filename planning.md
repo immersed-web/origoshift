@@ -40,6 +40,8 @@
 ### Core
 - [10h] Each camera station is assigned a separate room.
 
+- [10h] Teacher can protect a room with a password.
+
 - [15h] The camera station shows a list of the student(s) currently in that room.
 
 - [15h] Students can "raise a hand" and this will be visualized with a hand emoji on that room's camera station.
@@ -86,6 +88,7 @@
   - Users can switch camera angles by looking at a different camera from within VR and press the primary button on the handcontroller.
 
 - [40h] The audience can interact by sending emojis and hand clap icons to the room.
+  - Possibility for admin to control permissions for audience interactions.
 
 - [20h] Admin have detailed control over ticket-urls
   - Admin can revoke access urls

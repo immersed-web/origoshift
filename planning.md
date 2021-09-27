@@ -81,6 +81,7 @@
 **Total for core functionality:** 170h
 
 ### Extravaganza
+- [30h] A waiting VR-room where the audience can see the count down timer and the title of the event.
 - [100h] Admin can from within the VR-environment assign relative directions of the different camera stations in relation to each other.
   - Users can switch camera angles by looking at a different camera from within VR and press the primary button on the handcontroller.
 

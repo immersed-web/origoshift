@@ -71,6 +71,7 @@
 
 - [60] An admin can create an event that will be used to stream a live show/performance.
   - The event has an associated start time and date.
+  - An admin can create several (possibly concurrent) events and the system should handle that appropriately.
 
 - [80h] An admin can generate a set (max 50) of unique urls that gives access to an event.
   - The unique urls should be regarded as a personal ticket and each can only be used from one device at a time. That is, if two persons tries to visit the same unique url from different devices the first person that enters will get access and the second person will fail.

@@ -1,0 +1,43 @@
+{
+  "settings": {
+		"eslint.workingDirectories": [ // This is so we can have the .eslintrc.js in subfolders without problem
+			{
+				"mode": "auto"
+			}
+		],
+		"eslint.validate": [
+			"javascript",
+			"javascriptreact",
+			"typescript",
+			"vue"
+		],
+		"editor.codeActionsOnSave": {
+			"source.fixAll": false,
+			"source.fixAll.eslint": true
+		},
+		// "javascript.format.enable": false, // seems to conflict with eslints formatter
+		// "typescript.format.enable": false,
+		// "vetur.validation.template": false, //hmmm. should this really be off?
+		"vetur.experimental.templateInterpolationService": true,
+		// "vetur.format.enable": false,
+		// "i18n-ally.enabledParsers": ["json"],
+		// "i18n-ally.localesPaths": "src/i18n",
+		// "i18n-ally.keystyle": "nested",
+	},
+  "folders": [
+    {"path": "./app"},
+    {"path": "./backend"},
+  ],
+	"extensions": {
+		"recommendations": [
+			"dbaeumer.vscode-eslint",
+			"octref.vetur",
+			// "lokalise.i18n-ally"
+		],
+		"unwantedRecommendations": [
+			"hookyqr.beautify",
+			"dbaeumer.jshint",
+			"ms-vscode.vscode-typescript-tslint-plugin"
+		]
+	},
+}

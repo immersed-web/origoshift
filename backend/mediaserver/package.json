@@ -3,11 +3,14 @@
   "version": "1.0.0",
   "description": "mediasoup server for inclubit 2",
   "type": "module",
-  "main": "server.js",
+  "main": "dist/index.js",
   "author": "Gunnar Oledal",
   "license": "ISC",
   "scripts": {
-    "dev": "env DEVELOPMENT=true tsc-watch --onSuccess 'node ./dist/server.js'"
+    "start": "npm run build && node ./dist/index.js",
+    "dev": "env DEVELOPMENT=true tsc-watch --onSuccess 'node ./dist/index.js'",
+    "build": "tsc --build",
+    "clean": "tsc --build --clean"
   },
   "dependencies": {
     "uWebSockets.js": "uNetworking/uWebSockets.js#v20.0.0"

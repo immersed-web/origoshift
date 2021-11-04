@@ -1,4 +1,9 @@
 {
+	"folders": [
+		{"path": "./app"},
+		{"path": "./backend"},
+		{"path": "./types"},
+	],
   "settings": {
 		"eslint.workingDirectories": [ // This is so we can have the .eslintrc.js in subfolders without problem
 			{
@@ -24,17 +29,14 @@
 		// "i18n-ally.localesPaths": "src/i18n",
 		// "i18n-ally.keystyle": "nested",
 	},
-  "folders": [
-    {"path": "./app"},
-    {"path": "./backend"},
-  ],
 	"extensions": {
 		"recommendations": [
 			"dbaeumer.vscode-eslint",
-			"octref.vetur",
 			// "lokalise.i18n-ally"
+			"johnsoncodehk.volar"
 		],
 		"unwantedRecommendations": [
+			"octref.vetur",
 			"hookyqr.beautify",
 			"dbaeumer.jshint",
 			"ms-vscode.vscode-typescript-tslint-plugin"

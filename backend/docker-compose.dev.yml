@@ -1,9 +1,9 @@
-
+# THIS FILE DOES OVERRIDES FOR DEVELOPING THE APP WITH HOT RELOAD AND SUCH
 version: "3.5"
 
 services:
   mediaserver:
     command: yarn run dev
     volumes:
-      - ./mediaserver:/usr/src/app
-      - /usr/src/app/node_modules
+      - ./mediaserver/src:/usr/app/src
+      # - /usr/src/app/node_modules

@@ -7,3 +7,7 @@ services:
     volumes:
       - ./mediaserver/src:/usr/app/src
       # - /usr/src/app/node_modules
+    network_mode: "bridge"
+    ports:
+      - "9001:9001"
+      - "22000-22040:22000-22040"

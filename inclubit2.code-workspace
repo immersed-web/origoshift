@@ -10,6 +10,7 @@
 				"mode": "auto"
 			}
 		],
+		"eslint.packageManager": "yarn",
 		"eslint.validate": [
 			"javascript",
 			"javascriptreact",

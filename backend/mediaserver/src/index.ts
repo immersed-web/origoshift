@@ -1,6 +1,34 @@
 import uWebSockets from 'uWebSockets.js';
+import Client from './classes/Client';
+import SocketWrapper from './classes/SocketWrapper';
 const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
+// import * as msgTypes from '../../../types/messagetypes';
+
+// const msg: msgTypes.SocketMessage 
+// const msg: SocketMessage<SpecialMessage>= {
+//   type: 'specialType1',
+//   data: {
+//     codecs: []
+//   }
+// };
+// console.log(msg);
+
+// const testFnc = (msg: SocketMessage<UnknownMessageType>) => {
+//   // if(isSpecialMessage(msg)){
+//   //   console.log(msg);
+//   // }
+//   if(msg.type === 'dataConsumer'){
+//     console.log(msg);
+
+//   }
+//   else if(msg.type === 'specialType2'){
+//     console.log(msg);
+//   }
+// };
+// testFnc(msg);
 // const uWebSockets = require('uWebSockets.js');
+// const clients: Client[] = [];
+const clients: Map<uWebSockets.WebSocket, Client> = new Map();
 const app = uWebSockets.App();
 app.ws('/*', {
 
@@ -14,10 +42,24 @@ app.ws('/*', {
   message: (ws, message, isBinary) => {
     /* You can do app.publish('sensors/home/temperature', '22C') kind of pub/sub as well */
     
+
+    const client = clients.get(ws);
+    if(client) {
+      client.ws.onMessage(message);
+      console.log('client :>> ', client);
+    }
+
     /* Here we echo the message back, using compression if available */
-    let ok = ws.send(message, isBinary, true);
+    const ok = ws.send(message, isBinary, true);
     console.log('was ok:', ok);
+  },
+  open: (ws) => {
+    const wsWrapper = new SocketWrapper(ws);
+    const client = new Client({ws: wsWrapper});
+    clients.set(ws, client);
+    console.log('client :>> ', client);
   }
+  // 
   
 }).get('/*', (res, _req) => {
 

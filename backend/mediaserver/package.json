@@ -2,7 +2,6 @@
   "name": "mediasoup",
   "version": "1.0.0",
   "description": "mediasoup server for inclubit 2",
-  "type": "module",
   "main": "dist/index.js",
   "author": "Gunnar Oledal",
   "license": "ISC",
@@ -13,7 +12,9 @@
     "clean": "tsc --build --clean"
   },
   "dependencies": {
-    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.0.0"
+    "@types/uuid": "^8.3.1",
+    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.0.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/node": "^16.10.9",

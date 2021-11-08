@@ -1,0 +1,13 @@
+{
+  "name": "types",
+  "version": "1.0.0",
+  "description": "shared types for front & back",
+  "main": "index.js",
+  "author": "Gunnar Oledal",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "mediasoup": "3",
+    "mediasoup-client": "3"
+  }
+}

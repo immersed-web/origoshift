@@ -6,7 +6,7 @@ const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 
 // const msg: msgTypes.SocketMessage 
 // const msg: SocketMessage<SpecialMessage>= {
-//   type: 'specialType1',
+//   type: 'setRtpCapabilities',
 //   data: {
 //     codecs: []
 //   }
@@ -30,6 +30,8 @@ const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 // const clients: Client[] = [];
 const clients: Map<uWebSockets.WebSocket, Client> = new Map();
 const app = uWebSockets.App();
+
+const textDecoder = new TextDecoder();
 app.ws('/*', {
 
   /* There are many common helper features */
@@ -41,17 +43,19 @@ app.ws('/*', {
   /* For brevity we skip the other events (upgrade, open, ping, pong, close) */
   message: (ws, message, isBinary) => {
     /* You can do app.publish('sensors/home/temperature', '22C') kind of pub/sub as well */
-    
 
     const client = clients.get(ws);
     if(client) {
+      // const strMsg = textDecoder.decode(message);
+      // console.log('converted message:', strMsg);
       client.ws.onMessage(message);
-      console.log('client :>> ', client);
+      // console.log('client :>> ', client);
     }
+    // console.log('isBinary:', isBinary);
 
     /* Here we echo the message back, using compression if available */
-    const ok = ws.send(message, isBinary, true);
-    console.log('was ok:', ok);
+    // const ok = ws.send(message, isBinary, true);
+    // console.log('was ok:', ok);
   },
   open: (ws) => {
     const wsWrapper = new SocketWrapper(ws);

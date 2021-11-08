@@ -17,6 +17,11 @@ export default class Client {
     // }
     this.id = id;
     this.ws = ws;
+
+
+    ws.on('message', (msg) => {
+      ws.send(msg);
+    });
   }
 
 }

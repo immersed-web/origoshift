@@ -7,9 +7,11 @@
   "license": "ISC",
   "scripts": {
     "start": "npm run build && node ./dist/index.js",
-    "dev": "env DEVELOPMENT=true tsc-watch --onSuccess 'node ./dist/index.js'",
-    "build": "tsc --build",
-    "clean": "tsc --build --clean"
+    "dev": "env DEVELOPMENT=true tsc-watch -p tsconfig.build.json --onSuccess 'node ./dist/index.js'",
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "tsc --build --clean",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@types/uuid": "^8.3.1",
@@ -18,10 +20,14 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@types/jest": "^27.0.2",
     "@types/node": "^16.10.9",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.1",
+    "jest": "^27.3.1",
+    "jest-mock-extended": "^2.0.4",
+    "ts-jest": "^27.0.7",
     "tsc-watch": "^4.5.0",
     "typescript": "^4.4.4"
   }

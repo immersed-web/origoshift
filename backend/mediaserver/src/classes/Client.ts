@@ -1,13 +1,27 @@
 import { v4 as uuidv4 } from 'uuid';
-import SocketWrapper from './SocketWrapper';
-// import uWebsocket from 'uWebSockets.js';
+import SocketWrapper, { InternalMessageType } from './SocketWrapper';
+import {types as soup} from 'mediasoup';
+import {types as soupClient} from 'mediasoup-client';
+import Room from './Room';
 
 interface constructionParams {
   id?: string, ws: SocketWrapper
 }
+/**
+ * This class represents a client in the backend. This class is also responsible for the communication with the "actual" client (i.e. the frontend).
+ */
 export default class Client {
   id: string;
-  ws: SocketWrapper;
+  private ws: SocketWrapper;
+
+  name = 'unnamed';
+
+  rtpCapabilities?: soupClient.RtpCapabilities;
+  receiveTransport?: soup.WebRtcTransport;
+  consumers: Map<string, soup.Consumer> = new Map();
+  producers: Map<string, soup.Producer> = new Map();
+
+  room? : Room;
 
   constructor({id = uuidv4(), ws }: constructionParams){
     // if(!id){
@@ -20,8 +34,30 @@ export default class Client {
 
 
     ws.on('message', (msg) => {
-      ws.send(msg);
+      switch (msg.type) {
+      case 'setRtpCapabilities':
+        this.rtpCapabilities = msg.data;
+        break;
+      case 'getRouterRtpCapabilities':
+        if(!this.room){
+          console.warn('Client requested router capabilities without being in a room');
+          return;
+        }
+        this.room.getRtpCapabilities();
+        break;
+      default:
+        break;
+      }
+      // ws.send(msg);
     });
+  }
+
+  /**
+   * I would prefer to not need this function. but uWebsockets is not attaching incoming messages to the socket object itself, but rather the server.
+   * Thus we have to propagate the message "down" to the socketWrapper
+   */
+  incomingMessage(msg: InternalMessageType){
+    this.ws.triggerMessage(msg);
   }
 
 }

@@ -4,7 +4,7 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 
 export type InternalSocketType = uWebsocket.WebSocket;
 // type InternalMessageType = uWebsocket.RecognizedString;
-type InternalMessageType = ArrayBuffer;
+export type InternalMessageType = ArrayBuffer;
 
 interface SocketWrapperEvents {
   /**
@@ -29,7 +29,7 @@ export default class SocketWrapper extends TypedEmitter<SocketWrapperEvents>{
    * @param msg the message in the form and type provided by the underlying websocket implemention
    * @emits 'message' an object that implements our high level message interface 
    */
-  onMessage(msg: InternalMessageType){
+  triggerMessage(msg: InternalMessageType){
     // console.log('onMessage with:', msg);
     // const str = textDecoder.decode(msg);
     // console.log('textdecoded incoming msg:', str);

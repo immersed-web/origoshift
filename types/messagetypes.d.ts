@@ -13,26 +13,30 @@ interface AbstractMessage {
   type: MessageType,
   data: any
 }
-interface SpecialMessage extends AbstractMessage {
+
+interface RequestMessage extends AbstractMessage {
+  request: true,
+}
+interface SetRtpCapabilities extends AbstractMessage {
   type: 'setRtpCapabilities',
-  data: import('mediasoup').types.RtpParameters
+  data: import('mediasoup-client').types.RtpCapabilities
 }
 
-interface SpecialMessage2 extends AbstractMessage {
-  type: 'createConsumer',
+interface getRouterRtpCapabilities extends RequestMessage {
+  type: 'getRouterRtpCapabilities',
   data: import('mediasoup').types.RtpCapabilities
 }
 
-interface SpecialMessage3 extends AbstractMessage {
+interface CreateSendTransport extends RequestMessage {
   type: 'createSendTransport',
-  data: import('mediasoup').types.WebRtcTransportOptions
+  // data: import('mediasoup').types.WebRtcTransportOptions
 }
 
-interface VerySpecialMessage extends AbstractMessage {
+interface CreateReceiveTransport extends AbstractMessage {
   type: 'createReceiveTransport',
-  data: import('mediasoup').types.DataConsumer
+  // data: import('mediasoup').types.DataConsumer
 }
 
-type UnknownMessageType = SpecialMessage | SpecialMessage2 | SpecialMessage3 | VerySpecialMessage
+type UnknownMessageType = SetRtpCapabilities | getRouterRtpCapabilities | CreateSendTransport | CreateReceiveTransport
 
 type SocketMessage<T extends UnknownMessageType> = T

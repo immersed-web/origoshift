@@ -1,8 +1,8 @@
 Arguments: 
-  /usr/bin/node /home/gunhaxxor/.yarn/bin/yarn.js add mediasoup@3 -D
+  /usr/bin/node /home/gunhaxxor/.yarn/bin/yarn.js add --dev @typescript-eslint/eslint-plugin
 
 PATH: 
-  /home/gunhaxxor/.yarn/bin:/home/gunhaxxor/.config/yarn/global/node_modules/.bin:/home/gunhaxxor/.vscode-server/bin/6cba118ac49a1b88332f312a8f67186f7f3c1643/bin:/home/gunhaxxor/.yarn/bin:/home/gunhaxxor/.config/yarn/global/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Users/gunhaxxor/.gradle/wrapper/dists/gradle-6.5-all/2oz4ud9k3tuxjg84bbf55q0tn/gradle-6.5/bin:/mnt/c/Users/gunhaxxor/.windows-build-tools/python27:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files (x86)/nodejs/:/mnt/c/ProgramData/chocolatey/bin:/mnt/c/Program Files/Java/jdk1.8.0_311/bin:/mnt/c/Program Files/Docker/Docker/resources/bin:/mnt/c/ProgramData/DockerDesktop/version-bin:/mnt/c/Users/gunhaxxor/AppData/Local/Android/Sdk/build-tools/30.0.3:/mnt/c/Users/gunhaxxor/AppData/Local/Android/Sdk/platform-tools:/mnt/c/Users/gunhaxxor/AppData/Local/Microsoft/WindowsApps:/mnt/c/flutter/bin:/mnt/c/Users/gunhaxxor/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/gunhaxxor/AppData/Roaming/npm:/snap/bin
+  /home/gunhaxxor/.yarn/bin:/home/gunhaxxor/.config/yarn/global/node_modules/.bin:/home/gunhaxxor/.vscode-server/bin/b3318bc0524af3d74034b8bb8a64df0ccf35549a/bin:/home/gunhaxxor/.yarn/bin:/home/gunhaxxor/.config/yarn/global/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Users/gunhaxxor/.gradle/wrapper/dists/gradle-6.5-all/2oz4ud9k3tuxjg84bbf55q0tn/gradle-6.5/bin:/mnt/c/Users/gunhaxxor/.windows-build-tools/python27:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files (x86)/nodejs/:/mnt/c/ProgramData/chocolatey/bin:/mnt/c/Program Files/Java/jdk1.8.0_311/bin:/mnt/c/Program Files/Docker/Docker/resources/bin:/mnt/c/ProgramData/DockerDesktop/version-bin:/mnt/c/Users/gunhaxxor/AppData/Local/Android/Sdk/build-tools/30.0.3:/mnt/c/Users/gunhaxxor/AppData/Local/Android/Sdk/platform-tools:/mnt/c/Users/gunhaxxor/AppData/Local/Microsoft/WindowsApps:/mnt/c/flutter/bin:/mnt/c/Users/gunhaxxor/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/gunhaxxor/AppData/Roaming/npm:/snap/bin
 
 Yarn version: 
   1.22.15
@@ -26,6 +26,7 @@ npm manifest:
     "license": "MIT",
     "dependencies": {},
     "devDependencies": {
+      "mediasoup": "3",
       "mediasoup-client": "3"
     }
   }
@@ -54,6 +55,11 @@ Lockfile:
     version "0.7.31"
     resolved "https://registry.yarnpkg.com/@types/ms/-/ms-0.7.31.tgz#31b7ca6407128a3d2bbc27fe2d21b345397f6197"
     integrity sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==
+  
+  "@types/node@^16.11.6":
+    version "16.11.6"
+    resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.6.tgz#6bef7a2a0ad684cf6e90fcfe31cecabd9ce0a3ae"
+    integrity sha512-ua7PgUoeQFjmWPcoo9khiPum3Pd60k4/2ZGXt18sm2Slk0W0xZTqt5Y0Ny1NyBiN1EVQ/+FaF9NcY4Qe6rwk5w==
   
   awaitqueue@^2.3.3:
     version "2.3.3"
@@ -102,6 +108,11 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-4.0.0.tgz#944771fd9c81c81265c4d6941860da06bb59479b"
     integrity sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==
   
+  has-flag@^5.0.0:
+    version "5.0.1"
+    resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-5.0.1.tgz#5483db2ae02a472d1d0691462fc587d1843cd940"
+    integrity sha512-CsNUt5x9LUdx6hnk/E2SZLsDyvfqANZSUq4+D3D8RzDJ2M+HDTIkF60ibS1vHaK55vzgiZw1bEPFG9yH7l33wA==
+  
   mediasoup-client@3:
     version "3.6.43"
     resolved "https://registry.yarnpkg.com/mediasoup-client/-/mediasoup-client-3.6.43.tgz#ac1d64d4ec63fba498e16d945b96858686aaf27c"
@@ -118,10 +129,28 @@ Lockfile:
       sdp-transform "^2.14.1"
       supports-color "^8.1.1"
   
+  mediasoup@3:
+    version "3.9.1"
+    resolved "https://registry.yarnpkg.com/mediasoup/-/mediasoup-3.9.1.tgz#a9aed3bd013e21421fce15d8fc0e4dc1aaca54f7"
+    integrity sha512-U76hXTRSoazGzB0lV86mrux0TYjKTCwO5XEmkDgBdo6ghnzSDb2D2OTgyqWXyuxmktgnxh9g1xtL0UUlfCNYiQ==
+    dependencies:
+      "@types/node" "^16.11.6"
+      awaitqueue "^2.3.3"
+      debug "^4.3.2"
+      h264-profile-level-id "^1.0.1"
+      random-number "^0.0.9"
+      supports-color "^9.0.2"
+      uuid "^8.3.2"
+  
   ms@2.1.2:
     version "2.1.2"
     resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
     integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
+  
+  random-number@^0.0.9:
+    version "0.0.9"
+    resolved "https://registry.yarnpkg.com/random-number/-/random-number-0.0.9.tgz#5907b96f05041807c52aed601c869524d86fbbd5"
+    integrity sha512-ipG3kRCREi/YQpi2A5QGcvDz1KemohovWmH6qGfboVyyGdR2t/7zQz0vFxrfxpbHQgPPdtVlUDaks3aikD1Ljw==
   
   sdp-transform@^2.14.1:
     version "2.14.1"
@@ -135,7 +164,14 @@ Lockfile:
     dependencies:
       has-flag "^4.0.0"
   
-  uuid@^8.1.0:
+  supports-color@^9.0.2:
+    version "9.0.2"
+    resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-9.0.2.tgz#50f082888e4b0a4e2ccd2d0b4f9ef4efcd332485"
+    integrity sha512-ii6tc8ImGFrgMPYq7RVAMKkhPo9vk8uA+D3oKbJq/3Pk2YSMv1+9dUAesa9UxMbxBTvxwKTQffBahNVNxEvM8Q==
+    dependencies:
+      has-flag "^5.0.0"
+  
+  uuid@^8.1.0, uuid@^8.3.2:
     version "8.3.2"
     resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
     integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==

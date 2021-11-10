@@ -8,14 +8,19 @@ export type InternalMessageType = ArrayBuffer;
 
 interface SocketWrapperEvents {
   /**
-   * Triggered when the underlying socket received a message
+   * Triggered when the socket received a message
    * @event
    */
   message: (msg: SocketMessage<UnknownMessageType>) => void;
 }
 
 
-// const textDecoder = new TextDecoder();
+/**
+ * This class is an abstraction layer on top of the websocket implementation.
+ * My hope is that this will make it easier to maintain if we have to change to another websocket library 
+ * 
+ * @emits message event that is triggered when a message is received.
+ */
 export default class SocketWrapper extends TypedEmitter<SocketWrapperEvents>{
   private socket: InternalSocketType;
   constructor(socket: InternalSocketType){
@@ -24,25 +29,27 @@ export default class SocketWrapper extends TypedEmitter<SocketWrapperEvents>{
   }
 
   /**
-   * event that is triggered when the underlying socket implementation receives a message.
+   *  
    * 
    * @param msg the message in the form and type provided by the underlying websocket implemention
-   * @emits 'message' an object that implements our high level message interface 
+   * devent that is triggered when the underlying socket implementation receives a message.
    */
-  triggerMessage(msg: InternalMessageType){
-    // console.log('onMessage with:', msg);
-    // const str = textDecoder.decode(msg);
-    // console.log('textdecoded incoming msg:', str);
-    const asString = Buffer.from(msg).toString();
-    // const asString = 'bajs';
-    const socketMsg: SocketMessage<UnknownMessageType> = JSON.parse(asString) as SocketMessage<UnknownMessageType>;
-    if(!socketMsg){
-      console.error('fuck. Couldnt convert incoming data to messageType');
+  incomingMessage(msg: InternalMessageType){
+    try {
+      // TODO: I reaaaaally think we need some data validation here!!!!
+      const asString = Buffer.from(msg).toString();
+      const socketMsg: SocketMessage<UnknownMessageType> = JSON.parse(asString) as SocketMessage<UnknownMessageType>;
+      if(!socketMsg){
+        console.error('fuck. Couldnt convert incoming data to messageType');
+        return;
+      }
+      this.emit('message', socketMsg);
       return;
+    } catch (e) {
+      // console.log(e);
     }
+    console.log('couldnt parse incoming message into js object. IGNORING it!');
 
-    // TODO: I reaaaaally think we need some data validation here!!!!
-    this.emit('message', socketMsg);
   }
   
   send(msg: SocketMessage<UnknownMessageType>){

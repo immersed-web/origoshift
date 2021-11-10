@@ -1,13 +1,13 @@
-type PeerServerEventType =  'setRtpCapabilities' 
-| 'createSendTransport' 
-| 'createReceiveTransport' 
-| 'connectTransport' 
-| 'createProducer' 
-| 'createConsumer';
-type RoomServerEventType = 'getRouterRtpCapabilities';
-type MediasSoupEventType = PeerServerEventType | RoomServerEventType
+// type PeerServerEventType =  'setRtpCapabilities' 
+// | 'createSendTransport' 
+// | 'createReceiveTransport' 
+// | 'connectTransport' 
+// | 'createProducer' 
+// | 'createConsumer';
+// type RoomServerEventType = 'getRouterRtpCapabilities';
+// type MediasoupEventType = PeerServerEventType | RoomServerEventType
 
-type MessageType = MediasSoupEventType;
+// type MessageType = MediasoupEventType;
 
 interface AbstractMessage {
   type: MessageType,
@@ -17,6 +17,10 @@ interface AbstractMessage {
 interface RequestMessage extends AbstractMessage {
   request: true,
 }
+
+interface AckedMessage extends AbstractMessage {
+  ackNeeded: true;
+}
 interface SetRtpCapabilities extends AbstractMessage {
   type: 'setRtpCapabilities',
   data: import('mediasoup-client').types.RtpCapabilities
@@ -24,7 +28,7 @@ interface SetRtpCapabilities extends AbstractMessage {
 
 interface getRouterRtpCapabilities extends RequestMessage {
   type: 'getRouterRtpCapabilities',
-  data: import('mediasoup').types.RtpCapabilities
+  // data: import('mediasoup').types.RtpCapabilities
 }
 
 interface CreateSendTransport extends RequestMessage {
@@ -32,11 +36,18 @@ interface CreateSendTransport extends RequestMessage {
   // data: import('mediasoup').types.WebRtcTransportOptions
 }
 
-interface CreateReceiveTransport extends AbstractMessage {
+interface CreateReceiveTransport extends RequestMessage {
   type: 'createReceiveTransport',
   // data: import('mediasoup').types.DataConsumer
 }
 
-type UnknownMessageType = SetRtpCapabilities | getRouterRtpCapabilities | CreateSendTransport | CreateReceiveTransport
+interface JoinRoom extends AckedMessage {
+  type: 'joinRoom',
+  data: {
+    roomName: string,
+  }
+}
+
+type UnknownMessageType = SetRtpCapabilities | getRouterRtpCapabilities | CreateSendTransport | CreateReceiveTransport | JoinRoom
 
 type SocketMessage<T extends UnknownMessageType> = T

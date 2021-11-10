@@ -47,7 +47,9 @@ app.ws('/*', {
     if(client) {
       // const strMsg = textDecoder.decode(message);
       // console.log('converted message:', strMsg);
-      client.incomingMessage(message);
+      
+      // @ts-expect-error: In ooonly this specific case we want to ignore the private field (ws). But never elsewhere
+      client.ws.incomingMessage(message);
       // console.log('client :>> ', client);
     }
     // console.log('isBinary:', isBinary);

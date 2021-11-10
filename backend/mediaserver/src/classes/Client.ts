@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import SocketWrapper, { InternalMessageType } from './SocketWrapper';
 import {types as soup} from 'mediasoup';
-import {types as soupClient} from 'mediasoup-client';
+// import {types as soupClient} from 'mediasoup-client';
 import Room from './Room';
 
 interface constructionParams {
@@ -16,7 +16,7 @@ export default class Client {
 
   name = 'unnamed';
 
-  rtpCapabilities?: soupClient.RtpCapabilities;
+  rtpCapabilities?: soup.RtpCapabilities;
   receiveTransport?: soup.WebRtcTransport;
   consumers: Map<string, soup.Consumer> = new Map();
   producers: Map<string, soup.Producer> = new Map();
@@ -34,30 +34,35 @@ export default class Client {
 
 
     ws.on('message', (msg) => {
-      switch (msg.type) {
-      case 'setRtpCapabilities':
-        this.rtpCapabilities = msg.data;
-        break;
-      case 'getRouterRtpCapabilities':
-        if(!this.room){
-          console.warn('Client requested router capabilities without being in a room');
-          return;
-        }
-        this.room.getRtpCapabilities();
-        break;
-      default:
-        break;
-      }
-      // ws.send(msg);
+      console.log('client received mesage:', msg);
+      this.handleReceivedMsg(msg);
     });
   }
 
-  /**
-   * I would prefer to not need this function. but uWebsockets is not attaching incoming messages to the socket object itself, but rather the server.
-   * Thus we have to propagate the message "down" to the socketWrapper
-   */
-  incomingMessage(msg: InternalMessageType){
-    this.ws.triggerMessage(msg);
-  }
+  private handleReceivedMsg = (msg: SocketMessage<UnknownMessageType>) => {
+    switch (msg.type) {
+    case 'setRtpCapabilities':
+      this.rtpCapabilities = msg.data;
+      break;
+    case 'getRouterRtpCapabilities':
+      if(!this.room){
+        console.warn('Client requested router capabilities without being in a room');
+        return;
+      }
+      this.room.getRtpCapabilities();
+      break;
+    default:
+      break;
+    }
+  };
+  
+
+  // /**
+  //  * I would prefer to not need this function. but uWebsockets is not attaching incoming messages to the socket object itself, but rather the server.
+  //  * Thus we have to propagate the message "down" to the socketWrapper
+  //  */
+  // incomingMessage(msg: InternalMessageType){
+  //   this.ws.incomingMessage(msg);
+  // }
 
 }

@@ -1,4 +1,5 @@
 type PeerServerEventType =  'joinRoom' |
+'joinGathering' |
 'setRtpCapabilities' 
 | 'createSendTransport' 
 | 'createReceiveTransport' 

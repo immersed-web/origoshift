@@ -1,17 +1,18 @@
-// type PeerServerEventType =  'setRtpCapabilities' 
-// | 'createSendTransport' 
-// | 'createReceiveTransport' 
-// | 'connectTransport' 
-// | 'createProducer' 
-// | 'createConsumer';
-// type RoomServerEventType = 'getRouterRtpCapabilities';
-// type MediasoupEventType = PeerServerEventType | RoomServerEventType
+type PeerServerEventType =  'joinRoom' |
+'setRtpCapabilities' 
+| 'createSendTransport' 
+| 'createReceiveTransport' 
+| 'connectTransport' 
+| 'createProducer' 
+| 'createConsumer';
+type RoomServerEventType = 'getRouterRtpCapabilities';
+type MediasoupEventType = PeerServerEventType | RoomServerEventType
 
-// type MessageType = MediasoupEventType;
+type MessageType = MediasoupEventType;
 
 interface AbstractMessage {
   type: MessageType,
-  data: any
+  data: unknown
 }
 
 interface RequestMessage extends AbstractMessage {
@@ -41,6 +42,14 @@ interface CreateReceiveTransport extends RequestMessage {
   // data: import('mediasoup').types.DataConsumer
 }
 
+interface JoinGathering extends AckedMessage {
+  type: 'joinGathering',
+  data: {
+    id: string
+    gatheringName?: string,
+  }
+}
+
 interface JoinRoom extends AckedMessage {
   type: 'joinRoom',
   data: {
@@ -48,6 +57,6 @@ interface JoinRoom extends AckedMessage {
   }
 }
 
-type UnknownMessageType = SetRtpCapabilities | getRouterRtpCapabilities | CreateSendTransport | CreateReceiveTransport | JoinRoom
+type UnknownMessageType = SetRtpCapabilities | getRouterRtpCapabilities | CreateSendTransport | CreateReceiveTransport | JoinRoom | JoinGathering
 
 type SocketMessage<T extends UnknownMessageType> = T

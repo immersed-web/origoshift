@@ -31,12 +31,16 @@ describe('When Client class is created it', () => {
 
 });
 
-describe('client instance', () => {
+describe('client instance with exposed private field', () => {
   let socketWrapper : SocketWrapper;
   let client: Client;
+  let messageHandler: (msg: SocketMessage<UnknownMessageType>) => void;
   beforeEach(() => {
     socketWrapper = mock<SocketWrapper>();
     client = new Client({ws: socketWrapper});
+    // @ts-expect-error I allow private access in tests because I'm the chief!!!
+    messageHandler = client.handleReceivedMsg;
+
   });
 
   it('can set RtpCapabilities from valid incoming message', () => {
@@ -46,13 +50,33 @@ describe('client instance', () => {
       data: {codecs: []},
     };
 
-    // @ts-expect-error I allow private access in tests because I'm the chief!!!
-    client.handleReceivedMsg(validMsgObj);
-    console.log(client.rtpCapabilities);
+    messageHandler(validMsgObj);
+    // console.log(client.rtpCapabilities);
     expect(client.rtpCapabilities).toEqual<soup.RtpCapabilities>(validMsgObj.data);
   });
 
+  it('can join a gathering from valid join request', () => {
+    // const gatheringName = 'cool-gathering';
+    const validGatheringId = '4j4j4j4j4';
+    const validJoinRoomRequest: SocketMessage<JoinGathering> = {
+      ackNeeded: true,
+      type: 'joinGathering',
+      data: {id: validGatheringId}
+    };
+    messageHandler(validJoinRoomRequest);
+
+    expect(client.gathering).toBeDefined();
+  });
+
   it('can join a room from valid join request', () => {
-    console.log('not yet implemented');
+    const validRoomName = 'very-cool-room';
+    const validJoinRoomRequest: SocketMessage<JoinRoom> = {
+      ackNeeded: true,
+      type: 'joinRoom',
+      data: {roomName: validRoomName,}
+    };
+    messageHandler(validJoinRoomRequest);
+
+    expect(client.room).toBeDefined();
   });
 });

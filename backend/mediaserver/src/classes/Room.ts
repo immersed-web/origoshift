@@ -26,4 +26,12 @@ export default class Room {
   getRtpCapabilities(): soup.RtpCapabilities {
     return this.router.rtpCapabilities;
   }
+
+  addClient(client: Client){
+    // TODO: Possibly handle shared state so clients know about each other
+    this.clients.set(client.id, client);
+
+    // TODO: Actually verify that the client was sucessfully added and only then return true
+    return true;
+  }
 }

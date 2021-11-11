@@ -1,5 +1,6 @@
 import uWebSockets from 'uWebSockets.js';
 import Client from './classes/Client';
+import Gathering from './classes/Gathering';
 import SocketWrapper from './classes/SocketWrapper';
 const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 // import * as msgTypes from '../../../types/messagetypes';

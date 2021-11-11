@@ -2,6 +2,10 @@ import Client from './Client';
 import SocketWrapper from './SocketWrapper';
 import { mock } from 'jest-mock-extended';
 import { types as soup } from 'mediasoup';
+import Room from './Room';
+
+import Gathering from './Gathering';
+jest.mock('./Gathering');
 
 
 describe('When Client class is created it', () => {
@@ -31,7 +35,7 @@ describe('When Client class is created it', () => {
 
 });
 
-describe('client instance with exposed private field', () => {
+describe('client instance with exposed private messageHandler', () => {
   let socketWrapper : SocketWrapper;
   let client: Client;
   let messageHandler: (msg: SocketMessage<UnknownMessageType>) => void;
@@ -55,25 +59,95 @@ describe('client instance with exposed private field', () => {
     expect(client.rtpCapabilities).toEqual<soup.RtpCapabilities>(validMsgObj.data);
   });
 
-  it('can join a gathering from valid join request', () => {
+  it('can NOT join a gathering if doesnt exist', () => {
+    const spy = jest.spyOn(console, 'warn').mockImplementation();
+    const gatheringId = 'lkj23lkjh234';
+    Gathering.gatherings.set(gatheringId, new Gathering(gatheringId));
     // const gatheringName = 'cool-gathering';
-    const validGatheringId = '4j4j4j4j4';
-    const validJoinRoomRequest: SocketMessage<JoinGathering> = {
+    const nonExtistingGatheringId = '4j4j4j4j4';
+    const validJoinGatheringRequest: SocketMessage<JoinGathering> = {
       ackNeeded: true,
       type: 'joinGathering',
-      data: {id: validGatheringId}
+      data: {id: nonExtistingGatheringId}
     };
-    messageHandler(validJoinRoomRequest);
+    messageHandler(validJoinGatheringRequest);
+
+    expect(client.gathering).toBeUndefined();
+    expect(spy).toBeCalled();
+    spy.mockRestore();
+  });
+  
+  it('can join a gathering from valid join request', () => {
+    const gatheringId = 'lkj23lkjh234';
+    const gathering =  new Gathering(gatheringId);
+    Gathering.gatherings.set(gatheringId, gathering);
+    const validJoinGatheringRequest: SocketMessage<JoinGathering> = {
+      ackNeeded: true,
+      type: 'joinGathering',
+      data: {id: gatheringId}
+    };
+    messageHandler(validJoinGatheringRequest);
 
     expect(client.gathering).toBeDefined();
+    expect(client.gathering).toBe(gathering);
+    // expect(client.gathering?.id).toBe(gatheringId);
+  });
+
+  // it('can NOT join a gathering from valid join request if isnt authorized', () => {
+  //   // const gatheringName = 'cool-gathering';
+  //   const validGatheringId = '4j4j4j4j4';
+  //   const validJoinRoomRequest: SocketMessage<JoinGathering> = {
+  //     ackNeeded: true,
+  //     type: 'joinGathering',
+  //     data: {id: validGatheringId}
+  //   };
+  //   messageHandler(validJoinRoomRequest);
+
+  //   expect(client.gathering).toBeDefined();
+  // });
+
+  it('returns RouterCapabilities to client when requested', () => {
+    const room = mock<Room>();
+    const caps = mock<soup.RtpCapabilities>();
+    room.getRtpCapabilities.mockReturnValue(caps);
+    client.room = room;
+    const requestMsg: SocketMessage<RequestMessageType> = {
+      request: true,
+      type:'getRouterRtpCapabilities' 
+    };
+    messageHandler(requestMsg);
+
+    expect(socketWrapper.send).toBeCalledTimes(1);
+  });
+
+  it('can not return RouterCapabilities to client if isnt in a room', () => {
+    const spy = jest.spyOn(console, 'warn').mockImplementation();
+    const requestMsg: SocketMessage<RequestMessageType> = {
+      request: true,
+      type:'getRouterRtpCapabilities' 
+    };
+    messageHandler(requestMsg);
+
+    expect(socketWrapper.send).toBeCalledTimes(0);
+    expect(spy).toBeCalledTimes(1);
+    spy.mockRestore();
   });
 
   it('can join a room from valid join request', () => {
-    const validRoomName = 'very-cool-room';
+    const gatheringId = '3lkjh3kjhlkjg4lkj';
+    const gathering = new Gathering(gatheringId);
+    const roomId = 'h3öjkh5öjh235';
+    const room = mock<Room>();
+    gathering.rooms.set(roomId, room);
+
+    Gathering.gatherings.set(gatheringId, gathering);
+
+    client.gathering = gathering;
+
     const validJoinRoomRequest: SocketMessage<JoinRoom> = {
       ackNeeded: true,
       type: 'joinRoom',
-      data: {roomName: validRoomName,}
+      data: {id: roomId,}
     };
     messageHandler(validJoinRoomRequest);
 

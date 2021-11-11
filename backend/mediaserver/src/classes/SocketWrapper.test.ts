@@ -1,5 +1,5 @@
 import SocketWrapper, { InternalMessageType, InternalSocketType } from './SocketWrapper';
-import { mock, mockDeep } from 'jest-mock-extended';
+import { mock } from 'jest-mock-extended';
 
 describe('socketwrapper with mocked underlying socket', () => {
   // We create a mocked send implementation that saves the outgoing "raw" data "to the side"
@@ -20,7 +20,15 @@ describe('socketwrapper with mocked underlying socket', () => {
     }
     return false;
   });
-  it('throws away messages if not able to parse', ()=> {
+  
+  it('can send a valid message object', () => {
+    const socketWrapper = new SocketWrapper(mockedSocket);
+    socketWrapper.send(validMsgObj);
+    expect(mockedSocket.send).toBeCalledTimes(1);
+  });
+
+  it('throws away incoming messages if not able to parse', ()=> {
+    const logSpy = jest.spyOn(console, 'warn').mockImplementation(jest.fn());
     const socketWrapper = new SocketWrapper(mockedSocket);
     const messageHandler = jest.fn();
     socketWrapper.on('message', (msg) => {
@@ -28,10 +36,12 @@ describe('socketwrapper with mocked underlying socket', () => {
     });
     socketWrapper.incomingMessage(new ArrayBuffer(10));
     expect(messageHandler).toBeCalledTimes(0);
-
+    expect(logSpy).toBeCalledTimes(1);
+    logSpy.mockRestore();
+    
   });
 
-  it('emits message event when valid incoming message is triggered', ()=> {
+  it('emits message event when parseable incoming message is triggered', ()=> {
     const socketWrapper = new SocketWrapper(mockedSocket);
     const messageHandler = jest.fn();
     socketWrapper.on('message', (msg) => {

@@ -48,7 +48,7 @@ export default class SocketWrapper extends TypedEmitter<SocketWrapperEvents>{
     } catch (e) {
       // console.log(e);
     }
-    console.log('couldnt parse incoming message into js object. IGNORING it!');
+    console.warn('couldnt parse incoming message into js object. IGNORING it!');
 
   }
   

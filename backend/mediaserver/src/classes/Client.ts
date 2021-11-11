@@ -48,25 +48,59 @@ export default class Client {
       case 'setRtpCapabilities':
         this.rtpCapabilities = msg.data;
         break;
-      case 'getRouterRtpCapabilities':
+      case 'getRouterRtpCapabilities': {
         if(!this.room){
           console.warn('Client requested router capabilities without being in a room');
           return;
         }
-        this.room.getRtpCapabilities();
+        const roomRtpCaps = this.room.getRtpCapabilities();
+        const rtpCapsMsg: SocketMessage<ResponseMessageType> = {
+          type: 'rtpCapabilitiesResponse',
+          response: true,
+          data: roomRtpCaps,
+        };
+        this.send(rtpCapsMsg);
         break;
-      case 'joinRoom':
-        console.log('request to join room:', msg.data.roomName);
+      }
+      case 'joinRoom': {
+        console.log('request to join room:', msg.data.id);
         // TODO: Check if is inside a gathering. If so, what rooms are available and if the requested room is in that set
+        if(!this.gathering){
+          console.warn('Client requested to join room without being inside a gathering');
+          return;
+        }
+        const roomId = msg.data.id;
+        const foundRoom = this.gathering.rooms.get(roomId);
+        if(foundRoom){
+          const ok = foundRoom.addClient(this);
+          if(ok){
+            this.room = foundRoom;
+          }else{
+            console.error('Failed to join room!!');
+          }
+
+        }
         break;
-      case 'joinGathering':
-        console.log('request to join gathering', msg.data);
-        // TODO: Implement logic here that checks whether the user is authorized to join the gathering or not
+      }
+      case 'joinGathering': {
+        // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join the gathering or not
+        // console.log('request to join gathering', msg.data);
+        const gathering = Gathering.gatherings.get(msg.data.id);
+        if(!gathering){
+          console.warn('Cant join that gathering. Does not exist');
+          return;
+        }
+        this.gathering = gathering;
         break;
+      }
       default:
         break;
     }
   };
+
+  private send(msg: SocketMessage<UnknownMessageType>) {
+    this.ws.send(msg);
+  }
   
 
   // /**

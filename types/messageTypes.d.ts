@@ -19,7 +19,7 @@ interface IAbstractMessage {
   // data: unknown
 }
 interface IRequestMessage extends IAbstractMessage {
-  request: true,
+  responseNeeded: true,
 }
 
 interface IAckedMessage extends IAbstractMessage {
@@ -66,22 +66,43 @@ interface JoinRoom extends IAckedMessage {
 type NormalMessageType = SetRtpCapabilities 
 type AckedMessageType = JoinRoom | JoinGathering
 type RequestMessageType =  GetRouterRtpCapabilities | CreateSendTransport | CreateReceiveTransport 
-type UnknownMessageType = NormalMessageType | AckedMessageType | RequestMessageType | ResponseMessageType
 
 // type SocketMessageAcked<T extends AckedMessageType> = T;
 // type SocketRequest<T extends RequestMessageType> = T
-type SocketMessage<T extends UnknownMessageType> = T
 // type SocketResponse<T extends UnknownResponseType> = T
 // type SocketMessageOrResponse<T extends MessageOrResponseType> = T
 
-type ResponseMessageType = RtpCapabilitiesResponse
 
 //Return Messages
 interface IResponse extends IAbstractMessage {
-  response: true
+  isResponse: true
+}
+
+interface IDataResponse extends IResponse {
+  data: unknown
+}
+interface IAckResponse extends IResponse {
+  wasSuccess: boolean,
+  message?: string
 }
 
 interface RtpCapabilitiesResponse extends IResponse {
   type: 'rtpCapabilitiesResponse',
   data: import('mediasoup').types.RtpCapabilities,
 }
+
+interface JoinRoomResponse extends IAckResponse {
+  type: 'joinRoomResponse',
+}
+
+interface JoinGatheringResponse extends IAckResponse {
+  type: 'joinGatheringResponse',
+}
+
+type DataResponseMessageType = RtpCapabilitiesResponse
+type AckResponseMessageType = JoinRoomResponse
+type ResponseMessageType = DataResponseMessageType | AckResponseMessageType
+
+
+type UnknownMessageType = NormalMessageType | AckedMessageType | RequestMessageType | ResponseMessageType
+type SocketMessage<T extends UnknownMessageType> = T

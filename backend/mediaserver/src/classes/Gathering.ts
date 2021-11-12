@@ -5,7 +5,15 @@ import Room from './Room';
 
 export default class Gathering {
   // First some static stuff for global housekeeping
-  static gatherings: Map<string, Gathering> = new Map();
+  private static gatherings: Map<string, Gathering> = new Map();
+  static getGathering(id: string) {
+    const gathering = Gathering.gatherings.get(id);
+    if(!gathering){
+      console.warn('a gathering with that id doesnt exist');
+      return;
+    }
+    return gathering;
+  }
 
   id: string;
   name;
@@ -22,5 +30,15 @@ export default class Gathering {
 
 
     Gathering.gatherings.set(this.id, this);
+  }
+
+  getRoom(id: string) {
+    const foundRoom = this.rooms.get(id);
+    if(!foundRoom){
+      console.warn('the gathering doesnt have a room with that id');
+      return;
+    }
+    return foundRoom;
+    
   }
 }

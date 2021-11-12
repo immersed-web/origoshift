@@ -56,36 +56,47 @@ export default class Client {
         const roomRtpCaps = this.room.getRtpCapabilities();
         const rtpCapsMsg: SocketMessage<ResponseMessageType> = {
           type: 'rtpCapabilitiesResponse',
-          response: true,
+          isResponse: true,
           data: roomRtpCaps,
         };
         this.send(rtpCapsMsg);
         break;
       }
       case 'joinRoom': {
-        console.log('request to join room:', msg.data.id);
-        // TODO: Check if is inside a gathering. If so, what rooms are available and if the requested room is in that set
+        // console.log('request to join room:', msg.data.id);
+        const response: SocketMessage<JoinRoomResponse> = {
+          type: 'joinRoomResponse',
+          isResponse: true,
+          wasSuccess: false,
+        };
         if(!this.gathering){
           console.warn('Client requested to join room without being inside a gathering');
+          response.message = 'not in a gathering. Cant join a room without being in a gathering';
+          this.send(response);
           return;
         }
         const roomId = msg.data.id;
-        const foundRoom = this.gathering.rooms.get(roomId);
+        const foundRoom = this.gathering.getRoom(roomId);
         if(foundRoom){
           const ok = foundRoom.addClient(this);
           if(ok){
             this.room = foundRoom;
-          }else{
-            console.error('Failed to join room!!');
+            response.wasSuccess = true;
+            response.message = 'succesfully joined room';
+            this.send(response);
+            return;
           }
-
         }
+        console.warn('Failed to join room!!');
+        this.send(response);
+
         break;
       }
       case 'joinGathering': {
         // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join the gathering or not
         // console.log('request to join gathering', msg.data);
-        const gathering = Gathering.gatherings.get(msg.data.id);
+        // const gathering = Gathering.gatherings.get(msg.data.id);
+        const gathering = Gathering.getGathering(msg.data.id);
         if(!gathering){
           console.warn('Cant join that gathering. Does not exist');
           return;

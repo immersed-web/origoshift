@@ -13,22 +13,27 @@
 
 
 
-// Interfaces for constraining the other types
 interface IAbstractMessage {
   type: string,
+  isResponse: boolean,
   // data: unknown
 }
-interface IRequestMessage extends IAbstractMessage {
+
+// Interfaces for constraining outgoing (ie not response) messages
+interface INormalMessage extends  IAbstractMessage {
+  isResponse: false,
+}
+interface IRequestMessage extends INormalMessage {
   responseNeeded: true,
 }
 
-interface IAckedMessage extends IAbstractMessage {
-  ackNeeded: true;
+interface IAckedMessage extends INormalMessage {
+  ackNeeded: true,
 }
 
 
 // Actual message types
-interface SetRtpCapabilities extends IAbstractMessage {
+interface SetRtpCapabilities extends INormalMessage {
   type: 'setRtpCapabilities',
   data: import('mediasoup-client').types.RtpCapabilities
 }
@@ -77,16 +82,19 @@ type RequestMessageType =  GetRouterRtpCapabilities | CreateSendTransport | Crea
 interface IResponse extends IAbstractMessage {
   isResponse: true
 }
-
-interface IDataResponse extends IResponse {
-  data: unknown
-}
 interface IAckResponse extends IResponse {
   wasSuccess: boolean,
   message?: string
 }
+interface ISuccessDataResponse extends IAckResponse {
+  wasSuccess: true,
+  data: unknown,
+}
+interface IFailDataResponse extends IAckResponse {
+  wasSuccess: false
+}
 
-interface RtpCapabilitiesResponse extends IResponse {
+interface RtpCapabilitiesResponse extends ISuccessDataResponse {
   type: 'rtpCapabilitiesResponse',
   data: import('mediasoup').types.RtpCapabilities,
 }
@@ -99,7 +107,7 @@ interface JoinGatheringResponse extends IAckResponse {
   type: 'joinGatheringResponse',
 }
 
-type DataResponseMessageType = RtpCapabilitiesResponse
+type DataResponseMessageType = IFailDataResponse | RtpCapabilitiesResponse
 type AckResponseMessageType = JoinRoomResponse
 type ResponseMessageType = DataResponseMessageType | AckResponseMessageType
 

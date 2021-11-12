@@ -3,11 +3,7 @@ import SocketWrapper from './SocketWrapper';
 import { mock } from 'jest-mock-extended';
 import { types as soup } from 'mediasoup';
 import Room from './Room';
-jest.mock('./Room');
-
 import Gathering from './Gathering';
-// jest.mock('./Gathering');
-
 
 describe('When Client class is created it', () => {
   let socketWrapper : SocketWrapper;
@@ -92,6 +88,25 @@ describe('client instance with exposed private messageHandler', () => {
     expect(spy).toBeCalledTimes(1);
     spy.mockRestore();
   });
+
+  it('responds with failResponse if cant get router RtpCapabilities', () => {
+    const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
+      type: 'getRouterRtpCapabilities',
+      responseNeeded: true,
+    };
+    messageHandler(requestMsg);
+
+    const failResponse: SocketMessage<RtpCapabilitiesResponse> = {
+      type: 'rtpCapabilitiesResponse',
+      isResponse: true,
+      wasSuccess: false,
+
+    };
+    expect(socketWrapper.send).toBeCalledWith(
+      expect.objectContaining(failResponse)
+    );
+  });
+
   describe('when requested to join a gathering', () => {
     const validGatheringId = 'yeahyeahyeah';
     const invalidGatheringId = 'nononononnonon';
@@ -154,7 +169,6 @@ describe('client instance with exposed private messageHandler', () => {
     const invalidRoomId = 'nononono';
     let room = mock<Room>();
     const validGatheringId = 'yeahyeahyeah';
-    const invalidGatheringId = 'nononononnonon';
     let gathering = mock<Gathering>();
     beforeEach(()=>{
       room = mock<Room>();

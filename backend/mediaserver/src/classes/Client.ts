@@ -44,22 +44,30 @@ export default class Client {
   }
 
   private handleReceivedMsg = (msg: SocketMessage<UnknownMessageType>) => {
+    if(msg.isResponse){
+      //TODO: Implement some promise based way to handle acks/req-responses
+      console.log('received a response msg: ', msg);
+      return;
+    }
     switch (msg.type) {
       case 'setRtpCapabilities':
         this.rtpCapabilities = msg.data;
         break;
       case 'getRouterRtpCapabilities': {
+        // TODO: Here we should send different stuff depending on stuff
+        // let response: SocketMessage<ResponseMessageType> = {
+        //   type: 'rtpCapabilitiesResponse',
+        //   isResponse: true,
+        //   wasSuccess: true,
+        //   data: { codecs: []} 
+        // };
         if(!this.room){
           console.warn('Client requested router capabilities without being in a room');
           return;
         }
         const roomRtpCaps = this.room.getRtpCapabilities();
-        const rtpCapsMsg: SocketMessage<ResponseMessageType> = {
-          type: 'rtpCapabilitiesResponse',
-          isResponse: true,
-          data: roomRtpCaps,
-        };
-        this.send(rtpCapsMsg);
+
+        this.send(response);
         break;
       }
       case 'joinRoom': {

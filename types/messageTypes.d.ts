@@ -13,60 +13,47 @@
 
 
 
-interface IAbstractMessage {
+interface IMessage {
+  subject: string,
   type: string,
-  isResponse: boolean,
+  // isResponse: boolean,
   // data: unknown
 }
 
 // Interfaces for constraining outgoing (ie not response) messages
-interface INormalMessage extends  IAbstractMessage {
-  isResponse: false,
+
+type PossiblyData<Data> = Data extends undefined ? unknown : {data: Data}
+
+type DataRequest<Key, Data = undefined> = IMessage & PossiblyData<Data> & {
+  type: 'dataRequest',
+  subject: Key,
 }
-interface IRequestMessage extends INormalMessage {
-  responseNeeded: true,
+type ActionRequest<Key, Data = undefined> = IMessage & PossiblyData<Data> & {
+  type: 'actionRequest'
+  subject: Key
+}
+type DataMessage<Key, Data = undefined> = IMessage & {
+  type: 'dataMessage',
+  subject: Key,
+  data: Data,
 }
 
-interface IAckedMessage extends INormalMessage {
-  ackNeeded: true,
-}
+type SetRtpCapabilities = DataMessage<'setRtpCapabilities', import('mediasoup').types.RtpCapabilities>;
 
+type GetRouterRtpCapabilities = DataRequest<'getRouterRtpCapabilities'>
+type CreateSendTransport = DataRequest<'createSendTransport'>;
+type CreateReceiveTransport = DataRequest<'createReceiveTransport'>;
+type GetSpecificData = DataRequest<'getStuff', {
+  id: string,
+}>
 
-// Actual message types
-interface SetRtpCapabilities extends INormalMessage {
-  type: 'setRtpCapabilities',
-  data: import('mediasoup-client').types.RtpCapabilities
-}
-
-interface GetRouterRtpCapabilities extends IRequestMessage {
-  type: 'getRouterRtpCapabilities',
-  // data: import('mediasoup').types.RtpCapabilities
-}
-
-interface CreateSendTransport extends IRequestMessage {
-  type: 'createSendTransport',
-  // data: import('mediasoup').types.WebRtcTransportOptions
-}
-
-interface CreateReceiveTransport extends IRequestMessage {
-  type: 'createReceiveTransport',
-  // data: import('mediasoup').types.DataConsumer
-}
-
-interface JoinGathering extends IAckedMessage {
-  type: 'joinGathering',
-  data: {
-    id: string
-    gatheringName?: string,
-  }
-}
-
-interface JoinRoom extends IAckedMessage {
-  type: 'joinRoom',
-  data: {
-    id: string,
-  }
-}
+type JoinGathering = ActionRequest<'joinGathering', {
+  id: string,
+  gatheringName?: string
+}>
+type JoinRoom = ActionRequest<'joinRoom', {
+  id: string,
+}>
 
 type NormalMessageType = SetRtpCapabilities 
 type AckedMessageType = JoinRoom | JoinGathering
@@ -79,7 +66,7 @@ type RequestMessageType =  GetRouterRtpCapabilities | CreateSendTransport | Crea
 
 
 //Return Messages
-interface IResponse extends IAbstractMessage {
+interface IResponse extends IMessage {
   isResponse: true
 }
 interface IAckResponse extends IResponse {
@@ -110,6 +97,10 @@ interface JoinGatheringResponse extends IAckResponse {
 type DataResponseMessageType = IFailDataResponse | RtpCapabilitiesResponse
 type AckResponseMessageType = JoinRoomResponse
 type ResponseMessageType = DataResponseMessageType | AckResponseMessageType
+
+interface UknownResponse extends IResponse, IAckResponse {
+  data?: unknown,
+}
 
 
 type UnknownMessageType = NormalMessageType | AckedMessageType | RequestMessageType | ResponseMessageType

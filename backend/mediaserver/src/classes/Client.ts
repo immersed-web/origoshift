@@ -55,17 +55,18 @@ export default class Client {
         break;
       case 'getRouterRtpCapabilities': {
         // TODO: Here we should send different stuff depending on stuff
-        // let response: SocketMessage<ResponseMessageType> = {
-        //   type: 'rtpCapabilitiesResponse',
-        //   isResponse: true,
-        //   wasSuccess: true,
-        //   data: { codecs: []} 
-        // };
+        const response: UknownResponse = {
+          // type: 'rtpCapabilitiesResponse',
+          isResponse: true,
+          // wasSuccess: true,
+          // data: { codecs: []} 
+        };
         if(!this.room){
           console.warn('Client requested router capabilities without being in a room');
           return;
         }
         const roomRtpCaps = this.room.getRtpCapabilities();
+        response.data;
 
         this.send(response);
         break;

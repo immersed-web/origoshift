@@ -49,32 +49,32 @@ export default class Client {
       console.log('received a response msg: ', msg);
       return;
     }
-    switch (msg.type) {
+    switch (msg.subject) {
       case 'setRtpCapabilities':
         this.rtpCapabilities = msg.data;
         break;
       case 'getRouterRtpCapabilities': {
         // TODO: Here we should send different stuff depending on stuff
-        const response: UknownResponse = {
-          // type: 'rtpCapabilitiesResponse',
+        const response = identity<UnfinishedResponse<GetRouterRtpCapabilitiesResponse>>({
+          type: 'dataResponse',
+          subject: 'getRouterRtpCapabilities',
           isResponse: true,
-          // wasSuccess: true,
-          // data: { codecs: []} 
-        };
+        });
         if(!this.room){
           console.warn('Client requested router capabilities without being in a room');
           return;
         }
+        response.wasSuccess = true;
+        
         const roomRtpCaps = this.room.getRtpCapabilities();
-        response.data;
 
         this.send(response);
         break;
       }
       case 'joinRoom': {
         // console.log('request to join room:', msg.data.id);
-        const response: SocketMessage<JoinRoomResponse> = {
-          type: 'joinRoomResponse',
+        const response: UndecidedResponse = {
+          subject: 'joinRoomResponse',
           isResponse: true,
           wasSuccess: false,
         };

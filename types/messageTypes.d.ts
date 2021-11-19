@@ -1,52 +1,34 @@
-// type PeerServerEventType =  'joinRoom' |
-// 'joinGathering' |
-// 'setRtpCapabilities' |
-// 'createSendTransport' |
-// 'createReceiveTransport' |
-// 'connectTransport' |
-// 'createProducer' |
-// 'createConsumer';
-// type RoomServerEventType = 'getRouterRtpCapabilities';
-// type MediasoupEventType = PeerServerEventType | RoomServerEventType
-
-// type MessageType = MediasoupEventType;
-
-
-
-interface IMessage {
+interface IPacket {
   subject: string,
   type: string,
-  // isResponse: boolean,
+  isResponse: boolean,
   // data: unknown
 }
 
-// Interfaces for constraining outgoing (ie not response) messages
+// Interfaces for outgoing (ie not response) messages
 
 type PossiblyData<Data> = Data extends undefined ? unknown : {data: Data}
 
-type DataRequest<Key, Data = undefined> = IMessage & PossiblyData<Data> & {
+type DataRequest<Key, Data = undefined> = IPacket & PossiblyData<Data> & {
   type: 'dataRequest',
   subject: Key,
 }
-type ActionRequest<Key, Data = undefined> = IMessage & PossiblyData<Data> & {
+type ActionRequest<Key, Data = undefined> = IPacket & PossiblyData<Data> & {
   type: 'actionRequest'
   subject: Key
 }
-type DataMessage<Key, Data = undefined> = IMessage & {
-  type: 'dataMessage',
+type DataMessage<Key, Data = undefined, ResponseBool extends boolean = false> = IPacket & {
+  type: 'message',
   subject: Key,
+  responseNeeded: ResponseBool, 
   data: Data,
 }
-
-type SetRtpCapabilities = DataMessage<'setRtpCapabilities', import('mediasoup').types.RtpCapabilities>;
 
 type GetRouterRtpCapabilities = DataRequest<'getRouterRtpCapabilities'>
 type CreateSendTransport = DataRequest<'createSendTransport'>;
 type CreateReceiveTransport = DataRequest<'createReceiveTransport'>;
-type GetSpecificData = DataRequest<'getStuff', {
-  id: string,
-}>
 
+type SetRtpCapabilities = ActionRequest<'setRtpCapabilities', import('mediasoup').types.RtpCapabilities>;
 type JoinGathering = ActionRequest<'joinGathering', {
   id: string,
   gatheringName?: string
@@ -55,53 +37,50 @@ type JoinRoom = ActionRequest<'joinRoom', {
   id: string,
 }>
 
-type NormalMessageType = SetRtpCapabilities 
-type AckedMessageType = JoinRoom | JoinGathering
-type RequestMessageType =  GetRouterRtpCapabilities | CreateSendTransport | CreateReceiveTransport 
-
-// type SocketMessageAcked<T extends AckedMessageType> = T;
-// type SocketRequest<T extends RequestMessageType> = T
-// type SocketResponse<T extends UnknownResponseType> = T
-// type SocketMessageOrResponse<T extends MessageOrResponseType> = T
+type AnyMessage = DataMessage<never, unknown>
+// type AnyActionRequest = ActionRequest<string, unknown>
+// type AnyDataRequest = DataRequest<string, unknown>
+type AnyActionRequest = JoinRoom | JoinGathering | SetRtpCapabilities 
+type AnyDataRequest =  GetRouterRtpCapabilities | CreateSendTransport | CreateReceiveTransport 
 
 
-//Return Messages
-interface IResponse extends IMessage {
-  isResponse: true
-}
-interface IAckResponse extends IResponse {
+//Interfraces for return Messages
+interface IResponse extends IPacket {
+  isResponse: true,
   wasSuccess: boolean,
-  message?: string
-}
-interface ISuccessDataResponse extends IAckResponse {
-  wasSuccess: true,
-  data: unknown,
-}
-interface IFailDataResponse extends IAckResponse {
-  wasSuccess: false
+  message?: string,
 }
 
-interface RtpCapabilitiesResponse extends ISuccessDataResponse {
-  type: 'rtpCapabilitiesResponse',
-  data: import('mediasoup').types.RtpCapabilities,
+type BaseResponse<RequestType extends IPacket, Data> = IResponse & {
+  subject: RequestType["subject"],
+} & ((PossiblyData<Data> & {wasSuccess: true}) | {wasSuccess: false} )
+
+type ActionResponse<RequestType extends AnyActionRequest, Data = undefined> = BaseResponse<RequestType, Data> & {
+  type: 'actionResponse'
 }
 
-interface JoinRoomResponse extends IAckResponse {
-  type: 'joinRoomResponse',
+type DataResponse<RequestType extends AnyDataRequest, Data = undefined> = BaseResponse<RequestType, Data> & {
+  type: 'dataResponse'
 }
 
-interface JoinGatheringResponse extends IAckResponse {
-  type: 'joinGatheringResponse',
+type MessageResponse<RequestType extends DataMessage<unknown, unknown, true>, Data = undefined> = BaseResponse<RequestType, Data> & {
+  type: 'messageResponse'
 }
 
-type DataResponseMessageType = IFailDataResponse | RtpCapabilitiesResponse
-type AckResponseMessageType = JoinRoomResponse
-type ResponseMessageType = DataResponseMessageType | AckResponseMessageType
+type SetRtpCapabilitiesResponse = ActionResponse<SetRtpCapabilities>
+type JoinRoomResponse = ActionResponse<JoinRoom>
+type JoinGatheringResponse = ActionResponse<JoinGathering, {id: string}>
+type GetRouterRtpCapabilitiesResponse = DataResponse<GetRouterRtpCapabilities, import('mediasoup').types.RtpCapabilities> 
 
-interface UknownResponse extends IResponse, IAckResponse {
-  data?: unknown,
-}
+type AnyActionResponse = SetRtpCapabilitiesResponse | JoinRoomResponse | JoinGatheringResponse
+type AnyDataResponse = GetRouterRtpCapabilitiesResponse
+type AnyMessageResponse = DataResponse<never, unknown>
 
+type AnyResponse = AnyActionResponse | AnyDataResponse | AnyMessageResponse
 
-type UnknownMessageType = NormalMessageType | AckedMessageType | RequestMessageType | ResponseMessageType
+type UnfinishedResponse<T> = Omit<T, 'wasSuccess' | 'data'> & {wasSuccess?: undefined} | T
+
+// type AnyResponse = ActionResponse<IPacket, unknown> | DataResponse<IPacket, unknown> | MessageResponse<IPacket, unknown>
+// type AnyResponse = AnyActionResponse
+type UnknownMessageType = AnyMessage | AnyActionRequest | AnyDataRequest | AnyResponse
 type SocketMessage<T extends UnknownMessageType> = T

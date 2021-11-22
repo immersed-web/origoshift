@@ -18,7 +18,7 @@ export default class Room {
     return createdRoom;
   }
 
-  constructor(id: string, router: soup.Router) {
+  private constructor(id: string, router: soup.Router) {
     this.router = router;
     this.id = id;
   }

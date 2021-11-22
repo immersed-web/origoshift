@@ -6,6 +6,18 @@ import Room from './Room';
 export default class Gathering {
   // First some static stuff for global housekeeping
   private static gatherings: Map<string, Gathering> = new Map();
+
+
+  static async createGathering(id?: string, name?: string) {
+    try {
+      const gathering = new Gathering(id, name);
+      return gathering;
+    } catch (e) {
+      console.error('failed to create gathering');
+      throw e;       
+    }
+  }
+
   static getGathering(id: string) {
     const gathering = Gathering.gatherings.get(id);
     if(!gathering){
@@ -20,7 +32,7 @@ export default class Gathering {
 
   rooms: Map<string, Room> = new Map();
 
-  constructor(id?: string, name = 'unnamed'){
+  private constructor(id?: string, name = 'unnamed'){
     if(!id){
       this.id = uuidv4();
     }else {
@@ -28,6 +40,12 @@ export default class Gathering {
     }
     this.name = name;
 
+    const alreadyExistingGathering = Gathering.gatherings.get(this.id);
+    if(alreadyExistingGathering){
+      console.error('already exists a gathering with that id!');
+      throw new Error('cant create gathering with already taken id');
+      // return;
+    }
 
     Gathering.gatherings.set(this.id, this);
   }

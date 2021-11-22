@@ -54,50 +54,61 @@ export default class Client {
         this.rtpCapabilities = msg.data;
         break;
       case 'getRouterRtpCapabilities': {
-        // TODO: Here we should send different stuff depending on stuff
-        const response = identity<UnfinishedResponse<GetRouterRtpCapabilitiesResponse>>({
+        const response = {
           type: 'dataResponse',
           subject: 'getRouterRtpCapabilities',
           isResponse: true,
-        });
+        } as UnfinishedResponse<GetRouterRtpCapabilitiesResponse>;
         if(!this.room){
           console.warn('Client requested router capabilities without being in a room');
+          response.wasSuccess = false;
+          response.message = 'not in a room. Must be in room to request RtpCapabilities';
+          response.wasSuccess === false ? this.send(response): null;
           return;
         }
-        response.wasSuccess = true;
-        
         const roomRtpCaps = this.room.getRtpCapabilities();
-
-        this.send(response);
+        response.wasSuccess = true;
+        if(response.wasSuccess){
+          response.data = roomRtpCaps;
+          this.send(response);
+        }
         break;
       }
       case 'joinRoom': {
-        // console.log('request to join room:', msg.data.id);
-        const response: UndecidedResponse = {
-          subject: 'joinRoomResponse',
+        const response = {
           isResponse: true,
+          subject: 'joinRoom',
+          type: 'actionResponse',
           wasSuccess: false,
-        };
+        } as UnfinishedResponse<JoinRoomResponse>;
+
         if(!this.gathering){
           console.warn('Client requested to join room without being inside a gathering');
           response.message = 'not in a gathering. Cant join a room without being in a gathering';
-          this.send(response);
-          return;
-        }
-        const roomId = msg.data.id;
-        const foundRoom = this.gathering.getRoom(roomId);
-        if(foundRoom){
-          const ok = foundRoom.addClient(this);
-          if(ok){
-            this.room = foundRoom;
-            response.wasSuccess = true;
-            response.message = 'succesfully joined room';
-            this.send(response);
-            return;
+        }else {
+          const roomId = msg.data.id;
+          const foundRoom = this.gathering.getRoom(roomId);
+          if(!foundRoom){
+            response.message = 'no such room in gathering';
+          } else {
+            const ok = foundRoom.addClient(this);
+            if(!ok){
+              response.message = 'failed to add client to the room';
+            }else {
+              this.room = foundRoom;
+              response.wasSuccess = true;
+              response.message = 'succesfully joined room';
+              if(response.wasSuccess){
+                response.data = {id: foundRoom.id};
+              } 
+            }
           }
         }
-        console.warn('Failed to join room!!');
-        this.send(response);
+        if(response.wasSuccess !== undefined){
+          this.send(response);
+        }else {
+          console.error('shouldn reach a point without a valid respone message built');
+        }
 
         break;
       }

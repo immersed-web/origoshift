@@ -1,7 +1,8 @@
 interface IPacket {
   subject: string,
   type: string,
-  isResponse: boolean,
+  // isResponse?: boolean,
+  isResponse?: boolean,
   // data: unknown
 }
 
@@ -37,7 +38,7 @@ type JoinRoom = ActionRequest<'joinRoom', {
   id: string,
 }>
 
-type AnyMessage = DataMessage<never, unknown>
+// type AnyMessage = DataMessage<never, unknown>
 // type AnyActionRequest = ActionRequest<string, unknown>
 // type AnyDataRequest = DataRequest<string, unknown>
 type AnyActionRequest = JoinRoom | JoinGathering | SetRtpCapabilities 
@@ -68,19 +69,19 @@ type MessageResponse<RequestType extends DataMessage<unknown, unknown, true>, Da
 }
 
 type SetRtpCapabilitiesResponse = ActionResponse<SetRtpCapabilities>
-type JoinRoomResponse = ActionResponse<JoinRoom>
+type JoinRoomResponse = ActionResponse<JoinRoom, {id: string}>
 type JoinGatheringResponse = ActionResponse<JoinGathering, {id: string}>
 type GetRouterRtpCapabilitiesResponse = DataResponse<GetRouterRtpCapabilities, import('mediasoup').types.RtpCapabilities> 
 
 type AnyActionResponse = SetRtpCapabilitiesResponse | JoinRoomResponse | JoinGatheringResponse
 type AnyDataResponse = GetRouterRtpCapabilitiesResponse
-type AnyMessageResponse = DataResponse<never, unknown>
+// type AnyMessageResponse = MessageResponse<never, unknown>
 
-type AnyResponse = AnyActionResponse | AnyDataResponse | AnyMessageResponse
+type AnyResponse = AnyActionResponse | AnyDataResponse// | AnyMessageResponse
 
-type UnfinishedResponse<T> = Omit<T, 'wasSuccess' | 'data'> & {wasSuccess?: undefined} | T
+type UnfinishedResponse<T extends AnyResponse> = Omit<T, 'wasSuccess' | 'data'> & {wasSuccess?: undefined} | T
 
 // type AnyResponse = ActionResponse<IPacket, unknown> | DataResponse<IPacket, unknown> | MessageResponse<IPacket, unknown>
 // type AnyResponse = AnyActionResponse
-type UnknownMessageType = AnyMessage | AnyActionRequest | AnyDataRequest | AnyResponse
+type UnknownMessageType = AnyActionRequest | AnyDataRequest | AnyResponse
 type SocketMessage<T extends UnknownMessageType> = T

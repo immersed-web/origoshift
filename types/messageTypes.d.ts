@@ -19,7 +19,7 @@ type ActionRequest<Key, Data = undefined> = IPacket & PossiblyData<Data> & {
   subject: Key
 }
 type DataMessage<Key, Data = undefined, ResponseBool extends boolean = false> = IPacket & {
-  type: 'message',
+  type: 'dataMessage',
   subject: Key,
   responseNeeded: ResponseBool, 
   data: Data,
@@ -38,9 +38,12 @@ type JoinRoom = ActionRequest<'joinRoom', {
   id: string,
 }>
 
+type RoomStateUpdate = DataMessage<'roomState', RoomState, false>;
+
 // type AnyMessage = DataMessage<never, unknown>
 // type AnyActionRequest = ActionRequest<string, unknown>
 // type AnyDataRequest = DataRequest<string, unknown>
+type AnyDataMessage = RoomStateUpdate
 type AnyActionRequest = JoinRoom | JoinGathering | SetRtpCapabilities 
 type AnyDataRequest =  GetRouterRtpCapabilities | CreateSendTransport | CreateReceiveTransport 
 
@@ -83,5 +86,5 @@ type UnfinishedResponse<T extends AnyResponse> = Omit<T, 'wasSuccess' | 'data'> 
 
 // type AnyResponse = ActionResponse<IPacket, unknown> | DataResponse<IPacket, unknown> | MessageResponse<IPacket, unknown>
 // type AnyResponse = AnyActionResponse
-type UnknownMessageType = AnyActionRequest | AnyDataRequest | AnyResponse
+type UnknownMessageType = AnyDataMessage | AnyActionRequest | AnyDataRequest | AnyResponse
 type SocketMessage<T extends UnknownMessageType> = T

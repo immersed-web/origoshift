@@ -29,9 +29,36 @@ export default class Room {
 
   addClient(client: Client){
     // TODO: Possibly handle shared state so clients know about each other
+    if(this.clients.has(client.id)){
+      console.warn('This client is already in the room!!');
+      return false;
+    }
     this.clients.set(client.id, client);
+    this.broadcastRoomState();
 
-    // TODO: Actually verify that the client was sucessfully added and only then return true
     return true;
+  }
+  removeClient(client: Client){
+    if(!client.id){
+      console.warn('invalid client object provided when trying to remove client from room. id missing!');
+      return false;
+    }
+    const ok = this.clients.delete(client.id);
+    this.broadcastRoomState();
+    return ok;
+  }
+  broadcastRoomState(clientToSkip?: Client){
+    //TODO: Implement an interface for roomstate
+    const roomState: RoomState = {
+      producers: [],
+      consumers: [],
+      clients: [],
+    };
+    this.clients.forEach((client) => {
+      if(clientToSkip && clientToSkip === client){
+        return;
+      }
+      client.roomStateUpdated(roomState);
+    });
   }
 }

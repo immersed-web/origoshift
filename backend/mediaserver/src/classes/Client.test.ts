@@ -310,4 +310,20 @@ describe('client instance with exposed private messageHandler', () => {
     });
 
   });
+  describe('when receiving a roomstateUpdate', () => {
+    let validNewRoomState: RoomState;
+    beforeEach(() => {
+
+      validNewRoomState = mock<RoomState>();
+      // validNewRoomState = {
+      //   clients: [],
+      //   producers: [],
+      //   consumers: [],
+      // };
+    });
+    it('sends the roomstate to the frontend', () => {
+      client.roomStateUpdated(validNewRoomState);
+      expect(socketWrapper.send).toBeCalled();
+    });
+  });
 });

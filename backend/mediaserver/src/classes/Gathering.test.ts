@@ -16,7 +16,7 @@ describe('When creating a gathering it', ()=> {
     const gathering =  await Gathering.createGathering(customUuid);
     expect(gathering.id).toBe(customUuid);
   });
-  it('adds itself to the global set of gatherings', async () => {
+  it('is added to global scope and "getable"', async () => {
     const gathering = await Gathering.createGathering();
     const gatheringId = gathering.id;
     expect(Gathering.getGathering(gatheringId)).toBe(gathering);
@@ -34,5 +34,17 @@ describe('When creating a gathering it', ()=> {
     // expect(gathering2).toBeUndefined();
     const nrOfGatherings = allGatherings.size;
     expect(nrOfGatherings).toBe(1);
+  });
+
+});
+describe('when querying for a gathering', ()=>{
+  it('only exposes gatherings accessible by the requesting client', () => {
+    // TODO: create test
+  });
+});
+
+describe('when trying to edit/update a gathering', ()=> {
+  it('only allows editing by authorized clients', ()=>{
+    // TODO: create test
   });
 });

@@ -132,6 +132,17 @@ export default class Client {
   private send(msg: SocketMessage<UnknownMessageType>) {
     this.ws.send(msg);
   }
+
+  roomStateUpdated(newRoomState: RoomState){
+    console.log('roomState updated', newRoomState);
+    const msg: RoomStateUpdate = {
+      type: 'dataMessage',
+      subject: 'roomState',
+      responseNeeded: false,
+      data: newRoomState,
+    };
+    this.send(msg);
+  }
   
 
   // /**

@@ -56,68 +56,71 @@ describe('client instance with exposed private messageHandler', () => {
     // console.log(client.rtpCapabilities);
     expect(client.rtpCapabilities).toEqual<soup.RtpCapabilities>(validMsgObj.data);
   });
+  describe('when receives request to get Router caps', () => {
 
-  it('returns RouterCapabilities to client when requested', () => {
-    const room = mock<Room>();
-    const caps = mock<soup.RtpCapabilities>();
+
+    it('returns RouterCapabilities to client when requested', () => {
+      const room = mock<Room>();
+      const caps = mock<soup.RtpCapabilities>();
     
-    room.getRtpCapabilities.mockReturnValue(caps);
-    // console.log(room.clients.get);
+      room.getRtpCapabilities.mockReturnValue(caps);
+      // console.log(room.clients.get);
 
-    // const Room = jest.createMockFromModule('./Room');
-    // const otherRoom = new Room();
-    client.room = room;
-    const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
-      subject:'getRouterRtpCapabilities',
-      type: 'dataRequest',
-    };
-    messageHandler(requestMsg);
+      // const Room = jest.createMockFromModule('./Room');
+      // const otherRoom = new Room();
+      client.room = room;
+      const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
+        subject:'getRouterRtpCapabilities',
+        type: 'dataRequest',
+      };
+      messageHandler(requestMsg);
 
-    const responseTemplate: GetRouterRtpCapabilitiesResponse = {
-      subject: 'getRouterRtpCapabilities',
-      type: 'dataResponse',
-      isResponse: true,
-      wasSuccess: true,
-      data: caps,
-    };
+      const responseTemplate: GetRouterRtpCapabilitiesResponse = {
+        subject: 'getRouterRtpCapabilities',
+        type: 'dataResponse',
+        isResponse: true,
+        wasSuccess: true,
+        data: caps,
+      };
 
-    expect(socketWrapper.send).toBeCalledTimes(1);
-    expect(socketWrapper.send).toBeCalledWith(expect.objectContaining(
-      responseTemplate
-    ));
-  });
+      expect(socketWrapper.send).toBeCalledTimes(1);
+      expect(socketWrapper.send).toBeCalledWith(expect.objectContaining(
+        responseTemplate
+      ));
+    });
 
-  it('can not return RouterCapabilities to client if isnt in a room', () => {
-    const spy = jest.spyOn(console, 'warn').mockImplementation();
-    const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
-      subject:'getRouterRtpCapabilities',
-      type: 'dataRequest',
-    };
-    messageHandler(requestMsg);
+    it('can not return RouterCapabilities to client if isnt in a room', () => {
+      const spy = jest.spyOn(console, 'warn').mockImplementation();
+      const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
+        subject:'getRouterRtpCapabilities',
+        type: 'dataRequest',
+      };
+      messageHandler(requestMsg);
 
-    expect(socketWrapper.send).toBeCalled();
-    expect(spy).toBeCalledTimes(1);
-    spy.mockRestore();
-  });
+      expect(socketWrapper.send).toBeCalled();
+      expect(spy).toBeCalledTimes(1);
+      spy.mockRestore();
+    });
 
-  it('responds with failResponse if cant get router RtpCapabilities', () => {
-    const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
-      subject: 'getRouterRtpCapabilities',
-      type: 'dataRequest',
-    };
-    messageHandler(requestMsg);
+    it('responds with failResponse if cant get router RtpCapabilities', () => {
+      const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
+        subject: 'getRouterRtpCapabilities',
+        type: 'dataRequest',
+      };
+      messageHandler(requestMsg);
 
-    const failResponseTemplate: SocketMessage<GetRouterRtpCapabilitiesResponse> = {
-      subject: 'getRouterRtpCapabilities',
-      type: 'dataResponse',
-      isResponse: true,
-      wasSuccess: false,
+      const failResponseTemplate: SocketMessage<GetRouterRtpCapabilitiesResponse> = {
+        subject: 'getRouterRtpCapabilities',
+        type: 'dataResponse',
+        isResponse: true,
+        wasSuccess: false,
 
-    };
-    expect(socketWrapper.send).toBeCalled();
-    expect(socketWrapper.send).toBeCalledWith(
-      expect.objectContaining(failResponseTemplate)
-    );
+      };
+      expect(socketWrapper.send).toBeCalled();
+      expect(socketWrapper.send).toBeCalledWith(
+        expect.objectContaining(failResponseTemplate)
+      );
+    });
   });
 
   describe('when requested to join a gathering', () => {

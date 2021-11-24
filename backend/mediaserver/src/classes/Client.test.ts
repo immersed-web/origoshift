@@ -313,7 +313,7 @@ describe('client instance with exposed private messageHandler', () => {
     });
 
   });
-  describe('when receiving a roomstateUpdate', () => {
+  describe('when roomstateUpdate is triggered', () => {
     let validNewRoomState: RoomState;
     beforeEach(() => {
 
@@ -328,5 +328,9 @@ describe('client instance with exposed private messageHandler', () => {
       client.roomStateUpdated(validNewRoomState);
       expect(socketWrapper.send).toBeCalled();
     });
+    it('updates the internal state accordingly', ()=> {
+      //TODO: Do we need to do housekeeping in the client instance itself?
+    });
   });
+  // describe('when receiving')
 });

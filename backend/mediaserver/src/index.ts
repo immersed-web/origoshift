@@ -59,6 +59,20 @@ app.ws('/*', {
     // const ok = ws.send(message, isBinary, true);
     // console.log('was ok:', ok);
   },
+  upgrade: (res, req, context) => {
+    console.log('upgrade request received:', req);
+    //TODO: authenticate received JWT token here. If nice only then we should upgrade to websocket!
+    const receivedToken = req.getQuery();
+    console.log('upgrade request provided this token: ', receivedToken);
+    res.upgrade(
+      {},
+      /* Spell these correctly */
+      req.getHeader('sec-websocket-key'),
+      req.getHeader('sec-websocket-protocol'),
+      req.getHeader('sec-websocket-extensions'),
+      context
+    );
+  },
   open: (ws) => {
     const wsWrapper = new SocketWrapper(ws);
     const client = new Client({ws: wsWrapper});

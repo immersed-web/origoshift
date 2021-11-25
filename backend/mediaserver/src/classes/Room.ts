@@ -1,5 +1,5 @@
 import {types as soup} from 'mediasoup';
-import {v4 as uuidv4} from 'uuid';
+import { randomUUID } from 'crypto';
 import { MediasoupConfig } from '../mediasoupConfig';
 import Client from './Client';
 export default class Room {
@@ -7,7 +7,7 @@ export default class Room {
   id: string;
   clients: Map<string, Client> = new Map();
 
-  static async createRoom(id: string = uuidv4(), worker: soup.Worker, config?: MediasoupConfig): Promise<Room> {
+  static async createRoom(id: string = randomUUID(), worker: soup.Worker, config?: MediasoupConfig): Promise<Room> {
     const routerOptions: soup.RouterOptions = {};
     if(config?.router.mediaCodecs){
       routerOptions.mediaCodecs = config.router.mediaCodecs;

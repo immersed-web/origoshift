@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 import Room from './Room';
 
@@ -32,12 +32,8 @@ export default class Gathering {
 
   rooms: Map<string, Room> = new Map();
 
-  private constructor(id?: string, name = 'unnamed'){
-    if(!id){
-      this.id = uuidv4();
-    }else {
-      this.id = id;
-    }
+  private constructor(id = randomUUID(), name = 'unnamed'){
+    this.id = id;
     this.name = name;
 
     const alreadyExistingGathering = Gathering.gatherings.get(this.id);

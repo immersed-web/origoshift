@@ -28,6 +28,9 @@ describe('When Client class is created it', () => {
     expect(client).toHaveProperty('id');
     expect(client.id).toBe(randomString);
   });
+  it('it wont allow a custom uuid already in use', () => {
+    // TODO: create test
+  });
 
 
 });

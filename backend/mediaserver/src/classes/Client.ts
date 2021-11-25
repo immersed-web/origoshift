@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import SocketWrapper from './SocketWrapper';
 import {types as soup} from 'mediasoup';
 // import {types as soupClient} from 'mediasoup-client';
@@ -27,7 +27,7 @@ export default class Client {
   gathering?: Gathering;
   room? : Room;
 
-  constructor({id = uuidv4(), ws }: constructionParams){
+  constructor({id = randomUUID(), ws }: constructionParams){
     // if(!id){
     //   this.id = uuidv4();
     // }else {

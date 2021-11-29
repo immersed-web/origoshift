@@ -14,7 +14,8 @@
     "build": "tsc -p tsconfig.build.json",
     "clean": "tsc --build --clean",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "generate": "yarn prisma generate"
   },
   "devDependencies": {
     "@types/jest": "^27.0.3",

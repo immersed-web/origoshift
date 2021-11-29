@@ -1,0 +1,16 @@
+{
+  "name": "database",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Gunnar Oledal",
+  "license": "MIT",
+  "scripts": {
+    "migrate": "dotenv -e ../.env.dev yarn prisma migrate dev"
+  },
+  "devDependencies": {
+    "prisma": "3.5.0"
+  },
+  "dependencies": {
+    "@prisma/client": "3.5.0"
+  }
+}

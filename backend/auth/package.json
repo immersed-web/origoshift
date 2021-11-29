@@ -6,7 +6,7 @@
   "author": "Gunnar Oledal",
   "license": "MIT",
   "prisma": {
-    "schema": "../prisma-schema/schema.prisma"
+    "schema": "../database/prisma/schema.prisma"
   },
   "scripts": {
     "start": "npm run build && node ./dist/index.js",

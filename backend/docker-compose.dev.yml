@@ -1,13 +1,26 @@
-# THIS FILE DOES OVERRIDES FOR DEVELOPING THE APP WITH HOT RELOAD AND SUCH
+# THIS FILE MAKES OVERRIDES SPECIFIC TO THE DEVELOPMENT ENVIRONMENT
 version: "3.5"
 
 services:
-  mediaserver:
-    command: yarn run dev
-    volumes:
-      - ./mediaserver/src:/usr/app/src
-      # - /usr/src/app/node_modules
-    network_mode: "bridge"
+  # mediaserver:
+  #   command: yarn run dev
+  #   volumes:
+  #     - ./mediaserver/src:/usr/app/src
+  #     # - /usr/src/app/node_modules
+  #   network_mode: "bridge"
+  #   ports:
+  #     - "9001:9001"
+  #     - "22000-22040:22000-22040"
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=bajskorv
+      - POSTGRES_DB=inclubit
     ports:
-      - "9001:9001"
-      - "22000-22040:22000-22040"
+      - "5432:5432"
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8989:8080"

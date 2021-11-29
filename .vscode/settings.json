@@ -1,0 +1,7 @@
+{
+  "files.exclude": {
+    "**/backend": true,
+    "**/types": true,
+    "**/app": true,
+  }
+}

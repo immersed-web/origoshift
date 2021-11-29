@@ -3,6 +3,10 @@
 		{"path": "./app"},
 		{"path": "./backend"},
 		{"path": "./types"},
+		{
+			"name": "root",
+			"path": "."
+		}
 	],
   "settings": {
 		"eslint.workingDirectories": [ // This is so we can have the .eslintrc.js in subfolders without problem

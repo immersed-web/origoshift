@@ -10,6 +10,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt DateTime
+}
+
 model Profile {
   id     Int    @id @default(autoincrement())
   uuid   String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -27,11 +34,13 @@ model Role {
 }
 
 model User {
-  id      Int      @id @default(autoincrement())
-  uuid    String   @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role    Role?    @relation(fields: [roleId], references: [id])
-  roleId  Int?
-  email   String?   @unique
-  name    String?
-  profile Profile?
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  updatedAt DateTime @updatedAt
+  username  String   @unique
+  password  String
+  role      Role?    @relation(fields: [roleId], references: [id])
+  roleId    Int?
+  email     String?  @unique
+  profile   Profile?
 }

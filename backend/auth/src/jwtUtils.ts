@@ -31,13 +31,13 @@ const jwtSignOptions: jwt.SignOptions = {
 //   app.use(passport.initialize());
 // }
 
-export function createJwt(userOjb: Record<string, unknown>, expiresIn: number | undefined = undefined, jwtId?: string, secret?: string){
+export function createJwt(userOjb: Record<string, unknown> | string | Buffer, expiresInSeconds: number | undefined = undefined, jwtId?: string, secret?: string){
   const signOptions: jwt.SignOptions = {
     issuer: JWT_ISSUER,
     audience: JWT_AUDIENCE,
   };
-  if(expiresIn){
-    signOptions.expiresIn = expiresIn;
+  if(expiresInSeconds){
+    signOptions.expiresIn = expiresInSeconds;
   }
   if(jwtId){
     signOptions.jwtid = jwtId;

@@ -19,28 +19,27 @@ model Session {
 
 model Profile {
   id     Int    @id @default(autoincrement())
-  uuid   String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user   User   @relation(fields: [userId], references: [id])
-  userId Int    @unique
+  // uuid   String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user   User   @relation(fields: [userId], references: [uuid])
+  userId String @unique @db.Uuid
 }
 
 model Role {
   id   Int    @id @default(autoincrement())
-  uuid String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  // uuid String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   role String
-  User User[]
+  user User[]
 
   @@unique([role])
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  uuid      String   @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  uuid      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   updatedAt DateTime @updatedAt
   username  String   @unique
   password  String
+  email     String?  @unique
   role      Role?    @relation(fields: [roleId], references: [id])
   roleId    Int?
-  email     String?  @unique
   profile   Profile?
 }

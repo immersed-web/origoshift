@@ -1,7 +1,7 @@
 import Room from './Room';
 import Client from './Client';
 import {types } from 'mediasoup';
-import { mock, mockDeep, MockProxy } from 'jest-mock-extended';
+import { mock, MockProxy } from 'jest-mock-extended';
 
 describe('when instantiating a room it', () => {
 

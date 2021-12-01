@@ -2,6 +2,9 @@
   "include": ["./**/*.ts","../../types/*.d.ts"],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
+    "plugins": [
+      { "transform": "ts-auto-mock/transformer", "cacheBetweenTests": false }
+    ],
 
     /* Basic Options */
     // "incremental": true,                         /* Enable incremental compilation */

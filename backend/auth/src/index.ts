@@ -1,5 +1,5 @@
 import express, { json as parseJsonBody } from 'express';
-import { createJwt } from './jwtUtils';
+// import { createJwt } from './jwtUtils';
 import createUserRouter from './userRoutes';
 
 // console.log('environment: ', process.env);
@@ -9,13 +9,17 @@ const app = express();
 
 app.use(parseJsonBody());
 
-
-// const token = createJwt({ gunnar: 'oledal', isccol: true, likes: ['food', 'skateboarding'] }, 6000, 'asdfasdf');
-// console.log('token:', token);
-
 const userRouter = createUserRouter(process.env);
 app.use('/user', userRouter);
 
+app.get('/health', (req, res) => {
+  res.status(200).send({
+    message: 'I am Healthy!'
+  });
+});
 
 
-app.listen(3333);
+const port = 3333;
+app.listen(port, ()=> {
+  console.log(`listening on ${port}`);
+});

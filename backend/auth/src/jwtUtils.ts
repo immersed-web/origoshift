@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 export const ADMIN_USERNAME = 'admin';
 export const ADMIN_PASSWORD = 'bajskorv';
 
+// TODO: We must environmentify these variables!!!!!
 export const JWT_SECRET = 'lkajsdhflkjasdjf';
 export const JWT_ISSUER = 'Inclubit auth server';
 export const JWT_AUDIENCE = 'inclubit application';
@@ -50,8 +51,11 @@ export function createJwt(userOjb: Record<string, unknown> | string | Buffer, ex
   return token;
 }
 
-export function verifyJwtToken(token: string){
-  const decoded = jwt.verify(token, JWT_SECRET, jwtSignOptions);
+export function verifyJwtToken(token: string, secret?: string){
+  if(!secret){
+    secret = JWT_SECRET;
+  }
+  const decoded = jwt.verify(token, secret, jwtSignOptions);
   return decoded;
 }
 

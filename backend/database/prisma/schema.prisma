@@ -38,7 +38,6 @@ model User {
   updatedAt DateTime @updatedAt
   username  String   @unique
   password  String
-  email     String?  @unique
   role      Role?    @relation(fields: [roleId], references: [id])
   roleId    Int?
   profile   Profile?

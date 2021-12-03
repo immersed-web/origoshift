@@ -2,79 +2,108 @@ import { RequestHandler, Router } from 'express';
 import bcrypt from 'bcrypt';
 import session from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
-import prisma, { Prisma } from './prismaSingleton';
+import prisma  from './prismaClient';
 import { createJwt } from './jwtUtils';
+import { Prisma } from '@prisma/client';
 
+
+const userWithRole = Prisma.validator<Prisma.UserArgs>()({include: {role: true}});
+type UserWithRole = Prisma.UserGetPayload<typeof userWithRole>
 declare module 'express-session' {
   interface SessionData {
     userId: string
+    user: UserWithRole
   }
 }
 
 const index: RequestHandler = (req, res) => {
   res.send({message: 'this is the auth user route. Whats cookin good lookin?'});
 };
-const createUser: RequestHandler = async (req, res) => {
+export const createUser: RequestHandler = async (req, res) => {
+  const userData = req.session.user;
+  
+  if(userData?.role?.role === 'admin'){
+    res.status(403).send('fuck you');
+  }
   const username = req.body.username;
   const password = req.body.password;
   const hashedPassword = await bcrypt.hash(password, 10);
   const result = await prisma.user.create({data: {username: username, role: {connectOrCreate: {where:{role: 'client'}, create: {role: 'client'}}}, password: hashedPassword}});
-  console.log('result:', result);
 
-  res.status(201).send();
+  res.status(201).send(result);
 };
 
-const validateUserSession: RequestHandler = async (req, res, next) => {
-  if(!req.session.userId){
-    res.status(403).send({message: 'fuck you!!!!'});
-    return;
-  }
-  const user = await prisma.user.findUnique({
-    where: {uuid: req.session.userId},
-    select: {
-      uuid: true,
-      username: true,
-      email: true,
-      profile: true,
-      role: true
+
+export const validateUserSession: RequestHandler = async (req, res, next) => {
+  if(req.session.userId){
+    // const user = await prisma.user.findUnique({
+    //   where: {uuid: req.session.userId},
+    //   select: {
+    //     uuid: true,
+    //     // username: true,
+    //     // profile: true,
+    //     // role: true
+    //   }
+    // });
+
+    const user = await prisma.user.findUnique({where: {uuid: req.session.userId}, include:{ role: true}});
+    if(user){
+      // req.user = user;
+      // req.session.user = user;
+      next();
+      return;
     }
-  });
-  if(!user){
-    console.warn('failed to get user!!!');
-    next();
-    return;
   }
-  req.user = user;
-  next();
+  res.status(403).send({message: 'fuck you!!!!'});
+  return;
 };
 
-const loginUser: RequestHandler = async (req, res) => {
-  console.log('login req received');
+export const loginUser: RequestHandler = async (req, res) => {
+  // console.log('login req received');
   const username = req.body.username;
   const password = req.body.password;
   try{
-    const foundUser = await prisma.user.findUnique({where: {username: username}});
-    if(!foundUser){
-      res.send('fuck you');
-      return;
-    }
-    const correct = await bcrypt.compare(password, foundUser.password);
-    if(correct){
-      req.session.userId = foundUser.uuid;
-      res.status(200).send();
+    const foundUser = await prisma.user.findUnique({where: {username: username}, include:{ role: true}});
+    if(foundUser){
+      const correct = await bcrypt.compare(password, foundUser.password);
+      if(correct){
+        req.session.userId = foundUser.uuid;
+        req.session.user = foundUser;
+        res.status(200).send();
+        return;
+      }
     }
   } catch (e) {
     console.error(e);
     res.status(501).send('failed when querying db for user');
+    return;
   }
+  res.status(403).send('fuck you');
   
 };
 
-const getUser: RequestHandler = async (req, res) => {
+export const logoutUser: RequestHandler = async (req, res) => {
+  if(req.user){
+    req.user = undefined;
+  }
+  if(req.session.userId){
+    req.session.userId = undefined;
+    req.session.destroy((err)=> {
+      if(err){
+        console.error(err);
+        res.status(501).send({message: 'failed to destroy session'});
+        return;
+      }
+    });
+  }
+  res.status(200).send();
+};
+
+export const getUser: RequestHandler = async (req, res) => {
   res.send(req.user);
 };
 
-const getJwt:RequestHandler = async (req, res) => {
+export const getJwt:RequestHandler = async (req, res) => {
   if(!req.user){
     res.status(501).send('no user in req obj!');
     return;
@@ -83,8 +112,7 @@ const getJwt:RequestHandler = async (req, res) => {
   res.send(token);
 };
 
-function createUserRouter(env: NodeJS.ProcessEnv){
-
+export default function createUserRouter(env: NodeJS.ProcessEnv){
   if(!env.SESSION_KEY){
     console.error('no session key provided!!!');
     throw new Error('no session key provided when creating user router');
@@ -111,7 +139,7 @@ function createUserRouter(env: NodeJS.ProcessEnv){
 
   userRouter.get('', index);
     
-  userRouter.post('create', createUser);
+  userRouter.post('/create', createUser);
 
   // userRouter.get('/dummylogin', (req, res) => {
 
@@ -119,12 +147,15 @@ function createUserRouter(env: NodeJS.ProcessEnv){
   //   res.send('niiice');
   // });
     
-  userRouter.post('login', loginUser);
+  userRouter.post('/login', loginUser);
+  userRouter.get('/logout', () => {
+    console.log('logout requested');
+  });
 
 
-  userRouter.get('me', validateUserSession,  getUser);
+  userRouter.get('/me', validateUserSession,  getUser);
 
-  userRouter.get('jwt', validateUserSession, getJwt);
+  userRouter.get('/jwt', validateUserSession, getJwt);
 
   // userRouter.get('jwt', async (req, res, next) =>{
 
@@ -148,4 +179,4 @@ function createUserRouter(env: NodeJS.ProcessEnv){
 
 
 
-export default createUserRouter;
+// export default createUserRouter;

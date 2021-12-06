@@ -1,5 +1,6 @@
 import { useConnectionStore } from '../stores/connection';
 import { pinia } from '../boot/pinia';
+import { SocketMessage, UnknownMessageType } from 'app/../types/messageTypes';
 
 let socket: WebSocket | null = null;
 if (process.env.SOCKET_URL) {
@@ -13,8 +14,13 @@ if (process.env.SOCKET_URL) {
   console.error('No socke url provided from environment variables');
 }
 
-// export send = (msg: SocketMessage<UnknownMessageType>) => {
-//   socket?.send
-// }
+export const send = (msg: SocketMessage<UnknownMessageType>) => {
+  if (msg.type === 'dataMessage') {
+    const string = JSON.stringify(msg);
+    socket?.send(string);
+  }
+  console.log(msg);
+  // socket?.send
+};
 
 export default socket;

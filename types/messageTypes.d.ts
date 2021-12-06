@@ -88,3 +88,6 @@ type UnfinishedResponse<T extends AnyResponse> = Omit<T, 'wasSuccess' | 'data'> 
 // type AnyResponse = AnyActionResponse
 type UnknownMessageType = AnyDataMessage | AnyActionRequest | AnyDataRequest | AnyResponse
 type SocketMessage<T extends UnknownMessageType> = T
+
+
+export { SocketMessage, UnknownMessageType, AnyActionRequest, AnyDataRequest }

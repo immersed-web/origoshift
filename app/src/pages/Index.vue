@@ -1,6 +1,6 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <h2>Connected? {{ connectionStore.connected }}</h2>
+    <h2>Caaannect??? {{ connectionStore.connected }}</h2>
   </q-page>
 </template>
 

@@ -2,19 +2,9 @@ import { RequestHandler, Router } from 'express';
 import bcrypt from 'bcrypt';
 import session from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
-import prisma  from './prismaClient';
+import prisma, {Prisma} from './prismaClient';
 import { createJwt } from './jwtUtils';
-import { Prisma } from '@prisma/client';
-
-
-const userWithRole = Prisma.validator<Prisma.UserArgs>()({include: {role: true}});
-type UserWithRole = Prisma.UserGetPayload<typeof userWithRole>
-declare module 'express-session' {
-  interface SessionData {
-    userId: string
-    user: UserWithRole
-  }
-}
+import { userDataFromDBResponse } from './utils';
 
 const index: RequestHandler = (req, res) => {
   res.send({message: 'this is the auth user route. Whats cookin good lookin?'});
@@ -22,15 +12,37 @@ const index: RequestHandler = (req, res) => {
 export const createUser: RequestHandler = async (req, res) => {
   const userData = req.session.user;
   
-  if(userData?.role?.role === 'admin'){
+  if(userData?.role !== 'admin'){
     res.status(403).send('fuck you');
+    return;
   }
   const username = req.body.username;
   const password = req.body.password;
   const hashedPassword = await bcrypt.hash(password, 10);
-  const result = await prisma.user.create({data: {username: username, role: {connectOrCreate: {where:{role: 'client'}, create: {role: 'client'}}}, password: hashedPassword}});
+  try {
+    const result = await prisma.user.create({data: {username: username, role: {connectOrCreate: {where:{role: 'client'}, create: {role: 'client'}}}, password: hashedPassword},select: {
+      uuid: true,
+      username: true,
+      role: true,
+      updatedAt: true,
+    }});
+    res.status(201).send(result);
+    return;
+  } catch(e) {
+    if(e instanceof Prisma.PrismaClientKnownRequestError){
+      if(e.code === 'P2002'){
+        res.status(409).send({message: 'username already taken maddafakka!'});
+        return;
+      }else {
+        console.error('prisma client error when creating user');
+        console.error(e);
+        res.status(501).send(e.message);
+        return;
+      }
+    }
+    console.warn(e);
+  }
 
-  res.status(201).send(result);
 };
 
 
@@ -67,8 +79,10 @@ export const loginUser: RequestHandler = async (req, res) => {
     if(foundUser){
       const correct = await bcrypt.compare(password, foundUser.password);
       if(correct){
-        req.session.userId = foundUser.uuid;
-        req.session.user = foundUser;
+        const userData = userDataFromDBResponse(foundUser);
+        // console.log('userdata:', userData);
+        req.session.userId = userData.uuid;
+        req.session.user = userData;
         res.status(200).send();
         return;
       }
@@ -100,15 +114,19 @@ export const logoutUser: RequestHandler = async (req, res) => {
 };
 
 export const getUser: RequestHandler = async (req, res) => {
-  res.send(req.user);
+  if(!(req.session.user)){
+    res.status(403).send('not allowed mr hacker!');
+    return;
+  }
+  res.send(req.session.user);
 };
 
 export const getJwt:RequestHandler = async (req, res) => {
-  if(!req.user){
-    res.status(501).send('no user in req obj!');
+  if(!req.session.user){
+    res.status(403).send('no user in req obj! Seems you are not logged in!');
     return;
   }
-  const token = createJwt(req.user as Record<string, unknown>, 60);
+  const token = createJwt(req.session.user, 60);
   res.send(token);
 };
 
@@ -139,19 +157,17 @@ export default function createUserRouter(env: NodeJS.ProcessEnv){
 
   userRouter.get('', index);
     
-  userRouter.post('/create', createUser);
-
+  
   // userRouter.get('/dummylogin', (req, res) => {
-
+    
   //   req.session.userId = 'mrMaster';
   //   res.send('niiice');
   // });
     
   userRouter.post('/login', loginUser);
-  userRouter.get('/logout', () => {
-    console.log('logout requested');
-  });
-
+  userRouter.get('/logout', logoutUser);
+    
+  userRouter.post('/create', validateUserSession, createUser);
 
   userRouter.get('/me', validateUserSession,  getUser);
 

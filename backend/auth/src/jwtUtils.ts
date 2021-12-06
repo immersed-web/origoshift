@@ -32,7 +32,7 @@ const jwtSignOptions: jwt.SignOptions = {
 //   app.use(passport.initialize());
 // }
 
-export function createJwt(userOjb: Record<string, unknown> | string | Buffer, expiresInSeconds: number | undefined = undefined, jwtId?: string, secret?: string){
+export function createJwt(userOjb: object | string | Buffer, expiresInSeconds: number | undefined = undefined, jwtId?: string, secret?: string){
   const signOptions: jwt.SignOptions = {
     issuer: JWT_ISSUER,
     audience: JWT_AUDIENCE,

@@ -5,8 +5,12 @@ import { mock, mockDeep, mockFn } from 'jest-mock-extended';
 import brcypt from 'bcrypt';
 
 // import prisma from './prismaClient';
-import { prismaMock, PrismaSessionStoreMock } from './testUtils/prismaMock';
-import { Prisma } from '@prisma/client';
+import { prismaMock, PrismaSessionStoreMock, UserWithRole, Prisma} from './testUtils/prismaMock';
+import { userDataFromDBResponse } from './utils';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+// import { Prisma } from '.prisma/client';
+// import { Prisma } from '@prisma/client';
+
 
 describe('when creating a userRouter', () => {
   it('prisma client has mocked api', () => {
@@ -83,22 +87,41 @@ describe('a userRouter', () => {
 // });
 
 describe('the userRouter middlewares', () =>{
-  const userWithRole = Prisma.validator<Prisma.UserArgs>()({include: {role: true}});
-  type UserWithRole = Prisma.UserGetPayload<typeof userWithRole>
-  const mockedUser = {
+  // const userWithRole = Prisma.validator<Prisma.UserArgs>()({include: {role: true}});
+  // type UserWithRole = Prisma.UserGetPayload<typeof userWithRole>
+  const mockedUserWithoutRole = {
     username: 'mrOizo',
     password: 'passw0rd',
     uuid: '123',
     roleId: null,
     updatedAt: new Date(),
   };
+  const mockedUserWithRole: UserWithRole = {
+    username: 'userMan',
+    password: 'p4$$w0rd',
+    uuid: '123',
+    updatedAt: new Date(),
+    roleId: 1,
+    role: {
+      id: 1,
+      role: 'client'
+    }
+  };
+
+  const mockedUserData: UserData = {
+    uuid: '123',
+    username: 'mr test',
+    role: 'client'
+  };
   
   const req = mockDeep<Request>();
+
   const res = mock<Response>();
   res.status.mockReturnValue(res);
   const next = mockFn<NextFunction>();
   beforeEach(() => {
     res.status.mockClear();
+    res.send.mockClear();
   });
 
   describe('loginUser', ()=> {
@@ -113,7 +136,13 @@ describe('the userRouter middlewares', () =>{
     });
     
     it('logs in valid user', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({username: req.body.username, password: hashedPassword, updatedAt: new Date(), uuid: '123', roleId: null});
+      prismaMock.user.findUnique.mockResolvedValue({
+        username: req.body.username, 
+        password: hashedPassword, 
+        updatedAt: new Date(), 
+        uuid: '123', 
+        roleId: null,
+      });
       await loginUser(req, res, next);
       expect(req.session.userId).toBeDefined();
       expect(req.user).toBeDefined();
@@ -121,12 +150,9 @@ describe('the userRouter middlewares', () =>{
       expect(res.send).toBeCalledTimes(1);
     });
     
-    it('sends 403 if username is wrong', async () => {
-
-      prismaMock.user.findUnique.mockResolvedValue({
-        ...mockedUser,
-        password: req.body.password,
-      });
+    it('sends 403 if username is not found', async () => {
+      req.body.username = 'invalidUser';
+      prismaMock.user.findUnique.mockResolvedValue(null);
       await loginUser(req, res, next);
       expect(res.status).toBeCalledWith(403);
       expect(res.send).toBeCalledTimes(1);
@@ -173,7 +199,7 @@ describe('the userRouter middlewares', () =>{
       const userId = '123';
       req.session.userId = userId;
       prismaMock.user.findUnique.mockResolvedValue({
-        ...mockedUser,
+        ...mockedUserWithoutRole,
         uuid: '123'
       });
       await validateUserSession(req, res, next);
@@ -189,38 +215,36 @@ describe('the userRouter middlewares', () =>{
     it('send 403 if no userId in session', async ()=>{
       req.session.userId = undefined;
       prismaMock.user.findUnique.mockResolvedValue({
-        ...mockedUser,
+        ...mockedUserWithoutRole,
         uuid: '123'
       });
       await validateUserSession(req, res, next);
       expect(res.status).toBeCalledWith(403);
       expect(res.send).toBeCalledTimes(1);
     });
-    it('if validation succeeds it set the user object', async ()=> {
+    it('if validation succeeds it set the session user object', async ()=> {
       req.session.userId = '123';
       
       prismaMock.user.findUnique.mockResolvedValue({
-        ...mockedUser,
+        ...mockedUserWithoutRole,
         uuid: '123',
       });
       await validateUserSession(req, res, next);
-      expect(req.user).toBeDefined();
+      expect(req.session.user).toBeDefined();
     });
   });
+
   describe('createUser', () => {
     beforeEach(()=> {
       // TODO
     });
     it('allows admins to create user', async ()=>{
-      const prismaUser: UserWithRole = {
-        ...mockedUser,
-        role: {
-          id: 123,
-          role: 'admin',
-        }
+      const userData: UserData = {
+        ...mockedUserData,
+        role:  'admin',
       };
+      req.session.user = userData;
 
-      req.user = prismaUser;
       req.body = {
         username: 'slaveUser',
         password: 'hemligt',
@@ -231,9 +255,9 @@ describe('the userRouter middlewares', () =>{
       expect(res.send).toBeCalledWith(expect.objectContaining(req.body));
     });
     it('responds with 403 if unauthorized user tries to create', async ()=> {
-      req.user = mockedUser;
+      req.session.user = mockedUserData;
       req.body = {
-        username: 'slaveUser',
+        username: 'injection of doom',
         password: 'p4$$w0rD',
       };
       await createUser(req, res, next);
@@ -241,11 +265,86 @@ describe('the userRouter middlewares', () =>{
       expect(res.send).toBeCalledTimes(1);
 
     });
-    it('responds with 403 if request comes from not logged in user', () => {
-      // TODO
+    it('responds with 403 if not logged in client tries to create', async ()=> {
+      req.session.user = undefined;
+      req.session.userId= undefined;
+      req.body = {
+        username: 'asdasd',
+        password: 'asdfasdf',
+      };
+      await createUser(req, res, next);
+      expect(res.status).toBeCalledWith(403);
+      expect(res.send).toBeCalledTimes(1);
     });
-    it('responds with 403 if trying to create a user that already exists', () => {
+    it('responds with 403 if trying to create a user that already exists', async () => {
       //TODO
+      const userData: UserData = {
+        ...mockedUserData,
+        role: 'admin',
+      };
+      req.session.user = userData;
+
+      req.body = {
+        username: 'coolUsername',
+        password: 'secret'
+      };
+      prismaMock.user.create.mockResolvedValueOnce(mockedUserWithRole);
+      // const notUniqueError: Prisma.PrismaClientKnownRequestError = {
+      //   clientVersion: 'a version. who caares...',
+      //   code: 'P2002',
+      //   name: 'asdfasdf',
+      //   message: 'fuck you maddafakka',
+      // } as Prisma.PrismaClientKnownRequestError;
+      // const notUniqueError = mock<Prisma.PrismaClientKnownRequestError>();
+      // notUniqueError.code = 'P2002';
+      const notUniqueError = new PrismaClientKnownRequestError('not cool dude!', 'P2002', 'a cool version!');
+      prismaMock.user.create.mockRejectedValueOnce(notUniqueError);
+
+      await createUser(req, res, next);
+      expect(res.status).toBeCalledWith(201);
+      expect(res.send).toBeCalledTimes(1);
+
+      res.send.mockClear();
+      res.status.mockClear();
+      await createUser(req, res, next);
+      expect(res.status).toBeCalledWith(409);
+      expect(res.send).toBeCalledTimes(1);
+
+      // prismaMock.user.findUnique.mockResolvedValueOnce()
+
     });
   });
+
+  describe('getUser', () => {
+    it('responds with 403 if not logged in', async () => {
+      req.session.user = undefined;
+      await getUser(req, res, next);
+      expect(res.status).toBeCalledWith(403);
+    });
+    it('returns user object if is logged in', async ()=> {
+      req.session.user = mockedUserData;
+
+      // prismaMock.user.findUnique.mockResolvedValue(mockedUserWithRole);
+
+      await getUser(req, res, next);
+      // expect(res.status).toBeCalledWith(200);
+      expect(res.send).toBeCalledTimes(1);
+    });
+  });
+
+  describe('getJwt', ()=> {
+    it('responds with 403 if not logged in', async () => {
+      req.session.user = undefined;
+      await getJwt(req, res, next);
+      expect(res.status).toBeCalledWith(403);
+    });
+    it('returns jwt for the userObject', async () => {
+      req.session.user = mockedUserData;
+
+      await getJwt(req, res, next);
+      expect(res.status).not.toBeCalledWith(403);
+      expect(res.send).toBeCalledTimes(1);
+    });
+  });
+
 });

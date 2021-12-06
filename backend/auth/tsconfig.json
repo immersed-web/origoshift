@@ -1,5 +1,5 @@
 {
-  "include": ["./**/*.ts","../../types/*.d.ts"],
+  "include": ["./**/*.ts", "./**/*.d.ts","../../types/*.d.ts"],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
     // "plugins": [

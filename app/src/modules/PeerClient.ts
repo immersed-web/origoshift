@@ -10,7 +10,7 @@ import { RtpCapabilities } from 'mediasoup-client/lib/RtpParameters';
 // import { TransportOptions } from 'mediasoup-client/lib/Transport';
 import { RoomState } from 'app/../types/types';
 import { sendRequest, send, onMessage } from 'src/modules/WebSocket';
-import { ConnectTransport, CreateConsumer, CreateReceiveTransport, CreateRoom, CreateSendTransport, GetRouterRtpCapabilities, GetRouterRtpCapabilitiesResponse, JoinRoom, ResponseTo, SetName, SetRtpCapabilities, SetRtpCapabilitiesResponse } from 'app/../types/messageTypes';
+import { SpecificRequest, ConnectTransport, CreateConsumer, CreateReceiveTransport, CreateRoom, CreateSendTransport, GetRouterRtpCapabilities, GetRouterRtpCapabilitiesResponse, JoinRoom, ResponseTo, SetName, SetRtpCapabilities, SetRtpCapabilitiesResponse } from 'app/../types/messageTypes';
 
 export default class PeerClient {
   // socket: SocketExt;
@@ -91,7 +91,7 @@ export default class PeerClient {
       type: 'request',
       subject: 'setRtpCapabilities',
       data: this.mediasoupDevice.rtpCapabilities,
-      isResponse: false
+      isResponse: false,
       // id: Date.now(),
     };
 
@@ -130,9 +130,9 @@ export default class PeerClient {
       subject: 'joinRoom',
       isResponse: false,
       data: {
-        id: roomId
-      }
-    }
+        id: roomId,
+      },
+    };
     return sendRequest(joinRoomMsg);
   }
 
@@ -146,7 +146,7 @@ export default class PeerClient {
         name: roomName,
       },
       isResponse: false,
-    }
+    };
     return sendRequest(createRoomMsg);
   }
 
@@ -160,15 +160,16 @@ export default class PeerClient {
       subject: 'getRouterRtpCapabilities',
       type: 'request',
       isResponse: false,
-    }
+    };
 
     const response = await sendRequest<GetRouterRtpCapabilitiesResponse>(getRouterCapsMsg);
-    if(response.wasSuccess){
+    if (response.wasSuccess) {
       return response.data;
     } else {
       console.error(response.message);
     }
-    throw 'failed to get router caps!';
+
+    throw new Error('failed to get router caps!');
   }
 
   async createSendTransport () {
@@ -189,7 +190,7 @@ export default class PeerClient {
 
     const response = await sendRequest<ResponseTo<CreateSendTransport>>(createSendTransportMsg);
 
-    if(!response.wasSuccess){
+    if (!response.wasSuccess) {
       throw response.message;
     }
     const transportOptions: mediasoupTypes.TransportOptions = response.data;
@@ -214,10 +215,10 @@ export default class PeerClient {
       subject: 'createReceiveTransport',
       type: 'request',
       isResponse: false,
-    }
+    };
     const response = await sendRequest<ResponseTo<CreateReceiveTransport>>(createReceiveTransportMsg);
 
-    if(!response.wasSuccess){
+    if (!response.wasSuccess) {
       throw response.message;
     }
     const transportOptions: mediasoupTypes.TransportOptions = response.data;
@@ -247,15 +248,15 @@ export default class PeerClient {
           isResponse: false,
           data: {
             id: transport.id,
-            dtlsParameters
-          }
-        }
+            dtlsParameters,
+          },
+        };
         const response = await sendRequest<ResponseTo<ConnectTransport>>(connectTransportMsg);
-        if(response.wasSuccess){
+        if (response.wasSuccess) {
           callback();
           return;
         }
-        errback(response.message)
+        errback(response.message);
       })();
     });
 
@@ -263,7 +264,7 @@ export default class PeerClient {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       transport.on('produce', async ({
         kind,
-        rtpParameters
+        rtpParameters,
       }: {kind: mediasoupTypes.MediaKind, rtpParameters: mediasoupTypes.RtpParameters}, callback: (data: unknown) => void, errorback: (error: unknown) => void) => {
       // void (async () => {
         // const params: {transportId: string | undefined, kind: mediasoupTypes.MediaKind, rtpParameters: mediasoupTypes.RtpParameters } = { transportId: transport?.id, kind, rtpParameters };
@@ -322,14 +323,14 @@ export default class PeerClient {
       subject: 'createConsumer',
       type: 'request',
       data: {
-        producerId
+        producerId,
       },
       isResponse: false,
-    }
+    };
     const response = await sendRequest<ResponseTo<CreateConsumer>>(createConsumerMsg);
 
-    if(!response.wasSuccess){
-      throw response.message
+    if (!response.wasSuccess) {
+      throw response.message;
     }
     const consumerOptions = response.data;
     const consumer = await this.receiveTransport.consume(consumerOptions);

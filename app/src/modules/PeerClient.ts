@@ -9,8 +9,8 @@ import * as mediasoupClient from 'mediasoup-client';
 import { RtpCapabilities } from 'mediasoup-client/lib/RtpParameters';
 // import { TransportOptions } from 'mediasoup-client/lib/Transport';
 import { RoomState } from 'app/../types/types';
-import { sendRequest, send, onRequest } from 'src/modules/WebSocket';
-import { JoinRoom, SetName, SetRtpCapabilities } from 'app/../types/messageTypes';
+import { sendRequest, send, onMessage } from 'src/modules/WebSocket';
+import { ConnectTransport, CreateConsumer, CreateReceiveTransport, CreateRoom, CreateSendTransport, GetRouterRtpCapabilities, GetRouterRtpCapabilitiesResponse, JoinRoom, ResponseTo, SetName, SetRtpCapabilities, SetRtpCapabilitiesResponse } from 'app/../types/messageTypes';
 
 export default class PeerClient {
   // socket: SocketExt;
@@ -88,7 +88,7 @@ export default class PeerClient {
     // return await this.socket.request('setRtpCapabilities', this.mediasoupDevice.rtpCapabilities);
     // TODO
     const setRtpCapabilities: SetRtpCapabilities = {
-      type: 'actionRequest',
+      type: 'request',
       subject: 'setRtpCapabilities',
       data: this.mediasoupDevice.rtpCapabilities,
       isResponse: false
@@ -114,7 +114,7 @@ export default class PeerClient {
     // return this.triggerSocketEvent('setName', name);
     // return this.socket.request('setName', { name });
     const setNameMsg: SetName = {
-      type: 'actionRequest',
+      type: 'request',
       subject: 'setName',
       data: { name: name },
       isResponse: false,
@@ -126,7 +126,7 @@ export default class PeerClient {
     // return this.triggerSocketEvent('joinRoom', roomName);
     // return this.socket.request('joinRoom', roomName);
     const joinRoomMsg: JoinRoom = {
-      type: 'actionRequest',
+      type: 'request',
       subject: 'joinRoom',
       isResponse: false,
       data: {
@@ -139,28 +139,60 @@ export default class PeerClient {
   async createRoom (roomName: string) {
     // return this.triggerSocketEvent('createRoom', roomName);
     // return this.socket.request('createRoom', roomName);
-    sendRequest
+    const createRoomMsg: CreateRoom = {
+      subject: 'createRoom',
+      type: 'request',
+      data: {
+        name: roomName,
+      },
+      isResponse: false,
+    }
+    return sendRequest(createRoomMsg);
   }
 
   async getRouterCapabilities () : Promise<mediasoupTypes.RtpCapabilities> {
-    const response: SocketAck = await this.socket.request('getRouterRtpCapabilities');
-    if (response.status === 'success') {
-      return response.data as mediasoupTypes.RtpCapabilities;
+    // const response: SocketAck = await this.socket.request('getRouterRtpCapabilities');
+    // if (response.status === 'success') {
+    //   return response.data as mediasoupTypes.RtpCapabilities;
+    // }
+    // return Promise.reject(response.errorMessage);
+    const getRouterCapsMsg: GetRouterRtpCapabilities = {
+      subject: 'getRouterRtpCapabilities',
+      type: 'request',
+      isResponse: false,
     }
-    return Promise.reject(response.errorMessage);
+
+    const response = await sendRequest<GetRouterRtpCapabilitiesResponse>(getRouterCapsMsg);
+    if(response.wasSuccess){
+      return response.data;
+    } else {
+      console.error(response.message);
+    }
+    throw 'failed to get router caps!';
   }
 
   async createSendTransport () {
-    const response = await this.socket.request('createSendTransport');
-    if (response.status === 'error') {
-      console.error('Failed to create remote sendTransport');
-      return Promise.reject(response.errorMessage);
-    }
-    if (!response.data) {
-      return Promise.reject('No transportOptions returned from server');
-    }
+    // const response = await this.socket.request('createSendTransport');
+    // if (response.status === 'error') {
+    //   console.error('Failed to create remote sendTransport');
+    //   return Promise.reject(response.errorMessage);
+    // }
+    // if (!response.data) {
+    //   return Promise.reject('No transportOptions returned from server');
+    // }
 
-    const transportOptions: mediasoupTypes.TransportOptions = response.data as mediasoupTypes.TransportOptions;
+    const createSendTransportMsg: CreateSendTransport = {
+      subject: 'createSendTransport',
+      type: 'request',
+      isResponse: false,
+    };
+
+    const response = await sendRequest<ResponseTo<CreateSendTransport>>(createSendTransportMsg);
+
+    if(!response.wasSuccess){
+      throw response.message;
+    }
+    const transportOptions: mediasoupTypes.TransportOptions = response.data;
     try {
       this.sendTransport = this.mediasoupDevice.createSendTransport(transportOptions);
     } catch (err) {
@@ -171,14 +203,24 @@ export default class PeerClient {
   }
 
   async createReceiveTransport () {
-    const response = await this.socket.request('createReceiveTransport');
-    if (response.status === 'error') {
-      return Promise.reject(response.errorMessage);
+    // const response = await this.socket.request('createReceiveTransport');
+    // if (response.status === 'error') {
+    //   return Promise.reject(response.errorMessage);
+    // }
+    // if (!response.data) {
+    //   return Promise.reject('No transportOptions returned from server');
+    // }
+    const createReceiveTransportMsg: CreateReceiveTransport = {
+      subject: 'createReceiveTransport',
+      type: 'request',
+      isResponse: false,
     }
-    if (!response.data) {
-      return Promise.reject('No transportOptions returned from server');
+    const response = await sendRequest<ResponseTo<CreateReceiveTransport>>(createReceiveTransportMsg);
+
+    if(!response.wasSuccess){
+      throw response.message;
     }
-    const transportOptions: mediasoupTypes.TransportOptions = response.data as mediasoupTypes.TransportOptions;
+    const transportOptions: mediasoupTypes.TransportOptions = response.data;
     try {
       this.receiveTransport = this.mediasoupDevice.createRecvTransport(transportOptions);
     } catch (err) {
@@ -190,15 +232,30 @@ export default class PeerClient {
   attachTransportEvents (transport: mediasoupTypes.Transport) {
     transport.on('connect', ({ dtlsParameters }: {dtlsParameters: mediasoupTypes.DtlsParameters}, callback: () => void, errback: (error: unknown) => void) => {
       void (async () => {
-        const response = await this.socket.request('connectTransport', {
-          dtlsParameters,
-          id: transport?.id
-        });
-        if (response.status === 'success') {
-          callback();
-        } else {
-          errback(response.errorMessage);
+        // const response = await this.socket.request('connectTransport', {
+        //   dtlsParameters,
+        //   id: transport?.id
+        // });
+        // if (response.status === 'success') {
+        //   callback();
+        // } else {
+        //   errback(response.errorMessage);
+        // }
+        const connectTransportMsg: ConnectTransport = {
+          subject: 'connectTransport',
+          type: 'request',
+          isResponse: false,
+          data: {
+            id: transport.id,
+            dtlsParameters
+          }
         }
+        const response = await sendRequest<ResponseTo<ConnectTransport>>(connectTransportMsg);
+        if(response.wasSuccess){
+          callback();
+          return;
+        }
+        errback(response.message)
       })();
     });
 
@@ -256,12 +313,25 @@ export default class PeerClient {
     if (!this.receiveTransport) {
       return Promise.reject('No receiveTransport present. Needed to be able to consume');
     }
-    const response = await this.socket.request('createConsumer', { producerId });
-    if (response.status === 'error') {
-      console.error(response.errorMessage);
-      return Promise.reject('Failed to create remote consumer');
+    // const response = await this.socket.request('createConsumer', { producerId });
+    // if (response.status === 'error') {
+    //   console.error(response.errorMessage);
+    //   return Promise.reject('Failed to create remote consumer');
+    // }
+    const createConsumerMsg: CreateConsumer = {
+      subject: 'createConsumer',
+      type: 'request',
+      data: {
+        producerId
+      },
+      isResponse: false,
     }
-    const consumerOptions = response.data as mediasoupTypes.ConsumerOptions;
+    const response = await sendRequest<ResponseTo<CreateConsumer>>(createConsumerMsg);
+
+    if(!response.wasSuccess){
+      throw response.message
+    }
+    const consumerOptions = response.data;
     const consumer = await this.receiveTransport.consume(consumerOptions);
     return consumer.track;
   }

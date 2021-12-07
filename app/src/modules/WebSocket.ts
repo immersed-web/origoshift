@@ -1,12 +1,12 @@
 import { useConnectionStore } from '../stores/connection';
 import { pinia } from '../boot/pinia';
-import { AnyRequest, AnyResponse, SocketMessage, UnknownMessageType } from 'app/../types/messageTypes';
+import { AnyRequest, AnyResponse, SetRtpCapabilitiesResponse, SocketMessage, UnknownMessageType } from 'app/../types/messageTypes';
 
 const requestTimout = 10000;
-type RequestResolver = (msg: AnyResponse) => void;
-const pendingRequests: Map<number, RequestResolver> = new Map<number, RequestResolver>();
+type RequestResolver<T> = (msg: Extract<T, AnyResponse>) => void;
+const pendingRequests: Map<number, RequestResolver<AnyResponse>> = new Map<number, RequestResolver<AnyResponse>>();
 
-let requestCallback: (msg: AnyRequest) => unknown;
+let onMessageCallback: (msg: UnknownMessageType) => unknown;
 
 let socket: WebSocket | null = null;
 if (process.env.SOCKET_URL) {
@@ -27,15 +27,15 @@ if (process.env.SOCKET_URL) {
         console.error(e);
       }
     } else {
-      requestCallback(msg);
+      onMessageCallback(msg);
     }
   });
 } else {
   console.error('No socket url provided from environment variables!! Huge error of doom!');
 }
 
-export const onRequest = (callback: (msg: AnyRequest) => unknown) => {
-  requestCallback = callback;
+export const onMessage = (callback: (msg: UnknownMessageType) => unknown) => {
+  onMessageCallback = callback;
 };
 
 export const send = (msg: SocketMessage<UnknownMessageType>) => {
@@ -43,7 +43,7 @@ export const send = (msg: SocketMessage<UnknownMessageType>) => {
   socket?.send(string);
 };
 
-export const sendRequest = async (msg: SocketMessage<AnyRequest>) => {
+export const sendRequest = async <T extends AnyResponse>(msg: SocketMessage<AnyRequest>): Promise<T> => {
   msg.id = Date.now(); // Questionable if we should set the id here...
   const id = msg.id;
   const msgString = JSON.stringify(msg);
@@ -57,7 +57,7 @@ export const sendRequest = async (msg: SocketMessage<AnyRequest>) => {
   });
   console.log(msg);
 
-  return promise;
+  return promise as Promise<T>
 };
 
 export default socket;

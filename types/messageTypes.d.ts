@@ -15,87 +15,110 @@ interface IRequest extends IPacket {
   isResponse: false,
 }
 
-type DataRequest<Key, Data = undefined> = IRequest & PossiblyData<Data> & {
-  type: 'dataRequest',
+// type DataRequest<Key, Data = undefined> = IRequest & PossiblyData<Data> & {
+//   type: 'dataRequest',
+//   subject: Key,
+// }
+type Request<Key, Data = undefined> = IRequest & PossiblyData<Data> & {
+  type: 'request'
   subject: Key,
 }
-type ActionRequest<Key, Data = undefined> = IRequest & PossiblyData<Data> & {
-  type: 'actionRequest'
+type Message<Key, Data = undefined> = IRequest & {
+  type: 'message',
   subject: Key,
-}
-type DataMessage<Key, Data = undefined, ResponseBool extends boolean = false> = IRequest & {
-  type: 'dataMessage',
-  subject: Key,
-  responseNeeded: ResponseBool, 
+  // responseNeeded: ResponseBool, 
   data: Data,
 }
 
-export type GetRouterRtpCapabilities = DataRequest<'getRouterRtpCapabilities'>
-export type CreateSendTransport = DataRequest<'createSendTransport'>;
-export type CreateReceiveTransport = DataRequest<'createReceiveTransport'>;
+export type GetRouterRtpCapabilities = Request<'getRouterRtpCapabilities'>
+export type CreateSendTransport = Request<'createSendTransport'>;
+export type CreateReceiveTransport = Request<'createReceiveTransport'>;
+export type ConnectTransport = Request<'connectTransport', {
+  id: string,
+  dtlsParameters: import('mediasoup').types.DtlsParameters,
+}>;
+export type CreateConsumer = Request<'createConsumer', {
+  producerId: string,
+}>
+export type CreateRoom = Request<'createRoom', {
+  id?: string,
+  name?: string,
+}>
 
-export type SetRtpCapabilities = ActionRequest<'setRtpCapabilities', import('mediasoup').types.RtpCapabilities>;
-export type JoinGathering = ActionRequest<'joinGathering', {
+export type SetRtpCapabilities = Request<'setRtpCapabilities', import('mediasoup').types.RtpCapabilities>;
+export type JoinGathering = Request<'joinGathering', {
   id: string,
   gatheringName?: string
 }>
-export type JoinRoom = ActionRequest<'joinRoom', {
+export type JoinRoom = Request<'joinRoom', {
   id: string,
 }>
-export type SetName = ActionRequest<'setName', {
+export type SetName = Request<'setName', {
   name: string,
 }>;
 
-export type RoomStateUpdate = DataMessage<'roomState', import('./types').RoomState, false>;
+export type RoomStateUpdate = Message<'roomState', import('./types').RoomState>;
 
 // type AnyMessage = DataMessage<never, unknown>
 // type AnyActionRequest = ActionRequest<string, unknown>
 // type AnyDataRequest = DataRequest<string, unknown>
-type AnyDataMessage = RoomStateUpdate
-type AnyActionRequest = JoinRoom | JoinGathering | SetRtpCapabilities | SetName
-type AnyDataRequest =  GetRouterRtpCapabilities | CreateSendTransport | CreateReceiveTransport 
+export type AnyMessage = RoomStateUpdate
+export type AnyRequest = JoinRoom | JoinGathering | SetRtpCapabilities | SetName | GetRouterRtpCapabilities | CreateSendTransport | CreateReceiveTransport | CreateRoom | ConnectTransport | CreateConsumer
+// type AnyDataRequest =   
 
-export type AnyRequest = AnyActionRequest | AnyDataRequest // | AnyDataMessage
+// export type AnyRequest = AnyRequest | AnyDataRequest // | AnyDataMessage
 
 //Interfaces for return Messages
 interface IResponse extends IPacket {
   isResponse: true,
   wasSuccess: boolean,
   message?: string,
+  id: number
 }
 
 type BaseResponse<RequestType extends IPacket, Data> = IResponse & {
   subject: RequestType["subject"],
 } & ((PossiblyData<Data> & {wasSuccess: true}) | {wasSuccess: false} )
 
-type ActionResponse<RequestType extends AnyActionRequest, Data = undefined> = BaseResponse<RequestType, Data> & {
-  type: 'actionResponse'
+type Response<RequestType extends AnyRequest, Data = undefined> = BaseResponse<RequestType, Data> & {
+  type: 'response'
 }
 
-type DataResponse<RequestType extends AnyDataRequest, Data = undefined> = BaseResponse<RequestType, Data> & {
-  type: 'dataResponse'
-}
+// type DataResponse<RequestType extends AnyDataRequest, Data = undefined> = BaseResponse<RequestType, Data> & {
+//   type: 'dataResponse'
+// }
 
-type MessageResponse<RequestType extends DataMessage<unknown, unknown, true>, Data = undefined> = BaseResponse<RequestType, Data> & {
-  type: 'messageResponse'
-}
+// type MessageResponse<RequestType extends Message<unknown, unknown, true>, Data = undefined> = BaseResponse<RequestType, Data> & {
+//   type: 'messageResponse'
+// }
 
-export type SetRtpCapabilitiesResponse = ActionResponse<SetRtpCapabilities>
-export type JoinRoomResponse = ActionResponse<JoinRoom, {id: string}>
-export type JoinGatheringResponse = ActionResponse<JoinGathering, {id: string}>
-export type GetRouterRtpCapabilitiesResponse = DataResponse<GetRouterRtpCapabilities, import('mediasoup').types.RtpCapabilities> 
+export type SetRtpCapabilitiesResponse = Response<SetRtpCapabilities>
+export type JoinRoomResponse = Response<JoinRoom, {id: string}>
+export type JoinGatheringResponse = Response<JoinGathering, {id: string}>
+export type GetRouterRtpCapabilitiesResponse = Response<GetRouterRtpCapabilities, import('mediasoup').types.RtpCapabilities>
 
-type AnyActionResponse = SetRtpCapabilitiesResponse | JoinRoomResponse | JoinGatheringResponse
-type AnyDataResponse = GetRouterRtpCapabilitiesResponse
+export type ResponseTo<T> = 
+  T extends SetRtpCapabilities? SetRtpCapabilitiesResponse:
+  T extends JoinRoom? JoinRoomResponse:
+  T extends JoinGathering? JoinGatheringResponse : 
+  T extends CreateSendTransport? Response<CreateSendTransport, import('mediasoup-client').types.TransportOptions> : 
+  T extends CreateReceiveTransport? Response<CreateReceiveTransport, import('mediasoup-client').types.TransportOptions> : 
+  T extends ConnectTransport? Response<ConnectTransport> : 
+  T extends CreateConsumer? Response<CreateConsumer, import('mediasoup-client').types.ConsumerOptions> : 
+  unknown
+
+
+export type AnyResponse = SetRtpCapabilitiesResponse | JoinRoomResponse | JoinGatheringResponse | GetRouterRtpCapabilitiesResponse | ResponseTo<CreateSendTransport> | ResponseTo<CreateReceiveTransport> | ResponseTo<ConnectTransport> | ResponseTo<CreateConsumer>
+// type AnyDataResponse = 
 // type AnyMessageResponse = MessageResponse<never, unknown>
 
-export type AnyResponse = AnyActionResponse | AnyDataResponse// | AnyMessageResponse
+// export type AnyResponse = AnyActionResponse | AnyDataResponse// | AnyMessageResponse
 
 export type UnfinishedResponse<T extends AnyResponse> = Omit<T, 'wasSuccess' | 'data'> & {wasSuccess?: undefined} | T
 
 // type AnyResponse = ActionResponse<IPacket, unknown> | DataResponse<IPacket, unknown> | MessageResponse<IPacket, unknown>
 // type AnyResponse = AnyActionResponse
-export type UnknownMessageType = AnyDataMessage | AnyActionRequest | AnyDataRequest | AnyResponse
+export type UnknownMessageType = AnyMessage | AnyRequest | AnyResponse
 export type SocketMessage<T extends UnknownMessageType> = T
 
 

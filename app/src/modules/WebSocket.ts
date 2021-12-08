@@ -1,10 +1,10 @@
 import { useConnectionStore } from '../stores/connection';
 import { pinia } from '../boot/pinia';
-import { AnyRequest, AnyResponse, SetRtpCapabilitiesResponse, SocketMessage, UnknownMessageType } from 'app/../types/messageTypes';
+import { AnyRequest, AnyResponse, ResponseTo, SetRtpCapabilitiesResponse, SocketMessage, SubjectKeys, UnknownMessageType } from 'app/../types/messageTypes';
 
 const requestTimout = 10000;
-type RequestResolver<T> = (msg: Extract<T, AnyResponse>) => void;
-const pendingRequests: Map<number, RequestResolver<AnyResponse>> = new Map<number, RequestResolver<AnyResponse>>();
+type RequestResolver = (msg: AnyResponse) => void;
+const pendingRequests: Map<number, RequestResolver> = new Map<number, RequestResolver>();
 
 let onMessageCallback: (msg: UnknownMessageType) => unknown;
 
@@ -43,7 +43,7 @@ export const send = (msg: SocketMessage<UnknownMessageType>) => {
   socket?.send(string);
 };
 
-export const sendRequest = async <T extends AnyResponse>(msg: SocketMessage<AnyRequest>): Promise<T> => {
+export const sendRequest = async <T extends SubjectKeys>(msg: SocketMessage<AnyRequest>): Promise<ResponseTo<T>> => {
   msg.id = Date.now(); // Questionable if we should set the id here...
   const id = msg.id;
   const msgString = JSON.stringify(msg);
@@ -56,8 +56,11 @@ export const sendRequest = async <T extends AnyResponse>(msg: SocketMessage<AnyR
     }, requestTimout);
   });
   console.log(msg);
+  // type TheResponseType = ResponseTo<>
+  // type asdasd = Pick<AnyRequest, 'subject'>['subject']
+  // type Resp = ResponseTo<'joinRoom'>
 
-  return promise as Promise<T>
+  return promise as Promise<ResponseTo<T>>;
 };
 
 export default socket;

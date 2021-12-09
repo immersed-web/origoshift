@@ -1,35 +1,14 @@
 import uWebSockets from 'uWebSockets.js';
-import Client from './classes/Client';
-import Gathering from './classes/Gathering';
-import SocketWrapper from './classes/SocketWrapper';
 const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
-// import * as msgTypes from '../../../types/messagetypes';
+import Client from './classes/Client';
+import SocketWrapper from './classes/SocketWrapper';
+import { createWorkers } from './modules/mediasoupWorkers';
 
-// const msg: msgTypes.SocketMessage 
-// const msg: SocketMessage<SpecialMessage>= {
-//   type: 'setRtpCapabilities',
-//   data: {
-//     codecs: []
-//   }
-// };
-// console.log(msg);
-
-// const testFnc = (msg: SocketMessage<UnknownMessageType>) => {
-//   // if(isSpecialMessage(msg)){
-//   //   console.log(msg);
-//   // }
-//   if(msg.type === 'dataConsumer'){
-//     console.log(msg);
-
-//   }
-//   else if(msg.type === 'specialType2'){
-//     console.log(msg);
-//   }
-// };
-// testFnc(msg);
-// const uWebSockets = require('uWebSockets.js');
-// const clients: Client[] = [];
 const clients: Map<uWebSockets.WebSocket, Client> = new Map();
+
+createWorkers();
+
+
 const app = uWebSockets.App();
 
 app.ws('/*', {
@@ -61,7 +40,7 @@ app.ws('/*', {
   },
   upgrade: (res, req, context) => {
     console.log('upgrade request received:', req);
-    //TODO: authenticate received JWT token here. If nice only then we should upgrade to websocket!
+    //TODO: authenticate received JWT token here. If nice, only then should we upgrade to websocket!
     const receivedToken = req.getQuery();
     console.log('upgrade request provided this token: ', receivedToken);
     res.upgrade(
@@ -89,6 +68,7 @@ app.ws('/*', {
 }).listen(9001, (listenSocket) => {
 
   if (listenSocket) {
+    console.log('listenSocket:' ,listenSocket);
     console.log('Listening to port 9001');
   }
   

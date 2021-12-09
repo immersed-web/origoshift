@@ -2,15 +2,20 @@ import {types as soup} from 'mediasoup';
 import { randomUUID } from 'crypto';
 import { MediasoupConfig } from '../mediasoupConfig';
 import Client from './Client';
+import { getMediasoupWorker } from '../modules/mediasoupWorkers';
+// import { RoomState } from '@sharedTypes/types';
 export default class Room {
   router: soup.Router;
   id: string;
   clients: Map<string, Client> = new Map();
 
-  static async createRoom(id: string = randomUUID(), worker: soup.Worker, config?: MediasoupConfig): Promise<Room> {
+  static async createRoom(id: string = randomUUID(), worker?: soup.Worker, config?: MediasoupConfig): Promise<Room> {
     const routerOptions: soup.RouterOptions = {};
     if(config?.router.mediaCodecs){
       routerOptions.mediaCodecs = config.router.mediaCodecs;
+    }
+    if(!worker){
+      worker = getMediasoupWorker();
     }
     const router = await worker.createRouter(routerOptions);
     const createdRoom = new Room(id, router);
@@ -28,13 +33,12 @@ export default class Room {
   }
 
   addClient(client: Client){
-    // TODO: Possibly handle shared state so clients know about each other
     if(this.clients.has(client.id)){
       console.warn('This client is already in the room!!');
       return false;
     }
     this.clients.set(client.id, client);
-    this.broadcastRoomState();
+    // this.broadcastRoomState();
 
     return true;
   }
@@ -44,21 +48,20 @@ export default class Room {
       return false;
     }
     const ok = this.clients.delete(client.id);
-    this.broadcastRoomState();
+    // this.broadcastRoomState();
     return ok;
   }
-  broadcastRoomState(clientToSkip?: Client){
-    //TODO: Implement an interface for roomstate
-    const roomState: RoomState = {
-      producers: [],
-      consumers: [],
-      clients: [],
-    };
-    this.clients.forEach((client) => {
-      if(clientToSkip && clientToSkip === client){
-        return;
-      }
-      client.roomStateUpdated(roomState);
-    });
-  }
+  // broadcastRoomState(clientToSkip?: Client){
+  //   const roomState: RoomState = {
+  //     producers: [],
+  //     consumers: [],
+  //     clients: [],
+  //   };
+  //   this.clients.forEach((client) => {
+  //     if(clientToSkip && clientToSkip === client){
+  //       return;
+  //     }
+  //     client.roomStateUpdated(roomState);
+  //   });
+  // }
 }

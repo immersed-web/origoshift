@@ -6,12 +6,13 @@
   "author": "Gunnar Oledal",
   "license": "ISC",
   "scripts": {
-    "start": "npm run build && node ./dist/index.js",
-    "dev": "env DEVELOPMENT=true tsc-watch -p tsconfig.build.json --onSuccess 'node ./dist/index.js'",
-    "build": "tsc -p tsconfig.build.json",
+    "start": "npm run build && node ./dist/backend/mediaserver/src/index.js",
+    "dev": "env DEVELOPMENT=true tsc-watch --build --onSuccess 'node -r tsconfig-paths/register ./dist/index.js'",
+    "build": "tsc --build",
+    "start:aliased": "ef-tspm && node ./dist/index.js",
     "clean": "tsc --build --clean",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "jest --watch",
+    "test:once": "jest"
   },
   "dependencies": {
     "@types/uuid": "^8.3.1",
@@ -21,6 +22,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@ef-carbon/tspm": "^2.2.5",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.10.9",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
@@ -30,7 +32,10 @@
     "jest-mock-extended": "^2.0.4",
     "mediasoup-client": "^3.6.43",
     "ts-jest": "^27.0.7",
+    "ts-node": "^10.4.0",
     "tsc-watch": "^4.5.0",
+    "tsconfig-paths": "^3.12.0",
+    "tscpaths": "^0.0.9",
     "typescript": "^4.4.4"
   }
 }

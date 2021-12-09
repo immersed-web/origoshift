@@ -9,8 +9,8 @@ import * as mediasoupClient from 'mediasoup-client';
 import { RtpCapabilities } from 'mediasoup-client/lib/RtpParameters';
 // import { TransportOptions } from 'mediasoup-client/lib/Transport';
 // import { RoomState } from 'app/../types/types';
-import { sendRequest, send, onMessage } from 'src/modules/WebSocket';
-import { createRequest, Request, ResponseTo } from 'app/../types/messageTypes';
+import { sendRequest, onSocketReceivedMessage } from 'src/modules/WebSocket';
+import { createRequest, Request } from 'app/../types/messageTypes';
 
 export default class PeerClient {
   // socket: SocketExt;
@@ -46,6 +46,13 @@ export default class PeerClient {
     //     this.onRoomState(data);
     //   }
     // });
+
+    onSocketReceivedMessage((msg) => {
+      if (msg.subject === 'roomState') {
+        // this.consumers = msg.data.consumers;
+        console.log('received new roomstate', msg.data);
+      }
+    });
 
     // Wanted to add it to the "Socket class" prototype but that doesn't seem to work. I think it might be the case that the io-function doesn't return a Socket class instance
     // this.socket.request = (ev: string, ...data: unknown[]) => {
@@ -87,27 +94,41 @@ export default class PeerClient {
   async sendRtpCapabilities () {
     const setRtpCapabilitiesReq = createRequest<'setRtpCapabilities'>('setRtpCapabilities');
 
-    await sendRequest<'setRtpCapabilities'>(setRtpCapabilitiesReq);
+    const response = await sendRequest<'setRtpCapabilities'>(setRtpCapabilitiesReq);
+    return response.wasSuccess;
   }
 
-  setName = async (name: string) => {
+  async setName (name: string) {
     console.log('setting name', name);
     // return this.triggerSocketEvent('setName', name);
     // return this.socket.request('setName', { name });
     const setNameReq: Request<'setName'> = createRequest<'setName'>('setName', { name: name });
-    return sendRequest<ResponseTo<'setName'>>(setNameReq);
+    const response = await sendRequest<'setName'>(setNameReq);
+    return response.wasSuccess;
   }
 
-  joinRoom = async (roomId: string) => {
-    const joinRoomReq: Request<'joinRoom'> = createRequest<'joinRoom'>('joinRoom', { id: roomId });
-    return sendRequest(joinRoomReq);
+  async createGathering (gatheringName: string) {
+    const createGatheringReq = createRequest<'createGathering'>('createGathering', {
+      gatheringName: gatheringName,
+    });
+    return sendRequest(createGatheringReq);
   }
 
   async createRoom (roomName: string) {
     const createRoomReq: Request<'createRoom'> = createRequest<'createRoom'>('createRoom', {
       name: roomName,
     });
-    return sendRequest(createRoomReq);
+    const response = await sendRequest<'createRoom'>(createRoomReq);
+    if (!response.wasSuccess) {
+      throw new Error(response.message);
+    }
+    return response.data.roomId;
+  }
+
+  async joinRoom (roomId: string) {
+    const joinRoomReq: Request<'joinRoom'> = createRequest<'joinRoom'>('joinRoom', { roomId: roomId });
+    const response = await sendRequest<'joinRoom'>(joinRoomReq);
+    return response.wasSuccess;
   }
 
   async getRouterCapabilities () : Promise<mediasoupTypes.RtpCapabilities> {

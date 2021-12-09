@@ -30,7 +30,7 @@ export default class Gathering {
   id: string;
   name;
 
-  rooms: Map<string, Room> = new Map();
+  private rooms: Map<string, Room> = new Map();
 
   private constructor(id = randomUUID(), name = 'unnamed'){
     this.id = id;
@@ -44,6 +44,17 @@ export default class Gathering {
     }
 
     Gathering.gatherings.set(this.id, this);
+  }
+
+  addRoom(room:Room){
+    this.rooms.set(room.id, room);
+  }
+  removeRoom(roomOrId: Room | string){
+    if(typeof roomOrId === 'string'){
+      this.rooms.delete(roomOrId);
+      return;
+    }
+    this.rooms.delete(roomOrId.id);
   }
 
   getRoom(id: string) {

@@ -20,15 +20,18 @@
       /> -->
     </q-list>
     <h2>Caaannect??? {{ connectionStore.connected }}</h2>
+    <pre>{{ rooms }}</pre>
   </q-page>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useConnectionStore } from 'src/stores/connection';
 import usePeerClient from 'src/composables/usePeerClient';
 
-const { setName, createRoom, createGathering } = usePeerClient();
+const { setName, createRoom, createGathering, getRooms } = usePeerClient();
 const connectionStore = useConnectionStore();
+const rooms = ref();
 
 const actions = [
   {
@@ -42,6 +45,12 @@ const actions = [
   {
     label: 'createRoom',
     fn: createRoom,
+  },
+  {
+    label: 'getRooms',
+    fn: async () => {
+      rooms.value = await getRooms();
+    },
   },
 
 ];

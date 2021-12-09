@@ -40,17 +40,18 @@ export type AnyRequest =
   | RequestBuilder<'createConsumer', {
     producerId: string,
   }>
-  | RequestBuilder<'createRoom', {
-    name: string,
-  }>
-  | RequestBuilder<'joinRoom', {
-    roomId: string,
-  }>
   | RequestBuilder<'createGathering', {
     gatheringName: string,
   }>
   | RequestBuilder<'joinGathering', {
     gatheringId: string,
+  }>
+  | RequestBuilder<'getRooms'>
+  | RequestBuilder<'createRoom', {
+    name: string,
+  }>
+  | RequestBuilder<'joinRoom', {
+    roomId: string,
   }>
   | RequestBuilder<'setName', {
     name: string,
@@ -95,10 +96,16 @@ export type AnyResponse =
   | ResponseBuilder<Request<'createProducer'>, {producerId: string}>
   | ResponseBuilder<Request<'connectTransport'>>
   | ResponseBuilder<Request<'setName'>>
-  | ResponseBuilder<Request<'createRoom'>, {roomId: string}>
-  | ResponseBuilder<Request<'joinRoom'>>
   | ResponseBuilder<Request<'createGathering'>, {gatheringId: string}>
   | ResponseBuilder<Request<'joinGathering'>>
+  | ResponseBuilder<Request<'getRooms'>, 
+    {
+      roomId: string,
+      clients: string[]
+    }[]
+  >
+  | ResponseBuilder<Request<'createRoom'>, {roomId: string}>
+  | ResponseBuilder<Request<'joinRoom'>>
 
 export type ResponseTo<Key extends RequestSubjects> = Extract<AnyResponse, {subject: Key}>
 

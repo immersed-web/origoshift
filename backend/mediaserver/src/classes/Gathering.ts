@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import Client from './Client';
 
 import Room from './Room';
 
@@ -55,6 +56,16 @@ export default class Gathering {
       return;
     }
     this.rooms.delete(roomOrId.id);
+  }
+
+  listRooms(){
+    const rooms: { roomId: string; clients: string[] }[] = [];
+    this.rooms.forEach((room, key) => {
+      const clientIds = room.clients.keys();
+      const clientIdArray = Array.from(clientIds);
+      rooms.push({roomId: room.id, clients: clientIdArray});
+    });
+    return rooms;
   }
 
   getRoom(id: string) {

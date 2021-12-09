@@ -94,5 +94,6 @@ export default function usePeerClient () {
     createRoom,
     joinRoom,
     setName: peer.setName,
+    getRooms: peer.getRooms,
   };
 }

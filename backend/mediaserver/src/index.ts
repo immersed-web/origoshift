@@ -16,7 +16,7 @@ app.ws('/*', {
   /* There are many common helper features */
   idleTimeout: 64,
   maxBackpressure: 1024,
-  maxPayloadLength: 512,
+  // maxPayloadLength: 512,
   compression: DEDICATED_COMPRESSOR_3KB,
 
   /* For brevity we skip the other events (upgrade, open, ping, pong, close) */

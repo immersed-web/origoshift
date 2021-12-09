@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import SocketWrapper from './SocketWrapper';
 import {types as soup} from 'mediasoup';
 // import {types as soupClient} from 'mediasoup-client';
-import { createResponse, SocketMessage, UnknownMessageType } from '@sharedTypes/messageTypes';
+import { createRequest, createResponse, SocketMessage, UnknownMessageType } from '@sharedTypes/messageTypes';
 import { UserRole } from '@sharedTypes/types';
 import Room from './Room';
 import Gathering from './Gathering';
@@ -70,9 +70,14 @@ export default class Client {
         this.send(response);
         break;
       }
-      case 'setRtpCapabilities':
+      case 'setRtpCapabilities': {
         this.rtpCapabilities = msg.data;
+        const response = createResponse<'setRtpCapabilities'>('setRtpCapabilities', msg.id, {
+          wasSuccess: true
+        });
+        this.send(response);
         break;
+      }
       case 'getRouterRtpCapabilities': {
         // const response = {
         //   type: 'dataResponse',
@@ -89,9 +94,51 @@ export default class Client {
           return;
         }
         const roomRtpCaps = this.room.getRtpCapabilities();
+        console.log('clientwant routerRtpCaps. They are: ', roomRtpCaps);
         const response = createResponse<'getRouterRtpCapabilities'>('getRouterRtpCapabilities', msg.id, {
           wasSuccess: true,
           data: roomRtpCaps,
+        });
+        this.send(response);
+        break;
+      }
+      case 'createGathering': {
+        const gathering = await Gathering.createGathering(undefined, msg.data.gatheringName);
+        this.gathering = gathering;
+        const response = createResponse<'createGathering'>('createGathering', msg.id, {
+          data: {
+            gatheringId: gathering.id
+          },
+          wasSuccess: true,
+        });
+        this.send(response);
+        break;
+      }
+      case 'joinGathering': {
+        // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join the gathering or not
+        // console.log('request to join gathering', msg.data);
+        // const gathering = Gathering.gatherings.get(msg.data.id);
+        const gathering = Gathering.getGathering(msg.data.gatheringId);
+        if(!gathering){
+          console.warn('Cant join that gathering. Does not exist');
+          return;
+        }
+        this.gathering = gathering;
+        const response = createResponse<'joinGathering'>('joinGathering', msg.id, {
+          wasSuccess: true,
+        });
+        this.send(response);
+        break;
+      }
+      case 'getRooms': {
+        if(!this.gathering){
+          console.warn('cant list rooms if isnt in a gathering');
+          return;
+        }
+        const rooms = this.gathering.listRooms();
+        const response = createResponse<'getRooms'>('getRooms', msg.id, {
+          wasSuccess: true,
+          data: rooms
         });
         this.send(response);
         break;
@@ -134,34 +181,6 @@ export default class Client {
             }
           }
         }
-        this.send(response);
-        break;
-      }
-      case 'createGathering': {
-        const gathering = await Gathering.createGathering(undefined, msg.data.gatheringName);
-        this.gathering = gathering;
-        const response = createResponse<'createGathering'>('createGathering', msg.id, {
-          data: {
-            gatheringId: gathering.id
-          },
-          wasSuccess: true,
-        });
-        this.send(response);
-        break;
-      }
-      case 'joinGathering': {
-        // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join the gathering or not
-        // console.log('request to join gathering', msg.data);
-        // const gathering = Gathering.gatherings.get(msg.data.id);
-        const gathering = Gathering.getGathering(msg.data.gatheringId);
-        if(!gathering){
-          console.warn('Cant join that gathering. Does not exist');
-          return;
-        }
-        this.gathering = gathering;
-        const response = createResponse<'joinGathering'>('joinGathering', msg.id, {
-          wasSuccess: true,
-        });
         this.send(response);
         break;
       }

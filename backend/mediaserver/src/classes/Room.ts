@@ -1,6 +1,6 @@
 import {types as soup} from 'mediasoup';
 import { randomUUID } from 'crypto';
-import { MediasoupConfig } from '../mediasoupConfig';
+import mediasoupConfig, { MediasoupConfig } from '../mediasoupConfig';
 import Client from './Client';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
 // import { RoomState } from '@sharedTypes/types';
@@ -9,10 +9,10 @@ export default class Room {
   id: string;
   clients: Map<string, Client> = new Map();
 
-  static async createRoom(id: string = randomUUID(), worker?: soup.Worker, config?: MediasoupConfig): Promise<Room> {
+  static async createRoom(id: string = randomUUID(), worker?: soup.Worker): Promise<Room> {
     const routerOptions: soup.RouterOptions = {};
-    if(config?.router.mediaCodecs){
-      routerOptions.mediaCodecs = config.router.mediaCodecs;
+    if(mediasoupConfig.router.mediaCodecs){
+      routerOptions.mediaCodecs = mediasoupConfig.router.mediaCodecs;
     }
     if(!worker){
       worker = getMediasoupWorker();

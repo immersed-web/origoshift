@@ -92,7 +92,8 @@ export default class PeerClient {
   }
 
   async sendRtpCapabilities () {
-    const setRtpCapabilitiesReq = createRequest<'setRtpCapabilities'>('setRtpCapabilities');
+    const deviceCapabilities = this.mediasoupDevice.rtpCapabilities;
+    const setRtpCapabilitiesReq = createRequest<'setRtpCapabilities'>('setRtpCapabilities', deviceCapabilities);
 
     const response = await sendRequest<'setRtpCapabilities'>(setRtpCapabilitiesReq);
     return response.wasSuccess;
@@ -112,6 +113,15 @@ export default class PeerClient {
       gatheringName: gatheringName,
     });
     return sendRequest(createGatheringReq);
+  }
+
+  async getRooms () {
+    const getRoomsReq = createRequest<'getRooms'>('getRooms');
+    const response = await sendRequest<'getRooms'>(getRoomsReq);
+    if (!response.wasSuccess) {
+      throw new Error(response.message);
+    }
+    return response.data;
   }
 
   async createRoom (roomName: string) {

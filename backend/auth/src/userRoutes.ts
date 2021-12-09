@@ -18,9 +18,10 @@ export const createUser: RequestHandler = async (req, res) => {
   }
   const username = req.body.username;
   const password = req.body.password;
+  const role = req.body.role?req.body.role: 'client';
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
-    const result = await prisma.user.create({data: {username: username, role: {connectOrCreate: {where:{role: 'client'}, create: {role: 'client'}}}, password: hashedPassword},select: {
+    const result = await prisma.user.create({data: {username: username, role: {connectOrCreate: {where:{role: role}, create: {role: role}}}, password: hashedPassword},select: {
       uuid: true,
       username: true,
       role: true,

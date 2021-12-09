@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "npm run build && node ./dist/index.js",
-    "dev": "tsc-watch -p tsconfig.build.json --onSuccess 'dotenv -e ../.env.dev node ./dist/index.js'",
+    "dev": "tsc-watch --build --onSuccess 'dotenv -e ../.env.dev node ./dist/index.js'",
     "build": "tsc -p tsconfig.build.json",
     "clean": "tsc --build --clean",
     "test": "yarn jest --watch",

@@ -1,6 +1,6 @@
 import { useConnectionStore } from '../stores/connection';
 import { pinia } from '../boot/pinia';
-import { AnyRequest, AnyResponse, ResponseTo, SocketMessage, RequestSubjects, UnknownMessageType } from 'app/../types/messageTypes';
+import { AnyRequest, AnyResponse, ResponseTo, SocketMessage, RequestSubjects, UnknownMessageType } from 'shared-types/MessageTypes';
 
 const requestTimeout = 3000;
 type RequestResolver = (msg: AnyResponse) => void;

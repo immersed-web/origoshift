@@ -10,7 +10,7 @@ import { RtpCapabilities } from 'mediasoup-client/lib/RtpParameters';
 // import { TransportOptions } from 'mediasoup-client/lib/Transport';
 // import { RoomState } from 'app/../types/types';
 import { sendRequest, onSocketReceivedMessage } from 'src/modules/WebSocket';
-import { createRequest, Request } from 'app/../types/messageTypes';
+import { createRequest, Request } from 'shared-types/MessageTypes';
 
 export default class PeerClient {
   // socket: SocketExt;

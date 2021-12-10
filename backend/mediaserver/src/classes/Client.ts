@@ -64,7 +64,7 @@ export default class Client {
     switch (msg.subject) {
       case 'setName': {
         this.name = msg.data.name;
-        const response = createResponse<'setName'>('setName', msg.id, {
+        const response = createResponse('setName', msg.id, {
           wasSuccess: true,
           message: 'name updated!'
         });
@@ -73,7 +73,7 @@ export default class Client {
       }
       case 'setRtpCapabilities': {
         this.rtpCapabilities = msg.data;
-        const response = createResponse<'setRtpCapabilities'>('setRtpCapabilities', msg.id, {
+        const response = createResponse('setRtpCapabilities', msg.id, {
           wasSuccess: true
         });
         this.send(response);
@@ -87,7 +87,7 @@ export default class Client {
         // } as UnfinishedResponse<GetRouterRtpCapabilitiesResponse>;
         if(!this.room){
           console.warn('Client requested router capabilities without being in a room');
-          const response = createResponse<'getRouterRtpCapabilities'>('getRouterRtpCapabilities', msg.id, {
+          const response = createResponse('getRouterRtpCapabilities', msg.id, {
             wasSuccess: false,
             message: 'not in a room. Must be in room to request RtpCapabilities',
           });
@@ -96,7 +96,7 @@ export default class Client {
         }
         const roomRtpCaps = this.room.getRtpCapabilities();
         console.log('clientwant routerRtpCaps. They are: ', roomRtpCaps);
-        const response = createResponse<'getRouterRtpCapabilities'>('getRouterRtpCapabilities', msg.id, {
+        const response = createResponse('getRouterRtpCapabilities', msg.id, {
           wasSuccess: true,
           data: roomRtpCaps,
         });
@@ -106,7 +106,7 @@ export default class Client {
       case 'createGathering': {
         const gathering = await Gathering.createGathering(undefined, msg.data.gatheringName);
         this.gathering = gathering;
-        const response = createResponse<'createGathering'>('createGathering', msg.id, {
+        const response = createResponse('createGathering', msg.id, {
           data: {
             gatheringId: gathering.id
           },
@@ -125,7 +125,7 @@ export default class Client {
           return;
         }
         this.gathering = gathering;
-        const response = createResponse<'joinGathering'>('joinGathering', msg.id, {
+        const response = createResponse('joinGathering', msg.id, {
           wasSuccess: true,
         });
         this.send(response);
@@ -137,7 +137,7 @@ export default class Client {
           return;
         }
         const rooms = this.gathering.listRooms();
-        const response = createResponse<'getRooms'>('getRooms', msg.id, {
+        const response = createResponse('getRooms', msg.id, {
           wasSuccess: true,
           data: rooms
         });
@@ -152,7 +152,7 @@ export default class Client {
         const room = await Room.createRoom();
         this.room = room;
         this.gathering.addRoom(room);
-        const response = createResponse<'createRoom'>('createRoom', msg.id, {
+        const response = createResponse('createRoom', msg.id, {
           wasSuccess: true,
           data: {
             roomId: room.id
@@ -162,7 +162,7 @@ export default class Client {
         break;
       }
       case 'joinRoom': {
-        const response = createResponse<'joinRoom'>('joinRoom', msg.id, { wasSuccess: false, message: 'not in a gathering. Can not join a room without being in a gathering'});
+        const response = createResponse('joinRoom', msg.id, { wasSuccess: false, message: 'not in a gathering. Can not join a room without being in a gathering'});
         if(!this.gathering){
           console.warn('Client requested to join room without being inside a gathering');
           this.send(response);

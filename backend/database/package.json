@@ -7,13 +7,12 @@
   "scripts": {
     "migrate": "dotenv -e ../.env.dev yarn prisma migrate dev",
     "studio": "dotenv -e ../.env.dev yarn prisma studio",
-
     "dbpush": "dotenv -e ../.env.dev yarn prisma db push"
   },
   "devDependencies": {
-    "prisma": "3.5.0"
+    "prisma": "^3.5.0"
   },
   "dependencies": {
-    "@prisma/client": "3.5.0"
+    "@prisma/client": "^3.5.0"
   }
 }

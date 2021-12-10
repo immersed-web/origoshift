@@ -2,10 +2,9 @@ import { randomUUID } from 'crypto';
 import SocketWrapper from './SocketWrapper';
 import {types as soup} from 'mediasoup';
 // import {types as soupClient} from 'mediasoup-client';
-// import { createResponse, SocketMessage, UnknownMessageType } from '@sharedTypes/MessageTypes';
-// import { UserRole } from '@sharedTypes/CustomTypes';
-import { createResponse, SocketMessage, UnknownMessageType } from '../../../../types/MessageTypes';
-import { UserRole } from '../../../../types/CustomTypes';
+// import { createResponse, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
+import { UserRole } from 'shared-types/CustomTypes';
+import { createResponse, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import Room from './Room';
 import Gathering from './Gathering';
 

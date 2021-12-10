@@ -6,10 +6,9 @@
   "author": "Gunnar Oledal",
   "license": "ISC",
   "scripts": {
-    "start": "node -r tsconfig-paths/register ./dist/index.js",
-    "dev": "env DEVELOPMENT=true tsc-watch --build --onSuccess 'node -r tsconfig-paths/register ./dist/index.js'",
+    "start": "node ./dist/index.js",
+    "dev": "env DEVELOPMENT=true tsc-watch --build --onSuccess 'node ./dist/index.js'",
     "build": "tsc --build",
-    "start:tspm": "ef-tspm && node ./dist/index.js",
     "clean": "tsc --build --clean",
     "test": "jest --watch",
     "test:once": "jest"
@@ -19,7 +18,8 @@
     "mediasoup": "3",
     "tiny-typed-emitter": "^2.1.0",
     "uWebSockets.js": "uNetworking/uWebSockets.js#v20.0.0",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "shared-types": "1.0.0"
   },
   "devDependencies": {
     "@ef-carbon/tspm": "^2.2.5",

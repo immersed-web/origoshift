@@ -1,9 +1,12 @@
 {
-  "name": "types",
+  "name": "shared-types",
   "version": "1.0.0",
   "description": "shared types for front & back",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist",
+  "types": "dist",
+  "exports": {
+    "./": "./dist/"
+  },
   "author": "Gunnar Oledal",
   "license": "MIT",
   "dependencies": {},

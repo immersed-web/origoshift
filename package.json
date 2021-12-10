@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "workspaces":{
+    "packages": [
+      "types",
+      "app",
+      "backend/auth",
+      "backend/database",
+      "backend/mediaserver"
+    ],
+    "nohoist": ["**/mediasoup","**/mediasoup/**"]
+  } 
+}

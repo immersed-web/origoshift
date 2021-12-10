@@ -57,7 +57,7 @@ export type AnyRequest =
     name: string,
   }>
 
-export type AnyMessage = MessageBuilder<'roomState', import('./types').RoomState>
+export type AnyMessage = MessageBuilder<'roomState', import('./CustomTypes').RoomState>
   | MessageBuilder<'chatMessage', {
     message: string
   }>

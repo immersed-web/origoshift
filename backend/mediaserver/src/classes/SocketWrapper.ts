@@ -1,8 +1,8 @@
 // import EventEmitter from 'events';
 import uWebsocket from 'uWebSockets.js';
 import { TypedEmitter } from 'tiny-typed-emitter';
-// import {Request} from '@types/messageTypes';
-import { AnyRequest, AnyResponse, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from '@sharedTypes/messageTypes';
+// import { AnyRequest, AnyResponse, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from '@sharedTypes/MessageTypes';
+import { AnyRequest, AnyResponse, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from '../../../../types/MessageTypes';
 
 export type InternalSocketType = uWebsocket.WebSocket;
 // type InternalMessageType = uWebsocket.RecognizedString;

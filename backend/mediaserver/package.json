@@ -6,10 +6,10 @@
   "author": "Gunnar Oledal",
   "license": "ISC",
   "scripts": {
-    "start": "npm run build && node ./dist/backend/mediaserver/src/index.js",
+    "start": "node -r tsconfig-paths/register ./dist/index.js",
     "dev": "env DEVELOPMENT=true tsc-watch --build --onSuccess 'node -r tsconfig-paths/register ./dist/index.js'",
     "build": "tsc --build",
-    "start:aliased": "ef-tspm && node ./dist/index.js",
+    "start:tspm": "ef-tspm && node ./dist/index.js",
     "clean": "tsc --build --clean",
     "test": "jest --watch",
     "test:once": "jest"

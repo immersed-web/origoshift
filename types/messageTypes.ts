@@ -135,6 +135,10 @@ export const createRequest = <Key extends RequestSubjects>(subject: Key, data?: 
   return msgWithData;
 }
 
+// createRequest<'setName'>('setName', {
+//   name: 'coolName'
+// });
+
 export const createResponse = <Key extends RequestSubjects>(subject: Key, id:number, {wasSuccess, data, message}: {wasSuccess:boolean, data?: DataForResponse<Key>, message?: string }): ResponseTo<Key> => {
   const msg: ResponseTo<Key> = {
     type: 'response',

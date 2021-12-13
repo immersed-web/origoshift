@@ -4,7 +4,6 @@
     "packages": [
       "types",
       "app",
-      "shared-modules",
       "backend/*"
     ],
     "nohoist": ["**/mediasoup","**/mediasoup/**"]

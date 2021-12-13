@@ -3,6 +3,7 @@ const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import Client from './classes/Client';
 import SocketWrapper from './classes/SocketWrapper';
 import { createWorkers } from './modules/mediasoupWorkers';
+import { verifyJwtToken } from 'shared-modules/jwtUtils';
 
 const clients: Map<uWebSockets.WebSocket, Client> = new Map();
 
@@ -41,26 +42,37 @@ app.ws('/*', {
   upgrade: (res, req, context) => {
     console.log('upgrade request received:', req);
     //TODO: authenticate received JWT token here. If nice, only then should we upgrade to websocket!
-    const receivedToken = req.getQuery();
+    try{
+      const receivedToken = req.getQuery();
 
-    if(!receivedToken){
+      // if(!receivedToken){
+      //   res.writeStatus('403 Forbidden').end('YOU SHALL NOT PASS!!!');
+      //   return;
+      // }
+    
+      console.log('upgrade request provided this token: ', receivedToken);
+
+      const decoded = verifyJwtToken(receivedToken);
+      if(decoded){
+        res.upgrade(
+          {decoded},
+          /* Spell these correctly */
+          req.getHeader('sec-websocket-key'),
+          req.getHeader('sec-websocket-protocol'),
+          req.getHeader('sec-websocket-extensions'),
+          context
+        );
+      }
+    } catch(e){
       res.writeStatus('403 Forbidden').end('YOU SHALL NOT PASS!!!');
       return;
     }
-    
-    console.log('upgrade request provided this token: ', receivedToken);
-    res.upgrade(
-      {},
-      /* Spell these correctly */
-      req.getHeader('sec-websocket-key'),
-      req.getHeader('sec-websocket-protocol'),
-      req.getHeader('sec-websocket-extensions'),
-      context
-    );
   },
   open: (ws) => {
+    console.log('socket opened with provided data: ', ws.decoded);
     const wsWrapper = new SocketWrapper(ws);
     const client = new Client({ws: wsWrapper});
+    // client.userData = ws.decoded;
     clients.set(ws, client);
     console.log('client :>> ', client);
   }

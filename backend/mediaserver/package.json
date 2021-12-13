@@ -20,7 +20,8 @@
     "tiny-typed-emitter": "^2.1.0",
     "uWebSockets.js": "uNetworking/uWebSockets.js#v20.0.0",
     "uuid": "^8.3.2",
-    "shared-types": "1.0.0"
+    "shared-types": "1.0.0",
+    "shared-modules": "1.0.0"
   },
   "devDependencies": {
     "@ef-carbon/tspm": "^2.2.5",

@@ -2,8 +2,9 @@
   "extends": "../../tsconfig.json",
   "references": [
     {
-      "path": "../../types"
-    }
+      "path": "../../types",
+    },
+    {"path": "../shared-modules"}
   ],
   "include": ["./src/**/*.ts"],
   // "include": ["./**/*.ts","../../types/*.ts"],

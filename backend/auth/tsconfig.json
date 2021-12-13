@@ -1,6 +1,7 @@
 {
   "references": [
-    {"path": "../../types"}
+    {"path": "../../types"},
+    {"path": "../shared-modules"}
   ],
   "exclude": ["**/*.test.ts", "./src/testUtils"],
   // "include": ["./**/*.ts", "./**/*.d.ts","../../types/*.d.ts"],

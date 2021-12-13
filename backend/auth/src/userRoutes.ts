@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import session from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import prisma, {Prisma} from './prismaClient';
-import { createJwt } from './jwtUtils';
+import { createJwt } from 'shared-modules/jwtUtils';
 import { userDataFromDBResponse } from './utils';
 
 const index: RequestHandler = (req, res) => {

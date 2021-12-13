@@ -42,6 +42,12 @@ app.ws('/*', {
     console.log('upgrade request received:', req);
     //TODO: authenticate received JWT token here. If nice, only then should we upgrade to websocket!
     const receivedToken = req.getQuery();
+
+    if(!receivedToken){
+      res.writeStatus('403 Forbidden').end('YOU SHALL NOT PASS!!!');
+      return;
+    }
+    
     console.log('upgrade request provided this token: ', receivedToken);
     res.upgrade(
       {},

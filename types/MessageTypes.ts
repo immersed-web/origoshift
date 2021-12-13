@@ -1,8 +1,9 @@
 import {types as mediasoupClientTypes} from 'mediasoup-client';
 import {types as mediasoupTypes} from 'mediasoup';
+import { RoomState } from './CustomTypes';
 
 interface IPacket {
-  id?: number,
+  id: number,
   subject: string,
   type: string,
   // isResponse?: boolean,
@@ -40,6 +41,9 @@ export type AnyRequest =
   | RequestBuilder<'createConsumer', {
     producerId: string,
   }>
+  | RequestBuilder<'setName', {
+    name: string,
+  }>
   | RequestBuilder<'createGathering', {
     gatheringName: string,
   }>
@@ -53,9 +57,7 @@ export type AnyRequest =
   | RequestBuilder<'joinRoom', {
     roomId: string,
   }>
-  | RequestBuilder<'setName', {
-    name: string,
-  }>
+  | RequestBuilder<'roomStateUpdated', RoomState>
 
 export type AnyMessage = MessageBuilder<'roomState', import('./CustomTypes').RoomState>
   | MessageBuilder<'chatMessage', {
@@ -106,6 +108,7 @@ export type AnyResponse =
   >
   | ResponseBuilder<Request<'createRoom'>, {roomId: string}>
   | ResponseBuilder<Request<'joinRoom'>>
+  | ResponseBuilder<Request<'roomStateUpdated'>>
 
 export type ResponseTo<Key extends RequestSubjects> = Extract<AnyResponse, {subject: Key}>
 
@@ -124,9 +127,11 @@ type DataForRequest<Key extends RequestSubjects> = Pick<Extract<Request<Key>, Re
 type DataForResponse<Key extends RequestSubjects> = Pick<Extract<ResponseTo<Key>, ResponsesWithData>, 'data'>['data']
 
 export const createRequest = <Key extends RequestSubjects>(subject: Key, data?: DataForRequest<Key>):Request<Key> => {
-  const msg: Request<Key> = {} as Request<Key>;
-  msg.type = 'request';
-  msg.subject = subject;
+  const msg: Request<Key> = {
+    id: Date.now(),
+    type: 'request',
+    subject: subject,
+  } as Request<Key>;
   if(!data){
     return msg;
   }

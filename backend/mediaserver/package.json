@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node ./dist/index.js",
     "dev": "env DEVELOPMENT=true tsc-watch --build --onSuccess 'node ./dist/index.js'",
+    "build:watch": "tsc --build --watch",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "test": "jest --watch",

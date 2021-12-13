@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import mediasoupConfig, { MediasoupConfig } from '../mediasoupConfig';
 import Client from './Client';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
+import { RoomState } from 'shared-types/CustomTypes';
 // import { RoomState } from '@sharedTypes/types';
 export default class Room {
   router: soup.Router;
@@ -38,7 +39,7 @@ export default class Room {
       return false;
     }
     this.clients.set(client.id, client);
-    // this.broadcastRoomState();
+    this.broadcastRoomState();
 
     return true;
   }
@@ -48,20 +49,20 @@ export default class Room {
       return false;
     }
     const ok = this.clients.delete(client.id);
-    // this.broadcastRoomState();
+    this.broadcastRoomState();
     return ok;
   }
-  // broadcastRoomState(clientToSkip?: Client){
-  //   const roomState: RoomState = {
-  //     producers: [],
-  //     consumers: [],
-  //     clients: [],
-  //   };
-  //   this.clients.forEach((client) => {
-  //     if(clientToSkip && clientToSkip === client){
-  //       return;
-  //     }
-  //     client.roomStateUpdated(roomState);
-  //   });
-  // }
+  broadcastRoomState(clientToSkip?: Client){
+    const roomState: RoomState = {
+      producers: [],
+      consumers: [],
+      clients: [],
+    };
+    this.clients.forEach((client) => {
+      if(clientToSkip && clientToSkip === client){
+        return;
+      }
+      client.roomStateUpdated(roomState);
+    });
+  }
 }

@@ -80,7 +80,7 @@ export interface MediasoupConfig {
   router: mediasoupTypes.RouterOptions;
   webRtcTransport: mediasoupTypes.WebRtcTransportOptions;
   maxIncomingBitrate: number;
-  numWorkers: number;
+  // numWorkers: number;
 }
 
 const mediasoupConfig: MediasoupConfig = {
@@ -98,7 +98,7 @@ const mediasoupConfig: MediasoupConfig = {
   webRtcTransport,
   
   maxIncomingBitrate: 1500000,
-  numWorkers: 1,
+  // numWorkers: 1,
 };
 
 export default mediasoupConfig;

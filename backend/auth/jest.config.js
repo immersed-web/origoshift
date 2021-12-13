@@ -4,11 +4,11 @@ module.exports = {
   preset: 'ts-jest',
   clearMocks: true,
   testEnvironment: 'node',
-  // globals: {
-  //   'ts-jest': {
-  //     compiler: 'ttypescript'
-  //   }
-  // },
+  globals: {
+    'ts-jest': {
+      tsconfig: 'tsconfig.test.json'
+    }
+  },
   setupFilesAfterEnv: [
     '<rootDir>/src/testUtils/prismaMock.ts'
   ]

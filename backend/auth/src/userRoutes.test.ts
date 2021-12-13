@@ -3,13 +3,11 @@ import createUserRouter, {createUser, loginUser, getUser, getJwt, logoutUser, va
 import { mock, mockDeep, mockFn } from 'jest-mock-extended';
 
 import brcypt from 'bcrypt';
+import { UserData } from 'shared-types/CustomTypes';
 
-// import prisma from './prismaClient';
 import { prismaMock, PrismaSessionStoreMock, UserWithRole, Prisma} from './testUtils/prismaMock';
 import { userDataFromDBResponse } from './utils';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
-// import { Prisma } from '.prisma/client';
-// import { Prisma } from '@prisma/client';
 
 
 describe('when creating a userRouter', () => {

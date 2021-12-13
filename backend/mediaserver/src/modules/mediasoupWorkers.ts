@@ -1,8 +1,11 @@
 import { createWorker, types as soupTypes} from 'mediasoup';
 import config from '../mediasoupConfig';
 
+import { cpus } from 'os';
+
 const workerOptions = config.worker;
-const numWorkers = config.numWorkers;
+// const numWorkers = config.numWorkers;
+const numWorkers = cpus().length;
 
 const workers: soupTypes.Worker[] = [];
 export async function createWorkers(){
@@ -17,6 +20,7 @@ export async function createWorkers(){
     workers.push(worker);
   }
   console.log(`Created ${numWorkers} mediasoup workers`);
+  return workers.length;
 }
 
 /**
@@ -29,5 +33,14 @@ export function getMediasoupWorker() {
   if (++nextMediasoupWorkerIdx === workers.length)
     nextMediasoupWorkerIdx = 0;
 
+  if(!worker){
+    throw new Error('no soup workers available! Have you created any?');
+  }
   return worker;
+}
+
+export function tearDownAllSoupWorkers() {
+  workers.forEach((worker) => {
+    worker.close();
+  });
 }

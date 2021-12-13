@@ -2,8 +2,8 @@ import { randomUUID } from 'crypto';
 import SocketWrapper from './SocketWrapper';
 import {types as soup} from 'mediasoup';
 // import {types as soupClient} from 'mediasoup-client';
-import { UserRole } from 'shared-types/CustomTypes';
-import { createResponse, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
+import { RoomState, UserRole } from 'shared-types/CustomTypes';
+import { createRequest, createResponse, Request, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 
 import Room from './Room';
 import Gathering from './Gathering';
@@ -194,21 +194,18 @@ export default class Client {
     this.ws.send(msg);
   }
 
-  // roomStateUpdated(newRoomState: RoomState){
-  //   console.log('roomState updated', newRoomState);
-  //   const msg: RoomStateUpdate = {
-  //     type: 'dataMessage',
-  //     subject: 'roomState',
-  //     responseNeeded: false,
-  //     data: newRoomState,
-  //   };
-  //   this.send(msg);
-  // }
+  roomStateUpdated(newRoomState: RoomState){
+    console.log('roomState updated', newRoomState);
+    const roomStateUpdate = createRequest('roomStateUpdated', newRoomState);
+    this.send(roomStateUpdate);
+  }
 
   // /**
   //  * I would prefer to not need this function. but uWebsockets is not attaching incoming messages to the socket object itself, but rather the server.
   //  * Thus we have to propagate the message "down" to the socketWrapper
   //  */
+  // EDIT: I made an ugly hack so we instead can access the socket instance directly from index.ts
+  // (typescript only checks access of private members on build so we ignore that and access it directly in js)
   // incomingMessage(msg: InternalMessageType){
   //   this.ws.incomingMessage(msg);
   // }

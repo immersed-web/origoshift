@@ -1,15 +1,17 @@
 import SocketWrapper, { InternalMessageType, InternalSocketType } from './SocketWrapper';
 import { mock } from 'jest-mock-extended';
+import { createRequest, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 
 describe('socketwrapper with mocked underlying socket', () => {
   // We create a mocked send implementation that saves the outgoing "raw" data "to the side"
 // Then we can use this data later as if it was received from the client
   const mockedSocket = mock<InternalSocketType>();
   let transmittedData: InternalMessageType = new ArrayBuffer(2);
-  const validMsgObj: SocketMessage<UnknownMessageType> = {
-    type: 'setRtpCapabilities',
-    data: {},
-  };
+  // const validMsgObj: SocketMessage<UnknownMessageType> = {
+  //   type: 'setRtpCapabilities',
+  //   data: {},
+  // };
+  const validMsgObj = createRequest('setName', { name: 'Gunnar'});
   mockedSocket.send.mockImplementation((msg, isBinary?, compress?) => {
     const enc = new TextEncoder();
     if(typeof msg === 'string'){

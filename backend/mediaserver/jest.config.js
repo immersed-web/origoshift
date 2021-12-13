@@ -2,12 +2,12 @@
 
 
 //Handle path aliases when testing
-import {pathsToModuleMapper } from 'ts-jest';
-import { compilerOptions } from './tsconfig.json';
+// import {pathsToModuleMapper } from 'ts-jest';
+// import { compilerOptions } from './tsconfig.json';
 
 module.exports = {
   roots: ['<rootDir>/src'],
-  moduleNameMapper: pathsToModuleMapper(compilerOptions.paths),
+  // moduleNameMapper: pathsToModuleMapper(compilerOptions.paths),
   globals: {
     'ts-jest': {
       tsconfig: 'tsconfig.test.json'

@@ -18,11 +18,6 @@ describe('when instantiating a room it', () => {
     const room = await Room.createRoom(customUuid, worker);
     expect(room.id).toBe(customUuid);
   });
-
-  // it('cant be done by calling the constructor directly', () => {
-  //   const router = mock<types.Router>();
-  //   const room = new Room('test', router);
-  // });
 });
 
 describe('a valid room with a mocked worker', () => {

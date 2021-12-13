@@ -4,6 +4,8 @@ import { mock } from 'jest-mock-extended';
 import { types as soup } from 'mediasoup';
 import Room from './Room';
 import Gathering from './Gathering';
+import { SocketMessage, UnknownMessageType, Request, createRequest, createResponse } from 'shared-types/MessageTypes';
+import { RoomState } from 'shared-types/CustomTypes';
 
 describe('When Client class is created it', () => {
   let socketWrapper : SocketWrapper;
@@ -49,11 +51,12 @@ describe('client instance with exposed private messageHandler', () => {
 
   it('can set RtpCapabilities from valid incoming message', () => {
     // const message = mock<SocketMessage<SetRtpCapabilities>>();
-    const validMsgObj: SocketMessage<SetRtpCapabilities> = {
-      type: 'actionRequest',
-      subject: 'setRtpCapabilities',
-      data: {codecs: []},
-    };
+    // const validMsgObj: Request<'setRtpCapabilities'> = {
+    //   type: 'request',
+    //   subject: 'setRtpCapabilities',
+    //   data: {codecs: []},
+    // };
+    const validMsgObj = createRequest('setRtpCapabilities', {codecs: []});
 
     messageHandler(validMsgObj);
     // console.log(client.rtpCapabilities);
@@ -72,19 +75,25 @@ describe('client instance with exposed private messageHandler', () => {
       // const Room = jest.createMockFromModule('./Room');
       // const otherRoom = new Room();
       client.room = room;
-      const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
-        subject:'getRouterRtpCapabilities',
-        type: 'dataRequest',
-      };
+      // const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
+      //   subject:'getRouterRtpCapabilities',
+      //   type: 'dataRequest',
+      // };
+      const requestMsg = createRequest('getRouterRtpCapabilities');
+      requestMsg.id = 12398;
       messageHandler(requestMsg);
 
-      const responseTemplate: GetRouterRtpCapabilitiesResponse = {
-        subject: 'getRouterRtpCapabilities',
-        type: 'dataResponse',
-        isResponse: true,
+      // const responseTemplate: GetRouterRtpCapabilitiesResponse = {
+      //   subject: 'getRouterRtpCapabilities',
+      //   type: 'dataResponse',
+      //   isResponse: true,
+      //   wasSuccess: true,
+      //   data: caps,
+      // };
+      const responseTemplate = createResponse('getRouterRtpCapabilities', requestMsg.id, {
         wasSuccess: true,
         data: caps,
-      };
+      });
 
       expect(socketWrapper.send).toBeCalledTimes(1);
       expect(socketWrapper.send).toBeCalledWith(expect.objectContaining(
@@ -94,10 +103,11 @@ describe('client instance with exposed private messageHandler', () => {
 
     it('can not return RouterCapabilities to client if isnt in a room', () => {
       const spy = jest.spyOn(console, 'warn').mockImplementation();
-      const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
-        subject:'getRouterRtpCapabilities',
-        type: 'dataRequest',
-      };
+      // const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
+      //   subject:'getRouterRtpCapabilities',
+      //   type: 'dataRequest',
+      // };
+      const requestMsg = createRequest('getRouterRtpCapabilities');
       messageHandler(requestMsg);
 
       expect(socketWrapper.send).toBeCalled();
@@ -106,19 +116,23 @@ describe('client instance with exposed private messageHandler', () => {
     });
 
     it('responds with failResponse if cant get router RtpCapabilities', () => {
-      const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
-        subject: 'getRouterRtpCapabilities',
-        type: 'dataRequest',
-      };
+      // const requestMsg: SocketMessage<GetRouterRtpCapabilities> = {
+      //   subject: 'getRouterRtpCapabilities',
+      //   type: 'dataRequest',
+      // };
+      const requestMsg = createRequest('getRouterRtpCapabilities');
       messageHandler(requestMsg);
 
-      const failResponseTemplate: SocketMessage<GetRouterRtpCapabilitiesResponse> = {
-        subject: 'getRouterRtpCapabilities',
-        type: 'dataResponse',
-        isResponse: true,
-        wasSuccess: false,
+      // const failResponseTemplate: SocketMessage<GetRouterRtpCapabilitiesResponse> = {
+      //   subject: 'getRouterRtpCapabilities',
+      //   type: 'dataResponse',
+      //   isResponse: true,
+      //   wasSuccess: false,
 
-      };
+      // };
+      const failResponseTemplate = createResponse('getRouterRtpCapabilities', requestMsg.id, {
+        wasSuccess: false,
+      });
       expect(socketWrapper.send).toBeCalled();
       expect(socketWrapper.send).toBeCalledWith(
         expect.objectContaining(failResponseTemplate)
@@ -139,11 +153,14 @@ describe('client instance with exposed private messageHandler', () => {
     });
     it('can NOT join a gathering if doesnt exist', () => {
       const spy = jest.spyOn(console, 'warn').mockImplementation();
-      const invalidJoinGatheringRequest: SocketMessage<JoinGathering> = {
-        subject: 'joinGathering',
-        type: 'actionRequest',
-        data: {id: invalidGatheringId}
-      };
+      // const invalidJoinGatheringRequest: SocketMessage<JoinGathering> = {
+      //   subject: 'joinGathering',
+      //   type: 'actionRequest',
+      //   data: {id: invalidGatheringId}
+      // };
+      const invalidJoinGatheringRequest = createRequest('joinGathering', {
+        gatheringId: invalidGatheringId
+      });
       messageHandler(invalidJoinGatheringRequest);
 
       expect(client.gathering).toBeUndefined();
@@ -157,11 +174,14 @@ describe('client instance with exposed private messageHandler', () => {
       // const gathering = mock<Gathering>();
       // console.log(gathering);
       // Gathering.gatherings.set(gatheringId, gathering);
-      const validJoinGatheringRequest: SocketMessage<JoinGathering> = {
-        subject: 'joinGathering',
-        type: 'actionRequest',
-        data: {id: validGatheringId}
-      };
+      // const validJoinGatheringRequest: SocketMessage<JoinGathering> = {
+      //   subject: 'joinGathering',
+      //   type: 'actionRequest',
+      //   data: {id: validGatheringId}
+      // };
+      const validJoinGatheringRequest = createRequest('joinGathering', {
+        gatheringId: validGatheringId,
+      });
       messageHandler(validJoinGatheringRequest);
 
       expect(client.gathering).toBeDefined();
@@ -202,11 +222,12 @@ describe('client instance with exposed private messageHandler', () => {
       gathering.getRoom.calledWith(validRoomId).mockReturnValue(room);
       client.gathering = gathering;
 
-      const validJoinRoomRequest: SocketMessage<JoinRoom> = {
-        subject: 'joinRoom',
-        type: 'actionRequest',
-        data: {id: validRoomId,}
-      };
+      // const validJoinRoomRequest: SocketMessage<JoinRoom> = {
+      //   subject: 'joinRoom',
+      //   type: 'actionRequest',
+      //   data: {id: validRoomId,}
+      // };
+      const validJoinRoomRequest = createRequest('joinRoom', {roomId: validRoomId});
       messageHandler(validJoinRoomRequest);
 
       expect(client.room).toBeDefined();
@@ -217,11 +238,12 @@ describe('client instance with exposed private messageHandler', () => {
 
       room.addClient.calledWith(client).mockReturnValue(true);
       gathering.getRoom.calledWith(validRoomId).mockReturnValue(room);
-      const validRoomRequest: SocketMessage<JoinRoom> = {
-        type: 'actionRequest',
-        subject: 'joinRoom',
-        data: {id: validRoomId}
-      };
+      // const validRoomRequest: SocketMessage<JoinRoom> = {
+      //   type: 'actionRequest',
+      //   subject: 'joinRoom',
+      //   data: {id: validRoomId}
+      // };
+      const validRoomRequest = createRequest('joinRoom', { roomId: validRoomId});
       messageHandler(validRoomRequest);
       expect(client.room).toBeUndefined();
       expect(logSpy).toBeCalled();
@@ -234,11 +256,12 @@ describe('client instance with exposed private messageHandler', () => {
       // const invalidRoomId = '3jlk234h5';
       gathering.getRoom.calledWith(invalidRoomId).mockReturnValue(undefined);
       client.gathering = gathering;
-      const invalidJoinRoomRequest: SocketMessage<JoinRoom> = {
-        type: 'actionRequest',
-        subject: 'joinRoom',
-        data: {id: invalidRoomId,}
-      };
+      // const invalidJoinRoomRequest: SocketMessage<JoinRoom> = {
+      //   type: 'actionRequest',
+      //   subject: 'joinRoom',
+      //   data: {id: invalidRoomId,}
+      // };
+      const invalidJoinRoomRequest = createRequest('joinRoom', { roomId: invalidRoomId});
       messageHandler(invalidJoinRoomRequest);
 
       expect(client.room).toBeUndefined();
@@ -250,20 +273,24 @@ describe('client instance with exposed private messageHandler', () => {
       gathering.getRoom.calledWith(validRoomId).mockReturnValue(room);
       room.addClient.calledWith(client).mockReturnValue(true);
 
-      const joinRoomRequest: SocketMessage<JoinRoom> = {
-        type: 'actionRequest',
-        subject: 'joinRoom',
-        data: {id: validRoomId,}
-      };
+      // const joinRoomRequest: SocketMessage<JoinRoom> = {
+      //   type: 'actionRequest',
+      //   subject: 'joinRoom',
+      //   data: {id: validRoomId,}
+      // };
+      const joinRoomRequest = createRequest('joinRoom', {roomId: validRoomId});
       messageHandler(joinRoomRequest);
 
       expect(socketWrapper.send).toBeCalled();
-      const responseObj: SocketMessage<JoinRoomResponse> = {
-        subject: 'joinRoom',
-        type: 'actionResponse',
-        isResponse: true,
+      // const responseObj: SocketMessage<JoinRoomResponse> = {
+      //   subject: 'joinRoom',
+      //   type: 'actionResponse',
+      //   isResponse: true,
+      //   wasSuccess: false,
+      // };
+      const responseObj = createResponse('joinRoom', joinRoomRequest.id, {
         wasSuccess: false,
-      };
+      });
       expect(socketWrapper.send).toBeCalledWith(
         expect.objectContaining(responseObj)
       );
@@ -272,19 +299,23 @@ describe('client instance with exposed private messageHandler', () => {
     it('sends response to client when failing because no such room exist', ()=>{
       gathering.getRoom.calledWith(invalidRoomId).mockReturnValue(undefined);
       client.gathering = gathering;
-      const joinRoomRequest: SocketMessage<JoinRoom> = {
-        type: 'actionRequest',
-        subject: 'joinRoom',
-        data: {id: invalidRoomId,}
-      };
+      // const joinRoomRequest: SocketMessage<JoinRoom> = {
+      //   type: 'actionRequest',
+      //   subject: 'joinRoom',
+      //   data: {id: invalidRoomId,}
+      // };
+      const joinRoomRequest = createRequest('joinRoom', {roomId: invalidRoomId});
       messageHandler(joinRoomRequest);
       expect(socketWrapper.send).toBeCalled();
-      const failResponse: SocketMessage<JoinRoomResponse> = {
-        subject: 'joinRoom',
-        type: 'actionResponse',
-        isResponse: true,
+      // const failResponse: SocketMessage<JoinRoomResponse> = {
+      //   subject: 'joinRoom',
+      //   type: 'actionResponse',
+      //   isResponse: true,
+      //   wasSuccess: false,
+      // };
+      const failResponse = createResponse('joinRoom', joinRoomRequest.id, {
         wasSuccess: false,
-      };
+      });
       expect(socketWrapper.send).toBeCalledWith(
         expect.objectContaining(failResponse)
       );
@@ -295,20 +326,24 @@ describe('client instance with exposed private messageHandler', () => {
       room.addClient.calledWith(client).mockReturnValue(true);
       gathering.getRoom.calledWith(validRoomId).mockReturnValue(room);
       client.gathering = gathering;
-      const joinRoomRequest: SocketMessage<JoinRoom> = {
-        subject: 'joinRoom',
-        type: 'actionRequest',
-        data: {id: validRoomId}
-      };
+      // const joinRoomRequest: SocketMessage<JoinRoom> = {
+      //   subject: 'joinRoom',
+      //   type: 'actionRequest',
+      //   data: {id: validRoomId}
+      // };
+      const joinRoomRequest = createRequest('joinRoom', {roomId: validRoomId});
       messageHandler(joinRoomRequest);
       expect(socketWrapper.send).toBeCalled();
-      const successResponse: SocketMessage<JoinRoomResponse> = {
-        subject: 'joinRoom',
-        type: 'actionResponse',
-        isResponse: true,
+      // const successResponse: SocketMessage<JoinRoomResponse> = {
+      //   subject: 'joinRoom',
+      //   type: 'actionResponse',
+      //   isResponse: true,
+      //   wasSuccess: true,
+      //   data: { id: validRoomId }
+      // };
+      const successResponse = createResponse('joinRoom', joinRoomRequest.id, {
         wasSuccess: true,
-        data: { id: validRoomId }
-      };
+      });
       expect(socketWrapper.send).toBeCalledWith(
         expect.objectContaining(successResponse)
       );
@@ -329,7 +364,14 @@ describe('client instance with exposed private messageHandler', () => {
     });
     it('sends the roomstate to the frontend', () => {
       client.roomStateUpdated(validNewRoomState);
+      const roomSateUpdatedMsg = createRequest('roomStateUpdated', validNewRoomState);
+      // const responseTemplate = createResponse('roomStateUpdated', roomSateUpdatedMsg.id, {
+      //   wasSuccess: true,
+      // });
       expect(socketWrapper.send).toBeCalled();
+      expect(socketWrapper.send).toBeCalledWith(
+        expect.objectContaining(roomSateUpdatedMsg)
+      );
     });
     it('updates the internal state accordingly', ()=> {
       //TODO: Do we need to do housekeeping in the client instance itself?

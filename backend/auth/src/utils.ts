@@ -1,5 +1,5 @@
 import { UserWithRole } from './prismaClient';
-import { UserData } from '../../../types/types';
+import { UserData } from 'shared-types/CustomTypes';
 export const userDataFromDBResponse = (userWithRole: UserWithRole): UserData => {
   // console.log('transforming db response to userObject!');
   let role: string | null = null;

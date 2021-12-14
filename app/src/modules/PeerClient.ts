@@ -9,7 +9,7 @@ import * as mediasoupClient from 'mediasoup-client';
 import { RtpCapabilities } from 'mediasoup-client/lib/RtpParameters';
 // import { TransportOptions } from 'mediasoup-client/lib/Transport';
 // import { RoomState } from 'app/../types/types';
-import { sendRequest, onSocketReceivedMessage } from 'src/modules/WebSocket';
+import { sendRequest, onSocketReceivedMessage } from 'src/modules/webSocket';
 import { createRequest, Request } from 'shared-types/MessageTypes';
 
 export default class PeerClient {
@@ -61,6 +61,19 @@ export default class PeerClient {
     //   });
     // };
 
+    // try {
+    //   this.mediasoupDevice = new mediasoupClient.Device();
+    // } catch (error) {
+    //   if (error instanceof mediasoupTypes.UnsupportedError && error.name === 'UnsupportedError') {
+    //     console.warn('browser not supported');
+    //   } else {
+    //     console.error(error);
+    //   }
+    // }
+    this.createDevice();
+  }
+
+  createDevice () {
     try {
       this.mediasoupDevice = new mediasoupClient.Device();
     } catch (error) {
@@ -81,6 +94,7 @@ export default class PeerClient {
   }
 
   async loadMediasoupDevice (rtpCapabilities: RtpCapabilities) {
+    this.createDevice();
     await this.mediasoupDevice.load({ routerRtpCapabilities: rtpCapabilities });
 
     try {

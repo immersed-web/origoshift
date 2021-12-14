@@ -10,10 +10,20 @@ const pendingRequests = new Map<number, {resolve: RequestResolver, reject: Reque
 let onMessageCallback: (msg: UnknownMessageType) => unknown;
 
 let socket: WebSocket | null = null;
-function createSocket () {
+export function createSocket (token: string) {
+  if (!process.env.SOCKET_URL) {
+    console.error('No socket url provided from environment variables!! Huge error of doom!');
+    throw new Error('no socket url provided!');
+  }
+  if (!token) {
+    console.error('no auth token provided for socket');
+    throw new Error('no auth token provided!');
+  }
   const connectionStore = useConnectionStore(pinia);
   try {
-    socket = new WebSocket(`ws://${process.env.SOCKET_URL}`);
+    const connectionsString = `ws://${process.env.SOCKET_URL}?${token}`;
+    console.log('creating websocket with connectionsString;', connectionsString);
+    socket = new WebSocket(connectionsString);
     socket.onopen = (ev) => {
       console.log('connected: ', ev);
       connectionStore.connected = true;
@@ -23,7 +33,7 @@ function createSocket () {
       console.error('socket closed. will try to reconnect!');
       connectionStore.connected = false;
       setTimeout(() => {
-        createSocket();
+        createSocket(token);
       }, 4000);
     };
     socket.onmessage = handleMessage;
@@ -68,12 +78,6 @@ const handleMessage = (ev: MessageEvent) => {
   }
 };
 
-if (process.env.SOCKET_URL) {
-  createSocket();
-} else {
-  console.error('No socket url provided from environment variables!! Huge error of doom!');
-}
-
 export const onSocketReceivedMessage = (callback: (msg: UnknownMessageType) => unknown) => {
   onMessageCallback = callback;
 };
@@ -103,4 +107,4 @@ export const sendRequest = async <T extends RequestSubjects>(msg: SocketMessage<
   return promise as Promise<ResponseTo<T>>;
 };
 
-export default socket;
+// export socket;

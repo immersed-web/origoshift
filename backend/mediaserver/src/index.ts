@@ -50,10 +50,11 @@ app.ws('/*', {
       //   return;
       // }
     
-      console.log('upgrade request provided this token: ', receivedToken);
+      console.log('upgrade request provided this token:', receivedToken);
 
       const decoded = verifyJwtToken(receivedToken);
       if(decoded){
+        console.log('decoded jwt:', decoded);
         res.upgrade(
           {decoded},
           /* Spell these correctly */

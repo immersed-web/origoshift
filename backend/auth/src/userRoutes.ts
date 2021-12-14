@@ -143,6 +143,7 @@ export default function createUserRouter(env: NodeJS.ProcessEnv){
   userRouter.use(session({
     secret: env.SESSION_KEY,
     cookie: {
+      httpOnly: false,
       maxAge: 7 * 24 * 60 * 60 * 1000 // ms
     },
     name: 'inclubit',

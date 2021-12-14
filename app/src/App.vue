@@ -3,7 +3,7 @@
 </template>
 <script setup lang="ts">
 
-import socket from './modules/WebSocket';
-console.log(socket.readyState);
+// import socket from './modules/WebSocket';
+// console.log(socket.readyState);
 
 </script>

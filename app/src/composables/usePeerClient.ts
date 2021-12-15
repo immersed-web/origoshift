@@ -15,13 +15,20 @@ export default function usePeerClient () {
   //   peerId.value = peer.id;
   // };
 
-  async function requestMedia (deviceId: string): Promise<MediaStream> {
+  async function requestMedia (deviceId?: string): Promise<MediaStream> {
     // TODO: we should be able to customize the constraints for specific stuff
-    const constraints: MediaStreamConstraints = {
-      video: {
-        deviceId: deviceId,
-      },
+    let constraints: MediaStreamConstraints = {
+      video: true,
     };
+    if (deviceId) {
+      constraints = {
+        video: {
+          deviceId: deviceId,
+        },
+      };
+    } else {
+      console.log('no deviceId provided. Calling with vide: true');
+    }
     localStream = await navigator.mediaDevices.getUserMedia(constraints);
     return localStream;
   }

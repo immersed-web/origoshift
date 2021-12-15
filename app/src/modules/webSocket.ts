@@ -1,6 +1,6 @@
-import { useConnectionStore } from '../stores/connection';
+import { useConnectionStore } from '../stores/connectionStore';
 import { pinia } from '../boot/pinia';
-import { AnyRequest, AnyResponse, ResponseTo, SocketMessage, RequestSubjects, UnknownMessageType } from 'shared-types/MessageTypes';
+import { AnyRequest, Request, AnyResponse, ResponseTo, SocketMessage, RequestSubjects, UnknownMessageType } from 'shared-types/MessageTypes';
 
 const requestTimeout = 3000;
 type RequestResolver = (msg: AnyResponse) => void;
@@ -87,7 +87,7 @@ export const send = (msg: SocketMessage<UnknownMessageType>) => {
   socket?.send(string);
 };
 
-export const sendRequest = async <T extends RequestSubjects>(msg: SocketMessage<AnyRequest>): Promise<ResponseTo<T>> => {
+export const sendRequest = async <T extends RequestSubjects>(msg: SocketMessage<Request<T>>): Promise<ResponseTo<T>> => {
   msg.id = Date.now(); // Questionable if we should set the id here...
   const id = msg.id;
   const msgString = JSON.stringify(msg);

@@ -18,18 +18,16 @@ export default class PeerClient {
   // socket: SocketExt;
   id = '';
   url?: string;
-  mediasoupDevice!: mediasoupTypes.Device;
+  mediasoupDevice: mediasoupTypes.Device;
   sendTransport?: mediasoupTypes.Transport;
   receiveTransport?: mediasoupTypes.Transport;
-  producers: Map<string, mediasoupTypes.Producer>;
-  consumers: Map<string, mediasoupTypes.Consumer>;
+  producers = new Map<string, mediasoupTypes.Producer>();
+  consumers = new Map<string, mediasoupTypes.Consumer>();
   roomStore: ReturnType<typeof useRoomStore>;
   // onRoomState?: (data: RoomState) => void;
 
   // constructor (url?: string, onRoomState?: (data: RoomState) => void) {
   constructor () {
-    this.producers = new Map<string, mediasoupTypes.Producer>();
-    this.consumers = new Map<string, mediasoupTypes.Consumer>();
     this.roomStore = useRoomStore(pinia);
     // this.onRoomState = onRoomState;
 
@@ -74,19 +72,21 @@ export default class PeerClient {
     //     console.error(error);
     //   }
     // }
-    this.createDevice();
-  }
 
-  createDevice () {
     try {
-      this.mediasoupDevice = new mediasoupClient.Device();
+      this.mediasoupDevice = this.createDevice();
     } catch (error) {
       if (error instanceof mediasoupTypes.UnsupportedError && error.name === 'UnsupportedError') {
         console.warn('browser not supported');
       } else {
         console.error(error);
       }
+      throw error;
     }
+  }
+
+  private createDevice () {
+    return new mediasoupClient.Device();
   }
 
   async awaitConnection (): Promise<void> {
@@ -98,7 +98,7 @@ export default class PeerClient {
   }
 
   async loadMediasoupDevice (rtpCapabilities: RtpCapabilities) {
-    this.createDevice();
+    // this.createDevice();
     await this.mediasoupDevice.load({ routerRtpCapabilities: rtpCapabilities });
 
     try {
@@ -113,8 +113,7 @@ export default class PeerClient {
     const deviceCapabilities = this.mediasoupDevice.rtpCapabilities;
     const setRtpCapabilitiesReq = createRequest('setRtpCapabilities', deviceCapabilities);
 
-    const response = await sendRequest(setRtpCapabilitiesReq);
-    return response.wasSuccess;
+    await sendRequest(setRtpCapabilitiesReq);
   }
 
   async setName (name: string) {
@@ -122,8 +121,7 @@ export default class PeerClient {
     // return this.triggerSocketEvent('setName', name);
     // return this.socket.request('setName', { name });
     const setNameReq = createRequest('setName', { name: name });
-    const response = await sendRequest(setNameReq);
-    return response.wasSuccess;
+    await sendRequest(setNameReq);
   }
 
   async createGathering (gatheringName: string) {
@@ -137,7 +135,7 @@ export default class PeerClient {
 
   async joinGathering (gatheringId: string) {
     const joinGatheringReq = createRequest('joinGathering', { gatheringId });
-    return sendRequest(joinGatheringReq);
+    await sendRequest(joinGatheringReq);
     // if(!response.wasSuccess){
     //   throw new Error(response.message);
     // }
@@ -155,46 +153,28 @@ export default class PeerClient {
       name: roomName,
     });
     const response = await sendRequest(createRoomReq);
-    if (!response.wasSuccess) {
-      throw new Error(response.message);
-    }
     return response.data.roomId;
   }
 
   async joinRoom (roomId: string) {
     const joinRoomReq = createRequest('joinRoom', { roomId: roomId });
-    const response = await sendRequest(joinRoomReq);
-
+    await sendRequest(joinRoomReq);
     this.roomStore.currentRoomId = roomId;
-    return response.wasSuccess;
   }
 
   async getRouterCapabilities () : Promise<mediasoupTypes.RtpCapabilities> {
     const getRouterCapsReq = createRequest('getRouterRtpCapabilities');
 
     const response = await sendRequest(getRouterCapsReq);
-    if (response.wasSuccess) {
-      return response.data;
-    } else {
-      console.error(response.message);
-    }
-
-    throw new Error('failed to get router caps!');
+    return response.data;
   }
 
   async createSendTransport () {
     const createSendTransportReq = createRequest('createSendTransport');
     const response = await sendRequest(createSendTransportReq);
 
-    if (!response.wasSuccess) {
-      throw response.message;
-    }
     const transportOptions: mediasoupTypes.TransportOptions = response.data;
-    try {
-      this.sendTransport = this.mediasoupDevice.createSendTransport(transportOptions);
-    } catch (err) {
-      return Promise.reject('Failed to create local sendTransport');
-    }
+    this.sendTransport = this.mediasoupDevice.createSendTransport(transportOptions);
     this.attachTransportEvents(this.sendTransport);
   }
 
@@ -202,15 +182,8 @@ export default class PeerClient {
     const createReceiveTransportReq = createRequest('createReceiveTransport');
     const response = await sendRequest(createReceiveTransportReq);
 
-    if (!response.wasSuccess) {
-      throw response.message;
-    }
     const transportOptions: mediasoupTypes.TransportOptions = response.data;
-    try {
-      this.receiveTransport = this.mediasoupDevice.createRecvTransport(transportOptions);
-    } catch (err) {
-      return Promise.reject('Failed to create local receiveTransport');
-    }
+    this.receiveTransport = this.mediasoupDevice.createRecvTransport(transportOptions);
     this.attachTransportEvents(this.receiveTransport);
   }
 

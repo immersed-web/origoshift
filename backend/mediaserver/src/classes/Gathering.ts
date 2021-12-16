@@ -1,5 +1,9 @@
 import { randomUUID } from 'crypto';
-import Client from './Client';
+import { RoomInfo } from 'shared-types/CustomTypes';
+import mediasoupConfig from '../mediasoupConfig';
+import { getMediasoupWorker } from '../modules/mediasoupWorkers';
+// import Client from './Client';
+import {types as soup} from 'mediasoup';
 
 import Room from './Room';
 
@@ -9,9 +13,17 @@ export default class Gathering {
   private static gatherings: Map<string, Gathering> = new Map();
 
 
-  static async createGathering(id?: string, name?: string) {
+  static async createGathering(id?: string, name?: string, worker?: soup.Worker) {
     try {
-      const gathering = new Gathering(id, name);
+      const routerOptions: soup.RouterOptions = {};
+      if(mediasoupConfig.router.mediaCodecs){
+        routerOptions.mediaCodecs = mediasoupConfig.router.mediaCodecs;
+      }
+      if(!worker){
+        worker = getMediasoupWorker();
+      }
+      const router = await worker.createRouter(routerOptions);
+      const gathering = new Gathering(id, name, router);
       return gathering;
     } catch (e) {
       console.error('failed to create gathering');
@@ -30,12 +42,14 @@ export default class Gathering {
 
   id: string;
   name;
+  router: soup.Router;
 
   private rooms: Map<string, Room> = new Map();
 
-  private constructor(id = randomUUID(), name = 'unnamed'){
+  private constructor(id = randomUUID(), name = 'unnamed', router: soup.Router){
     this.id = id;
     this.name = name;
+    this.router = router;
 
     const alreadyExistingGathering = Gathering.gatherings.get(this.id);
     if(alreadyExistingGathering){
@@ -45,6 +59,10 @@ export default class Gathering {
     }
 
     Gathering.gatherings.set(this.id, this);
+  }
+
+  getRtpCapabilities(): soup.RtpCapabilities {
+    return this.router.rtpCapabilities;
   }
 
   addRoom(room:Room){
@@ -58,12 +76,24 @@ export default class Gathering {
     this.rooms.delete(roomOrId.id);
   }
 
-  listRooms(){
-    const rooms: { roomId: string; clients: string[] }[] = [];
-    this.rooms.forEach((room, key) => {
-      const clientIds = room.clients.keys();
-      const clientIdArray = Array.from(clientIds);
-      rooms.push({roomId: room.id, clients: clientIdArray});
+  listRooms(): RoomInfo[]{
+    // const rooms: { roomId: string; clients: string[] }[] = [];
+    const rooms: RoomInfo[] = [];
+    this.rooms.forEach((room) => {
+      const clients: RoomInfo['clients'] = {};
+      room.clients.forEach((client, clientId) => {
+        const producers: string [] = [];
+        client.producers.forEach((producer, producerId) => {
+          producers.push(producerId);
+        });
+        clients[clientId] = { clientId, producers};
+      });
+
+      const roomInfo: RoomInfo = {
+        roomId: room.id,
+        clients: clients,
+      };
+      rooms.push(roomInfo);
     });
     return rooms;
   }

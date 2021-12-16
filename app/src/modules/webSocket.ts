@@ -1,9 +1,9 @@
 import { useConnectionStore } from '../stores/connectionStore';
 import { pinia } from '../boot/pinia';
-import { AnyRequest, Request, AnyResponse, ResponseTo, SocketMessage, RequestSubjects, UnknownMessageType } from 'shared-types/MessageTypes';
+import { Request, AnyResponse, ResponseTo, SocketMessage, RequestSubjects, UnknownMessageType, SuccessResponseTo, MessageSubjects, AnySuccessResponse } from 'shared-types/MessageTypes';
 
 const requestTimeout = 3000;
-type RequestResolver = (msg: AnyResponse) => void;
+type RequestResolver = (msg: AnySuccessResponse) => void;
 type RequestRejecter = (msg: AnyResponse) => void;
 const pendingRequests = new Map<number, {resolve: RequestResolver, reject: RequestRejecter}>();
 
@@ -63,7 +63,7 @@ const handleMessage = (ev: MessageEvent) => {
         return;
       }
       console.log(`request '${msg.subject}' resolved`, msg);
-      resolve(msg);
+      resolve(msg as SuccessResponseTo<typeof msg.subject>);
       pendingRequests.delete(msg.id);
     } catch (e) {
       console.error(e);

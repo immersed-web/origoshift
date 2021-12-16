@@ -1,6 +1,6 @@
 import {types as mediasoupClientTypes} from 'mediasoup-client';
 import {types as mediasoupTypes} from 'mediasoup';
-import { RoomState } from './CustomTypes';
+import { RoomInfo, RoomState } from './CustomTypes';
 
 interface IPacket {
   id: number,
@@ -50,7 +50,7 @@ export type AnyRequest =
   | RequestBuilder<'joinGathering', {
     gatheringId: string,
   }>
-  | RequestBuilder<'getRooms'>
+  | RequestBuilder<'getRoomsInGathering'>
   | RequestBuilder<'createRoom', {
     name: string,
   }>
@@ -100,17 +100,21 @@ export type AnyResponse =
   | ResponseBuilder<Request<'setName'>>
   | ResponseBuilder<Request<'createGathering'>, {gatheringId: string}>
   | ResponseBuilder<Request<'joinGathering'>>
-  | ResponseBuilder<Request<'getRooms'>, 
-    {
-      roomId: string,
-      clients: string[]
-    }[]
+  | ResponseBuilder<Request<'getRoomsInGathering'>, 
+    RoomInfo[]
   >
   | ResponseBuilder<Request<'createRoom'>, {roomId: string}>
   | ResponseBuilder<Request<'joinRoom'>>
   | ResponseBuilder<Request<'roomStateUpdated'>>
 
+// export type AnySuccessResponse = SuccessResponseTo<RequestSubjects>;
+
+// const success: SuccessResponseTo<'createGathering'> = {
+
+// }
+
 export type ResponseTo<Key extends RequestSubjects> = Extract<AnyResponse, {subject: Key}>
+// export type SuccessResponseTo<Key extends RequestSubjects> = Extract<AnyResponse extends {'wasSuccess': true}, {subject: Key}> ? ResponseTo<Key>: never
 
 export type UnfinishedResponse<T extends AnyResponse> = Omit<T, 'wasSuccess' | 'data'> & {wasSuccess?: undefined} | T
 

@@ -2,14 +2,16 @@ import { randomUUID } from 'crypto';
 import SocketWrapper from './SocketWrapper';
 import {types as soup} from 'mediasoup';
 // import {types as soupClient} from 'mediasoup-client';
-import { RoomState, UserRole } from 'shared-types/CustomTypes';
-import { createRequest, createResponse, Request, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
+import { RoomState, UserData, UserRole } from 'shared-types/CustomTypes';
+import { createRequest, createResponse, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 
 import Room from './Room';
 import Gathering from './Gathering';
 
 interface constructionParams {
-  id?: string, ws: SocketWrapper
+  id?: string,
+  ws: SocketWrapper,
+  userData?: UserData,
 }
 /**
  * This class represents a client in the backend. This class is also responsible for the communication with the "actual" client (i.e. the frontend).
@@ -18,19 +20,21 @@ export default class Client {
   id: string;
   private ws: SocketWrapper;
 
-  name = 'unnamed';
+  nickName = 'unnamed';
 
   role: UserRole = 'anonymous';
+  userData?: UserData;
 
   rtpCapabilities?: soup.RtpCapabilities;
   receiveTransport?: soup.WebRtcTransport;
+  sendTransport?: soup.WebRtcTransport;
   consumers: Map<string, soup.Consumer> = new Map();
   producers: Map<string, soup.Producer> = new Map();
 
   gathering?: Gathering;
   room? : Room;
 
-  constructor({id = randomUUID(), ws }: constructionParams){
+  constructor({id = randomUUID(), ws, userData}: constructionParams){
     // if(!id){
     //   this.id = uuidv4();
     // }else {
@@ -38,6 +42,10 @@ export default class Client {
     // }
     this.id = id;
     this.ws = ws;
+    if(userData){
+      this.userData = userData;
+      this.nickName = userData.username;
+    }
 
 
     ws.on('message', (msg) => {
@@ -63,7 +71,7 @@ export default class Client {
     console.log('received Request!!');
     switch (msg.subject) {
       case 'setName': {
-        this.name = msg.data.name;
+        this.nickName = msg.data.name;
         const response = createResponse('setName', msg.id, {
           wasSuccess: true,
           message: 'name updated!'
@@ -85,16 +93,16 @@ export default class Client {
         //   subject: 'getRouterRtpCapabilities',
         //   isResponse: true,
         // } as UnfinishedResponse<GetRouterRtpCapabilitiesResponse>;
-        if(!this.room){
-          console.warn('Client requested router capabilities without being in a room');
+        if(!this.gathering){
+          console.warn('Client requested router capabilities without being in a gathering');
           const response = createResponse('getRouterRtpCapabilities', msg.id, {
             wasSuccess: false,
-            message: 'not in a room. Must be in room to request RtpCapabilities',
+            message: 'not in a gathering. Must be in gathering to request RtpCapabilities',
           });
           this.send(response);
           return;
         }
-        const roomRtpCaps = this.room.getRtpCapabilities();
+        const roomRtpCaps = this.gathering.getRtpCapabilities();
         console.log('clientwant routerRtpCaps. They are: ', roomRtpCaps);
         const response = createResponse('getRouterRtpCapabilities', msg.id, {
           wasSuccess: true,
@@ -131,13 +139,13 @@ export default class Client {
         this.send(response);
         break;
       }
-      case 'getRooms': {
+      case 'getRoomsInGathering': {
         if(!this.gathering){
           console.warn('cant list rooms if isnt in a gathering');
           return;
         }
         const rooms = this.gathering.listRooms();
-        const response = createResponse('getRooms', msg.id, {
+        const response = createResponse('getRoomsInGathering', msg.id, {
           wasSuccess: true,
           data: rooms
         });

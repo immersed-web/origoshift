@@ -10,7 +10,9 @@ import { RtpCapabilities } from 'mediasoup-client/lib/RtpParameters';
 // import { TransportOptions } from 'mediasoup-client/lib/Transport';
 // import { RoomState } from 'app/../types/types';
 import { sendRequest, onSocketReceivedMessage } from 'src/modules/webSocket';
-import { createRequest, Request } from 'shared-types/MessageTypes';
+import { createRequest } from 'shared-types/MessageTypes';
+import { pinia } from 'src/boot/pinia';
+import { useRoomStore } from 'src/stores/roomStore';
 
 export default class PeerClient {
   // socket: SocketExt;
@@ -21,12 +23,14 @@ export default class PeerClient {
   receiveTransport?: mediasoupTypes.Transport;
   producers: Map<string, mediasoupTypes.Producer>;
   consumers: Map<string, mediasoupTypes.Consumer>;
+  roomStore: ReturnType<typeof useRoomStore>;
   // onRoomState?: (data: RoomState) => void;
 
   // constructor (url?: string, onRoomState?: (data: RoomState) => void) {
   constructor () {
     this.producers = new Map<string, mediasoupTypes.Producer>();
     this.consumers = new Map<string, mediasoupTypes.Consumer>();
+    this.roomStore = useRoomStore(pinia);
     // this.onRoomState = onRoomState;
 
     // this.socket.on('connect', () => {
@@ -107,9 +111,9 @@ export default class PeerClient {
 
   async sendRtpCapabilities () {
     const deviceCapabilities = this.mediasoupDevice.rtpCapabilities;
-    const setRtpCapabilitiesReq = createRequest<'setRtpCapabilities'>('setRtpCapabilities', deviceCapabilities);
+    const setRtpCapabilitiesReq = createRequest('setRtpCapabilities', deviceCapabilities);
 
-    const response = await sendRequest<'setRtpCapabilities'>(setRtpCapabilitiesReq);
+    const response = await sendRequest(setRtpCapabilitiesReq);
     return response.wasSuccess;
   }
 
@@ -117,21 +121,38 @@ export default class PeerClient {
     console.log('setting name', name);
     // return this.triggerSocketEvent('setName', name);
     // return this.socket.request('setName', { name });
-    const setNameReq: Request<'setName'> = createRequest<'setName'>('setName', { name: name });
-    const response = await sendRequest<'setName'>(setNameReq);
+    const setNameReq = createRequest('setName', { name: name });
+    const response = await sendRequest(setNameReq);
     return response.wasSuccess;
   }
 
   async createGathering (gatheringName: string) {
-    const createGatheringReq = createRequest<'createGathering'>('createGathering', {
+    const createGatheringReq = createRequest('createGathering', {
       gatheringName: gatheringName,
     });
-    return sendRequest(createGatheringReq);
+    // return sendRequest(createGatheringReq);
+    try {
+      const response = await sendRequest(createGatheringReq);
+      if(!response.wasSuccess){
+        throw 'noooo'
+      }
+      return response.data.gatheringId;
+    }
+    
   }
 
-  async getRooms () {
-    const getRoomsReq = createRequest<'getRooms'>('getRooms');
-    const response = await sendRequest<'getRooms'>(getRoomsReq);
+  async joinGathering (gatheringId: string) {
+    const joinGatheringReq = createRequest('joinGathering', { gatheringId });
+    return sendRequest(joinGatheringReq);
+    // if(!response.wasSuccess){
+    //   throw new Error(response.message);
+    // }
+    // return response.
+  }
+
+  async getRoomsInGathering () {
+    const getRoomsReq = createRequest('getRoomsInGathering');
+    const response = await sendRequest(getRoomsReq);
     if (!response.wasSuccess) {
       throw new Error(response.message);
     }
@@ -139,10 +160,10 @@ export default class PeerClient {
   }
 
   async createRoom (roomName: string) {
-    const createRoomReq: Request<'createRoom'> = createRequest<'createRoom'>('createRoom', {
+    const createRoomReq = createRequest('createRoom', {
       name: roomName,
     });
-    const response = await sendRequest<'createRoom'>(createRoomReq);
+    const response = await sendRequest(createRoomReq);
     if (!response.wasSuccess) {
       throw new Error(response.message);
     }
@@ -150,15 +171,17 @@ export default class PeerClient {
   }
 
   async joinRoom (roomId: string) {
-    const joinRoomReq: Request<'joinRoom'> = createRequest<'joinRoom'>('joinRoom', { roomId: roomId });
-    const response = await sendRequest<'joinRoom'>(joinRoomReq);
+    const joinRoomReq = createRequest('joinRoom', { roomId: roomId });
+    const response = await sendRequest(joinRoomReq);
+
+    this.roomStore.currentRoomId = roomId;
     return response.wasSuccess;
   }
 
   async getRouterCapabilities () : Promise<mediasoupTypes.RtpCapabilities> {
-    const getRouterCapsReq: Request<'getRouterRtpCapabilities'> = createRequest<'getRouterRtpCapabilities'>('getRouterRtpCapabilities');
+    const getRouterCapsReq = createRequest('getRouterRtpCapabilities');
 
-    const response = await sendRequest<'getRouterRtpCapabilities'>(getRouterCapsReq);
+    const response = await sendRequest(getRouterCapsReq);
     if (response.wasSuccess) {
       return response.data;
     } else {
@@ -169,8 +192,8 @@ export default class PeerClient {
   }
 
   async createSendTransport () {
-    const createSendTransportReq: Request<'createSendTransport'> = createRequest<'createSendTransport'>('createSendTransport');
-    const response = await sendRequest<'createSendTransport'>(createSendTransportReq);
+    const createSendTransportReq = createRequest('createSendTransport');
+    const response = await sendRequest(createSendTransportReq);
 
     if (!response.wasSuccess) {
       throw response.message;
@@ -185,8 +208,8 @@ export default class PeerClient {
   }
 
   async createReceiveTransport () {
-    const createReceiveTransportReq = createRequest<'createReceiveTransport'>('createReceiveTransport');
-    const response = await sendRequest<'createReceiveTransport'>(createReceiveTransportReq);
+    const createReceiveTransportReq = createRequest('createReceiveTransport');
+    const response = await sendRequest(createReceiveTransportReq);
 
     if (!response.wasSuccess) {
       throw response.message;
@@ -203,7 +226,7 @@ export default class PeerClient {
   attachTransportEvents (transport: mediasoupTypes.Transport) {
     transport.on('connect', ({ dtlsParameters }: {dtlsParameters: mediasoupTypes.DtlsParameters}, callback: () => void, errback: (error: unknown) => void) => {
       void (async () => {
-        const connectTransportReq = createRequest<'connectTransport'>('connectTransport', {
+        const connectTransportReq = createRequest('connectTransport', {
           transportId: transport.id,
           dtlsParameters,
         });
@@ -225,12 +248,12 @@ export default class PeerClient {
         // const params: {transportId: string | undefined, kind: mediasoupTypes.MediaKind, rtpParameters: mediasoupTypes.RtpParameters } = { transportId: transport?.id, kind, rtpParameters };
         try {
           // const response = await this.socket.request('createProducer', { transportId: transport.id, kind, rtpParameters });
-          const createProducerReq = createRequest<'createProducer'>('createProducer', {
+          const createProducerReq = createRequest('createProducer', {
             kind,
             rtpParameters,
             transportId: transport.id,
           });
-          const response = await sendRequest<'createProducer'>(createProducerReq);
+          const response = await sendRequest(createProducerReq);
           if (response.wasSuccess) {
             callback(response.data);
             return;
@@ -287,10 +310,10 @@ export default class PeerClient {
     //   },
     //   isResponse: false,
     // };
-    const createConsumerReq = createRequest<'createConsumer'>('createConsumer', {
+    const createConsumerReq = createRequest('createConsumer', {
       producerId: producerId,
     });
-    const response = await sendRequest<'createConsumer'>(createConsumerReq);
+    const response = await sendRequest(createConsumerReq);
 
     if (!response.wasSuccess) {
       throw response.message;

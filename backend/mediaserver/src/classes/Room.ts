@@ -1,36 +1,18 @@
-import {types as soup} from 'mediasoup';
 import { randomUUID } from 'crypto';
-import mediasoupConfig, { MediasoupConfig } from '../mediasoupConfig';
 import Client from './Client';
-import { getMediasoupWorker } from '../modules/mediasoupWorkers';
 import { RoomState } from 'shared-types/CustomTypes';
-// import { RoomState } from '@sharedTypes/types';
 export default class Room {
-  router: soup.Router;
+  // router: soup.Router;
   id: string;
   clients: Map<string, Client> = new Map();
 
-  static async createRoom(id: string = randomUUID(), worker?: soup.Worker): Promise<Room> {
-    const routerOptions: soup.RouterOptions = {};
-    if(mediasoupConfig.router.mediaCodecs){
-      routerOptions.mediaCodecs = mediasoupConfig.router.mediaCodecs;
-    }
-    if(!worker){
-      worker = getMediasoupWorker();
-    }
-    const router = await worker.createRouter(routerOptions);
-    const createdRoom = new Room(id, router);
-      
+  static async createRoom(id: string = randomUUID()): Promise<Room> {
+    const createdRoom = new Room(id);
     return createdRoom;
   }
 
-  private constructor(id: string, router: soup.Router) {
-    this.router = router;
+  private constructor(id: string) {
     this.id = id;
-  }
-
-  getRtpCapabilities(): soup.RtpCapabilities {
-    return this.router.rtpCapabilities;
   }
 
   addClient(client: Client){
@@ -43,6 +25,7 @@ export default class Room {
 
     return true;
   }
+
   removeClient(client: Client){
     if(!client.id){
       console.warn('invalid client object provided when trying to remove client from room. id missing!');
@@ -52,12 +35,29 @@ export default class Room {
     this.broadcastRoomState();
     return ok;
   }
+
+  private createRoomStateObj() {
+    const roomState: RoomState = {};
+    this.clients.forEach((client, clientId) => {
+      const nickName = client.nickName;
+      const producersArray = Array.from(client.producers.values());
+      const producers = producersArray.map((producer) => {
+        return {
+          producerId: producer.id,
+          kind: producer.kind,
+        };
+      });
+      // const producers = Array.from(client.producers.keys());
+      roomState[clientId] = {
+        nickName,
+        producers
+      };
+    });
+    return roomState;
+  }
+
   broadcastRoomState(clientToSkip?: Client){
-    const roomState: RoomState = {
-      producers: [],
-      consumers: [],
-      clients: [],
-    };
+    const roomState = this.createRoomStateObj();
     this.clients.forEach((client) => {
       if(clientToSkip && clientToSkip === client){
         return;

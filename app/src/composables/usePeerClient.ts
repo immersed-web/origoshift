@@ -3,7 +3,7 @@ import PeerClient from 'src/modules/PeerClient';
 // import { RoomState } from 'app/../types/types';
 const peer = new PeerClient();
 export default function usePeerClient () {
-  let localStream: MediaStream;
+  // let localStream: MediaStream;
   // const roomState = ref<RoomState>();
   // const peerId = ref<string>(peer.id); // TODO: why is this a ref? It will never change, right?
   // console.log('peerId:', peer.id);
@@ -29,22 +29,8 @@ export default function usePeerClient () {
     } else {
       console.log('no deviceId provided. Calling with vide: true');
     }
-    localStream = await navigator.mediaDevices.getUserMedia(constraints);
+    const localStream = await navigator.mediaDevices.getUserMedia(constraints);
     return localStream;
-  }
-
-  async function startProducing (stream: MediaStream) {
-    await peer.createSendTransport();
-    const track = stream.getVideoTracks()[0];
-    const producerId = await peer.produce(track);
-    return producerId;
-  }
-
-  async function consume (producerId: string) {
-    if (!peer.receiveTransport) {
-      await peer.createReceiveTransport();
-    }
-    return peer.consume(producerId);
   }
 
   // async function createGathering (gatheringName: string) {
@@ -64,6 +50,20 @@ export default function usePeerClient () {
     const capabilities = await peer.getRouterCapabilities();
     await peer.loadMediasoupDevice(capabilities);
     await peer.sendRtpCapabilities();
+  }
+
+  async function startProducing (stream: MediaStream) {
+    await peer.createSendTransport();
+    const track = stream.getVideoTracks()[0];
+    const producerId = await peer.produce(track);
+    return producerId;
+  }
+
+  async function consume (producerId: string) {
+    if (!peer.receiveTransport) {
+      await peer.createReceiveTransport();
+    }
+    return peer.consume(producerId);
   }
 
   // async function joinRoom (roomName: string) {
@@ -90,17 +90,19 @@ export default function usePeerClient () {
   //   // await peer.createSendTransport();
   //   // await peer.createReceiveTransport();
   // })();
+  const { createGathering, joinGathering, setName, getRoomsInGathering } = peer;
   return {
     // peer,
     // peerId,
     // roomState,
     requestMedia,
+    createGathering,
+    joinGathering,
     startProducing,
     consume,
-    createGathering: peer.createGathering,
     createRoom,
     joinRoom,
-    setName: peer.setName,
-    getRooms: peer.getRooms,
+    setName,
+    getRoomsInGathering,
   };
 }

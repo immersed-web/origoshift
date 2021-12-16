@@ -1,5 +1,5 @@
 <template>
-  <q-page class="row items-center justify-evenly">
+  <q-page class="">
     <q-list dense>
       <q-item
         v-for="action in actions"
@@ -20,41 +20,46 @@
       /> -->
     </q-list>
     <h2>Caaannect??? {{ connectionStore.connected }}</h2>
-    <p>"{{ token }}"</p>
+
+    <video ref="localVideoTag" />
     <pre>{{ rooms }}</pre>
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useConnectionStore } from 'src/stores/connection';
+import { useConnectionStore } from 'src/stores/connectionStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { login, getMe, getJwt } from 'src/modules/authClient';
 import { createSocket } from 'src/modules/webSocket';
 
-const { setName, createRoom, createGathering, getRooms } = usePeerClient();
+const { setName, createRoom, createGathering, joinGathering, getRoomsInGathering, requestMedia } = usePeerClient();
 const connectionStore = useConnectionStore();
 const rooms = ref();
 const token = ref<string>('');
+const gatheringId = ref<string>('');
+const localStream = ref<MediaStream>();
+const localVideoTag = ref<HTMLVideoElement>();
 interface Action {
   label: string,
   fn: () => unknown,
 }
 
-const loginFlow = async () => {
-  await login('admin', 'bajskorv');
-  // const me = await getMe();
-  // console.log('me is: ', me);
-  // const maybeJwt = await getJwt();
-  // if (maybeJwt) {
-  //   token = maybeJwt;
-  // }
-};
-
 const actions: Action[] = [
   {
+    label: 'get mediadevice',
+    fn: async () => {
+      localStream.value = await requestMedia();
+
+      if (localVideoTag.value) {
+        localVideoTag.value.srcObject = localStream.value;
+        localVideoTag.value.play();
+      }
+    },
+  },
+  {
     label: 'login',
-    fn: loginFlow,
+    fn: () => login('admin', 'bajskorv'),
   },
   {
     label: 'getMe',
@@ -74,7 +79,13 @@ const actions: Action[] = [
   },
   {
     label: 'createGathering',
-    fn: () => createGathering('coolEvent'),
+    fn: async () => {
+      gatheringId.value = await createGathering('coolEvent');
+    },
+  },
+  {
+    label: 'joinGathering',
+    fn: () => joinGathering(gatheringId.value),
   },
   {
     label: 'createRoom',
@@ -83,7 +94,7 @@ const actions: Action[] = [
   {
     label: 'getRooms',
     fn: async () => {
-      rooms.value = await getRooms();
+      rooms.value = await getRoomsInGathering();
     },
   },
 

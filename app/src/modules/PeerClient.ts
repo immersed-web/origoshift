@@ -52,7 +52,7 @@ export default class PeerClient {
     // });
 
     onSocketReceivedMessage((msg) => {
-      if (msg.subject === 'roomState') {
+      if (msg.subject === 'roomStateUpdated') {
         // this.consumers = msg.data.consumers;
         console.log('received new roomstate', msg.data);
       }
@@ -131,14 +131,8 @@ export default class PeerClient {
       gatheringName: gatheringName,
     });
     // return sendRequest(createGatheringReq);
-    try {
-      const response = await sendRequest(createGatheringReq);
-      if(!response.wasSuccess){
-        throw 'noooo'
-      }
-      return response.data.gatheringId;
-    }
-    
+    const response = await sendRequest(createGatheringReq);
+    return response.data.gatheringId;
   }
 
   async joinGathering (gatheringId: string) {
@@ -153,9 +147,6 @@ export default class PeerClient {
   async getRoomsInGathering () {
     const getRoomsReq = createRequest('getRoomsInGathering');
     const response = await sendRequest(getRoomsReq);
-    if (!response.wasSuccess) {
-      throw new Error(response.message);
-    }
     return response.data;
   }
 

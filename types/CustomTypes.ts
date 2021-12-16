@@ -1,8 +1,8 @@
-export interface RoomState {
-  producers: Record<string, unknown>[],
-  consumers: Record<string, unknown>[],
-  clients: Record<string, unknown>[],
-}
+// export interface RoomState {
+//   producers: Record<string, unknown>[],
+//   consumers: Record<string, unknown>[],
+//   clients: Record<string, unknown>[],
+// }
 
 export interface RoomInfo {
   roomId: string;

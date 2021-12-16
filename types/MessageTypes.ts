@@ -1,6 +1,6 @@
 import {types as mediasoupClientTypes} from 'mediasoup-client';
 import {types as mediasoupTypes} from 'mediasoup';
-import { RoomInfo, RoomState } from './CustomTypes';
+import { RoomInfo } from './CustomTypes';
 
 interface IPacket {
   id: number,
@@ -13,14 +13,17 @@ interface IPacket {
 // Interfaces for outgoing (ie not response) messages
 type PossiblyData<Data> = Data extends undefined ? unknown : {data: Data}
 
-type IRequest = IPacket
+interface IRequest extends IPacket {
+  type: 'request'
+}
+interface IMessage extends IPacket {
+  type: 'message'
+}
 
 type RequestBuilder<Key, Data = undefined> = IRequest & PossiblyData<Data> & {
-  type: 'request'
   subject: Key,
 }
-type MessageBuilder<Key, Data = undefined> = IRequest & {
-  type: 'message',
+type MessageBuilder<Key, Data = undefined> = IMessage & {
   subject: Key,
   data: Data,
 }
@@ -57,78 +60,90 @@ export type AnyRequest =
   | RequestBuilder<'joinRoom', {
     roomId: string,
   }>
-  | RequestBuilder<'roomStateUpdated', RoomState>
+  | RequestBuilder<'roomStateUpdated', RoomInfo>
 
-export type AnyMessage = MessageBuilder<'roomState', import('./CustomTypes').RoomState>
+export type AnyMessage = 
+  // MessageBuilder<'roomState', import('./CustomTypes').RoomState>
   | MessageBuilder<'chatMessage', {
     message: string
   }>
 
-export type MessageSubjects = Pick<AnyMessage, 'subject'>['subject'];
+export type MessageSubjects = AnyMessage['subject'];
 export type Message<Key extends MessageSubjects> = Extract<AnyMessage, {subject: Key}>
 
-export type RequestSubjects = Pick<AnyRequest, 'subject'>['subject'];
+export type RequestSubjects = AnyRequest['subject'];
 export type Request<Key extends RequestSubjects> = Extract<AnyRequest, {subject: Key}>
-
-
-export type MessageOfType<Key extends Pick<UnknownMessageType, 'type'>['type']> = Extract<UnknownMessageType, {type: Key}>
 
 //Interfaces for return Messages
 interface IResponse extends IPacket {
-  isResponse: true,
+  // isResponse: true,
+  type: 'response',
   wasSuccess: boolean,
   message?: string,
-  id: number
+  // id: number
 }
 
-type BaseResponse<RequestType extends IPacket, Data> = IResponse & {
-  subject: RequestType["subject"],
-} & ((PossiblyData<Data> & {wasSuccess: true}) | {wasSuccess: false} )
+// type BaseResponse<RequestType extends IPacket, Data> = IResponse & {
+//   subject: RequestType["subject"],
+// } & ((PossiblyData<Data> & {wasSuccess: true}) | {wasSuccess: false} )
 
-type ResponseBuilder<RequestType extends AnyRequest, Data = undefined> = BaseResponse<RequestType, Data> & {
-  type: 'response'
-}
-
-export type AnyResponse = 
-  | ResponseBuilder<Request<'setRtpCapabilities'>>
-  | ResponseBuilder<Request<'getRouterRtpCapabilities'>, import('mediasoup').types.RtpCapabilities>
-  | ResponseBuilder<Request<'createSendTransport'>, mediasoupClientTypes.TransportOptions>
-  | ResponseBuilder<Request<'createReceiveTransport'>, mediasoupClientTypes.TransportOptions>
-  | ResponseBuilder<Request<'createConsumer'>, mediasoupClientTypes.ConsumerOptions>
-  | ResponseBuilder<Request<'createProducer'>, {producerId: string}>
-  | ResponseBuilder<Request<'connectTransport'>>
-  | ResponseBuilder<Request<'setName'>>
-  | ResponseBuilder<Request<'createGathering'>, {gatheringId: string}>
-  | ResponseBuilder<Request<'joinGathering'>>
-  | ResponseBuilder<Request<'getRoomsInGathering'>, 
-    RoomInfo[]
-  >
-  | ResponseBuilder<Request<'createRoom'>, {roomId: string}>
-  | ResponseBuilder<Request<'joinRoom'>>
-  | ResponseBuilder<Request<'roomStateUpdated'>>
-
-// export type AnySuccessResponse = SuccessResponseTo<RequestSubjects>;
-
-// const success: SuccessResponseTo<'createGathering'> = {
-
+// type ResponseBuilder<RequestType extends AnyRequest, Data = undefined> = BaseResponse<RequestType, Data> & {
+//   type: 'response'
 // }
 
+type ResponseBuilder<Subject extends RequestSubjects, Data = undefined> =
+  IResponse
+  & {
+    subject: Subject
+  }
+  & ((PossiblyData<Data> & {wasSuccess: true}) | {wasSuccess: false, message: string} )
+
+
+
+export type AnyResponse = 
+  | ResponseBuilder<'setRtpCapabilities'>
+  | ResponseBuilder<'getRouterRtpCapabilities', import('mediasoup').types.RtpCapabilities>
+  | ResponseBuilder<'createSendTransport', mediasoupClientTypes.TransportOptions>
+  | ResponseBuilder<'createReceiveTransport', mediasoupClientTypes.TransportOptions>
+  | ResponseBuilder<'createConsumer', mediasoupClientTypes.ConsumerOptions>
+  | ResponseBuilder<'createProducer', {producerId: string}>
+  | ResponseBuilder<'connectTransport'>
+  | ResponseBuilder<'setName'>
+  | ResponseBuilder<'createGathering', {gatheringId: string}>
+  | ResponseBuilder<'joinGathering'>
+  | ResponseBuilder<'getRoomsInGathering', 
+    RoomInfo[]
+  >
+  | ResponseBuilder<'createRoom', {roomId: string}>
+  | ResponseBuilder<'joinRoom'>
+  | ResponseBuilder<'roomStateUpdated'>
+
+export type AnySuccessResponse = Extract<AnyResponse, { wasSuccess: true }>;
+export type AnyFailResponse = Extract<AnyResponse, { wasSuccess: false }>;
+export type SuccessResponseTo<Key extends RequestSubjects> = Extract<AnySuccessResponse, { subject: Key }>;
+
 export type ResponseTo<Key extends RequestSubjects> = Extract<AnyResponse, {subject: Key}>
-// export type SuccessResponseTo<Key extends RequestSubjects> = Extract<AnyResponse extends {'wasSuccess': true}, {subject: Key}> ? ResponseTo<Key>: never
 
 export type UnfinishedResponse<T extends AnyResponse> = Omit<T, 'wasSuccess' | 'data'> & {wasSuccess?: undefined} | T
 
 export type UnknownMessageType = AnyMessage | AnyRequest | AnyResponse
+
+type MessageTypes = UnknownMessageType['type'];
+export type MessageOfType<Key extends MessageTypes> = Extract<UnknownMessageType, {type: Key}>
+
 export type SocketMessage<T extends UnknownMessageType> = T
 
-type RequestsWithData = Extract<AnyRequest, {data: unknown}>
-type ResponsesWithData = Extract<AnyResponse, {data: unknown}>
-// type SubjectKeysWithData = Pick<MessagesWithData, 'subject'>['subject']
-type RequestWithData<Key extends RequestSubjects> = Extract<RequestsWithData, {subject: Key}>
-type ResponseWithData<Key extends RequestSubjects> = Extract<ResponsesWithData, {subject: Key}>
+type AnyRequestWithData = Extract<AnyRequest, {data: unknown}>
+type AnyResponsWithData = Extract<AnyResponse, {data: unknown}>
 
-type DataForRequest<Key extends RequestSubjects> = Pick<Extract<Request<Key>, RequestsWithData>, 'data'>['data']
-type DataForResponse<Key extends RequestSubjects> = Pick<Extract<ResponseTo<Key>, ResponsesWithData>, 'data'>['data']
+// type RequestSubjectsWithData = AnyRequestWithData['subject'];
+type RequestWithData<Key extends RequestSubjects> = Extract<AnyRequestWithData, {subject: Key}>
+type ResponseWithData<Key extends RequestSubjects> = Extract<AnyResponsWithData, {subject: Key}>
+
+// type DataForRequest<Key extends RequestSubjects> = Extract<AnyRequestWithData, Request<Key>>['data']
+type DataForRequest<Key extends RequestSubjects> = RequestWithData<Key>['data']
+// type DataForResponse<Key extends RequestSubjects> = Extract<AnyResponsWithData, ResponseTo<Key>>['data']
+type DataForResponse<Key extends RequestSubjects> = ResponseWithData<Key>['data']
 
 export const createRequest = <Key extends RequestSubjects>(subject: Key, data?: DataForRequest<Key>):Request<Key> => {
   const msg: Request<Key> = {
@@ -139,7 +154,7 @@ export const createRequest = <Key extends RequestSubjects>(subject: Key, data?: 
   if(!data){
     return msg;
   }
-  const msgWithData = msg as RequestWithData<Key>
+  const msgWithData = msg as RequestWithData<typeof subject>
   msgWithData.data = data;
   return msgWithData;
 }
@@ -148,21 +163,34 @@ export const createRequest = <Key extends RequestSubjects>(subject: Key, data?: 
 //   name: 'coolName'
 // });
 
-export const createResponse = <Key extends RequestSubjects>(subject: Key, id:number, {wasSuccess, data, message}: {wasSuccess:boolean, data?: DataForResponse<Key>, message?: string }): ResponseTo<Key> => {
-  const msg: ResponseTo<Key> = {
+
+// type ResponseParams<Subject extends RequestSubjects> = Pick<ResponseTo<Subject>, 'wasSuccess' | 'data' | 'message'>
+type ResponseParams<Subject extends RequestSubjects> = {
+  wasSuccess: true,
+  data?: DataForResponse<Subject>,
+  // message?: string
+} |
+{
+  wasSuccess: false,
+  message: string,
+}
+
+export const createResponse = <Subject extends RequestSubjects>(subject: Subject, id:number, responseFields: ResponseParams<Subject>): ResponseTo<Subject> => {
+  // const { wasSuccess } = responseFields;
+  const msg: ResponseTo<Subject> = {
     type: 'response',
     subject: subject,
-    isResponse: true,
+    // isResponse: true,
     id: id,
-    wasSuccess: wasSuccess,
-  } as ResponseTo<Key>;
-  if(message){
-    msg.message = message;
+    wasSuccess: responseFields.wasSuccess,
+  } as ResponseTo<Subject>;
+  if(responseFields.wasSuccess === false){
+    msg.message = responseFields.message;
   }
-  if(!data || !msg.wasSuccess){
+  if(!responseFields.wasSuccess || !responseFields.data){
     return msg;
   }
-  const responseWithData = msg as ResponseWithData<Key>
-  responseWithData.data = data;
+  const responseWithData = msg as ResponseWithData<Subject>
+  responseWithData.data = responseFields.data;
   return responseWithData;
 }

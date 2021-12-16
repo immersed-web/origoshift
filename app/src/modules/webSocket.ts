@@ -1,13 +1,13 @@
 import { useConnectionStore } from '../stores/connectionStore';
 import { pinia } from '../boot/pinia';
-import { Request, AnyResponse, ResponseTo, SocketMessage, RequestSubjects, UnknownMessageType, SuccessResponseTo, MessageSubjects, AnySuccessResponse } from 'shared-types/MessageTypes';
+import { Request, AnyResponse, SocketMessage, RequestSubjects, UnknownMessageType, SuccessResponseTo, AnySuccessResponse, AnyRequest, AnyMessage } from 'shared-types/MessageTypes';
 
 const requestTimeout = 3000;
 type RequestResolver = (msg: AnySuccessResponse) => void;
-type RequestRejecter = (msg: AnyResponse) => void;
+type RequestRejecter = (msg: unknown) => void;
 const pendingRequests = new Map<number, {resolve: RequestResolver, reject: RequestRejecter}>();
 
-let onMessageCallback: (msg: UnknownMessageType) => unknown;
+let onMessageCallback: (msg: AnyRequest | AnyMessage) => unknown;
 
 let socket: WebSocket | null = null;
 export function createSocket (token: string) {
@@ -48,7 +48,7 @@ const handleMessage = (ev: MessageEvent) => {
     console.error('failed to parse incoming object!!!');
   }
   const msg = parsedMessage as SocketMessage<UnknownMessageType>;
-  if ('isResponse' in msg && msg.isResponse) {
+  if (msg.type === 'response') {
     try {
       // const pendingCallbacks = pendingRequests.get(msg.id);
       const callbacks = pendingRequests.get(msg.id);
@@ -58,12 +58,11 @@ const handleMessage = (ev: MessageEvent) => {
       }
       const { resolve, reject } = callbacks;
       if (!msg.wasSuccess) {
-        // console.error('request rejected', msg);
-        reject(msg);
+        reject(msg.message);
         return;
       }
       console.log(`request '${msg.subject}' resolved`, msg);
-      resolve(msg as SuccessResponseTo<typeof msg.subject>);
+      resolve(msg);
       pendingRequests.delete(msg.id);
     } catch (e) {
       console.error(e);
@@ -78,7 +77,7 @@ const handleMessage = (ev: MessageEvent) => {
   }
 };
 
-export const onSocketReceivedMessage = (callback: (msg: UnknownMessageType) => unknown) => {
+export const onSocketReceivedMessage = (callback: (msg: AnyRequest | AnyMessage) => unknown) => {
   onMessageCallback = callback;
 };
 
@@ -87,12 +86,13 @@ export const send = (msg: SocketMessage<UnknownMessageType>) => {
   socket?.send(string);
 };
 
-export const sendRequest = async <T extends RequestSubjects>(msg: SocketMessage<Request<T>>): Promise<ResponseTo<T>> => {
+export const sendRequest = async <T extends RequestSubjects>(msg: SocketMessage<Request<T>>): Promise<SuccessResponseTo<T>> => {
   msg.id = Date.now(); // Questionable if we should set the id here...
   const id = msg.id;
   const msgString = JSON.stringify(msg);
   socket?.send(msgString);
   const promise: Promise<AnyResponse> = new Promise((resolve, reject) => {
+    // const typedResolver : RequestResolver<T> = resolve;
     pendingRequests.set(id, { resolve, reject });
     setTimeout(() => {
       pendingRequests.delete(id);
@@ -104,7 +104,7 @@ export const sendRequest = async <T extends RequestSubjects>(msg: SocketMessage<
   // type asdasd = Pick<AnyRequest, 'subject'>['subject']
   // type Resp = ResponseTo<'joinRoom'>
 
-  return promise as Promise<ResponseTo<T>>;
+  return promise as Promise<SuccessResponseTo<T>>;
 };
 
 // export socket;

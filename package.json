@@ -2,7 +2,7 @@
   "private": true,
   "workspaces":{
     "packages": [
-      "types",
+      "shared-types",
       "app",
       "backend/*"
     ],

@@ -47,7 +47,7 @@ export default class SocketWrapper extends TypedEmitter<SocketWrapperEvents>{
         console.error('fuck. Couldnt convert incoming data to messageType');
         return;
       }
-      if('isResponse' in socketMsg){
+      if(socketMsg.type === 'response'){
         try {
           const resolve = this.pendingRequests.get(socketMsg.id);
           if(resolve){resolve(socketMsg);}

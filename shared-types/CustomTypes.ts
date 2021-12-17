@@ -3,13 +3,22 @@
 //   consumers: Record<string, unknown>[],
 //   clients: Record<string, unknown>[],
 // }
+import {types as soup} from 'mediasoup';
 
-export interface RoomInfo {
+export interface RoomState {
   roomId: string;
-  clients: Record<string, {
-    clientId: string,
-    producers: string[]
-  }>
+  clients: {
+      [client : string]: {
+      clientId: string,
+      nickName?: string;
+      producers:  {
+        [producerId: string]: {
+          producerId: string,
+          kind: soup.MediaKind
+        }
+      }
+    }
+  }
 }
 
 export interface UserData {

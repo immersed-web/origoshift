@@ -55,7 +55,7 @@ export default class Client {
   }
 
   private handleReceivedMsg = async (msg: SocketMessage<UnknownMessageType>) => {
-    if('isResponse' in msg){
+    if(msg.type === 'response'){
       console.error('message handler called with response message. That should not happen!!', msg);
       return;
     }
@@ -74,7 +74,6 @@ export default class Client {
         this.nickName = msg.data.name;
         const response = createResponse('setName', msg.id, {
           wasSuccess: true,
-          message: 'name updated!'
         });
         this.send(response);
         break;
@@ -202,7 +201,7 @@ export default class Client {
     this.ws.send(msg);
   }
 
-  roomStateUpdated(newRoomState: RoomState){
+  roomInfoUpdated(newRoomState: RoomState){
     console.log('roomState updated', newRoomState);
     const roomStateUpdate = createRequest('roomStateUpdated', newRoomState);
     this.send(roomStateUpdate);

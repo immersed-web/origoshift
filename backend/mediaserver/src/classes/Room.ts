@@ -21,7 +21,7 @@ export default class Room {
       return false;
     }
     this.clients.set(client.id, client);
-    this.broadcastRoomState();
+    this.broadcastRoomInfo();
 
     return true;
   }
@@ -32,37 +32,41 @@ export default class Room {
       return false;
     }
     const ok = this.clients.delete(client.id);
-    this.broadcastRoomState();
+    this.broadcastRoomInfo();
     return ok;
   }
 
-  private createRoomStateObj() {
-    const roomState: RoomState = {};
+  getRoomState() {
+    const clients: RoomState['clients'] = {};
     this.clients.forEach((client, clientId) => {
       const nickName = client.nickName;
-      const producersArray = Array.from(client.producers.values());
-      const producers = producersArray.map((producer) => {
-        return {
-          producerId: producer.id,
+      const producers: RoomState['clients'][string]['producers'] = {};
+      client.producers.forEach((producer, producerId) => {
+        producers[producerId] = {
+          producerId: producerId,
           kind: producer.kind,
         };
       });
-      // const producers = Array.from(client.producers.keys());
-      roomState[clientId] = {
+      clients[clientId] = { 
         nickName,
-        producers
-      };
+        clientId,
+        producers};
     });
-    return roomState;
+
+    const roomInfo: RoomState = {
+      roomId: this.id,
+      clients: clients,
+    };
+    return roomInfo;
   }
 
-  broadcastRoomState(clientToSkip?: Client){
-    const roomState = this.createRoomStateObj();
+  broadcastRoomInfo(clientToSkip?: Client){
+    const roomState = this.getRoomState();
     this.clients.forEach((client) => {
       if(clientToSkip && clientToSkip === client){
         return;
       }
-      client.roomStateUpdated(roomState);
+      client.roomInfoUpdated(roomState);
     });
   }
 }

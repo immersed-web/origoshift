@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "references": [
     {
-      "path": "../../types",
+      "path": "../../shared-types",
     },
     {"path": "../shared-modules"}
   ],

@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { RoomInfo } from 'shared-types/CustomTypes';
+import { RoomState } from 'shared-types/CustomTypes';
 import mediasoupConfig from '../mediasoupConfig';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
 // import Client from './Client';
@@ -76,24 +76,25 @@ export default class Gathering {
     this.rooms.delete(roomOrId.id);
   }
 
-  listRooms(): RoomInfo[]{
+  listRooms(): RoomState[]{
     // const rooms: { roomId: string; clients: string[] }[] = [];
-    const rooms: RoomInfo[] = [];
+    const rooms: RoomState[] = [];
     this.rooms.forEach((room) => {
-      const clients: RoomInfo['clients'] = {};
-      room.clients.forEach((client, clientId) => {
-        const producers: string [] = [];
-        client.producers.forEach((producer, producerId) => {
-          producers.push(producerId);
-        });
-        clients[clientId] = { clientId, producers};
-      });
+      // const clients: RoomState['clients'] = {};
+      // room.clients.forEach((client, clientId) => {
+      //   const producers: string [] = [];
+      //   client.producers.forEach((producer, producerId) => {
+      //     producers.push(producerId);
+      //   });
+      //   clients[clientId] = { clientId, producers};
+      // });
 
-      const roomInfo: RoomInfo = {
-        roomId: room.id,
-        clients: clients,
-      };
-      rooms.push(roomInfo);
+      // const roomInfo: RoomState = {
+      //   roomId: room.id,
+      //   clients: clients,
+      // };
+      const roomstate = room.getRoomState();
+      rooms.push(roomstate);
     });
     return rooms;
   }

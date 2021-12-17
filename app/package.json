@@ -6,7 +6,7 @@
   "author": "Gunnar Oledal <gunnar.oledal@gmail.com>",
   "private": true,
   "scripts": {
-    "start": "quasar dev",
+    "dev": "quasar dev",
     "lint": "eslint --ext .js,.ts,.vue ./",
     "test": "echo \"No test specified\" && exit 0"
   },

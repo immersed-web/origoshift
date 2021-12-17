@@ -76,7 +76,7 @@ export default class Gathering {
     this.rooms.delete(roomOrId.id);
   }
 
-  listRooms(): RoomState[]{
+  getRoomsInGathering(): RoomState[]{
     // const rooms: { roomId: string; clients: string[] }[] = [];
     const rooms: RoomState[] = [];
     this.rooms.forEach((room) => {

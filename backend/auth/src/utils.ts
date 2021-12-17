@@ -10,5 +10,7 @@ export const userDataFromDBResponse = (userWithRole: UserWithRole): UserData => 
     uuid: userWithRole.uuid,
     username: userWithRole.username,
     role: role as UserRole,
+    // TODO: Actually retrieve this data!!!!!
+    allowedActions: ['joinGathering', 'joinRoom']
   };
 };

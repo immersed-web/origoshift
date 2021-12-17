@@ -143,7 +143,7 @@ export default class Client {
           console.warn('cant list rooms if isnt in a gathering');
           return;
         }
-        const rooms = this.gathering.listRooms();
+        const rooms = this.gathering.getRoomsInGathering();
         const response = createResponse('getRoomsInGathering', msg.id, {
           wasSuccess: true,
           data: rooms

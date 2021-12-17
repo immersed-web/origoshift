@@ -21,10 +21,12 @@ export interface RoomState {
   }
 }
 
+export type AllowedActions = 'createGathering' |'joinGathering' | 'getRoomsInGathering' | 'createRoom' | 'joinRoom'
 export interface UserData {
   uuid: string,
   username: string,
   role: UserRole | null,
+  allowedActions: Array<AllowedActions>
 }
 
 export type UserRole = 

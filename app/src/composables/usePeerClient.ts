@@ -2,7 +2,7 @@
 import PeerClient from 'src/modules/PeerClient';
 // import { RoomState } from 'app/../types/types';
 const peer = new PeerClient();
-export default function usePeerClient () {
+export default async function usePeerClient () {
   // let localStream: MediaStream;
   // const roomState = ref<RoomState>();
   // const peerId = ref<string>(peer.id); // TODO: why is this a ref? It will never change, right?
@@ -14,6 +14,8 @@ export default function usePeerClient () {
   //   // ugly hack to keep peer id updated
   //   peerId.value = peer.id;
   // };
+
+  await peer.loadMediasoupDevice();
 
   async function requestMedia (deviceId?: string): Promise<MediaStream> {
     // TODO: we should be able to customize the constraints for specific stuff
@@ -40,9 +42,9 @@ export default function usePeerClient () {
   async function createRoom (roomName: string) {
     const roomId = await peer.createRoom(roomName);
     await peer.joinRoom(roomId);
-    const capabilities = await peer.getRouterCapabilities();
-    await peer.loadMediasoupDevice(capabilities);
-    await peer.sendRtpCapabilities();
+    // const capabilities = await peer.getRouterCapabilities();
+    // await peer.loadMediasoupDevice(capabilities);
+    // await peer.sendRtpCapabilities();
   }
 
   async function joinRoom (roomName: string) {

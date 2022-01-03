@@ -89,7 +89,7 @@ const actions: Action[] = [
   },
   {
     label: 'createRoom',
-    fn: () => createRoom('coolRoom' + Math.floor(Math.random() * 10)),
+    fn: () => createRoom('coolRoom' + Math.floor(Math.random() * 100)),
   },
   {
     label: 'getRooms',

@@ -2,20 +2,8 @@
 import PeerClient from 'src/modules/PeerClient';
 // import { RoomState } from 'app/../types/types';
 const peer = new PeerClient();
-export default async function usePeerClient () {
+export default function usePeerClient () {
   // let localStream: MediaStream;
-  // const roomState = ref<RoomState>();
-  // const peerId = ref<string>(peer.id); // TODO: why is this a ref? It will never change, right?
-  // console.log('peerId:', peer.id);
-
-  // peer.onRoomState = (receivedRoomState) => {
-  //   roomState.value = receivedRoomState;
-
-  //   // ugly hack to keep peer id updated
-  //   peerId.value = peer.id;
-  // };
-
-  await peer.loadMediasoupDevice();
 
   async function requestMedia (deviceId?: string): Promise<MediaStream> {
     // TODO: we should be able to customize the constraints for specific stuff
@@ -39,19 +27,22 @@ export default async function usePeerClient () {
   //   await peer.createGathering(gatheringName);
   // }
 
-  async function createRoom (roomName: string) {
+  // async function createRoom (roomName: string) {
+  //   // const roomId = await peer.createRoom(roomName);
+  //   // return roomId;
+  //   return peer.createRoom(roomName);
+  // }
+
+  // async function joinRoom (roomName: string) {
+  //   await peer.joinRoom(roomName);
+  //   // const capabilities = await peer.getRouterCapabilities();
+  //   // await peer.loadMediasoupDevice(capabilities);
+  //   // await peer.sendRtpCapabilities();
+  // }
+
+  async function createAndJoinRoom (roomName: string) {
     const roomId = await peer.createRoom(roomName);
     await peer.joinRoom(roomId);
-    // const capabilities = await peer.getRouterCapabilities();
-    // await peer.loadMediasoupDevice(capabilities);
-    // await peer.sendRtpCapabilities();
-  }
-
-  async function joinRoom (roomName: string) {
-    await peer.joinRoom(roomName);
-    const capabilities = await peer.getRouterCapabilities();
-    await peer.loadMediasoupDevice(capabilities);
-    await peer.sendRtpCapabilities();
   }
 
   async function startProducing (stream: MediaStream) {
@@ -67,10 +58,6 @@ export default async function usePeerClient () {
     }
     return peer.consume(producerId);
   }
-
-  // async function joinRoom (roomName: string) {
-  //   await peer.joinRoom(roomName);
-  // }
 
   // void (async function () {
   //   await peer.awaitConnection();
@@ -92,7 +79,11 @@ export default async function usePeerClient () {
   //   // await peer.createSendTransport();
   //   // await peer.createReceiveTransport();
   // })();
-  const { createGathering, joinGathering, setName, getRoomsInGathering } = peer;
+  async function joinGathering (gatheringId: string) {
+    await peer.getRouterCapabilities();
+    return peer.joinGathering(gatheringId);
+  }
+  const { createGathering, setName, getRoomsInGathering, createRoom, joinRoom } = peer;
   return {
     // peer,
     // peerId,
@@ -104,6 +95,7 @@ export default async function usePeerClient () {
     consume,
     createRoom,
     joinRoom,
+    createAndJoinRoom,
     setName,
     getRoomsInGathering,
   };

@@ -6,8 +6,6 @@
 
 import { types as mediasoupTypes } from 'mediasoup-client';
 import * as mediasoupClient from 'mediasoup-client';
-import { RtpCapabilities } from 'mediasoup-client/lib/RtpParameters';
-// import { TransportOptions } from 'mediasoup-client/lib/Transport';
 // import { RoomState } from 'app/../types/types';
 import { sendRequest, onSocketReceivedMessage } from 'src/modules/webSocket';
 import { createRequest } from 'shared-types/MessageTypes';
@@ -24,6 +22,7 @@ export default class PeerClient {
   producers = new Map<string, mediasoupTypes.Producer>();
   consumers = new Map<string, mediasoupTypes.Consumer>();
   roomStore: ReturnType<typeof useRoomStore>;
+  routerRtpCapabilities?: mediasoupTypes.RtpCapabilities;
   // onRoomState?: (data: RoomState) => void;
 
   // constructor (url?: string, onRoomState?: (data: RoomState) => void) {
@@ -97,9 +96,13 @@ export default class PeerClient {
     });
   }
 
-  async loadMediasoupDevice (rtpCapabilities: RtpCapabilities) {
+  async loadMediasoupDevice () {
+    if (!this.routerRtpCapabilities) {
+      throw new Error('routerRtpCapabilities needs to be set before loading mediasoup device');
+    }
     // this.createDevice();
-    await this.mediasoupDevice.load({ routerRtpCapabilities: rtpCapabilities });
+    const routerRtpCapabilities = this.routerRtpCapabilities;
+    await this.mediasoupDevice.load({ routerRtpCapabilities });
 
     try {
       const canSendVideo = this.mediasoupDevice.canProduce('video');

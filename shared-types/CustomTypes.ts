@@ -30,7 +30,7 @@ export interface UserData {
 }
 
 export type UserRole = 
-'anonymous' |
+'guest' |
 'user' |
 'admin' |
 'gunnar' 

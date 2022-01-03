@@ -1,9 +1,23 @@
 // import { ref } from 'vue';
 import PeerClient from 'src/modules/PeerClient';
 // import { RoomState } from 'app/../types/types';
+import { useRoomStore } from 'src/stores/roomStore';
 const peer = new PeerClient();
 export default function usePeerClient () {
   // let localStream: MediaStream;
+  const roomStore = useRoomStore();
+
+  peer.onMessageCallback = (msg) => {
+    console.log(msg);
+    switch (msg.subject) {
+      case 'gatheringRooms': {
+        roomStore.roomsInGathering = msg.data;
+      }
+    }
+  };
+  peer.onRequestCallback = (msg) => {
+    console.log(msg);
+  };
 
   async function requestMedia (deviceId?: string): Promise<MediaStream> {
     // TODO: we should be able to customize the constraints for specific stuff
@@ -27,11 +41,13 @@ export default function usePeerClient () {
   //   await peer.createGathering(gatheringName);
   // }
 
-  // async function createRoom (roomName: string) {
-  //   // const roomId = await peer.createRoom(roomName);
-  //   // return roomId;
-  //   return peer.createRoom(roomName);
-  // }
+  async function createRoom (roomName: string) {
+    // const roomId = await peer.createRoom(roomName);
+    // return roomId;
+    await peer.createRoom(roomName);
+    // const rooms = await peer.getRoomsInGathering();
+    // roomStore.roomsInGathering = rooms;
+  }
 
   // async function joinRoom (roomName: string) {
   //   await peer.joinRoom(roomName);
@@ -81,9 +97,12 @@ export default function usePeerClient () {
   // })();
   async function joinGathering (gatheringId: string) {
     await peer.getRouterCapabilities();
-    return peer.joinGathering(gatheringId);
+    await peer.joinGathering(gatheringId);
+    const rooms = await peer.getRoomsInGathering();
+    roomStore.roomsInGathering = rooms;
   }
-  const { createGathering, setName, getRoomsInGathering, createRoom, joinRoom } = peer;
+
+  const { createGathering, setName, joinRoom } = peer;
   return {
     // peer,
     // peerId,
@@ -97,6 +116,6 @@ export default function usePeerClient () {
     joinRoom,
     createAndJoinRoom,
     setName,
-    getRoomsInGathering,
+    // getRoomsInGathering,
   };
 }

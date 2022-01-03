@@ -63,7 +63,7 @@ export type AnyRequest =
   | RequestBuilder<'roomStateUpdated', RoomState>
 
 export type AnyMessage = 
-  // MessageBuilder<'roomState', import('./CustomTypes').RoomState>
+  MessageBuilder<'gatheringRooms', Record<string ,import('./CustomTypes').RoomState>>
   | MessageBuilder<'chatMessage', {
     message: string
   }>
@@ -112,7 +112,7 @@ export type AnyResponse =
   | ResponseBuilder<'createGathering', {gatheringId: string}>
   | ResponseBuilder<'joinGathering'>
   | ResponseBuilder<'getRoomsInGathering', 
-    RoomState[]
+    Record<string, RoomState>
   >
   | ResponseBuilder<'createRoom', {roomId: string}>
   | ResponseBuilder<'joinRoom'>
@@ -140,10 +140,21 @@ type AnyResponsWithData = Extract<AnyResponse, {data: unknown}>
 type RequestWithData<Key extends RequestSubjects> = Extract<AnyRequestWithData, {subject: Key}>
 type ResponseWithData<Key extends RequestSubjects> = Extract<AnyResponsWithData, {subject: Key}>
 
+type DataForMessage<Subject extends MessageSubjects> = Message<Subject>['data'];
 // type DataForRequest<Key extends RequestSubjects> = Extract<AnyRequestWithData, Request<Key>>['data']
 type DataForRequest<Key extends RequestSubjects> = RequestWithData<Key>['data']
 // type DataForResponse<Key extends RequestSubjects> = Extract<AnyResponsWithData, ResponseTo<Key>>['data']
 type DataForResponse<Key extends RequestSubjects> = ResponseWithData<Key>['data']
+
+export const createMessage = <Subject extends MessageSubjects>(subject: Subject, data: DataForMessage<Subject>) => {
+  const msg: Message<Subject> = {
+    id: Date.now(),
+    type: 'message',
+    subject: subject,
+    data: data,
+  } as Message<Subject>
+  return msg;
+}
 
 export const createRequest = <Key extends RequestSubjects>(subject: Key, data?: DataForRequest<Key>):Request<Key> => {
   const msg: Request<Key> = {

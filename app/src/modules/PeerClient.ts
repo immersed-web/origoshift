@@ -7,10 +7,10 @@
 import { types as mediasoupTypes } from 'mediasoup-client';
 import * as mediasoupClient from 'mediasoup-client';
 // import { RoomState } from 'app/../types/types';
-import { sendRequest, onSocketReceivedMessage } from 'src/modules/webSocket';
-import { createRequest } from 'shared-types/MessageTypes';
-import { pinia } from 'src/boot/pinia';
-import { useRoomStore } from 'src/stores/roomStore';
+import { sendRequest, onSocketReceivedReqOrMsg } from 'src/modules/webSocket';
+import { AnyMessage, AnyRequest, createRequest } from 'shared-types/MessageTypes';
+// import { pinia } from 'src/boot/pinia';
+// import { useRoomStore } from 'src/stores/roomStore';
 
 export default class PeerClient {
   // socket: SocketExt;
@@ -21,56 +21,34 @@ export default class PeerClient {
   receiveTransport?: mediasoupTypes.Transport;
   producers = new Map<string, mediasoupTypes.Producer>();
   consumers = new Map<string, mediasoupTypes.Consumer>();
-  roomStore: ReturnType<typeof useRoomStore>;
   routerRtpCapabilities?: mediasoupTypes.RtpCapabilities;
-  // onRoomState?: (data: RoomState) => void;
 
-  // constructor (url?: string, onRoomState?: (data: RoomState) => void) {
+  onRequestCallback? = undefined as unknown as (msg: AnyRequest) => unknown;
+  onMessageCallback? = undefined as unknown as (msg: AnyMessage) => unknown;
+
   constructor () {
-    this.roomStore = useRoomStore(pinia);
-    // this.onRoomState = onRoomState;
-
-    // this.socket.on('connect', () => {
-    //   console.log('peer socket connected: ', this.socket.id);
-    //   // TODO: decouple peer id from socket id.
-    //   console.log('setting peer id to same as socket id: ', this.socket.id);
-    //   this.id = this.socket.id;
-    // });
-
-    // this.socket.on('disconnect', (reason) => {
-    //   console.error(`peer socket disconnected: ${reason}`);
-    // });
-
-    // this.socket.on('roomState', (data: RoomState) => {
-    //   console.log('roomState updated:', data);
-    //   if (this.onRoomState) {
-    //     this.onRoomState(data);
-    //   }
-    // });
-
-    onSocketReceivedMessage((msg) => {
-      if (msg.subject === 'roomStateUpdated') {
-        // this.consumers = msg.data.consumers;
-        console.log('received new roomstate', msg.data);
+    onSocketReceivedReqOrMsg((msg) => {
+      console.log(msg);
+      if (msg.type === 'message') {
+        // switch (msg.subject) {
+        //   case 'gatheringRooms': {
+        //     const rooms = msg.data
+        //     break;
+        //   }
+        // }
+        if (this.onMessageCallback) {
+          this.onMessageCallback(msg);
+        }
+      } else {
+        // if (msg.subject === 'roomStateUpdated') {
+        //   // this.consumers = msg.data.consumers;
+        //   console.log('received new roomstate', msg.data);
+        // }
+        if (this.onRequestCallback) {
+          this.onRequestCallback(msg);
+        }
       }
     });
-
-    // Wanted to add it to the "Socket class" prototype but that doesn't seem to work. I think it might be the case that the io-function doesn't return a Socket class instance
-    // this.socket.request = (ev: string, ...data: unknown[]) => {
-    //   return new Promise((resolve) => {
-    //     this.socket.emit(ev, ...data, resolve);
-    //   });
-    // };
-
-    // try {
-    //   this.mediasoupDevice = new mediasoupClient.Device();
-    // } catch (error) {
-    //   if (error instanceof mediasoupTypes.UnsupportedError && error.name === 'UnsupportedError') {
-    //     console.warn('browser not supported');
-    //   } else {
-    //     console.error(error);
-    //   }
-    // }
 
     try {
       this.mediasoupDevice = this.createDevice();
@@ -162,7 +140,7 @@ export default class PeerClient {
   async joinRoom (roomId: string) {
     const joinRoomReq = createRequest('joinRoom', { roomId: roomId });
     await sendRequest(joinRoomReq);
-    this.roomStore.currentRoomId = roomId;
+    // this.roomStore.currentRoomId = roomId;
   }
 
   async getRouterCapabilities () : Promise<mediasoupTypes.RtpCapabilities> {

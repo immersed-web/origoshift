@@ -7,7 +7,7 @@ type RequestResolver = (msg: AnySuccessResponse) => void;
 type RequestRejecter = (msg: unknown) => void;
 const pendingRequests = new Map<number, {resolve: RequestResolver, reject: RequestRejecter}>();
 
-let onMessageCallback: (msg: AnyRequest | AnyMessage) => unknown;
+let onReqOrMsgCallback: (msg: AnyRequest | AnyMessage) => unknown;
 
 let socket: WebSocket | null = null;
 export function createSocket (token: string) {
@@ -68,8 +68,8 @@ const handleMessage = (ev: MessageEvent) => {
       console.error(e);
     }
   } else {
-    if (onMessageCallback) {
-      onMessageCallback(msg);
+    if (onReqOrMsgCallback) {
+      onReqOrMsgCallback(msg);
     } else {
       console.log('message received, but no callback attached');
       console.log('this is the received message: ', msg);
@@ -77,8 +77,8 @@ const handleMessage = (ev: MessageEvent) => {
   }
 };
 
-export const onSocketReceivedMessage = (callback: (msg: AnyRequest | AnyMessage) => unknown) => {
-  onMessageCallback = callback;
+export const onSocketReceivedReqOrMsg = (callback: (msg: AnyRequest | AnyMessage) => unknown) => {
+  onReqOrMsgCallback = callback;
 };
 
 export const send = (msg: SocketMessage<UnknownMessageType>) => {

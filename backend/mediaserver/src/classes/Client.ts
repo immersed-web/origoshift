@@ -22,7 +22,7 @@ export default class Client {
 
   nickName = 'unnamed';
 
-  role: UserRole = 'anonymous';
+  role: UserRole = 'guest';
   userData?: UserData;
 
   rtpCapabilities?: soup.RtpCapabilities;
@@ -123,6 +123,9 @@ export default class Client {
         break;
       }
       case 'joinGathering': {
+        if(this.gathering){
+          this.gathering.leaveGathering(this);
+        }
         // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join the gathering or not
         // console.log('request to join gathering', msg.data);
         // const gathering = Gathering.gatherings.get(msg.data.id);
@@ -132,6 +135,7 @@ export default class Client {
           return;
         }
         this.gathering = gathering;
+        gathering.joinGathering(this);
         const response = createResponse('joinGathering', msg.id, {
           wasSuccess: true,
         });
@@ -197,7 +201,8 @@ export default class Client {
     }
   };
 
-  private send(msg: SocketMessage<UnknownMessageType>) {
+  send(msg: SocketMessage<UnknownMessageType>) {
+    console.log(`gonna send message to client ${this.id}:`, msg);
     this.ws.send(msg);
   }
 

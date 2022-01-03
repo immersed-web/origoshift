@@ -1,5 +1,5 @@
 <template>
-  <q-page class="">
+  <q-page class="row">
     <q-list dense>
       <q-item
         v-for="action in actions"
@@ -19,6 +19,17 @@
         @click="createRoom('testRum')"
       /> -->
     </q-list>
+    <q-list dense>
+      <q-item
+        v-for="room in rooms"
+        :key="room.roomId"
+      >
+        <q-btn
+          :label="room.roomId"
+          @click="joinRoom(room.roomId)"
+        />
+      </q-item>
+    </q-list>
     <h2>Caaannect??? {{ connectionStore.connected }}</h2>
 
     <video ref="localVideoTag" />
@@ -32,10 +43,11 @@ import { useConnectionStore } from 'src/stores/connectionStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { login, getMe, getJwt } from 'src/modules/authClient';
 import { createSocket } from 'src/modules/webSocket';
+import { RoomState } from 'shared-types/CustomTypes';
 
-const { setName, createRoom, createGathering, joinGathering, getRoomsInGathering, requestMedia } = usePeerClient();
+const { setName, createRoom, createGathering, joinGathering, joinRoom, requestMedia } = usePeerClient();
 const connectionStore = useConnectionStore();
-const rooms = ref();
+const rooms = ref<RoomState[]>();
 const token = ref<string>('');
 const gatheringId = ref<string>('');
 const localStream = ref<MediaStream>();
@@ -91,12 +103,12 @@ const actions: Action[] = [
     label: 'createRoom',
     fn: () => createRoom('coolRoom' + Math.floor(Math.random() * 100)),
   },
-  {
-    label: 'getRooms',
-    fn: async () => {
-      rooms.value = await getRoomsInGathering();
-    },
-  },
+  // {
+  //   label: 'getRooms',
+  //   fn: async () => {
+  //     rooms.value = await getRoomsInGathering();
+  //   },
+  // },
 
 ];
 </script>

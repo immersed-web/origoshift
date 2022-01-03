@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-// import { RoomInfo } from 'app/../types/CustomTypes';
 import { RoomState } from 'shared-types/CustomTypes';
 
 const rootState: {

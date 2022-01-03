@@ -1,11 +1,13 @@
 import { randomUUID } from 'crypto';
 import { RoomState } from 'shared-types/CustomTypes';
+import { createMessage } from 'shared-types/MessageTypes';
 import mediasoupConfig from '../mediasoupConfig';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
 // import Client from './Client';
 import {types as soup} from 'mediasoup';
 
 import Room from './Room';
+import Client from './Client';
 
 
 export default class Gathering {
@@ -40,11 +42,13 @@ export default class Gathering {
     return gathering;
   }
 
+
   id: string;
   name;
   router: soup.Router;
 
   private rooms: Map<string, Room> = new Map();
+  private clients: Map<string, Client> = new Map();
 
   private constructor(id = randomUUID(), name = 'unnamed', router: soup.Router){
     this.id = id;
@@ -61,13 +65,37 @@ export default class Gathering {
     Gathering.gatherings.set(this.id, this);
   }
 
+  joinGathering( client : Client){
+    this.clients.set(client.id, client);
+  }
+
+  leaveGathering (client: Client) {
+    this.clients.delete(client.id);
+  }
+
   getRtpCapabilities(): soup.RtpCapabilities {
     return this.router.rtpCapabilities;
   }
 
   addRoom(room:Room){
     this.rooms.set(room.id, room);
+    this.broadCastRooms();
   }
+
+  broadCastRooms() {
+    const rooms = this.getRoomsInGathering();
+    // console.log(`gonna broadcast to ${Object.keys(rooms).length} rooms`);
+
+    // this.rooms.forEach((room) => {
+    //   console.log(`room has ${room.clients.size} clients`);
+    this.clients.forEach((client) => {
+      const gatheringRoomsMsg = createMessage('gatheringRooms', rooms);
+      // console.log(`gonna send gatheringRoomsMsg to client ${client.nickName}`, gatheringRoomsMsg);
+      client.send(gatheringRoomsMsg);
+    });
+    // });
+  }
+
   removeRoom(roomOrId: Room | string){
     if(typeof roomOrId === 'string'){
       this.rooms.delete(roomOrId);
@@ -76,9 +104,9 @@ export default class Gathering {
     this.rooms.delete(roomOrId.id);
   }
 
-  getRoomsInGathering(): RoomState[]{
+  getRoomsInGathering() {
     // const rooms: { roomId: string; clients: string[] }[] = [];
-    const rooms: RoomState[] = [];
+    const rooms: Record<string, RoomState> = {};
     this.rooms.forEach((room) => {
       // const clients: RoomState['clients'] = {};
       // room.clients.forEach((client, clientId) => {
@@ -94,7 +122,8 @@ export default class Gathering {
       //   clients: clients,
       // };
       const roomstate = room.getRoomState();
-      rooms.push(roomstate);
+      rooms[roomstate.roomId] = roomstate;
+      // rooms.push(roomstate);
     });
     return rooms;
   }

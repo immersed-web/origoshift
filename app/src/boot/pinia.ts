@@ -8,6 +8,7 @@ const pinia = createPinia();
 export default boot(({ app }) => {
   // something to do
   app.use(pinia);
+  // return pinia;
 });
 
 export { pinia };

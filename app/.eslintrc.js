@@ -96,6 +96,8 @@ module.exports = {
     quotes: ['error', 'single', { avoidEscape: true }],
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
+    "@typescript-eslint/no-unused-vars": "warn",
+    "no-unused-vars": "off",
 
     semi: ['error', 'always'],
 

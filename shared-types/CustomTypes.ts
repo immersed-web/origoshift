@@ -25,7 +25,7 @@ export type AllowedActions = 'createGathering' |'joinGathering' | 'getRoomsInGat
 export interface UserData {
   uuid: string,
   username: string,
-  role: UserRole | null,
+  role: UserRole | null, // TODO: should we really allow null here? shouldn't default just be guest?
   allowedActions: Array<AllowedActions>
 }
 

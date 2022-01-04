@@ -6,6 +6,7 @@ import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken } from 'shared-modules/jwtUtils';
 
 const clients: Map<uWebSockets.WebSocket, Client> = new Map();
+const disconnectedClients: Map<string, Client> = new Map();
 
 createWorkers();
 
@@ -70,12 +71,24 @@ app.ws('/*', {
     }
   },
   open: (ws) => {
+    // const jwtPayload = ws.decoded as Omit<ReturnType<typeof verifyJwtToken>, string>
     console.log('socket opened with provided data: ', ws.decoded);
     const wsWrapper = new SocketWrapper(ws);
-    const client = new Client({ws: wsWrapper});
+    disconnectedClients.get(ws.decoded.)
+    if()
+    const client = new Client({ws: wsWrapper, userData: ws.decoded});
     // client.userData = ws.decoded;
     clients.set(ws, client);
     console.log('client :>> ', client);
+  },
+  close: (ws) => {
+    const client = clients.get(ws);
+    clients.delete(ws);
+    if(client){
+      disconnectedClients.set(client.id, client);
+      client.onDisconnected();
+    }
+    console.log('disconnected:', client);
   }
   // 
   

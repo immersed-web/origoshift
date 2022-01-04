@@ -22,6 +22,7 @@ export default class Client {
   private ws: SocketWrapper;
 
   nickName = 'unnamed';
+  connected = true;
 
   role: UserRole = 'guest';
   userData?: UserData;
@@ -246,6 +247,14 @@ export default class Client {
         break;
     }
   };
+
+  onDisconnected(){
+    this.connected = false;
+  }
+
+  onReconnected() {
+    this.connected = true;
+  }
 
   send(msg: SocketMessage<UnknownMessageType>) {
     console.log(`gonna send message to client ${this.id}:`, msg);

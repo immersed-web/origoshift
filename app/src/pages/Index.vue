@@ -21,33 +21,36 @@
     </q-list>
     <q-list dense>
       <q-item
-        v-for="room in rooms"
+        v-for="room in roomStore.roomsInGathering"
         :key="room.roomId"
       >
         <q-btn
           :label="room.roomId"
           @click="joinRoom(room.roomId)"
         />
+        <p>Clients: {{ Object.keys(room.clients).length }}</p>
       </q-item>
     </q-list>
     <h2>Caaannect??? {{ connectionStore.connected }}</h2>
 
     <video ref="localVideoTag" />
-    <pre>{{ rooms }}</pre>
+    <pre>{{ roomStore }}</pre>
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useConnectionStore } from 'src/stores/connectionStore';
+import { useRoomStore } from 'src/stores/roomStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { login, getMe, getJwt } from 'src/modules/authClient';
 import { createSocket } from 'src/modules/webSocket';
-import { RoomState } from 'shared-types/CustomTypes';
+// import { RoomState } from 'shared-types/CustomTypes';
 
 const { setName, createRoom, createGathering, joinGathering, joinRoom, requestMedia } = usePeerClient();
 const connectionStore = useConnectionStore();
-const rooms = ref<RoomState[]>();
+const roomStore = useRoomStore();
+// const rooms = ref<RoomState[]>();
 const token = ref<string>('');
 const gatheringId = ref<string>('');
 const localStream = ref<MediaStream>();

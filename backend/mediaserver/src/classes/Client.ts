@@ -4,6 +4,7 @@ import {types as soup} from 'mediasoup';
 // import {types as soupClient} from 'mediasoup-client';
 import { RoomState, UserData, UserRole } from 'shared-types/CustomTypes';
 import { createRequest, createResponse, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
+import { extractMessageFromCatch } from 'shared-modules/utilFns';
 
 import Room from './Room';
 import Gathering from './Gathering';
@@ -125,6 +126,7 @@ export default class Client {
       case 'joinGathering': {
         if(this.gathering){
           this.gathering.leaveGathering(this);
+          this.gathering = undefined;
         }
         // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join the gathering or not
         // console.log('request to join gathering', msg.data);
@@ -134,13 +136,31 @@ export default class Client {
           console.warn('Cant join that gathering. Does not exist');
           return;
         }
-        this.gathering = gathering;
         gathering.joinGathering(this);
+        this.gathering = gathering;
         const response = createResponse('joinGathering', msg.id, {
           wasSuccess: true,
         });
         this.send(response);
         break;
+      }
+      case 'leaveGathering': {
+        const response = createResponse('leaveGathering', msg.id, {
+          wasSuccess: true,
+        });
+        try {
+          if(!this.gathering){
+            throw Error('not in a gathering. Thus cant leave one');
+          }
+          this.gathering.leaveGathering(this);
+          this.gathering = undefined;
+        } catch(e){
+          response.wasSuccess = false;
+          const msg = extractMessageFromCatch(e, 'failed to leave gathering');
+          response.message = msg;
+        }
+        this.send(response);
+        break; 
       }
       case 'getRoomsInGathering': {
         if(!this.gathering){
@@ -173,24 +193,46 @@ export default class Client {
         break;
       }
       case 'joinRoom': {
-        const response = createResponse('joinRoom', msg.id, { wasSuccess: false, message: 'not in a gathering. Can not join a room without being in a gathering'});
-        if(!this.gathering){
-          console.warn('Client requested to join room without being inside a gathering');
-          this.send(response);
-        }else {
+        //default to fail message
+        const response = createResponse('joinRoom', msg.id, { wasSuccess: false, message: 'failed to join room'});
+        try{
+
+          if(!this.gathering){
+            throw Error('not in a gathering. Can not join a room without being in a gathering');
+          }
           const roomId = msg.data.roomId;
           const foundRoom = this.gathering.getRoom(roomId);
-          response.message = 'no such room in gathering';
-          if(foundRoom){
-            const ok = foundRoom.addClient(this);
-            if(!ok){
-              console.warn(`failed to add client to room ${foundRoom.id}`);
-              response.message = 'failed to add client to the room';
-            }else {// SUCCESS
-              this.room = foundRoom;
-              response.wasSuccess = true;
-              response.message = 'succesfully joined room';
-            }
+          if(!foundRoom){
+            throw Error('no such room in gathering');
+          }
+          foundRoom.addClient(this);
+          this.room = foundRoom;
+          response.wasSuccess = true;
+          response.message = 'succesfully joined room';
+        } catch(e){
+          response.message = extractMessageFromCatch(e, `failed to joinRoom: ${msg.data.roomId}`);
+          response.wasSuccess = false;
+        }
+        this.send(response);
+        break;
+      }
+      case 'leaveRoom': {
+        let response = createResponse('leaveRoom', msg.id, { wasSuccess: false, message: 'failed to leave room'});
+        try {
+          if(!this.room){
+            throw Error('not in a room. thus cant leave one');
+          }
+          const roomId = this.room.id;
+          this.room.removeClient(this);
+          this.room = undefined;
+          response = createResponse('leaveRoom', msg.id, { wasSuccess: true, data: { roomId: roomId}});
+        } catch(e) {
+          response.wasSuccess = false;
+          response.message = extractMessageFromCatch(e, 'failed to leave room for some reason');
+          if(e instanceof Error){
+            response.message = e.message;
+          } else if(typeof e === 'string') {
+            response.message = e;
           }
         }
         this.send(response);

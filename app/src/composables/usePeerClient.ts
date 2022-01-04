@@ -8,7 +8,7 @@ export default function usePeerClient () {
   const roomStore = useRoomStore();
 
   peer.onMessageCallback = (msg) => {
-    console.log(msg);
+    console.log('received message: ', msg);
     switch (msg.subject) {
       case 'gatheringRooms': {
         roomStore.roomsInGathering = msg.data;
@@ -16,7 +16,7 @@ export default function usePeerClient () {
     }
   };
   peer.onRequestCallback = (msg) => {
-    console.log(msg);
+    console.log('received request: ', msg);
   };
 
   async function requestMedia (deviceId?: string): Promise<MediaStream> {

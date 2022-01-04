@@ -17,23 +17,26 @@ export default class Room {
 
   addClient(client: Client){
     if(this.clients.has(client.id)){
-      console.warn('This client is already in the room!!');
-      return false;
+      throw Error('This client is already in the room!!');
+      // console.warn('This client is already in the room!!');
+      // return false;
     }
     this.clients.set(client.id, client);
     this.broadcastRoomInfo();
-
-    return true;
   }
 
   removeClient(client: Client){
     if(!client.id){
-      console.warn('invalid client object provided when trying to remove client from room. id missing!');
-      return false;
+      // console.warn('invalid client object provided when trying to remove client from room. id missing!');
+      // return false;
+      throw new Error('invalid client object provided when trying to remove client from room. id missing!');
     }
     const ok = this.clients.delete(client.id);
+    if(!ok){
+      throw new Error(`failed to remove client ${client.id} from room`);
+    }
     this.broadcastRoomInfo();
-    return ok;
+    // return ok;
   }
 
   getRoomState() {

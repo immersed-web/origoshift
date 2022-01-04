@@ -53,6 +53,7 @@ export type AnyRequest =
   | RequestBuilder<'joinGathering', {
     gatheringId: string,
   }>
+  | RequestBuilder<'leaveGathering'>
   | RequestBuilder<'getRoomsInGathering'>
   | RequestBuilder<'createRoom', {
     name: string,
@@ -60,6 +61,7 @@ export type AnyRequest =
   | RequestBuilder<'joinRoom', {
     roomId: string,
   }>
+  | RequestBuilder<'leaveRoom'>
   | RequestBuilder<'roomStateUpdated', RoomState>
 
 export type AnyMessage = 
@@ -111,11 +113,13 @@ export type AnyResponse =
   | ResponseBuilder<'setName'>
   | ResponseBuilder<'createGathering', {gatheringId: string}>
   | ResponseBuilder<'joinGathering'>
+  | ResponseBuilder<'leaveGathering', {gatheringId: string}>
   | ResponseBuilder<'getRoomsInGathering', 
     Record<string, RoomState>
   >
   | ResponseBuilder<'createRoom', {roomId: string}>
   | ResponseBuilder<'joinRoom'>
+  | ResponseBuilder<'leaveRoom', {roomId: string}>
   | ResponseBuilder<'roomStateUpdated'>
 
 export type AnySuccessResponse = Extract<AnyResponse, { wasSuccess: true }>;

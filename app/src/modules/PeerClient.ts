@@ -28,7 +28,7 @@ export default class PeerClient {
 
   constructor () {
     onSocketReceivedReqOrMsg((msg) => {
-      console.log(msg);
+      // console.log(msg);
       if (msg.type === 'message') {
         // switch (msg.subject) {
         //   case 'gatheringRooms': {

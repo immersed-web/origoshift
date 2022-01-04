@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
-import { RoomState } from 'shared-types/CustomTypes';
+import { GatheringState } from 'shared-types/CustomTypes';
 
 const rootState: {
   currentRoomId: string
-  roomsInGathering: Record<string, RoomState>
+  gatheringState?: GatheringState
 } = {
   currentRoomId: '',
-  roomsInGathering: {},
+  gatheringState: undefined,
 };
 
 export const useRoomStore = defineStore('room', {

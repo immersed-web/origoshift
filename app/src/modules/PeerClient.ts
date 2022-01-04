@@ -123,8 +123,8 @@ export default class PeerClient {
     // return response.
   }
 
-  async getRoomsInGathering () {
-    const getRoomsReq = createRequest('getRoomsInGathering');
+  async getGatheringState () {
+    const getRoomsReq = createRequest('getGatheringState');
     const response = await sendRequest(getRoomsReq);
     return response.data;
   }

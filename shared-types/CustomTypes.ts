@@ -4,29 +4,40 @@
 //   clients: Record<string, unknown>[],
 // }
 import {types as soup} from 'mediasoup';
+import { RequestSubjects } from './MessageTypes';
 
 export interface RoomState {
   roomId: string;
+  roomName?: string;
   clients: {
-      [client : string]: {
-      clientId: string,
+      [clientId: string]: {
+      clientId: string;
       nickName?: string;
       producers:  {
         [producerId: string]: {
-          producerId: string,
-          kind: soup.MediaKind
+          producerId: string;
+          kind: soup.MediaKind;
         }
       }
     }
   }
 }
 
-export type AllowedActions = 'createGathering' |'joinGathering' | 'getRoomsInGathering' | 'createRoom' | 'joinRoom'
+export interface GatheringState {
+  gatheringId: string;
+  gatheringName?: string;
+  rooms: {
+    [roomId: string ] : RoomState;
+  }
+}
+
+// export type AllowedActions  = Extract<RequestSubjects, 'createGathering' |'joinGathering' | 'gatheringState' | 'createRoom' | 'joinRoom'>
+export type AllowedAction  = RequestSubjects;
 export interface UserData {
   uuid: string,
   username: string,
   role: UserRole | null, // TODO: should we really allow null here? shouldn't default just be guest?
-  allowedActions: Array<AllowedActions>
+  allowedActions: Array<AllowedAction>
 }
 
 export type UserRole = 

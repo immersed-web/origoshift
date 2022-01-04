@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { RoomState } from 'shared-types/CustomTypes';
+import { GatheringState } from 'shared-types/CustomTypes';
 import { createMessage } from 'shared-types/MessageTypes';
 import mediasoupConfig from '../mediasoupConfig';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
@@ -48,6 +48,9 @@ export default class Gathering {
   router: soup.Router;
 
   private rooms: Map<string, Room> = new Map();
+
+  // TODO: perhaps make this a getter. Then we wouldn't need as much housekeeping for maintaining sync between clients in rooms and clients in gathering.
+  // It would involve looking up all clients in every room in this gathering as a getter function
   private clients: Map<string, Client> = new Map();
 
   private constructor(id = randomUUID(), name = 'unnamed', router: soup.Router){
@@ -67,6 +70,7 @@ export default class Gathering {
 
   joinGathering( client : Client){
     this.clients.set(client.id, client);
+    this.sendGatheringStateTo(client);
   }
 
   leaveGathering (client: Client) {
@@ -77,26 +81,36 @@ export default class Gathering {
     return this.router.rtpCapabilities;
   }
 
-  addRoom(room:Room){
+  createRoom(roomId?: string){
+    const room = Room.createRoom(roomId, this);
     this.rooms.set(room.id, room);
-    this.broadCastRooms();
+    this.broadCastGatheringState();
+
+    return room;
   }
 
-  broadCastRooms() {
-    const rooms = this.getRoomsInGathering();
+  sendGatheringStateTo(client: Client){
+    const state = this.getGatheringState();
+    const msg = createMessage('gatheringStateUpdated', state);
+    client.send(msg);
+  }
+
+  broadCastGatheringState() {
+    const gatheringState = this.getGatheringState();
     // console.log(`gonna broadcast to ${Object.keys(rooms).length} rooms`);
 
     // this.rooms.forEach((room) => {
     //   console.log(`room has ${room.clients.size} clients`);
     this.clients.forEach((client) => {
-      const gatheringRoomsMsg = createMessage('gatheringRooms', rooms);
+      const gatheringRoomsMsg = createMessage('gatheringStateUpdated', gatheringState);
       // console.log(`gonna send gatheringRoomsMsg to client ${client.nickName}`, gatheringRoomsMsg);
       client.send(gatheringRoomsMsg);
     });
     // });
   }
 
-  removeRoom(roomOrId: Room | string){
+  // TODO: will this truly suffice for deleting the room? Or will it float around as a deserted little vessel in the memory ocean?
+  deleteRoom(roomOrId: Room | string){
     if(typeof roomOrId === 'string'){
       this.rooms.delete(roomOrId);
       return;
@@ -104,28 +118,16 @@ export default class Gathering {
     this.rooms.delete(roomOrId.id);
   }
 
-  getRoomsInGathering() {
-    // const rooms: { roomId: string; clients: string[] }[] = [];
-    const rooms: Record<string, RoomState> = {};
+  getGatheringState() {
+    const gatheringState: GatheringState = { gatheringId: this.id, rooms: {} };
+    if(this.name){
+      gatheringState.gatheringName = this.name;
+    }
     this.rooms.forEach((room) => {
-      // const clients: RoomState['clients'] = {};
-      // room.clients.forEach((client, clientId) => {
-      //   const producers: string [] = [];
-      //   client.producers.forEach((producer, producerId) => {
-      //     producers.push(producerId);
-      //   });
-      //   clients[clientId] = { clientId, producers};
-      // });
-
-      // const roomInfo: RoomState = {
-      //   roomId: room.id,
-      //   clients: clients,
-      // };
       const roomstate = room.getRoomState();
-      rooms[roomstate.roomId] = roomstate;
-      // rooms.push(roomstate);
+      gatheringState.rooms[room.id] = roomstate;
     });
-    return rooms;
+    return gatheringState;
   }
 
   getRoom(id: string) {

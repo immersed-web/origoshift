@@ -1,6 +1,6 @@
 import {types as mediasoupClientTypes} from 'mediasoup-client';
 import {types as mediasoupTypes} from 'mediasoup';
-import { RoomState } from './CustomTypes';
+import { GatheringState, RoomState } from './CustomTypes';
 
 interface IPacket {
   id: number,
@@ -54,7 +54,7 @@ export type AnyRequest =
     gatheringId: string,
   }>
   | RequestBuilder<'leaveGathering'>
-  | RequestBuilder<'getRoomsInGathering'>
+  | RequestBuilder<'getGatheringState'>
   | RequestBuilder<'createRoom', {
     name: string,
   }>
@@ -65,7 +65,7 @@ export type AnyRequest =
   | RequestBuilder<'roomStateUpdated', RoomState>
 
 export type AnyMessage = 
-  MessageBuilder<'gatheringRooms', Record<string ,import('./CustomTypes').RoomState>>
+  MessageBuilder<'gatheringStateUpdated', GatheringState>
   | MessageBuilder<'chatMessage', {
     message: string
   }>
@@ -114,9 +114,7 @@ export type AnyResponse =
   | ResponseBuilder<'createGathering', {gatheringId: string}>
   | ResponseBuilder<'joinGathering'>
   | ResponseBuilder<'leaveGathering', {gatheringId: string}>
-  | ResponseBuilder<'getRoomsInGathering', 
-    Record<string, RoomState>
-  >
+  | ResponseBuilder<'getGatheringState', GatheringState>
   | ResponseBuilder<'createRoom', {roomId: string}>
   | ResponseBuilder<'joinRoom'>
   | ResponseBuilder<'leaveRoom', {roomId: string}>

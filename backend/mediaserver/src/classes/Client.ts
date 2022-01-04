@@ -162,15 +162,15 @@ export default class Client {
         this.send(response);
         break; 
       }
-      case 'getRoomsInGathering': {
+      case 'getGatheringState': {
         if(!this.gathering){
           console.warn('cant list rooms if isnt in a gathering');
           return;
         }
-        const rooms = this.gathering.getRoomsInGathering();
-        const response = createResponse('getRoomsInGathering', msg.id, {
+        const gatheringState = this.gathering.getGatheringState();
+        const response = createResponse('getGatheringState', msg.id, {
           wasSuccess: true,
-          data: rooms
+          data: gatheringState
         });
         this.send(response);
         break;
@@ -180,9 +180,8 @@ export default class Client {
           console.error('no gathering to put the created room in!!!');
           return;
         }
-        const room = await Room.createRoom();
-        this.room = room;
-        this.gathering.addRoom(room);
+        const room = this.gathering.createRoom();
+        // this.room = room;
         const response = createResponse('createRoom', msg.id, {
           wasSuccess: true,
           data: {
@@ -193,6 +192,10 @@ export default class Client {
         break;
       }
       case 'joinRoom': {
+        if(this.room){
+          this.room.removeClient(this);
+          this.room = undefined;
+        }
         //default to fail message
         const response = createResponse('joinRoom', msg.id, { wasSuccess: false, message: 'failed to join room'});
         try{
@@ -248,11 +251,11 @@ export default class Client {
     this.ws.send(msg);
   }
 
-  roomInfoUpdated(newRoomState: RoomState){
-    console.log('roomState updated', newRoomState);
-    const roomStateUpdate = createRequest('roomStateUpdated', newRoomState);
-    this.send(roomStateUpdate);
-  }
+  // roomInfoUpdated(newRoomState: RoomState){
+  //   console.log('roomState updated', newRoomState);
+  //   const roomStateUpdate = createRequest('roomStateUpdated', newRoomState);
+  //   this.send(roomStateUpdate);
+  // }
 
   // /**
   //  * I would prefer to not need this function. but uWebsockets is not attaching incoming messages to the socket object itself, but rather the server.

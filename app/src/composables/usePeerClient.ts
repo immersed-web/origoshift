@@ -10,8 +10,8 @@ export default function usePeerClient () {
   peer.onMessageCallback = (msg) => {
     console.log('received message: ', msg);
     switch (msg.subject) {
-      case 'gatheringRooms': {
-        roomStore.roomsInGathering = msg.data;
+      case 'gatheringStateUpdated': {
+        roomStore.gatheringState = msg.data;
       }
     }
   };
@@ -98,8 +98,8 @@ export default function usePeerClient () {
   async function joinGathering (gatheringId: string) {
     await peer.getRouterCapabilities();
     await peer.joinGathering(gatheringId);
-    const rooms = await peer.getRoomsInGathering();
-    roomStore.roomsInGathering = rooms;
+    // const rooms = await peer.getGatheringState();
+    // roomStore.gatheringState = rooms;
   }
 
   const { createGathering, setName, joinRoom } = peer;

@@ -21,7 +21,7 @@
     </q-list>
     <q-list dense>
       <q-item
-        v-for="room in roomStore.roomsInGathering"
+        v-for="room in roomStore.gatheringState?.rooms"
         :key="room.roomId"
       >
         <q-btn

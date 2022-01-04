@@ -9,8 +9,12 @@ const pendingRequests = new Map<number, {resolve: RequestResolver, reject: Reque
 
 let onReqOrMsgCallback: (msg: AnyRequest | AnyMessage) => unknown;
 
+let createSocketTimeout: number;
 let socket: WebSocket | null = null;
 export function createSocket (token: string) {
+  if (createSocketTimeout) {
+    window.clearTimeout(createSocketTimeout);
+  }
   if (!process.env.SOCKET_URL) {
     console.error('No socket url provided from environment variables!! Huge error of doom!');
     throw new Error('no socket url provided!');
@@ -32,14 +36,14 @@ export function createSocket (token: string) {
       console.error(ev);
       console.error('socket closed. will try to reconnect!');
       connectionStore.connected = false;
-      setTimeout(() => {
+      createSocketTimeout = window.setTimeout(() => {
         createSocket(token);
       }, 4000);
     };
     socket.onmessage = handleMessage;
   } catch (e) {
     console.error(e);
-    setTimeout(createSocket, 4000);
+    createSocketTimeout = window.setTimeout(createSocket, 4000);
   }
 }
 const handleMessage = (ev: MessageEvent) => {

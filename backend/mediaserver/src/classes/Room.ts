@@ -26,10 +26,9 @@ export default class Room {
     }
     this.clients.set(client.id, client);
     this.gathering.broadCastGatheringState();
-    // this.broadcastRoomInfo();
   }
 
-  removeClient(client: Client){
+  removeClient(client: Client, skipBroadcast = false ){
     if(!client.id){
       // console.warn('invalid client object provided when trying to remove client from room. id missing!');
       // return false;
@@ -43,6 +42,9 @@ export default class Room {
     const ok = this.clients.delete(client.id);
     if(!ok){
       throw new Error(`failed to remove client ${client.id} from room`);
+    }
+    if(!skipBroadcast){
+      this.gathering.broadCastGatheringState();
     }
   }
 

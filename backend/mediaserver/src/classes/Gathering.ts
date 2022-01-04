@@ -70,6 +70,7 @@ export default class Gathering {
 
   joinGathering( client : Client){
     this.clients.set(client.id, client);
+    // We dont broadcast when a client joins. Broadcast is only relevant when they actually join a room
     this.sendGatheringStateTo(client);
   }
 

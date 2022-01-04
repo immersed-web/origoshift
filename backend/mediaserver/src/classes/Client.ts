@@ -191,9 +191,10 @@ export default class Client {
         this.send(response);
         break;
       }
+
       case 'joinRoom': {
         if(this.room){
-          this.room.removeClient(this);
+          this.room.removeClient(this, true);
           this.room = undefined;
         }
         //default to fail message

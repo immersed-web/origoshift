@@ -1,15 +1,23 @@
 <template>
-  <q-page class="row">
-    <q-list dense>
-      <q-item
-        v-for="action in actions"
-        :key="action.label"
-      >
-        <q-btn
-          @click="action.fn"
-          :label="action.label"
-        />
-      </q-item>
+  <q-page>
+    <p>Connected: {{ connectionStore.connected }}</p>
+    <div class="row">
+      <q-list dense>
+        <q-item
+          v-for="action in actions"
+          :key="action.label"
+        >
+          <q-btn
+            @click="action.fn"
+            :label="action.label"
+          />
+        </q-item>
+        <q-item>
+          <q-input
+            label="gatheringId"
+            v-model="gatheringId"
+          />
+        </q-item>
       <!-- <q-btn
         label="create gaterhing"
         @click="createGathering"
@@ -18,23 +26,37 @@
         label="create room"
         @click="createRoom('testRum')"
       /> -->
-    </q-list>
-    <q-list dense>
-      <q-item
-        v-for="room in roomStore.gatheringState?.rooms"
-        :key="room.roomId"
-      >
-        <q-btn
-          :label="room.roomId"
-          @click="joinRoom(room.roomId)"
+      </q-list>
+      <q-list dense>
+        <q-item
+          v-for="room in roomStore.gatheringState?.rooms"
+          :key="room.roomId"
+        >
+          <q-btn
+            :label="room.roomId"
+            @click="joinRoom(room.roomId)"
+          />
+          <p>Clients: {{ Object.keys(room.clients).length }}</p>
+        </q-item>
+      </q-list>
+      <q-list>
+        <video
+          style="background:darkblue"
+          ref="localVideoTag"
         />
-        <p>Clients: {{ Object.keys(room.clients).length }}</p>
-      </q-item>
-    </q-list>
-    <h2>Caaannect??? {{ connectionStore.connected }}</h2>
+        <q-item
+          v-for="action in videoActions"
+          :key="action.label"
+        >
+          <q-btn
+            :label="action.label"
+            @click="action.fn"
+          />
+        </q-item>
+      </q-list>
+    </div>
 
-    <video ref="localVideoTag" />
-    <pre>{{ roomStore }}</pre>
+    <!-- <pre>{{ roomStore }}</pre> -->
   </q-page>
 </template>
 
@@ -47,7 +69,7 @@ import { login, getMe, getJwt } from 'src/modules/authClient';
 import { createSocket } from 'src/modules/webSocket';
 // import { RoomState } from 'shared-types/CustomTypes';
 
-const { setName, createRoom, createGathering, joinGathering, joinRoom, requestMedia } = usePeerClient();
+const { setName, createRoom, createGathering, joinGathering, joinRoom, requestMedia, startProducing } = usePeerClient();
 const connectionStore = useConnectionStore();
 const roomStore = useRoomStore();
 // const rooms = ref<RoomState[]>();
@@ -60,7 +82,7 @@ interface Action {
   fn: () => unknown,
 }
 
-const actions: Action[] = [
+const videoActions: Action[] = [
   {
     label: 'get mediadevice',
     fn: async () => {
@@ -72,6 +94,19 @@ const actions: Action[] = [
       }
     },
   },
+  {
+    label: 'start producing',
+    fn: async () => {
+      if (!localStream.value) {
+        console.error('no stream set');
+        return;
+      }
+      startProducing(localStream.value);
+    },
+  },
+];
+
+const actions: Action[] = [
   {
     label: 'login',
     fn: () => login('admin', 'bajskorv'),

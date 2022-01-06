@@ -18,6 +18,7 @@ module.exports = {
   'rules': {
     'indent': 'off',
     '@typescript-eslint/indent': ['error', 2],
+    'no-constant-condition': ['warn'],
     'linebreak-style': [
       'error',
       'unix'

@@ -3,7 +3,7 @@ const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import Client from './classes/Client';
 import SocketWrapper from './classes/SocketWrapper';
 import { createWorkers } from './modules/mediasoupWorkers';
-import { verifyJwtToken } from 'shared-modules/jwtUtils';
+import { verifyJwtToken, DecodedJwt } from 'shared-modules/jwtUtils';
 
 const clients: Map<uWebSockets.WebSocket, Client> = new Map();
 const disconnectedClients: Map<string, Client> = new Map();
@@ -54,6 +54,10 @@ app.ws('/*', {
       console.log('upgrade request provided this token:', receivedToken);
 
       const decoded = verifyJwtToken(receivedToken);
+      if(typeof decoded === 'string'){
+        throw Error('jwtVerify returned a string. No good!');
+      }
+
       if(decoded){
         console.log('decoded jwt:', decoded);
         res.upgrade(
@@ -71,24 +75,40 @@ app.ws('/*', {
     }
   },
   open: (ws) => {
-    // const jwtPayload = ws.decoded as Omit<ReturnType<typeof verifyJwtToken>, string>
-    console.log('socket opened with provided data: ', ws.decoded);
+    const decodedJwt = ws.decoded as DecodedJwt;
     const wsWrapper = new SocketWrapper(ws);
-    disconnectedClients.get(ws.decoded.)
-    if()
-    const client = new Client({ws: wsWrapper, userData: ws.decoded});
+    const idleClient = disconnectedClients.get(decodedJwt.uuid);
+    let client: Client;
+    if(false && idleClient){
+      // disconnectedClients.delete(decodedJwt.uuid);
+      // idleClient.assignSocketWrapper(wsWrapper);
+      // client = idleClient;
+      // console.log('socket REopened with provided data: ', decodedJwt);
+    } else {
+      // console.log('socket opened with provided data: ', decodedJwt);
+      console.log('socket opened');
+      client = new Client({ws: wsWrapper, userData: decodedJwt });
+    }
+    // Check so client is unique!!
+
     // client.userData = ws.decoded;
     clients.set(ws, client);
     console.log('client :>> ', client);
   },
   close: (ws) => {
     const client = clients.get(ws);
-    clients.delete(ws);
-    if(client){
-      disconnectedClients.set(client.id, client);
-      client.onDisconnected();
+    if(!client){
+      throw Error('a disconnecting client was not in client list! Something is astray!');
     }
-    console.log('disconnected:', client);
+    clients.delete(ws);
+    if( false && client){
+      // disconnectedClients.set(client.id, client);
+      // setTimeout(() => {
+      //   disconnectedClients.delete(client.id);
+      // }, 1000 * 60 * 5);
+    }
+    client.onDisconnected();
+    console.log('client disconnected:', client.id);
   }
   // 
   

@@ -1,9 +1,9 @@
 import { randomUUID } from 'crypto';
 import SocketWrapper from './SocketWrapper';
-import {types as soup} from 'mediasoup';
-// import {types as soupClient} from 'mediasoup-client';
-import { RoomState, UserData, UserRole } from 'shared-types/CustomTypes';
-import { createRequest, createResponse, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
+import {types as soupTypes} from 'mediasoup';
+import {types as soupClientTypes} from 'mediasoup-client';
+import { ClientState, UserData, UserRole } from 'shared-types/CustomTypes';
+import { createResponse, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 
 import Room from './Room';
@@ -27,21 +27,16 @@ export default class Client {
   role: UserRole = 'guest';
   userData?: UserData;
 
-  rtpCapabilities?: soup.RtpCapabilities;
-  receiveTransport?: soup.WebRtcTransport;
-  sendTransport?: soup.WebRtcTransport;
-  consumers: Map<string, soup.Consumer> = new Map();
-  producers: Map<string, soup.Producer> = new Map();
+  rtpCapabilities?: soupTypes.RtpCapabilities;
+  receiveTransport?: soupTypes.WebRtcTransport;
+  sendTransport?: soupTypes.WebRtcTransport;
+  consumers: Map<string, soupTypes.Consumer> = new Map();
+  producers: Map<string, soupTypes.Producer> = new Map();
 
   gathering?: Gathering;
   room? : Room;
 
   constructor({id = randomUUID(), ws, userData}: constructionParams){
-    // if(!id){
-    //   this.id = uuidv4();
-    // }else {
-    //   this.id = id;
-    // }
     this.id = id;
     this.ws = ws;
     if(userData){
@@ -50,10 +45,14 @@ export default class Client {
     }
 
 
-    ws.on('message', (msg) => {
+    ws.registerReceivedMessageCallback((msg) => {
       console.log('client received message:', msg);
       this.handleReceivedMsg(msg);
     });
+  }
+
+  assignSocketWrapper(ws: SocketWrapper){
+    this.ws = ws;
   }
 
   private handleReceivedMsg = async (msg: SocketMessage<UnknownMessageType>) => {
@@ -70,13 +69,18 @@ export default class Client {
       console.error('no id in received request!!!');
       return;
     }
-    console.log('received Request!!');
+    // console.log('received Request!!');
     switch (msg.subject) {
       case 'setName': {
         this.nickName = msg.data.name;
         const response = createResponse('setName', msg.id, {
           wasSuccess: true,
         });
+        this.send(response);
+        break;
+      }
+      case 'getClientState': {
+        const response = createResponse('getClientState', msg.id, { wasSuccess: true, data: this.clientState});
         this.send(response);
         break;
       }
@@ -126,7 +130,7 @@ export default class Client {
       }
       case 'joinGathering': {
         if(this.gathering){
-          this.gathering.leaveGathering(this);
+          this.gathering.removeClient(this);
           this.gathering = undefined;
         }
         // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join the gathering or not
@@ -137,7 +141,7 @@ export default class Client {
           console.warn('Cant join that gathering. Does not exist');
           return;
         }
-        gathering.joinGathering(this);
+        gathering.addClient(this);
         this.gathering = gathering;
         const response = createResponse('joinGathering', msg.id, {
           wasSuccess: true,
@@ -153,7 +157,7 @@ export default class Client {
           if(!this.gathering){
             throw Error('not in a gathering. Thus cant leave one');
           }
-          this.gathering.leaveGathering(this);
+          this.gathering.removeClient(this);
           this.gathering = undefined;
         } catch(e){
           response.wasSuccess = false;
@@ -222,7 +226,7 @@ export default class Client {
         break;
       }
       case 'leaveRoom': {
-        let response = createResponse('leaveRoom', msg.id, { wasSuccess: false, message: 'failed to leave room'});
+        let response: ResponseTo<'leaveRoom'>;
         try {
           if(!this.room){
             throw Error('not in a room. thus cant leave one');
@@ -232,24 +236,55 @@ export default class Client {
           this.room = undefined;
           response = createResponse('leaveRoom', msg.id, { wasSuccess: true, data: { roomId: roomId}});
         } catch(e) {
-          response.wasSuccess = false;
-          response.message = extractMessageFromCatch(e, 'failed to leave room for some reason');
-          if(e instanceof Error){
-            response.message = e.message;
-          } else if(typeof e === 'string') {
-            response.message = e;
-          }
+          response= createResponse('leaveRoom', msg.id, { wasSuccess: false, message: extractMessageFromCatch(e, 'failed to leave room for some reason')});
         }
         this.send(response);
         break;
+      }
+      case 'createSendTransport': {
+        let response: ResponseTo<'createSendTransport'>;
+        try {
+          const transportOptions = await this.createWebRtcTransport('send');
+          response = createResponse('createSendTransport', msg.id, {
+            wasSuccess: true,
+            data: transportOptions,
+          });
+
+        } catch (e) {
+          response = createResponse('createSendTransport', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to create send transport :-(')
+          });
+        }
+        this.send(response);
+        break;
+      }
+      case 'createProducer': {
+
       }
       default:
         break;
     }
   };
 
+  get clientState(){
+    const state: ClientState = {
+      clientId: this.id,
+    };
+    if(this.gathering){
+      state.gatheringId = this.gathering.id;
+    }
+    if(this.room){
+      state.gatheringId = this.room.id;
+    }
+    return state;
+  }
+
   onDisconnected(){
     this.connected = false;
+    // this.ws = undefined;
+    this.room?.removeClient(this);
+    this.gathering?.removeClient(this);
   }
 
   onReconnected() {
@@ -258,7 +293,34 @@ export default class Client {
 
   send(msg: SocketMessage<UnknownMessageType>) {
     console.log(`gonna send message to client ${this.id}:`, msg);
+    if(!this.connected){
+      console.error('Tried to send to a closed socket. NOOO GOOD!');
+      return;
+    }
     this.ws.send(msg);
+  }
+
+  async createWebRtcTransport(direction: 'send' | 'receive'){
+    if(!this.gathering) {
+      throw Error('must be in a gathering in order to create transport');
+    }
+    const transport = await this.gathering.createWebRtcTransport();
+    if(direction == 'receive'){
+      this.receiveTransport = transport;
+    } else {
+      this.sendTransport = transport;
+    }
+    const { id, iceParameters, dtlsParameters } = transport;
+    const iceCandidates = <soupClientTypes.IceCandidate[]>transport.iceCandidates;
+    const transportOptions: soupClientTypes.TransportOptions = {
+      id,
+      iceParameters,
+      iceCandidates,
+      dtlsParameters,
+    };
+
+    return transportOptions;
+
   }
 
   // roomInfoUpdated(newRoomState: RoomState){

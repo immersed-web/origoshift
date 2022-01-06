@@ -54,13 +54,12 @@ const handleMessage = (ev: MessageEvent) => {
   const msg = parsedMessage as SocketMessage<UnknownMessageType>;
   if (msg.type === 'response') {
     try {
-      // const pendingCallbacks = pendingRequests.get(msg.id);
-      const callbacks = pendingRequests.get(msg.id);
-      if (!callbacks) {
+      const callback = pendingRequests.get(msg.id);
+      if (!callback) {
         console.error('callbacks was not available in pendingRequests map!!');
         return;
       }
-      const { resolve, reject } = callbacks;
+      const { resolve, reject } = callback;
       if (!msg.wasSuccess) {
         reject(msg.message);
         return;
@@ -88,6 +87,7 @@ export const onSocketReceivedReqOrMsg = (callback: (msg: AnyRequest | AnyMessage
 export const send = (msg: SocketMessage<UnknownMessageType>) => {
   const string = JSON.stringify(msg);
   socket?.send(string);
+  console.log('sending message:', msg);
 };
 
 export const sendRequest = async <T extends RequestSubjects>(msg: SocketMessage<Request<T>>): Promise<SuccessResponseTo<T>> => {
@@ -95,20 +95,14 @@ export const sendRequest = async <T extends RequestSubjects>(msg: SocketMessage<
   const id = msg.id;
   const msgString = JSON.stringify(msg);
   socket?.send(msgString);
+  console.log('sending request:', msg);
   const promise: Promise<AnyResponse> = new Promise((resolve, reject) => {
-    // const typedResolver : RequestResolver<T> = resolve;
     pendingRequests.set(id, { resolve, reject });
     setTimeout(() => {
       pendingRequests.delete(id);
       reject(`request timed out: ${id}`);
     }, requestTimeout);
   });
-  console.log(msg);
-  // type TheResponseType = ResponseTo<>
-  // type asdasd = Pick<AnyRequest, 'subject'>['subject']
-  // type Resp = ResponseTo<'joinRoom'>
 
   return promise as Promise<SuccessResponseTo<T>>;
 };
-
-// export socket;

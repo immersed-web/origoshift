@@ -6,6 +6,11 @@
 import {types as soup} from 'mediasoup';
 import { RequestSubjects } from './MessageTypes';
 
+export interface ClientState {
+  gatheringId?: string;
+  roomId?: string;
+}
+
 export interface RoomState {
   roomId: string;
   roomName?: string;

@@ -41,13 +41,13 @@ export default function usePeerClient () {
   //   await peer.createGathering(gatheringName);
   // }
 
-  async function createRoom (roomName: string) {
-    // const roomId = await peer.createRoom(roomName);
-    // return roomId;
-    await peer.createRoom(roomName);
-    // const rooms = await peer.getRoomsInGathering();
-    // roomStore.roomsInGathering = rooms;
-  }
+  // async function createRoom (roomName: string) {
+  //   // const roomId = await peer.createRoom(roomName);
+  //   // return roomId;
+  //   await peer.createRoom(roomName);
+  //   // const rooms = await peer.getRoomsInGathering();
+  //   // roomStore.roomsInGathering = rooms;
+  // }
 
   // async function joinRoom (roomName: string) {
   //   await peer.joinRoom(roomName);
@@ -96,26 +96,51 @@ export default function usePeerClient () {
   //   // await peer.createReceiveTransport();
   // })();
   async function joinGathering (gatheringId: string) {
-    await peer.getRouterCapabilities();
     await peer.joinGathering(gatheringId);
+    await peer.getRouterCapabilities();
     // const rooms = await peer.getGatheringState();
     // roomStore.gatheringState = rooms;
   }
 
-  const { createGathering, setName, joinRoom } = peer;
+  // const { createGathering, setName, joinRoom, createSendTransport } = peer;
+
+  function pick<T extends PeerClient, U extends keyof T> (
+    obj: T,
+    paths: Array<U>,
+  ): Pick<T, U> {
+    const ret = Object.create(null);
+    for (const k of paths) {
+      ret[k] = obj[k];
+    }
+    return ret;
+  }
+  const reExported = pick(peer, ['setName', 'createGathering', 'joinRoom', 'createRoom']);
+
   return {
+    ...reExported,
     // peer,
     // peerId,
     // roomState,
     requestMedia,
-    createGathering,
+    // createGathering,
     joinGathering,
     startProducing,
     consume,
-    createRoom,
-    joinRoom,
+    // createRoom,
+    // joinRoom,
     createAndJoinRoom,
-    setName,
+    // setName,
     // getRoomsInGathering,
   };
+
+  // const pickExport = (thing: unknown, { ...picks }: Partial<PeerClient>) => {
+  //   return 'hello';
+  // };
+  // pickExport(peer, { createGathering, joinGathering });
+
+  // peer.createGathering('bajs');
+  // const pickedExports = (({ createGathering, createReceiveTransport }: PeerClient) => ({ createGathering, , createReceiveTransport }))(peer);
+  // return Object.assign({}, customExports, { createGathering, setName, joinRoom, createSendTransport, createReceiveTransport } = peer);
+
+  // return customExports;
 }

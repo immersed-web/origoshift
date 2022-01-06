@@ -8,6 +8,7 @@ import {types as soup} from 'mediasoup';
 
 import Room from './Room';
 import Client from './Client';
+import { on } from 'events';
 
 
 export default class Gathering {
@@ -68,13 +69,13 @@ export default class Gathering {
     Gathering.gatherings.set(this.id, this);
   }
 
-  joinGathering( client : Client){
+  addClient ( client : Client){
     this.clients.set(client.id, client);
     // We dont broadcast when a client joins. Broadcast is only relevant when they actually join a room
     this.sendGatheringStateTo(client);
   }
 
-  leaveGathering (client: Client) {
+  removeClient (client: Client) {
     this.clients.delete(client.id);
   }
 
@@ -96,15 +97,17 @@ export default class Gathering {
     client.send(msg);
   }
 
-  broadCastGatheringState() {
+  broadCastGatheringState(clientsToSkip: string[] = []) {
     const gatheringState = this.getGatheringState();
-    // console.log(`gonna broadcast to ${Object.keys(rooms).length} rooms`);
+    console.log(`gonna broadcast to ${this.clients.size} clients`);
 
-    // this.rooms.forEach((room) => {
-    //   console.log(`room has ${room.clients.size} clients`);
     this.clients.forEach((client) => {
+      if(client.id in clientsToSkip){
+        console.log('skipping client:', client.id);
+        return;
+      }
       const gatheringRoomsMsg = createMessage('gatheringStateUpdated', gatheringState);
-      // console.log(`gonna send gatheringRoomsMsg to client ${client.nickName}`, gatheringRoomsMsg);
+      console.log(`sending gatheringStateUpdated to client ${client.id}`);
       client.send(gatheringRoomsMsg);
     });
     // });
@@ -139,5 +142,35 @@ export default class Gathering {
     }
     return foundRoom;
     
+  }
+
+  async createWebRtcTransport() {
+    const { listenIps, enableUdp, enableTcp, preferUdp, initialAvailableOutgoingBitrate } = mediasoupConfig.webRtcTransport;
+    const transport = await this.router.createWebRtcTransport({
+      listenIps,
+      enableUdp,
+      preferUdp,
+      enableTcp,
+      initialAvailableOutgoingBitrate,
+    });
+
+    if(mediasoupConfig.maxIncomingBitrate){
+      try{
+        await transport.setMaxIncomingBitrate(mediasoupConfig.maxIncomingBitrate);
+      } catch (e){
+        console.log('failed to set maximum incoming bitrate');
+      }
+    }
+
+    transport.on('dtlsstatechange', (dtlsState: soup.DtlsState) => {
+      if(dtlsState === 'closed'){
+        console.log('---transport close--- transport with id ' + transport.id + ' closed');
+        transport.close();
+      }
+    });
+
+    transport.on('close', () => console.log('---transport close--- transport with id ' + transport.id + ' closed'));
+
+    return transport;
   }
 }

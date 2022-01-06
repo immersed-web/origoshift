@@ -44,7 +44,7 @@ export default class Room {
       throw new Error(`failed to remove client ${client.id} from room`);
     }
     if(!skipBroadcast){
-      this.gathering.broadCastGatheringState();
+      this.gathering.broadCastGatheringState([client.id]);
     }
   }
 

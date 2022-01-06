@@ -2,7 +2,8 @@
 // import passport from 'passport';
 // import {ExtractJwt, Strategy as JwtStrategy, StrategyOptions} from 'passport-jwt';
 import Express from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload} from 'jsonwebtoken';
+import { UserData } from 'shared-types/CustomTypes';
 
 
 // passport.unuse('session');
@@ -32,7 +33,7 @@ const jwtSignOptions: jwt.SignOptions = {
 //   app.use(passport.initialize());
 // }
 
-export function createJwt(userOjb: object | string | Buffer, expiresInSeconds: number | undefined = undefined, jwtId?: string, secret?: string){
+export function createJwt(userObj: object | string | Buffer, expiresInSeconds: number | undefined = undefined, jwtId?: string, secret?: string){
   const signOptions: jwt.SignOptions = {
     issuer: JWT_ISSUER,
     audience: JWT_AUDIENCE,
@@ -46,17 +47,21 @@ export function createJwt(userOjb: object | string | Buffer, expiresInSeconds: n
   if(!secret){
     secret = JWT_SECRET;
   }
-  const token = jwt.sign(userOjb, secret, signOptions);
+  const token = jwt.sign(userObj, secret, signOptions);
 
   return token;
 }
+
+// export { JwtPayload } from 'jsonwebtoken';
+
+export type DecodedJwt = UserData & JwtPayload;
 
 export function verifyJwtToken(token: string, secret?: string){
   if(!secret){
     secret = JWT_SECRET;
   }
   const decoded = jwt.verify(token, secret, jwtSignOptions);
-  return decoded;
+  return decoded as DecodedJwt;
 }
 
 export const jwtMiddleware: Express.RequestHandler = (req, res, next) => {
@@ -69,8 +74,8 @@ export const jwtMiddleware: Express.RequestHandler = (req, res, next) => {
   }
   const token = authHeader.substring('Bearer '.length, authHeader.length);
   try{
-    const userData = verifyJwtToken(token);
-    req.user = userData;
+    const decodedToken = verifyJwtToken(token);
+    req.user = decodedToken;
     return next();
   } catch ( e){
     res.status(403).send('invalid token maddafakka!');

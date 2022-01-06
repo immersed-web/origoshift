@@ -1,6 +1,6 @@
 import {types as mediasoupClientTypes} from 'mediasoup-client';
 import {types as mediasoupTypes} from 'mediasoup';
-import { GatheringState, RoomState } from './CustomTypes';
+import { GatheringState, RoomState, ClientState } from './CustomTypes';
 
 interface IPacket {
   id: number,
@@ -44,6 +44,7 @@ export type AnyRequest =
   | RequestBuilder<'createConsumer', {
     producerId: string,
   }>
+  | RequestBuilder<'getClientState'>
   | RequestBuilder<'setName', {
     name: string,
   }>
@@ -111,6 +112,7 @@ export type AnyResponse =
   | ResponseBuilder<'createProducer', {producerId: string}>
   | ResponseBuilder<'connectTransport'>
   | ResponseBuilder<'setName'>
+  | ResponseBuilder<'getClientState', ClientState>
   | ResponseBuilder<'createGathering', {gatheringId: string}>
   | ResponseBuilder<'joinGathering'>
   | ResponseBuilder<'leaveGathering', {gatheringId: string}>

@@ -1,38 +1,43 @@
 // import EventEmitter from 'events';
 import uWebsocket from 'uWebSockets.js';
-import { TypedEmitter } from 'tiny-typed-emitter';
+// import { TypedEmitter } from 'tiny-typed-emitter';
 import { AnyRequest, AnyResponse, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 
 export type InternalSocketType = uWebsocket.WebSocket;
 // type InternalMessageType = uWebsocket.RecognizedString;
 export type InternalMessageType = ArrayBuffer;
 
-interface SocketWrapperEvents {
-  /**
-   * Triggered when the socket received a message
-   * @event
-   */
-  message: (msg: SocketMessage<UnknownMessageType>) => void;
-}
+// interface SocketWrapperEvents {
+//   /**
+//    * Triggered when the socket received a message
+//    * @event
+//    */
+//   message: (msg: SocketMessage<UnknownMessageType>) => void;
+// }
 
 const requestTimeout = 10000;
 type RequestResolver = (msg:AnyResponse) => void;
 
-/**
- * This class is an abstraction layer on top of the websocket implementation.
- * My hope is that this will make it easier to maintain if we have to change to another websocket library 
- * 
- * @emits message event that is triggered when a message is received.
- */
-export default class SocketWrapper extends TypedEmitter<SocketWrapperEvents>{
+// /**
+//  * This class is an abstraction layer on top of the websocket implementation.
+//  * My hope is that this will make it easier to maintain if we have to change to another websocket library 
+//  * 
+//  * @emits message event that is triggered when a message is received.
+//  */
+// export default class SocketWrapper extends TypedEmitter<SocketWrapperEvents>{
+export default class SocketWrapper{
   private socket: InternalSocketType;
   constructor(socket: InternalSocketType){
-    super();
+    // super();
     this.socket = socket;
   }
 
 
   private pendingRequests = new Map<number, RequestResolver>();
+  private receivedMessageCallback?: (msg: SocketMessage<UnknownMessageType>) => void;
+  registerReceivedMessageCallback(cb: typeof this.receivedMessageCallback){
+    this.receivedMessageCallback = cb;
+  }
 
   /**
    * @param msg the message in the form and type provided by the underlying websocket implemention
@@ -56,7 +61,11 @@ export default class SocketWrapper extends TypedEmitter<SocketWrapperEvents>{
           console.error(e);
         }
       }else{ 
-        this.emit('message', socketMsg);
+        // this.emit('message', socketMsg);
+        if(!this.receivedMessageCallback){
+          throw Error('no callback assigned for handling received message!');
+        }
+        this.receivedMessageCallback(socketMsg);
         return;
       }
     } catch (e) {

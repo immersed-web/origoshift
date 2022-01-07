@@ -37,6 +37,25 @@
             @click="joinRoom(room.roomId)"
           />
           <p>Clients: {{ Object.keys(room.clients).length }}</p>
+          <template v-if="roomStore.currentRoomId === room.roomId">
+            <template v-for="client in room.clients">
+              <q-item
+                v-for="producer in client.producers"
+                :key="producer.producerId"
+              >
+                <q-btn
+                  label="consume"
+                  @click="consume(producer.producerId)"
+                />
+              </q-item>
+            </template>
+          </template>
+        </q-item>
+        <q-item>
+          <q-btn
+            label="create receivetransport"
+            @click="createReceiveTransport"
+          />
         </q-item>
       </q-list>
       <q-list>
@@ -69,7 +88,8 @@ import { login, getMe, getJwt } from 'src/modules/authClient';
 import { createSocket } from 'src/modules/webSocket';
 // import { RoomState } from 'shared-types/CustomTypes';
 
-const { setName, createRoom, createGathering, joinGathering, joinRoom, requestMedia, startProducing } = usePeerClient();
+const { setName, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume } = usePeerClient();
+// const { } = usePeerClient();
 const connectionStore = useConnectionStore();
 const roomStore = useRoomStore();
 // const rooms = ref<RoomState[]>();
@@ -84,6 +104,12 @@ interface Action {
 
 const videoActions: Action[] = [
   {
+    label: 'load MEDIASOUPdevice',
+    fn: async () => {
+      await loadMediasoupDevice();
+    },
+  },
+  {
     label: 'get mediadevice',
     fn: async () => {
       localStream.value = await requestMedia();
@@ -95,13 +121,19 @@ const videoActions: Action[] = [
     },
   },
   {
-    label: 'start producing',
+    label: 'create sendTransport',
+    fn: async () => {
+      await createSendTransport();
+    },
+  },
+  {
+    label: 'produce',
     fn: async () => {
       if (!localStream.value) {
         console.error('no stream set');
         return;
       }
-      startProducing(localStream.value);
+      produce(localStream.value);
     },
   },
 ];

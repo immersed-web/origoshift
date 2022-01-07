@@ -259,8 +259,111 @@ export default class Client {
         this.send(response);
         break;
       }
+      case 'connectTransport': {
+        const transportId = msg.data.transportId;
+        const dtlsParameters = msg.data.dtlsParameters;
+        let chosendTransport;
+        if(transportId === this.receiveTransport?.id){
+          chosendTransport = this.receiveTransport;
+        } else{
+          chosendTransport = this.sendTransport;
+        }
+        try {
+          await chosendTransport?.connect({dtlsParameters});
+          const response = createResponse('connectTransport', msg.id, {
+            wasSuccess: true,
+          });
+          this.send(response);
+        } catch (e) {
+          const response = createResponse('connectTransport', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'connectTransport failed'),
+          });
+          this.send(response);
+        }
+        break;
+      }
       case 'createProducer': {
+        // A producer on server side represents a client producing media and sending it to the server.
+        try {
+          if(!this.sendTransport){
+            throw Error('sendTransport is undefined. Need a sendtransport to produce');
+          } else if(this.sendTransport.id !== msg.data.transportId){
+            throw Error('the provided transporId didnt math the id of the sendTransport');
+          }
+          const {kind, rtpParameters, transportId: id} = msg.data;
+          // TODO: create this in paused state!
+          const producer = await this.sendTransport.produce({id, kind, rtpParameters});
+          this.producers.set(producer.id, producer); 
+          const response = createResponse('createProducer', msg.id, { wasSuccess: true, data: {producerId: producer.id}});
+          this.send(response);
+        } catch(e){
+          const err = extractMessageFromCatch(e);
+          const response = createResponse('createProducer', msg.id, {
+            wasSuccess: false,
+            message: err,
+          });
+          this.send(response);
+        }
+        break;
+      }
+      case 'createConsumer': {
+        let response:ResponseTo<'createConsumer'>;
+        try {
+          if(!this.room){
+            throw Error('not in a room. Duuude, thats required to create consumer');
+          }
+          if(!this.gathering){
+            throw Error('not in a gathering! No bueno, sir!');
+          }
+          if(!this.rtpCapabilities){
+            throw Error('rtpCapabilities of peer unknown. Provide them before requesting to consume');
+          }
+          const requestedProducerId = msg.data.producerId;
+          const canConsume = this.gathering.router.canConsume({producerId: requestedProducerId, rtpCapabilities: this.rtpCapabilities});
+          if( !canConsume){
+            throw Error('Client is not capable of consuming the producer according to provided rtpCapabilities');
+          }
+          const producer = this.room.producers.get(requestedProducerId);
+          if(!producer){
+            throw Error('no producer with that id found in current room!');
+          }
 
+          if(!this.receiveTransport){
+            throw Error('A transport is required to create a consumer');
+          }
+
+          // TODO: The docs recommend not creating consumer in unpaused state. Address this!!!
+          // https://mediasoup.org/documentation/v3/mediasoup/api/#transport-consume
+          const consumer = await this.receiveTransport.consume({
+            producerId: producer.id,
+            rtpCapabilities: this.rtpCapabilities,
+            paused: false,
+          });
+
+          this.consumers.set(consumer.id, consumer);
+
+          consumer.on('transportclose', () => {
+            console.log(`---consumer transport close--- client: ${this.id} consumer_id: ${consumer.id}`);
+            this.consumers.delete(consumer.id);
+          });
+          
+          const {id, producerId, kind, rtpParameters} = consumer;
+
+          response = createResponse('createConsumer', msg.id, {
+            wasSuccess: true,
+            data: {
+              id, producerId, kind, rtpParameters 
+            }
+          });
+        } catch (e) {
+          response = createResponse('createConsumer', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to create consumer'),
+          });
+        }
+        this.send(response);
+        break; 
       }
       default:
         break;

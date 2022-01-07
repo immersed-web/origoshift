@@ -19,6 +19,8 @@ export default function usePeerClient () {
     console.log('received request: ', msg);
   };
 
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  // let customExports: Record<string, Function> = { requestMedia };
   async function requestMedia (deviceId?: string): Promise<MediaStream> {
     // TODO: we should be able to customize the constraints for specific stuff
     let constraints: MediaStreamConstraints = {
@@ -49,25 +51,28 @@ export default function usePeerClient () {
   //   // roomStore.roomsInGathering = rooms;
   // }
 
-  // async function joinRoom (roomName: string) {
-  //   await peer.joinRoom(roomName);
-  //   // const capabilities = await peer.getRouterCapabilities();
-  //   // await peer.loadMediasoupDevice(capabilities);
-  //   // await peer.sendRtpCapabilities();
-  // }
+  async function joinRoom (roomId: string) {
+    await peer.joinRoom(roomId);
+    roomStore.currentRoomId = roomId;
+    // const capabilities = await peer.getRouterCapabilities();
+    // await peer.loadMediasoupDevice(capabilities);
+    // await peer.sendRtpCapabilities();
+  }
 
+  // customExports = { createAndJoinRoom, ...customExports };
   async function createAndJoinRoom (roomName: string) {
     const roomId = await peer.createRoom(roomName);
     await peer.joinRoom(roomId);
   }
 
-  async function startProducing (stream: MediaStream) {
-    await peer.createSendTransport();
+  // customExports = { ...customExports, startProducing };
+  async function produce (stream: MediaStream) {
     const track = stream.getVideoTracks()[0];
     const producerId = await peer.produce(track);
     return producerId;
   }
 
+  // customExports = { ...customExports, consume };
   async function consume (producerId: string) {
     if (!peer.receiveTransport) {
       await peer.createReceiveTransport();
@@ -75,26 +80,7 @@ export default function usePeerClient () {
     return peer.consume(producerId);
   }
 
-  // void (async function () {
-  //   await peer.awaitConnection();
-  //   console.log('connect promise resolved!');
-  //   // const nameResponse = await peer.setName('bajskorv');
-  //   // console.log(nameResponse);
-
-  //   // const createResponse = await peer.createRoom('rummet');
-  //   // console.log(createResponse);
-
-  //   // const joinResponse = await peer.joinRoom('rummet');
-  //   // console.log(joinResponse);
-
-  //   // const response = await peer.getRouterCapabilities();
-  //   // console.log(response);
-  //   // await peer.loadMediasoupDevice(response);
-  //   // await peer.sendRtpCapabilities();
-
-  //   // await peer.createSendTransport();
-  //   // await peer.createReceiveTransport();
-  // })();
+  // customExports = { ...customExports, joinGathering };
   async function joinGathering (gatheringId: string) {
     await peer.joinGathering(gatheringId);
     await peer.getRouterCapabilities();
@@ -102,7 +88,16 @@ export default function usePeerClient () {
     // roomStore.gatheringState = rooms;
   }
 
-  // const { createGathering, setName, joinRoom, createSendTransport } = peer;
+  // const reExported = () => {
+  //   const methods: Record<string, unknown> = {};
+  //   // while (depth-- && obj) {
+  //   for (const key of Object.getOwnPropertyNames(peer)) {
+  //     methods[key] = peer[key];
+  //   }
+  //   // obj = Reflect.getPrototypeOf(obj);
+  //   // }
+  //   return methods;
+  // };
 
   function pick<T extends PeerClient, U extends keyof T> (
     obj: T,
@@ -114,33 +109,29 @@ export default function usePeerClient () {
     }
     return ret;
   }
-  const reExported = pick(peer, ['setName', 'createGathering', 'joinRoom', 'createRoom']);
+
+  // const { loadMediasoupDevice } = peer;
+  const customExports = { requestMedia, createAndJoinRoom, produce, consume, joinGathering, joinRoom };
+  const reExported = pick(peer, ['setName', 'createGathering', 'createRoom', 'loadMediasoupDevice', 'createSendTransport', 'createReceiveTransport']);
 
   return {
+    // loadMediasoupDevice,
+
+    // requestMedia,
+    // joinGathering,
+    // startProducing,
+    // createAndJoinRoom,
+    // consume,
     ...reExported,
+    // ...peer,
+    ...customExports,
     // peer,
     // peerId,
     // roomState,
-    requestMedia,
     // createGathering,
-    joinGathering,
-    startProducing,
-    consume,
     // createRoom,
     // joinRoom,
-    createAndJoinRoom,
     // setName,
     // getRoomsInGathering,
   };
-
-  // const pickExport = (thing: unknown, { ...picks }: Partial<PeerClient>) => {
-  //   return 'hello';
-  // };
-  // pickExport(peer, { createGathering, joinGathering });
-
-  // peer.createGathering('bajs');
-  // const pickedExports = (({ createGathering, createReceiveTransport }: PeerClient) => ({ createGathering, , createReceiveTransport }))(peer);
-  // return Object.assign({}, customExports, { createGathering, setName, joinRoom, createSendTransport, createReceiveTransport } = peer);
-
-  // return customExports;
 }

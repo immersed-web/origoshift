@@ -2,11 +2,21 @@ import { randomUUID } from 'crypto';
 import Client from './Client';
 import { RoomState } from 'shared-types/CustomTypes';
 import Gathering from './Gathering';
+import {types as soupTypes } from 'mediasoup';
 export default class Room {
   // router: soup.Router;
   id: string;
   clients: Map<string, Client> = new Map();
   gathering: Gathering;
+  get producers(): ReadonlyMap<string, soupTypes.Producer> {
+    const producers: Map<string, soupTypes.Producer> = new Map();
+    this.clients.forEach((client) => {
+      client.producers.forEach((producer) => {
+        producers.set(producer.id, producer);
+      });
+    });
+    return producers;
+  }
 
   static createRoom(id: string = randomUUID(), gathering: Gathering): Room {
     const createdRoom = new Room(id, gathering);

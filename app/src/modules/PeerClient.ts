@@ -74,7 +74,8 @@ export default class PeerClient {
     });
   }
 
-  async loadMediasoupDevice () {
+  loadMediasoupDevice = async () => {
+    console.log('this from loadMediasoupDevice: ', this);
     if (!this.routerRtpCapabilities) {
       throw new Error('routerRtpCapabilities needs to be set before loading mediasoup device');
     }
@@ -143,14 +144,18 @@ export default class PeerClient {
     // this.roomStore.currentRoomId = roomId;
   }
 
-  async getRouterCapabilities () : Promise<mediasoupTypes.RtpCapabilities> {
+  getRouterCapabilities = async (): Promise<mediasoupTypes.RtpCapabilities> => {
     const getRouterCapsReq = createRequest('getRouterRtpCapabilities');
 
     const response = await sendRequest(getRouterCapsReq);
+    this.routerRtpCapabilities = response.data;
     return response.data;
   }
 
-  async createSendTransport () {
+  createSendTransport = async () => {
+    if (!this.mediasoupDevice) {
+      throw Error('cant create transport if mediasoup device isnt loaded');
+    }
     const createSendTransportReq = createRequest('createSendTransport');
     const response = await sendRequest(createSendTransportReq);
 
@@ -159,7 +164,7 @@ export default class PeerClient {
     this.attachTransportEvents(this.sendTransport);
   }
 
-  async createReceiveTransport () {
+  createReceiveTransport= async () => {
     const createReceiveTransportReq = createRequest('createReceiveTransport');
     const response = await sendRequest(createReceiveTransportReq);
 
@@ -258,13 +263,9 @@ export default class PeerClient {
     const createConsumerReq = createRequest('createConsumer', {
       producerId: producerId,
     });
-    const response = await sendRequest(createConsumerReq);
-
-    if (!response.wasSuccess) {
-      throw response.message;
-    }
-
     try {
+      const response = await sendRequest(createConsumerReq);
+
       const consumerOptions = response.data;
       const consumer = await this.receiveTransport.consume(consumerOptions);
       return consumer.track;

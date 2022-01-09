@@ -250,6 +250,9 @@ export default class PeerClient {
   }
 
   async consume (producerId: string): Promise<MediaStreamTrack> {
+    if (!producerId) {
+      throw Error('consume called without producerId! Please provide one!');
+    }
     if (!this.receiveTransport) {
       return Promise.reject('No receiveTransport present. Needed to be able to consume');
     }

@@ -45,7 +45,7 @@
               >
                 <q-btn
                   label="consume"
-                  @click="consume(producer.producerId)"
+                  @click="receiveStream(producer.producerId)"
                 />
               </q-item>
             </template>
@@ -57,6 +57,17 @@
             @click="createReceiveTransport"
           />
         </q-item>
+      </q-list>
+      <q-list id="video-list">
+        <!-- <q-item
+          v-for="track in receivedTracks"
+          :key="track.id"
+        >
+          <video
+            width="100px"
+            autoplay
+          />
+        </q-item> -->
       </q-list>
       <q-list>
         <video
@@ -80,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useConnectionStore } from 'src/stores/connectionStore';
 import { useRoomStore } from 'src/stores/roomStore';
 import usePeerClient from 'src/composables/usePeerClient';
@@ -97,6 +108,34 @@ const token = ref<string>('');
 const gatheringId = ref<string>('');
 const localStream = ref<MediaStream>();
 const localVideoTag = ref<HTMLVideoElement>();
+const receivedTracks = ref<MediaStreamTrack[]>([]);
+
+watch(receivedTracks, (newValue) => {
+  console.log('recievedTracks updated:', newValue);
+  const videoList = document.getElementById('video-list');
+  newValue.forEach((track) => {
+    const videoTag = new HTMLVideoElement();
+    videoList?.appendChild<HTMLVideoElement>(videoTag);
+    const stream = new MediaStream([track]);
+    videoTag.srcObject = stream;
+  });
+});
+
+const receiveStream = async (producerId: string) => {
+  const track = await consume(producerId);
+  receivedTracks.value.push(track);
+  const videoList = document.getElementById('video-list');
+  console.log('fetched video-list container element:', videoList);
+  const videoTag = document.createElement('video');
+  videoTag.autoplay = true;
+  console.log('created a videoElement:', videoTag);
+  const attachedElement = videoList?.appendChild<HTMLVideoElement>(videoTag);
+  console.log('attached element', attachedElement);
+
+  const stream = new MediaStream([track]);
+  videoTag.srcObject = stream;
+};
+
 interface Action {
   label: string,
   fn: () => unknown,

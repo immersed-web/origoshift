@@ -259,6 +259,26 @@ export default class Client {
         this.send(response);
         break;
       }
+      case 'createReceiveTransport': {
+
+        let response:ResponseTo<'createReceiveTransport'>;
+        try {
+
+          const transportOptions = await this.createWebRtcTransport('receive');
+          response = createResponse('createReceiveTransport', msg.id, {
+            wasSuccess: true,
+            data: transportOptions,
+          });
+        } catch (e) {
+
+          response = createResponse('createReceiveTransport', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to create receive transport')
+          });
+        }
+        this.send(response);
+        break;
+      }
       case 'connectTransport': {
         const transportId = msg.data.transportId;
         const dtlsParameters = msg.data.dtlsParameters;

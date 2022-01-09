@@ -88,7 +88,7 @@ import { login, getMe, getJwt } from 'src/modules/authClient';
 import { createSocket } from 'src/modules/webSocket';
 // import { RoomState } from 'shared-types/CustomTypes';
 
-const { setName, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume } = usePeerClient();
+const { sendRtpCapabilities, setName, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume } = usePeerClient();
 // const { } = usePeerClient();
 const connectionStore = useConnectionStore();
 const roomStore = useRoomStore();
@@ -103,12 +103,6 @@ interface Action {
 }
 
 const videoActions: Action[] = [
-  {
-    label: 'load MEDIASOUPdevice',
-    fn: async () => {
-      await loadMediasoupDevice();
-    },
-  },
   {
     label: 'get mediadevice',
     fn: async () => {
@@ -168,6 +162,16 @@ const actions: Action[] = [
   {
     label: 'joinGathering',
     fn: () => joinGathering(gatheringId.value),
+  },
+  {
+    label: 'load MEDIASOUPdevice',
+    fn: async () => {
+      await loadMediasoupDevice();
+    },
+  },
+  {
+    label: 'send RTPcaps',
+    fn: async () => sendRtpCapabilities(),
   },
   {
     label: 'createRoom',

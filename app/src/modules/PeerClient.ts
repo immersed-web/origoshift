@@ -91,7 +91,10 @@ export default class PeerClient {
     }
   }
 
-  async sendRtpCapabilities () {
+  sendRtpCapabilities = async () => {
+    if (!this.mediasoupDevice) {
+      throw Error('mediasoupDevice must be loaded before sending rtpCaps');
+    }
     const deviceCapabilities = this.mediasoupDevice.rtpCapabilities;
     const setRtpCapabilitiesReq = createRequest('setRtpCapabilities', deviceCapabilities);
 
@@ -165,6 +168,9 @@ export default class PeerClient {
   }
 
   createReceiveTransport= async () => {
+    if (!this.mediasoupDevice) {
+      throw Error('cant create transport if mediasoup device isnt loaded');
+    }
     const createReceiveTransportReq = createRequest('createReceiveTransport');
     const response = await sendRequest(createReceiveTransportReq);
 

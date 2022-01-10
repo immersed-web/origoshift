@@ -1,9 +1,39 @@
 <template>
   <q-page>
-    <p>Connected: {{ connectionStore.connected }}</p>
+    <p>
+      Connected: {{ connectionStore.connected }} <q-toggle
+        :label="'uiMode ' + uiMode"
+        v-model="uiMode"
+        true-value="admin"
+        false-value="client"
+      />
+    </p>
     <div class="row">
-      <q-list dense>
+      <q-list
+        dense
+      >
         <q-item
+          v-for="adminOption in (uiMode === 'admin'? adminUI : clientUI)"
+          :key="adminOption.label"
+        >
+          <q-btn
+            v-if="'fn' in adminOption"
+            :label="adminOption.label"
+            @click="adminOption.fn"
+          />
+          <div
+            class="row"
+            v-else-if="'data' in adminOption"
+          >
+            <p><strong>{{ adminOption.label }}: </strong> </p> <p>{{ adminOption.data.value }}</p>
+          </div>
+          <q-input
+            v-else-if="'input' in adminOption"
+            :label="adminOption.label"
+            v-model="gatheringId"
+          />
+        </q-item>
+        <!-- <q-item
           v-for="action in actions"
           :key="action.label"
         >
@@ -17,7 +47,7 @@
             label="gatheringId"
             v-model="gatheringId"
           />
-        </q-item>
+        </q-item> -->
       <!-- <q-btn
         label="create gaterhing"
         @click="createGathering"
@@ -32,24 +62,29 @@
           v-for="room in roomStore.gatheringState?.rooms"
           :key="room.roomId"
         >
+          <q-icon
+            v-if="roomStore.currentRoomId === room.roomId "
+            name="keyboard_arrow_right"
+            size="xl"
+          />
           <q-btn
             :label="room.roomId"
             @click="joinRoom(room.roomId)"
           />
           <p>Clients: {{ Object.keys(room.clients).length }}</p>
-          <template v-if="roomStore.currentRoomId === room.roomId">
-            <template v-for="client in room.clients">
-              <q-item
-                v-for="producer in client.producers"
-                :key="producer.producerId"
-              >
-                <q-btn
-                  label="consume"
-                  @click="receiveStream(producer.producerId)"
-                />
-              </q-item>
-            </template>
+          <!-- <template v-if="roomStore.currentRoomId === room.roomId"> -->
+          <template v-for="client in room.clients">
+            <q-item
+              v-for="producer in client.producers"
+              :key="producer.producerId"
+            >
+              <q-btn
+                label="consume"
+                @click="receiveStream(producer.producerId)"
+              />
+            </q-item>
           </template>
+          <!-- </template> -->
         </q-item>
         <q-item>
           <q-btn
@@ -91,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, Ref } from 'vue';
 import { useConnectionStore } from 'src/stores/connectionStore';
 import { useRoomStore } from 'src/stores/roomStore';
 import usePeerClient from 'src/composables/usePeerClient';
@@ -109,6 +144,8 @@ const gatheringId = ref<string>('');
 const localStream = ref<MediaStream>();
 const localVideoTag = ref<HTMLVideoElement>();
 const receivedTracks = ref<MediaStreamTrack[]>([]);
+
+const uiMode = ref<'admin' | 'client'>('admin');
 
 watch(receivedTracks, (newValue) => {
   console.log('recievedTracks updated:', newValue);
@@ -138,8 +175,113 @@ const receiveStream = async (producerId: string) => {
 
 interface Action {
   label: string,
-  fn: () => unknown,
+  fn?: () => unknown,
 }
+
+interface DataField {
+  label: string,
+  data: Ref<unknown>
+}
+
+interface DataInput {
+  label: string,
+  input: Ref<unknown>
+}
+
+const getJwtAction: Action = {
+  label: 'getJwt',
+  fn: async () => { token.value = await getJwt(); },
+};
+
+const createSocketAction: Action = {
+  label: 'create Socket',
+  fn: () => createSocket(token.value),
+};
+
+const getMeAction: Action = {
+  label: 'get me',
+  fn: async () => {
+    const me = await getMe();
+    alert(JSON.stringify(me, null, 2));
+  },
+};
+
+const adminUI: (Action | DataField | DataInput) [] = [
+  {
+    label: 'login ADMIN',
+    fn: () => login('admin', 'bajskorv'),
+  },
+  getJwtAction,
+  getMeAction,
+  createSocketAction,
+  {
+    label: 'createGathering',
+    fn: async () => {
+      gatheringId.value = await createGathering('coolEvent');
+    },
+  },
+  {
+    label: 'gatheringId',
+    input: gatheringId,
+  },
+  {
+    label: 'joingathering, sendTransport & loadDev',
+    fn: async () => {
+      // gatheringId.value = await createGathering('coolEvent');
+      await joinGathering(gatheringId.value);
+      await loadMediasoupDevice();
+      await createSendTransport();
+    },
+  },
+  {
+    label: 'getMediaInput',
+    fn: async () => {
+      localStream.value = await requestMedia();
+      if (localVideoTag.value) {
+        localVideoTag.value.srcObject = localStream.value;
+        localVideoTag.value.play();
+      }
+    },
+  },
+  // create room, join room, add producer to it
+  {
+    label: 'create room, join it & send video',
+    fn: async () => {
+      if (!localStream.value) {
+        throw Error('no stream!!! Get video input first!!');
+      }
+      const createdRoomId = await createRoom('coolRoom' + Math.floor(Math.random() * 100));
+      await joinRoom(createdRoomId);
+      produce(localStream.value);
+    },
+  },
+
+];
+
+const clientUI: (Action | DataField | DataInput)[] = [
+  {
+    label: 'login CLIENT',
+    fn: () => login('testuser', 'bajskorv'),
+  },
+  getJwtAction,
+  getMeAction,
+  createSocketAction,
+  // join gathering
+  {
+    label: 'gatheringId',
+    input: gatheringId,
+  },
+  {
+    label: 'joinGathering, create transport, and load dev',
+    fn: async () => {
+      await joinGathering(gatheringId.value);
+      await sendRtpCapabilities();
+      await loadMediasoupDevice();
+      await createReceiveTransport();
+    },
+  },
+  // joinroom
+];
 
 const videoActions: Action[] = [
   {

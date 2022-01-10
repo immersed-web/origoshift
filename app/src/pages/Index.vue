@@ -25,13 +25,27 @@
             class="row"
             v-else-if="'data' in adminOption"
           >
-            <p><strong>{{ adminOption.label }}: </strong> </p> <p>{{ adminOption.data.value }}</p>
+            <p><strong>{{ adminOption.label }}: &nbsp; </strong> </p> <p>{{ adminOption.data.value }}</p>
           </div>
           <q-input
             v-else-if="'input' in adminOption"
             :label="adminOption.label"
             v-model="gatheringId"
           />
+          <template
+            v-else-if="'options' in adminOption"
+          >
+            <!-- <pre
+              v-for="(mediaInfo, index) in adminOption.options"
+              :key="index"
+            >{{ mediaInfo }}</pre> -->
+            <q-select
+              :option-value="'deviceId'"
+              :label="adminOption.label"
+              v-model="selectedVideoInput"
+              :options="adminOption.options.value"
+            />
+          </template>
         </q-item>
         <!-- <q-item
           v-for="action in actions"
@@ -48,7 +62,7 @@
             v-model="gatheringId"
           />
         </q-item> -->
-      <!-- <q-btn
+        <!-- <q-btn
         label="create gaterhing"
         @click="createGathering"
       />
@@ -57,7 +71,13 @@
         @click="createRoom('testRum')"
       /> -->
       </q-list>
-      <q-list dense>
+      <q-list
+        v-if="uiMode === 'client'"
+        dense
+      >
+        <q-item-label>
+          Room list:
+        </q-item-label>
         <q-item
           v-for="room in roomStore.gatheringState?.rooms"
           :key="room.roomId"
@@ -86,12 +106,6 @@
           </template>
           <!-- </template> -->
         </q-item>
-        <q-item>
-          <q-btn
-            label="create receivetransport"
-            @click="createReceiveTransport"
-          />
-        </q-item>
       </q-list>
       <q-list id="video-list">
         <!-- <q-item
@@ -104,21 +118,12 @@
           />
         </q-item> -->
       </q-list>
-      <q-list>
-        <video
-          style="background:darkblue"
-          ref="localVideoTag"
-        />
-        <q-item
-          v-for="action in videoActions"
-          :key="action.label"
-        >
-          <q-btn
-            :label="action.label"
-            @click="action.fn"
-          />
-        </q-item>
-      </q-list>
+    </div>
+    <div class="row q-mt-xl">
+      <video
+        style="background:darkblue"
+        ref="localVideoTag"
+      />
     </div>
 
     <!-- <pre>{{ roomStore }}</pre> -->
@@ -144,6 +149,14 @@ const gatheringId = ref<string>('');
 const localStream = ref<MediaStream>();
 const localVideoTag = ref<HTMLVideoElement>();
 const receivedTracks = ref<MediaStreamTrack[]>([]);
+
+const mediaDevices = ref<MediaDeviceInfo[]>([]);
+const selectedVideoInput = ref<MediaDeviceInfo>();
+
+(async () => {
+  mediaDevices.value = await navigator.mediaDevices.enumerateDevices();
+  console.log(mediaDevices.value);
+})();
 
 const uiMode = ref<'admin' | 'client'>('admin');
 
@@ -188,6 +201,11 @@ interface DataInput {
   input: Ref<unknown>
 }
 
+interface DataSelect {
+  label: string,
+  options: Ref<unknown[]>,
+}
+
 const getJwtAction: Action = {
   label: 'getJwt',
   fn: async () => { token.value = await getJwt(); },
@@ -206,7 +224,7 @@ const getMeAction: Action = {
   },
 };
 
-const adminUI: (Action | DataField | DataInput) [] = [
+const adminUI: (Action | DataField | DataInput | DataSelect) [] = [
   {
     label: 'login ADMIN',
     fn: () => login('admin', 'bajskorv'),
@@ -234,9 +252,17 @@ const adminUI: (Action | DataField | DataInput) [] = [
     },
   },
   {
+    label: 'videoDevices',
+    options: mediaDevices,
+  },
+  {
+    label: 'selectedVideoDevice',
+    data: selectedVideoInput as MediaDeviceInfo,
+  },
+  {
     label: 'getMediaInput',
     fn: async () => {
-      localStream.value = await requestMedia();
+      localStream.value = await requestMedia(selectedVideoInput.value?.deviceId);
       if (localVideoTag.value) {
         localVideoTag.value.srcObject = localStream.value;
         localVideoTag.value.play();
@@ -275,95 +301,10 @@ const clientUI: (Action | DataField | DataInput)[] = [
     label: 'joinGathering, create transport, and load dev',
     fn: async () => {
       await joinGathering(gatheringId.value);
-      await sendRtpCapabilities();
       await loadMediasoupDevice();
+      await sendRtpCapabilities();
       await createReceiveTransport();
     },
   },
-  // joinroom
-];
-
-const videoActions: Action[] = [
-  {
-    label: 'get mediadevice',
-    fn: async () => {
-      localStream.value = await requestMedia();
-
-      if (localVideoTag.value) {
-        localVideoTag.value.srcObject = localStream.value;
-        localVideoTag.value.play();
-      }
-    },
-  },
-  {
-    label: 'create sendTransport',
-    fn: async () => {
-      await createSendTransport();
-    },
-  },
-  {
-    label: 'produce',
-    fn: async () => {
-      if (!localStream.value) {
-        console.error('no stream set');
-        return;
-      }
-      produce(localStream.value);
-    },
-  },
-];
-
-const actions: Action[] = [
-  {
-    label: 'login',
-    fn: () => login('admin', 'bajskorv'),
-  },
-  {
-    label: 'getMe',
-    fn: () => getMe(),
-  },
-  {
-    label: 'getJwt',
-    fn: async () => { token.value = await getJwt(); },
-  },
-  {
-    label: 'create Socket',
-    fn: () => createSocket(token.value),
-  },
-  {
-    label: 'setName',
-    fn: () => setName('gunnar'),
-  },
-  {
-    label: 'createGathering',
-    fn: async () => {
-      gatheringId.value = await createGathering('coolEvent');
-    },
-  },
-  {
-    label: 'joinGathering',
-    fn: () => joinGathering(gatheringId.value),
-  },
-  {
-    label: 'load MEDIASOUPdevice',
-    fn: async () => {
-      await loadMediasoupDevice();
-    },
-  },
-  {
-    label: 'send RTPcaps',
-    fn: async () => sendRtpCapabilities(),
-  },
-  {
-    label: 'createRoom',
-    fn: () => createRoom('coolRoom' + Math.floor(Math.random() * 100)),
-  },
-  // {
-  //   label: 'getRooms',
-  //   fn: async () => {
-  //     rooms.value = await getRoomsInGathering();
-  //   },
-  // },
-
 ];
 </script>

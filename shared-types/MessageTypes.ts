@@ -36,6 +36,10 @@ export type AnyRequest =
     transportId: string,
     dtlsParameters: import('mediasoup').types.DtlsParameters,
   }>
+  | RequestBuilder<'notifyCloseEvent', {
+    objectType: 'consumer',
+    objectId: string
+  }>
   | RequestBuilder<'createProducer', {
     transportId: string, // TODO: is this field needed? Where and when?
     kind: mediasoupClientTypes.MediaKind,
@@ -111,6 +115,7 @@ export type AnyResponse =
   | ResponseBuilder<'createConsumer', mediasoupClientTypes.ConsumerOptions>
   | ResponseBuilder<'createProducer', {producerId: string}>
   | ResponseBuilder<'connectTransport'>
+  | ResponseBuilder<'notifyCloseEvent'>
   | ResponseBuilder<'setName'>
   | ResponseBuilder<'getClientState', ClientState>
   | ResponseBuilder<'createGathering', {gatheringId: string}>

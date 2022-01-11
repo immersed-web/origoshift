@@ -144,7 +144,14 @@ export default class PeerClient {
   async joinRoom (roomId: string) {
     const joinRoomReq = createRequest('joinRoom', { roomId: roomId });
     await sendRequest(joinRoomReq);
+    this.closeAllConsumers();
     // this.roomStore.currentRoomId = roomId;
+  }
+
+  leaveRoom = async () => {
+    const leaveRoomReq = createRequest('leaveRoom');
+    await sendRequest(leaveRoomReq);
+    this.closeAllConsumers();
   }
 
   getRouterCapabilities = async (): Promise<mediasoupTypes.RtpCapabilities> => {
@@ -256,19 +263,6 @@ export default class PeerClient {
     if (!this.receiveTransport) {
       return Promise.reject('No receiveTransport present. Needed to be able to consume');
     }
-    // const response = await this.socket.request('createConsumer', { producerId });
-    // if (response.status === 'error') {
-    //   console.error(response.errorMessage);
-    //   return Promise.reject('Failed to create remote consumer');
-    // }
-    // const createConsumerMsg: CreateConsumer = {
-    //   subject: 'createConsumer',
-    //   type: 'request',
-    //   data: {
-    //     producerId,
-    //   },
-    //   isResponse: false,
-    // };
     const createConsumerReq = createRequest('createConsumer', {
       producerId: producerId,
     });
@@ -277,9 +271,27 @@ export default class PeerClient {
 
       const consumerOptions = response.data;
       const consumer = await this.receiveTransport.consume(consumerOptions);
+      this.consumers.set(consumer.id, consumer);
       return consumer.track;
     } catch (e) {
       return Promise.reject(e);
+    }
+  }
+
+  closeAllConsumers = async () => {
+    console.log('closeAllConsumers called');
+    console.log('number of consumers:', this.consumers.size);
+    for (const [consumerKey, consumer] of this.consumers.entries()) {
+      console.log('gonna close consumer: ', consumer.id);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // const consumer = this.consumers.get(consumerKey)!;
+      consumer.close();
+      const notifyCloseEventReq = createRequest('notifyCloseEvent', {
+        objectType: 'consumer',
+        objectId: consumer.id,
+      });
+      await sendRequest(notifyCloseEventReq);
+      this.consumers.delete(consumerKey);
     }
   }
 }

@@ -303,6 +303,30 @@ export default class Client {
         }
         break;
       }
+      case 'notifyCloseEvent': {
+        let response: ResponseTo<'notifyCloseEvent'>;
+
+        try{
+
+          switch (msg.data.objectType) {
+            case 'consumer': {
+              this.closeConsumer(msg.data.objectId);
+              response = createResponse('notifyCloseEvent', msg.id, {wasSuccess: true});
+              break;
+            }
+            default:{
+              throw Error(`notifyCloseHandler not implemented for objectType: ${msg.data.objectType}`);
+            }
+          }
+        } catch(e){
+          response = createResponse('notifyCloseEvent', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to close the server side object'),
+          });
+        }
+        this.send(response);
+        break;
+      }
       case 'createProducer': {
         // A producer on server side represents a client producing media and sending it to the server.
         try {
@@ -367,6 +391,10 @@ export default class Client {
             console.log(`---consumer transport close--- client: ${this.id} consumer_id: ${consumer.id}`);
             this.consumers.delete(consumer.id);
           });
+
+          consumer.on('producerclose', () => {
+            console.log(`the producer associated with consumer ${consumer.id} closed so the consumer was also closed`);
+          });
           
           const {id, producerId, kind, rtpParameters} = consumer;
 
@@ -392,15 +420,25 @@ export default class Client {
 
   get clientState(){
     const state: ClientState = {
-      clientId: this.id,
+      // clientId: this.id,
     };
     if(this.gathering){
       state.gatheringId = this.gathering.id;
     }
     if(this.room){
-      state.gatheringId = this.room.id;
+      state.roomId = this.room.id;
     }
     return state;
+  }
+
+  private closeConsumer(consumerId: string){
+    const consumer = this.consumers.get(consumerId);
+    if(!consumer){
+      throw Error('client has no consumer with that id. cant close it');
+    }
+    consumer.close();
+
+    this.consumers.delete(consumerId);
   }
 
   onDisconnected(){

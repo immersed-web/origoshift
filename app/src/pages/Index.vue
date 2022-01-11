@@ -257,7 +257,7 @@ const adminUI: (Action | DataField | DataInput | DataSelect) [] = [
   },
   {
     label: 'selectedVideoDevice',
-    data: selectedVideoInput as MediaDeviceInfo,
+    data: selectedVideoInput,
   },
   {
     label: 'getMediaInput',

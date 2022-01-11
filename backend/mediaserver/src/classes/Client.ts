@@ -3,7 +3,7 @@ import SocketWrapper from './SocketWrapper';
 import {types as soupTypes} from 'mediasoup';
 import {types as soupClientTypes} from 'mediasoup-client';
 import { ClientState, UserData, UserRole } from 'shared-types/CustomTypes';
-import { createResponse, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
+import { createMessage, createResponse, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 
 import Room from './Room';
@@ -198,10 +198,7 @@ export default class Client {
       }
 
       case 'joinRoom': {
-        if(this.room){
-          this.room.removeClient(this, true);
-          this.room = undefined;
-        }
+        this.leaveCurrentRoom(false);
         //default to fail message
         const response = createResponse('joinRoom', msg.id, { wasSuccess: false, message: 'failed to join room'});
         try{
@@ -228,12 +225,7 @@ export default class Client {
       case 'leaveRoom': {
         let response: ResponseTo<'leaveRoom'>;
         try {
-          if(!this.room){
-            throw Error('not in a room. thus cant leave one');
-          }
-          const roomId = this.room.id;
-          this.room.removeClient(this);
-          this.room = undefined;
+          const roomId = this.leaveCurrentRoom();
           response = createResponse('leaveRoom', msg.id, { wasSuccess: true, data: { roomId: roomId}});
         } catch(e) {
           response= createResponse('leaveRoom', msg.id, { wasSuccess: false, message: extractMessageFromCatch(e, 'failed to leave room for some reason')});
@@ -430,6 +422,36 @@ export default class Client {
     }
     return state;
   }
+
+  private leaveCurrentRoom(): string;
+  private leaveCurrentRoom(throwIfNonExistent: true): string;
+  private leaveCurrentRoom(throwIfNonExistent: false): string | undefined; 
+  private leaveCurrentRoom(throwIfNonExistent = true){
+    if(!this.room){
+      if(throwIfNonExistent){
+        throw Error('not in a room. thus cant leave one');
+      }
+      return;
+    }
+    this.closeAllConsumers();
+    const roomId = this.room.id;
+    this.room.removeClient(this);
+    this.room = undefined;
+    return roomId;
+  }
+
+  private closeAllConsumers = () => {
+    const arrayFromConsumerMap = Array.from(this.consumers.entries());
+    for(const [consumerKey, consumer] of arrayFromConsumerMap){
+      consumer.close();
+      const closeConsumerMsg = createMessage('notifyCloseEvent', {
+        objectType: 'consumer',
+        objectId: consumerKey,
+      });
+      this.send(closeConsumerMsg);
+      this.consumers.delete(consumerKey);      
+    }
+  };
 
   private closeConsumer(consumerId: string){
     const consumer = this.consumers.get(consumerId);

@@ -25,19 +25,34 @@ export default class PeerClient {
 
   onRequestCallback? = undefined as unknown as (msg: AnyRequest) => unknown;
   onMessageCallback? = undefined as unknown as (msg: AnyMessage) => unknown;
+  onConsumerClosed?: (consumerId: string) => unknown = undefined;
 
   constructor () {
     onSocketReceivedReqOrMsg((msg) => {
       // console.log(msg);
       if (msg.type === 'message') {
-        // switch (msg.subject) {
-        //   case 'gatheringRooms': {
-        //     const rooms = msg.data
-        //     break;
-        //   }
-        // }
-        if (this.onMessageCallback) {
-          this.onMessageCallback(msg);
+        switch (msg.subject) {
+          case 'notifyCloseEvent': {
+            switch (msg.data.objectType) {
+              case 'consumer': {
+                // this.close;
+                const consumer = this.consumers.get(msg.data.objectId);
+                if (!consumer) {
+                  throw Error(`no consumer with that id found in client: ${msg.data.objectId}`);
+                }
+                consumer.close();
+                if (this.onConsumerClosed) {
+                  this.onConsumerClosed(consumer.id);
+                }
+              }
+            }
+            break;
+          }
+          default: {
+            if (this.onMessageCallback) {
+              this.onMessageCallback(msg);
+            }
+          }
         }
       } else {
         // if (msg.subject === 'roomStateUpdated') {
@@ -144,14 +159,14 @@ export default class PeerClient {
   async joinRoom (roomId: string) {
     const joinRoomReq = createRequest('joinRoom', { roomId: roomId });
     await sendRequest(joinRoomReq);
-    this.closeAllConsumers();
+    // this.closeAllConsumers();
     // this.roomStore.currentRoomId = roomId;
   }
 
   leaveRoom = async () => {
     const leaveRoomReq = createRequest('leaveRoom');
     await sendRequest(leaveRoomReq);
-    this.closeAllConsumers();
+    // this.closeAllConsumers();
   }
 
   getRouterCapabilities = async (): Promise<mediasoupTypes.RtpCapabilities> => {

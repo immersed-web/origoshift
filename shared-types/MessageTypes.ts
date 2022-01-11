@@ -71,6 +71,10 @@ export type AnyRequest =
 
 export type AnyMessage = 
   MessageBuilder<'gatheringStateUpdated', GatheringState>
+  | MessageBuilder<'notifyCloseEvent', {
+    objectType: 'consumer',
+    objectId: string,
+  }>
   | MessageBuilder<'chatMessage', {
     message: string
   }>

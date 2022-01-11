@@ -18,6 +18,17 @@ export default function usePeerClient () {
   peer.onRequestCallback = (msg) => {
     console.log('received request: ', msg);
   };
+  peer.onConsumerClosed = (consumerId) => {
+    console.log('consumer close: ', consumerId);
+    if (consumerClosedCallback) {
+      consumerClosedCallback(consumerId);
+    }
+  };
+
+  let consumerClosedCallback: (consumerId: string) => unknown | undefined;
+  const onConsumerClosed = (callback: typeof consumerClosedCallback) => {
+    consumerClosedCallback = callback;
+  };
 
   // eslint-disable-next-line @typescript-eslint/ban-types
   // let customExports: Record<string, Function> = { requestMedia };
@@ -73,12 +84,12 @@ export default function usePeerClient () {
   }
 
   // customExports = { ...customExports, consume };
-  async function consume (producerId: string) {
-    if (!peer.receiveTransport) {
-      await peer.createReceiveTransport();
-    }
-    return peer.consume(producerId);
-  }
+  // async function consumeWithAutoTransport (producerId: string) {
+  //   if (!peer.receiveTransport) {
+  //     await peer.createReceiveTransport();
+  //   }
+  //   return peer.consume(producerId);
+  // }
 
   // customExports = { ...customExports, joinGathering };
   async function joinGathering (gatheringId: string) {
@@ -111,8 +122,8 @@ export default function usePeerClient () {
   }
 
   // const { loadMediasoupDevice } = peer;
-  const customExports = { requestMedia, createAndJoinRoom, produce, consume, joinGathering, joinRoom };
-  const reExported = pick(peer, ['sendRtpCapabilities', 'setName', 'createGathering', 'createRoom', 'loadMediasoupDevice', 'createSendTransport', 'createReceiveTransport']);
+  const customExports = { requestMedia, createAndJoinRoom, produce, joinGathering, joinRoom, onConsumerClosed };
+  const reExported = pick(peer, ['sendRtpCapabilities', 'setName', 'createGathering', 'createRoom', 'loadMediasoupDevice', 'createSendTransport', 'createReceiveTransport', 'consume']);
 
   return {
     // loadMediasoupDevice,

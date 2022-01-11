@@ -139,7 +139,7 @@ import { login, getMe, getJwt } from 'src/modules/authClient';
 import { createSocket } from 'src/modules/webSocket';
 // import { RoomState } from 'shared-types/CustomTypes';
 
-const { sendRtpCapabilities, setName, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume } = usePeerClient();
+const { sendRtpCapabilities, setName, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume, onConsumerClosed } = usePeerClient();
 // const { } = usePeerClient();
 const connectionStore = useConnectionStore();
 const roomStore = useRoomStore();
@@ -170,13 +170,19 @@ watch(receivedTracks, (newValue) => {
     videoTag.srcObject = stream;
   });
 });
+onConsumerClosed((consumerId) => {
+  const videoTag = document.getElementById(consumerId);
+  videoTag?.remove();
+});
 
 const receiveStream = async (producerId: string) => {
-  const track = await consume(producerId);
+  await createReceiveTransport();
+  const { track, consumerId } = await consume(producerId);
   receivedTracks.value.push(track);
   const videoList = document.getElementById('video-list');
   console.log('fetched video-list container element:', videoList);
   const videoTag = document.createElement('video');
+  videoTag.id = consumerId;
   videoTag.autoplay = true;
   console.log('created a videoElement:', videoTag);
   const attachedElement = videoList?.appendChild<HTMLVideoElement>(videoTag);

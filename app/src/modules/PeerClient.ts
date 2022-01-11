@@ -262,7 +262,7 @@ export default class PeerClient {
     });
   }
 
-  async produce (track: MediaStreamTrack): Promise<mediasoupTypes.Producer['id']> {
+  produce = async (track: MediaStreamTrack): Promise<mediasoupTypes.Producer['id']> => {
     if (!this.sendTransport) {
       return Promise.reject('Need a transport to be able to produce. No transport present');
     }
@@ -271,7 +271,7 @@ export default class PeerClient {
     return producer.id;
   }
 
-  async consume (producerId: string): Promise<MediaStreamTrack> {
+  consume = async (producerId: string): Promise<{track: MediaStreamTrack, consumerId: string}> => {
     if (!producerId) {
       throw Error('consume called without producerId! Please provide one!');
     }
@@ -287,7 +287,7 @@ export default class PeerClient {
       const consumerOptions = response.data;
       const consumer = await this.receiveTransport.consume(consumerOptions);
       this.consumers.set(consumer.id, consumer);
-      return consumer.track;
+      return { track: consumer.track, consumerId: consumer.id };
     } catch (e) {
       return Promise.reject(e);
     }

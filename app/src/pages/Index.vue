@@ -89,10 +89,9 @@
           />
           <q-btn
             :label="room.roomId"
-            @click="joinRoom(room.roomId)"
+            @click="joinRoomAndStartConsuming(room.roomId)"
           />
-          <p>Clients: {{ Object.keys(room.clients).length }}</p>
-          <!-- <template v-if="roomStore.currentRoomId === room.roomId"> -->
+          <!-- <p>Clients: {{ Object.keys(room.clients).length }}</p>
           <template v-for="client in room.clients">
             <q-item
               v-for="producer in client.producers"
@@ -103,8 +102,7 @@
                 @click="receiveStream(producer.producerId)"
               />
             </q-item>
-          </template>
-          <!-- </template> -->
+          </template> -->
         </q-item>
       </q-list>
       <q-list id="video-list">
@@ -174,6 +172,19 @@ onConsumerClosed((consumerId) => {
   const videoTag = document.getElementById(consumerId);
   videoTag?.remove();
 });
+
+const joinRoomAndStartConsuming = async (roomId: string) => {
+  await joinRoom(roomId);
+  const room = roomStore.gatheringState?.rooms[roomId];
+  if (!room) {
+    throw Error('room not found in gatheringState');
+  }
+  for (const client of Object.values(room.clients)) {
+    for (const producer of Object.values(client.producers)) {
+      receiveStream(producer.producerId);
+    }
+  }
+};
 
 const receiveStream = async (producerId: string) => {
   await createReceiveTransport();

@@ -2,15 +2,15 @@
 version: "3.5"
 
 services:
-  # mediaserver:
-  #   command: yarn run dev
-  #   volumes:
-  #     - ./mediaserver/src:/usr/app/src
-  #     # - /usr/src/app/node_modules
-  #   network_mode: "bridge"
-  #   ports:
-  #     - "9001:9001"
-  #     - "22000-22040:22000-22040"
+  mediaserver:
+    command: yarn run dev
+    volumes:
+      - ./mediaserver/src:/usr/app/src
+      # - /usr/src/app/node_modules
+    network_mode: "bridge"
+    ports:
+      - "9001:9001"
+      - "22000-22040:22000-22040"
   db:
     image: postgres
     restart: always

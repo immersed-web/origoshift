@@ -1,6 +1,39 @@
 version: "3.5"
 
 services:
-  mediaserver:
-    build: ./mediaserver
-    network_mode: "host"
+  caddy:
+    image: lucaslorentz/caddy-docker-proxy
+    ports:
+      # - 1337:80
+      - 80:80
+      - 433:433
+    labels:
+      caddy: localhost
+      caddy.respond: / `hello WOOORLD` 200
+      # caddy.reverse_proxy: "host.docker.internal:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./docker-data/caddy:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+  # hello-world:
+  #   image: crccheck/hello-world
+  #   ports:
+  #     - "80:8000"
+    # network_mode: "host"
+  # mediaserver:
+  #   build: ./mediaserver
+  #   network_mode: "host"
+  # db:
+  #   image: postgres
+  #   restart: always
+  #   environment:
+  #     - POSTGRES_PASSWORD=bajskorv
+  #     - POSTGRES_DB=inclubit
+  #   ports:
+  #     - "5432:5432"
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - "8989:8080"

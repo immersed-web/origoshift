@@ -27,25 +27,19 @@
           >
             <p><strong>{{ adminOption.label }}: &nbsp; </strong> </p> <p>{{ adminOption.data.value }}</p>
           </div>
-          <q-input
-            v-else-if="'input' in adminOption"
-            :label="adminOption.label"
-            v-model="gatheringId"
-          />
-          <template
+          <q-select
             v-else-if="'options' in adminOption"
-          >
-            <!-- <pre
-              v-for="(mediaInfo, index) in adminOption.options"
-              :key="index"
-            >{{ mediaInfo }}</pre> -->
-            <q-select
-              :option-value="'deviceId'"
-              :label="adminOption.label"
-              v-model="selectedVideoInput"
-              :options="adminOption.options.value"
-            />
-          </template>
+            style="width: 20rem;"
+            :option-value="'deviceId'"
+            :label="adminOption.label"
+            v-model="adminOption.model.value"
+            :options="adminOption.options.value"
+          />
+          <q-input
+            v-else-if="'model' in adminOption"
+            :label="adminOption.label"
+            v-model="adminOption.model.value"
+          />
         </q-item>
         <!-- <q-item
           v-for="action in actions"
@@ -129,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, Ref } from 'vue';
+import { ref, watch, Ref, computed } from 'vue';
 import { useConnectionStore } from 'src/stores/connectionStore';
 import { useRoomStore } from 'src/stores/roomStore';
 import usePeerClient from 'src/composables/usePeerClient';
@@ -137,7 +131,7 @@ import { login, getMe, getJwt } from 'src/modules/authClient';
 import { createSocket } from 'src/modules/webSocket';
 // import { RoomState } from 'shared-types/CustomTypes';
 
-const { sendRtpCapabilities, setName, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume, onConsumerClosed } = usePeerClient();
+const { sendRtpCapabilities, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume, onConsumerClosed } = usePeerClient();
 // const { } = usePeerClient();
 const connectionStore = useConnectionStore();
 const roomStore = useRoomStore();
@@ -149,6 +143,12 @@ const localVideoTag = ref<HTMLVideoElement>();
 const receivedTracks = ref<MediaStreamTrack[]>([]);
 
 const mediaDevices = ref<MediaDeviceInfo[]>([]);
+
+const videoMediaDevices = computed(() => {
+  return mediaDevices.value.filter((dev) => {
+    return dev.kind === 'videoinput';
+  });
+});
 const selectedVideoInput = ref<MediaDeviceInfo>();
 
 (async () => {
@@ -215,12 +215,13 @@ interface DataField {
 
 interface DataInput {
   label: string,
-  input: Ref<unknown>
+  model: Ref<string | number | null | undefined>
 }
 
 interface DataSelect {
   label: string,
   options: Ref<unknown[]>,
+  model: Ref<unknown>
 }
 
 const getJwtAction: Action = {
@@ -257,7 +258,7 @@ const adminUI: (Action | DataField | DataInput | DataSelect) [] = [
   },
   {
     label: 'gatheringId',
-    input: gatheringId,
+    model: gatheringId,
   },
   {
     label: 'joingathering, sendTransport & loadDev',
@@ -270,7 +271,8 @@ const adminUI: (Action | DataField | DataInput | DataSelect) [] = [
   },
   {
     label: 'videoDevices',
-    options: mediaDevices,
+    options: videoMediaDevices,
+    model: selectedVideoInput,
   },
   {
     label: 'selectedVideoDevice',
@@ -312,7 +314,7 @@ const clientUI: (Action | DataField | DataInput)[] = [
   // join gathering
   {
     label: 'gatheringId',
-    input: gatheringId,
+    model: gatheringId,
   },
   {
     label: 'joinGathering, create transport, and load dev',

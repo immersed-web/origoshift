@@ -16,3 +16,7 @@
   
 #   log
 # }
+
+:80 {
+  respond "fuck off" 200
+}

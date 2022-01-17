@@ -1,26 +1,35 @@
 version: "3.5"
 
 services:
-  caddy:
-    image: lucaslorentz/caddy-docker-proxy
-    ports:
-      # - 1337:80
-      - 80:80
-      - 433:433
-    labels:
-      caddy: localhost
-      caddy.respond: / `hello WOOORLD` 200
-      # caddy.reverse_proxy: "host.docker.internal:8000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - ./docker-data/caddy:/data
-      - /var/run/docker.sock:/var/run/docker.sock
   # hello-world:
   #   image: crccheck/hello-world
+  #   # ports:
+  #   #   - "8087:8000"
+  #   network_mode: "host"
+  caddy:
+    image: caddy:2.4.5
+    ports:
+      - "80:80"
+      - "443:443"
+      # - "3000:3000"
+      # - "1-65535:1-65535"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+  # caddy:
+  #   image: lucaslorentz/caddy-docker-proxy
   #   ports:
-  #     - "80:8000"
-    # network_mode: "host"
+  #     - 8181:80
+  #     # - 80:80
+  #     - 433:433
+  #   labels:
+  #     caddy: localhost:8181
+  #     caddy.respond: / `hello WOOORLD` 200
+  #     # caddy.reverse_proxy: "host.docker.internal:8000"
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   volumes:
+  #     - ./docker-data/caddy:/data
+  #     - /var/run/docker.sock:/var/run/docker.sock
   # mediaserver:
   #   build: ./mediaserver
   #   network_mode: "host"

@@ -8,7 +8,8 @@
     "./": "./dist/"
   },
   "scripts": {
-    "dev": "echo 'dummy script'"
+    "dev": "echo 'dummy script'",
+    "build": "tsc --build"
   },
   "author": "Gunnar Oledal",
   "license": "MIT",

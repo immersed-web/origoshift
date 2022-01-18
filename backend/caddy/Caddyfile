@@ -17,6 +17,6 @@
 #   log
 # }
 
-:80 {
+inclubit2.testyta.se {
   respond "fuck off" 200
 }

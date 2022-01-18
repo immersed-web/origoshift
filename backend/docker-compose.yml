@@ -3,9 +3,9 @@ version: "3.5"
 services:
   # hello-world:
   #   image: crccheck/hello-world
-  #   # ports:
-  #   #   - "8087:8000"
-  #   network_mode: "host"
+  #   ports:
+  #     - "80:8000"
+    # network_mode: "host"
   caddy:
     image: caddy:2.4.5
     ports:
@@ -15,14 +15,15 @@ services:
       # - "1-65535:1-65535"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./docker-data/caddy:/data
   # caddy:
   #   image: lucaslorentz/caddy-docker-proxy
   #   ports:
-  #     - 8181:80
-  #     # - 80:80
+  #     # - 8181:80
+  #     - 80:80
   #     - 433:433
   #   labels:
-  #     caddy: localhost:8181
+  #     caddy: inclubit2.testyta.se
   #     caddy.respond: / `hello WOOORLD` 200
   #     # caddy.reverse_proxy: "host.docker.internal:8000"
   #   extra_hosts:

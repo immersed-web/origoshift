@@ -3,5 +3,6 @@
     "**/backend": true,
     "**/types": true,
     "**/app": true,
+    "**/shared-types": true,
   }
 }

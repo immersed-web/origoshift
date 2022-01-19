@@ -4,9 +4,18 @@
 import Express from 'express';
 import jwt, { JwtPayload} from 'jsonwebtoken';
 import { UserData } from 'shared-types/CustomTypes';
-
+import 'shared-types/augmentedRequest';
 
 // passport.unuse('session');
+
+// type User = Express.Request['user'];
+
+declare module 'express' {
+  interface Request {
+    user?: UserData;
+  }
+}
+
 
 export const ADMIN_USERNAME = 'admin';
 export const ADMIN_PASSWORD = 'bajskorv';
@@ -52,9 +61,8 @@ export function createJwt(userObj: object | string | Buffer, expiresInSeconds: n
   return token;
 }
 
-// export { JwtPayload } from 'jsonwebtoken';
-
 export type DecodedJwt = UserData & JwtPayload;
+
 
 export function verifyJwtToken(token: string, secret?: string){
   if(!secret){
@@ -75,9 +83,10 @@ export const jwtMiddleware: Express.RequestHandler = (req, res, next) => {
   const token = authHeader.substring('Bearer '.length, authHeader.length);
   try{
     const decodedToken = verifyJwtToken(token);
-    req.user = decodedToken;
+      // req['user'] = decodedToken;
+      req.user = decodedToken;
     return next();
-  } catch ( e){
+  } catch (e){
     res.status(403).send('invalid token maddafakka!');
   }
 };

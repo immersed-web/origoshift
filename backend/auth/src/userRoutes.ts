@@ -5,6 +5,8 @@ import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import prisma, {Prisma} from './prismaClient';
 import { createJwt } from 'shared-modules/jwtUtils';
 import { userDataFromDBResponse } from './utils';
+import 'shared-types/augmentedRequest';
+
 
 const index: RequestHandler = (req, res) => {
   res.send({message: 'this is the auth user route. Whats cookin good lookin?'});

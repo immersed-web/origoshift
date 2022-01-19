@@ -4,15 +4,22 @@
   "main": "index.js",
   "author": "Gunnar Oledal",
   "license": "MIT",
+  "prisma": {
+    "seed": "node ./seed.js"
+  },
   "scripts": {
     "migrate": "dotenv -e ../.env.dev yarn prisma migrate dev",
+    "seed": "dotenv -e ../.env.dev yarn prisma db seed",
     "studio": "dotenv -e ../.env.dev yarn prisma studio",
     "dbpush": "dotenv -e ../.env.dev yarn prisma db push"
+
   },
   "devDependencies": {
     "prisma": "^3.5.0"
   },
   "dependencies": {
-    "@prisma/client": "^3.5.0"
+    "@prisma/client": "^3.5.0",
+    "@types/bcrypt": "^5.0.0",
+    "bcrypt": "^5.0.1"
   }
 }

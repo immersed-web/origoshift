@@ -1,25 +1,41 @@
 version: "3.7"
 
 services:
-  hello-world:
-    image: crccheck/hello-world
-    # ports:
-      # - "1337:8000"
-    # networks:
-    #   - caddy
-    # labels:
-    #   caddy: inclubit2.testyta.se
-    #   caddy.handle_path: /hello*
-    #   # caddy.handle_path.reverse_proxy: "hello-world:8000"
-    #   caddy.handle_path.reverse_proxy: "host.docker.internal:8000"
-    network_mode: "host"
-  whoami:
-    image: jwilder/whoami
-    networks:
-      - caddy
-    labels:
-      caddy: inclubit2.testyta.se
-      caddy.reverse_proxy: "{{upstreams 8000}}"
+  # project-folder:
+  #   build: ../
+  auth:
+    build: ./auth
+    env_file:
+      - .env
+    ports:
+      - "3333:3333"
+  db:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=bajskorv
+      - POSTGRES_DB=inclubit
+    ports:
+      - "5432:5432"
+  # hello-world:
+  #   image: crccheck/hello-world
+  #   # ports:
+  #     # - "1337:8000"
+  #   # networks:
+  #   #   - caddy
+  #   # labels:
+  #   #   caddy: inclubit2.testyta.se
+  #   #   caddy.handle_path: /hello*
+  #   #   # caddy.handle_path.reverse_proxy: "hello-world:8000"
+  #   #   caddy.handle_path.reverse_proxy: "host.docker.internal:8000"
+  #   network_mode: "host"
+  # whoami:
+  #   image: jwilder/whoami
+  #   networks:
+  #     - caddy
+  #   labels:
+  #     caddy: inclubit2.testyta.se
+  #     caddy.reverse_proxy: "{{upstreams 8000}}"
 
   # caddy:
   #   image: caddy:2.4.5
@@ -61,14 +77,6 @@ networks:
   # mediaserver:
   #   build: ./mediaserver
   #   network_mode: "host"
-  # db:
-  #   image: postgres
-  #   restart: always
-  #   environment:
-  #     - POSTGRES_PASSWORD=bajskorv
-  #     - POSTGRES_DB=inclubit
-  #   ports:
-  #     - "5432:5432"
   # adminer:
   #   image: adminer
   #   restart: always

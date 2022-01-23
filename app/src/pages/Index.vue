@@ -202,6 +202,9 @@ const receiveStream = async (producerId: string) => {
 
   const stream = new MediaStream([track]);
   videoTag.srcObject = stream;
+  setTimeout(() => {
+    videoTag.value.play();
+  }, 1000);
 };
 
 interface Action {

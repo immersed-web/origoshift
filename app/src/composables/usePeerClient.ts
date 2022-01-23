@@ -44,7 +44,7 @@ export default function usePeerClient () {
         },
       };
     } else {
-      console.log('no deviceId provided. Calling with vide: true');
+      console.log('no deviceId provided. Calling with video: true');
     }
     const localStream = await navigator.mediaDevices.getUserMedia(constraints);
     return localStream;

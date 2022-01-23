@@ -1,5 +1,6 @@
 <template>
   <q-page>
+    BAAAAJS
     <p>
       Connected: {{ connectionStore.connected }} <q-toggle
         :label="'uiMode ' + uiMode"
@@ -151,10 +152,10 @@ const videoMediaDevices = computed(() => {
 });
 const selectedVideoInput = ref<MediaDeviceInfo>();
 
-(async () => {
+const listDevices = async () => {
   mediaDevices.value = await navigator.mediaDevices.enumerateDevices();
-  console.log(mediaDevices.value);
-})();
+  console.log('mediaDevices: ', mediaDevices.value);
+};
 
 const uiMode = ref<'admin' | 'client'>('admin');
 
@@ -270,8 +271,14 @@ const adminUI: (Action | DataField | DataInput | DataSelect) [] = [
     },
   },
   {
+    label: 'enumerate devs',
+    fn: async () => {
+      await listDevices();
+    },
+  },
+  {
     label: 'videoDevices',
-    options: videoMediaDevices,
+    options: mediaDevices,
     model: selectedVideoInput,
   },
   {
@@ -282,6 +289,16 @@ const adminUI: (Action | DataField | DataInput | DataSelect) [] = [
     label: 'getMediaInput',
     fn: async () => {
       localStream.value = await requestMedia(selectedVideoInput.value?.deviceId);
+      if (localVideoTag.value) {
+        localVideoTag.value.srcObject = localStream.value;
+        localVideoTag.value.play();
+      }
+    },
+  },
+  {
+    label: 'request default video',
+    fn: async () => {
+      localStream.value = await requestMedia();
       if (localVideoTag.value) {
         localVideoTag.value.srcObject = localStream.value;
         localVideoTag.value.play();

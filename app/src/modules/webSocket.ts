@@ -25,7 +25,7 @@ export function createSocket (token: string) {
   }
   const connectionStore = useConnectionStore(pinia);
   try {
-    const connectionsString = `ws://${process.env.MEDIASOUP_URL}/${process.env.MEDIASOUP_PATH}?${token}`;
+    const connectionsString = `${process.env.MEDIASOUP_URL}/${process.env.MEDIASOUP_PATH}?${token}`;
     console.log('creating websocket with connectionsString;', connectionsString);
     socket = new WebSocket(connectionsString);
     socket.onopen = (ev) => {

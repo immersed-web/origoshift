@@ -3,6 +3,9 @@ version: "3.7"
 services:
   # project-folder:
   #   build: ../
+  # mediaserver:
+  #   build: ./mediaserver
+  #   network_mode: "host"
   auth:
     build: ./auth
     env_file:
@@ -81,9 +84,6 @@ networks:
   default:
     external: true
     name: caddy
-  # mediaserver:
-  #   build: ./mediaserver
-  #   network_mode: "host"
   # adminer:
   #   image: adminer
   #   restart: always

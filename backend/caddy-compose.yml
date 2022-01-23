@@ -13,10 +13,16 @@ services:
       - "host.docker.internal:host-gateway"
     labels:
       caddy_1: inclubit2.testyta.se
-      caddy_1.handle_path: /hello*
-      caddy_1.handle_path.reverse_proxy: "host.docker.internal:8000"
+      caddy_1.handle_path: /socket*
+      caddy_1.handle_path.reverse_proxy: "host.docker.internal:9001"
       # caddy.reverse_proxy: "host.docker.internal:8000"
-    volumes:
+      # caddy_1.root: * /dist/spa
+      # caddy_1.try_files: "{path}" /index.html
+      # TODO: Make sure this caddy conf works for SPA! Probably need "try_file" directive"
+      caddy_1.file_server:
+      caddy_1.file_server.root:  /dist/spa 
+    volumes:      
+      - ../app/dist:/dist
       - /var/run/docker.sock:/var/run/docker.sock
       - ./docker-data/caddy:/data
     restart: unless-stopped

@@ -9,7 +9,7 @@ const devMode = process.env.DEVELOPMENT;
 const app = express();
 
 if(devMode){
-  console.log('allowing cors for any origin');
+  console.log('allowing cors for frontend');
   app.use(cors({
     origin: ['http://localhost:8080'],
     credentials: true,
@@ -19,11 +19,11 @@ if(devMode){
 app.use(parseJsonBody());
 
 const userRouter = createUserRouter(process.env);
-app.use('/user', userRouter);
+app.use('/', userRouter);
 
 app.get('/health', (req, res) => {
   res.status(200).send({
-    message: 'I am Healthy!'
+    message: 'I am Healthy! time:' + Date.now(),
   });
 });
 

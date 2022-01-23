@@ -15,7 +15,7 @@ export function createSocket (token: string) {
   if (createSocketTimeout) {
     window.clearTimeout(createSocketTimeout);
   }
-  if (!process.env.SOCKET_URL) {
+  if (!process.env.MEDIASOUP_URL || !process.env.MEDIASOUP_PATH) {
     console.error('No socket url provided from environment variables!! Huge error of doom!');
     throw new Error('no socket url provided!');
   }
@@ -25,7 +25,7 @@ export function createSocket (token: string) {
   }
   const connectionStore = useConnectionStore(pinia);
   try {
-    const connectionsString = `ws://${process.env.SOCKET_URL}?${token}`;
+    const connectionsString = `ws://${process.env.MEDIASOUP_URL}/${process.env.MEDIASOUP_PATH}?${token}`;
     console.log('creating websocket with connectionsString;', connectionsString);
     socket = new WebSocket(connectionsString);
     socket.onopen = (ev) => {

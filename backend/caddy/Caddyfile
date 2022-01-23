@@ -1,22 +1,22 @@
-# {env.BACKEND_SERVER} {
-#   # Important to use the route directive so that the reverse_proxy is matched first
-#   # (default is try_files before reverse_proxy)
-#   route { 
-#     route /auth/* {
-#       uri strip_prefix /auth 
-#       reverse_proxy auth:6060
-#     }
-#     reverse_proxy /socket/* mediaserver:9001
-#     root * /dist/spa
-#     try_files {path} /index.html
-#     file_server {
-#       root /dist/spa
-#     }
-#   }
+{env.SERVER_URL} {
+  # Important to use the route directive so that the reverse_proxy is matched first
+  # (default is try_files before reverse_proxy)
+  route { 
+    route /auth/* {
+      uri strip_prefix /auth 
+      reverse_proxy auth:6060
+    }
+    reverse_proxy /socket/* mediaserver:9001
+    root * /dist/spa
+    try_files {path} /index.html
+    file_server {
+      root /dist/spa
+    }
+  }
   
-#   log
-# }
-
-inclubit2.testyta.se {
-  respond "fuck off" 200
+  log
 }
+
+# inclubit2.testyta.se {
+#   respond "fuck off" 200
+# }

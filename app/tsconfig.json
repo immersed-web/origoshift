@@ -1,10 +1,10 @@
 {
   "extends": "@quasar/app/tsconfig-preset",
-  "references": [
-    {
-      "path": "../../shared-types",
-    },
-  ],
+  // "references": [
+  //   {
+  //     "path": "../../shared-types",
+  //   },
+  // ],
   "compilerOptions": {
     "baseUrl": ".",
     "lib": ["DOM", "ES7"]

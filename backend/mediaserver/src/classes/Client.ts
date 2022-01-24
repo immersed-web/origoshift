@@ -374,7 +374,7 @@ export default class Client {
           const consumer = await this.receiveTransport.consume({
             producerId: producer.id,
             rtpCapabilities: this.rtpCapabilities,
-            paused: false,
+            paused: true,
           });
 
           this.consumers.set(consumer.id, consumer);

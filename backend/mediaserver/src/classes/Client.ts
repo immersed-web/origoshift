@@ -374,7 +374,7 @@ export default class Client {
           const consumer = await this.receiveTransport.consume({
             producerId: producer.id,
             rtpCapabilities: this.rtpCapabilities,
-            paused: false,
+            paused: true,
           });
 
           this.consumers.set(consumer.id, consumer);
@@ -400,6 +400,31 @@ export default class Client {
           response = createResponse('createConsumer', msg.id, {
             wasSuccess: false,
             message: extractMessageFromCatch(e, 'failed to create consumer'),
+          });
+        }
+        this.send(response);
+        break; 
+      }
+      case 'setPauseStateForConsumer': {
+        let response: ResponseTo<'setPauseStateForConsumer'>;
+        try {
+          const consumer = this.consumers.get(msg.data.consumerId);
+          if(!consumer){
+            throw new Error('no such consumer found');
+          }
+          if(msg.data.paused){
+
+            await consumer.pause();
+          } else {
+            await consumer.resume();
+          }
+          response = createResponse('setPauseStateForConsumer', msg.id, {
+            wasSuccess: true,
+          });
+        } catch (e) {
+          response = createResponse('setPauseStateForConsumer', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to change playing state of consumer')
           });
         }
         this.send(response);

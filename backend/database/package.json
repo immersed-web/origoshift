@@ -9,6 +9,7 @@
   },
   "scripts": {
     "migrate": "dotenv -e ../.env.dev yarn prisma migrate dev",
+    "migrate:reset": "dotenv -e ../.env.dev yarn prisma migrate reset",
     "seed": "dotenv -e ../.env.dev yarn prisma db seed",
     "studio": "dotenv -e ../.env.dev yarn prisma studio",
     "dbpush": "dotenv -e ../.env.dev yarn prisma db push"

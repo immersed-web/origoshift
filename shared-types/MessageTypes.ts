@@ -48,6 +48,10 @@ export type AnyRequest =
   | RequestBuilder<'createConsumer', {
     producerId: string,
   }>
+  | RequestBuilder<'setPauseStateForConsumer', {
+    consumerId: string,
+    paused: boolean
+  }>
   | RequestBuilder<'getClientState'>
   | RequestBuilder<'setName', {
     name: string,
@@ -117,6 +121,7 @@ export type AnyResponse =
   | ResponseBuilder<'createSendTransport', mediasoupClientTypes.TransportOptions>
   | ResponseBuilder<'createReceiveTransport', mediasoupClientTypes.TransportOptions>
   | ResponseBuilder<'createConsumer', mediasoupClientTypes.ConsumerOptions>
+  | ResponseBuilder<'setPauseStateForConsumer'>
   | ResponseBuilder<'createProducer', {producerId: string}>
   | ResponseBuilder<'connectTransport'>
   | ResponseBuilder<'notifyCloseEvent'>

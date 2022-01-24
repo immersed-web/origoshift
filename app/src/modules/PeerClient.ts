@@ -287,10 +287,30 @@ export default class PeerClient {
       const consumerOptions = response.data;
       const consumer = await this.receiveTransport.consume(consumerOptions);
       this.consumers.set(consumer.id, consumer);
+
+      const setPauseReq = createRequest('setPauseStateForConsumer', {
+        consumerId: consumer.id,
+        paused: false,
+      });
+      await sendRequest(setPauseReq);
+
       return { track: consumer.track, consumerId: consumer.id };
     } catch (e) {
       return Promise.reject(e);
     }
+  }
+
+  // TODO: must I sync the calls to pause/resume between local and remote consumers
+  pauseConsumer = async (consumerId: string) => {
+    const consumer = this.consumers.get(consumerId);
+    if (!consumer) {
+      throw new Error('no such consumer found (client-side)');
+    }
+    const pauseReq = createRequest('setPauseStateForConsumer', {
+      consumerId: consumer.id,
+      paused: true,
+    });
+    await sendRequest(pauseReq);
   }
 
   closeAllConsumers = async () => {

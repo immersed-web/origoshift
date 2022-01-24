@@ -1,6 +1,5 @@
 <template>
   <q-page>
-    BAAAAJS
     <p>
       Connected: {{ connectionStore.connected }} <q-toggle
         :label="'uiMode ' + uiMode"
@@ -148,6 +147,12 @@ const mediaDevices = ref<MediaDeviceInfo[]>([]);
 const videoMediaDevices = computed(() => {
   return mediaDevices.value.filter((dev) => {
     return dev.kind === 'videoinput';
+  }).map((dev) => {
+    return {
+      deviceId: dev.deviceId,
+      label: dev.label,
+      kind: dev.kind,
+    };
   });
 });
 const selectedVideoInput = ref<MediaDeviceInfo>();
@@ -157,7 +162,9 @@ const listDevices = async () => {
   console.log('mediaDevices: ', mediaDevices.value);
 };
 
-const uiMode = ref<'admin' | 'client'>('admin');
+listDevices();
+
+const uiMode = ref<'admin' | 'client'>('client');
 
 watch(receivedTracks, (newValue) => {
   console.log('recievedTracks updated:', newValue);
@@ -281,7 +288,7 @@ const adminUI: (Action | DataField | DataInput | DataSelect) [] = [
   },
   {
     label: 'videoDevices',
-    options: mediaDevices,
+    options: videoMediaDevices,
     model: selectedVideoInput,
   },
   {

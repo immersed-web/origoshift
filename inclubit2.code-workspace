@@ -9,6 +9,7 @@
 		}
 	],
   "settings": {
+		"remote.autoForwardPorts": false,
 		"eslint.workingDirectories": [ // This is so we can have the .eslintrc.js in subfolders without problem
 			{
 				"mode": "auto"

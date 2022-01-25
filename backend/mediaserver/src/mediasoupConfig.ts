@@ -1,6 +1,14 @@
 import { types as mediasoupTypes } from 'mediasoup';
 // import { WorkerLogTag } from 'mediasoup/lib/Worker';
 
+
+const listenIp = process.env.LISTEN_IP;
+
+if(!listenIp){
+  throw new Error('no listenIp set for mediaserver!');
+}
+
+
 const logLevel: mediasoupTypes.WorkerLogLevel = 'debug';
 const logTags: mediasoupTypes.WorkerLogTag[] = [
   'info',
@@ -59,7 +67,7 @@ const router: mediasoupTypes.RouterOptions = {
 
 const webRtcTransport: mediasoupTypes.WebRtcTransportOptions = {
   listenIps: [
-    { ip: '127.0.0.1', announcedIp: undefined },
+    { ip: listenIp, announcedIp: undefined },
     // { ip: "192.168.42.68", announcedIp: null },
     // { ip: '10.10.23.101', announcedIp: null },
   ],

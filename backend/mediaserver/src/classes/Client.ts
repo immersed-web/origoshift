@@ -3,7 +3,7 @@ import SocketWrapper from './SocketWrapper';
 import {types as soupTypes} from 'mediasoup';
 import {types as soupClientTypes} from 'mediasoup-client';
 import { ClientState, UserData, UserRole } from 'shared-types/CustomTypes';
-import { createMessage, createResponse, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
+import { AnyRequest, createMessage, createRequest, createResponse, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 
 import Room from './Room';
@@ -274,14 +274,16 @@ export default class Client {
       case 'connectTransport': {
         const transportId = msg.data.transportId;
         const dtlsParameters = msg.data.dtlsParameters;
-        let chosendTransport;
-        if(transportId === this.receiveTransport?.id){
-          chosendTransport = this.receiveTransport;
-        } else{
-          chosendTransport = this.sendTransport;
-        }
+        let chosenTransport;
         try {
-          await chosendTransport?.connect({dtlsParameters});
+          if(transportId === this.receiveTransport?.id){
+            chosenTransport = this.receiveTransport;
+          } else if(transportId === this.sendTransport?.id){
+            chosenTransport = this.sendTransport;
+          } else{
+            throw new Error('no transport with that id on server-side');
+          }
+          await chosenTransport.connect({dtlsParameters});
           const response = createResponse('connectTransport', msg.id, {
             wasSuccess: true,
           });
@@ -299,7 +301,6 @@ export default class Client {
         let response: ResponseTo<'notifyCloseEvent'>;
 
         try{
-
           switch (msg.data.objectType) {
             case 'consumer': {
               this.closeConsumer(msg.data.objectId);
@@ -313,7 +314,7 @@ export default class Client {
         } catch(e){
           response = createResponse('notifyCloseEvent', msg.id, {
             wasSuccess: false,
-            message: extractMessageFromCatch(e, 'failed to close the server side object'),
+            message: extractMessageFromCatch(e, 'failed to close the corresponding server side object'),
           });
         }
         this.send(response);
@@ -330,6 +331,14 @@ export default class Client {
           const {kind, rtpParameters, transportId: id} = msg.data;
           // TODO: create this in paused state!
           const producer = await this.sendTransport.produce({id, kind, rtpParameters});
+          producer.on('transportclose', () => {
+            console.log(`transport for producer ${producer.id} was closed`);
+            this.producers.delete(producer.id);
+            this.send(createMessage('notifyCloseEvent', {
+              objectType: 'producer',
+              objectId: producer.id,
+            }));
+          });
           this.producers.set(producer.id, producer); 
           const response = createResponse('createProducer', msg.id, { wasSuccess: true, data: {producerId: producer.id}});
           this.send(response);
@@ -369,8 +378,6 @@ export default class Client {
             throw Error('A transport is required to create a consumer');
           }
 
-          // TODO: The docs recommend not creating consumer in unpaused state. Address this!!!
-          // https://mediasoup.org/documentation/v3/mediasoup/api/#transport-consume
           const consumer = await this.receiveTransport.consume({
             producerId: producer.id,
             rtpCapabilities: this.rtpCapabilities,
@@ -381,11 +388,20 @@ export default class Client {
 
           consumer.on('transportclose', () => {
             console.log(`---consumer transport close--- client: ${this.id} consumer_id: ${consumer.id}`);
+            this.send(createMessage('notifyCloseEvent', {
+              objectType: 'consumer',
+              objectId: consumer.id,
+            }));
             this.consumers.delete(consumer.id);
           });
 
           consumer.on('producerclose', () => {
             console.log(`the producer associated with consumer ${consumer.id} closed so the consumer was also closed`);
+            this.send(createMessage('notifyCloseEvent', {
+              objectType: 'consumer',
+              objectId: consumer.id
+            }));
+            this.consumers.delete(consumer.id);
           });
           
           const {id, producerId, kind, rtpParameters} = consumer;
@@ -405,26 +421,30 @@ export default class Client {
         this.send(response);
         break; 
       }
-      case 'setPauseStateForConsumer': {
-        let response: ResponseTo<'setPauseStateForConsumer'>;
+      case 'notifyPauseResume': {
+        let response: ResponseTo<'notifyPauseResume'>;
         try {
-          const consumer = this.consumers.get(msg.data.consumerId);
-          if(!consumer){
-            throw new Error('no such consumer found');
-          }
-          if(msg.data.paused){
-
-            await consumer.pause();
+          let prodcon: soupTypes.Producer | soupTypes.Consumer | undefined;
+          if(msg.data.objectType == 'consumer') {
+            prodcon = this.consumers.get(msg.data.objectId);
           } else {
-            await consumer.resume();
+            prodcon = this.producers.get(msg.data.objectId);
           }
-          response = createResponse('setPauseStateForConsumer', msg.id, {
+          if(!prodcon){
+            throw new Error('no producer/consumer found');
+          }
+          if(msg.data.wasPaused){
+            await prodcon.pause();
+          } else {
+            await prodcon.resume();
+          }
+          response = createResponse('notifyPauseResume', msg.id, {
             wasSuccess: true,
           });
         } catch (e) {
-          response = createResponse('setPauseStateForConsumer', msg.id, {
+          response = createResponse('notifyPauseResume', msg.id, {
             wasSuccess: false,
-            message: extractMessageFromCatch(e, 'failed to change playing state of consumer')
+            message: extractMessageFromCatch(e, 'failed to change playing state of producer/consumer')
           });
         }
         this.send(response);
@@ -481,9 +501,13 @@ export default class Client {
   private closeConsumer(consumerId: string){
     const consumer = this.consumers.get(consumerId);
     if(!consumer){
-      throw Error('client has no consumer with that id. cant close it');
+      throw Error('no consumer with that id. cant close it');
     }
     consumer.close();
+    this.send(createMessage('notifyCloseEvent', {
+      objectType: 'consumer',
+      objectId: consumerId,
+    }));
 
     this.consumers.delete(consumerId);
   }
@@ -508,15 +532,39 @@ export default class Client {
     this.ws.send(msg);
   }
 
+  sendRequest(msg: SocketMessage<AnyRequest>) {
+    console.log(`gonna send request to client ${this.id}:`, msg);
+    if(!this.connected){
+      console.error('tried to send request to a closed socket. NOOO GOOD!');
+      return;
+    }
+    return this.ws.sendRequest(msg);
+  }
+
   async createWebRtcTransport(direction: 'send' | 'receive'){
     if(!this.gathering) {
       throw Error('must be in a gathering in order to create transport');
     }
     const transport = await this.gathering.createWebRtcTransport();
+    if(!transport){
+      throw new Error('failed to create transport!!');
+    }
+    transport.on('routerclose', () => {
+      this.sendRequest(createRequest('notifyCloseEvent', {
+        objectType: 'transport',
+        objectId: transport.id,
+      }));
+    });
     if(direction == 'receive'){
       this.receiveTransport = transport;
+      this.receiveTransport.on('routerclose',()=> {
+        this.receiveTransport = undefined;
+      });
     } else {
       this.sendTransport = transport;
+      this.sendTransport.on('routerclose',()=> {
+        this.sendTransport = undefined;
+      });
     }
     const { id, iceParameters, dtlsParameters } = transport;
     const iceCandidates = <soupClientTypes.IceCandidate[]>transport.iceCandidates;
@@ -542,7 +590,7 @@ export default class Client {
   //  * Thus we have to propagate the message "down" to the socketWrapper
   //  */
   // EDIT: I made an ugly hack so we instead can access the socket instance directly from index.ts
-  // (typescript only checks access of private members on build so we ignore that and access it directly in js)
+  // (typescript (still?) only checks access of private members on build so we ignore that and access it directly in js)
   // incomingMessage(msg: InternalMessageType){
   //   this.ws.incomingMessage(msg);
   // }

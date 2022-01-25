@@ -288,9 +288,10 @@ export default class PeerClient {
       const consumer = await this.receiveTransport.consume(consumerOptions);
       this.consumers.set(consumer.id, consumer);
 
-      const setPauseReq = createRequest('setPauseStateForConsumer', {
-        consumerId: consumer.id,
-        paused: false,
+      const setPauseReq = createRequest('notifyPauseResume', {
+        objectType: 'consumer',
+        objectId: consumer.id,
+        wasPaused: false,
       });
       await sendRequest(setPauseReq);
 
@@ -300,15 +301,24 @@ export default class PeerClient {
     }
   }
 
-  // TODO: must I sync the calls to pause/resume between local and remote consumers
-  pauseConsumer = async (consumerId: string) => {
+  pauseConsumer (consumerId: string) {
+    this.pauseResumeConsumer(consumerId, true);
+  }
+
+  resumeConsumer (consumerId: string) {
+    this.pauseResumeConsumer(consumerId, false);
+  }
+
+  // TODO: eventually we might also need pause/resume for client-side producers
+  private pauseResumeConsumer = async (consumerId: string, wasPaused: boolean) => {
     const consumer = this.consumers.get(consumerId);
     if (!consumer) {
       throw new Error('no such consumer found (client-side)');
     }
-    const pauseReq = createRequest('setPauseStateForConsumer', {
-      consumerId: consumer.id,
-      paused: true,
+    const pauseReq = createRequest('notifyPauseResume', {
+      objectType: 'consumer',
+      objectId: consumer.id,
+      wasPaused: wasPaused,
     });
     await sendRequest(pauseReq);
   }
@@ -318,8 +328,6 @@ export default class PeerClient {
     console.log('number of consumers:', this.consumers.size);
     for (const [consumerKey, consumer] of this.consumers.entries()) {
       console.log('gonna close consumer: ', consumer.id);
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      // const consumer = this.consumers.get(consumerKey)!;
       consumer.close();
       const notifyCloseEventReq = createRequest('notifyCloseEvent', {
         objectType: 'consumer',

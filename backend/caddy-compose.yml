@@ -12,7 +12,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     labels:
-      caddy_1: inclubit2.testyta.se
+      caddy_1: "${SERVER_URL}"
       caddy_1.handle_path: /socket*
       caddy_1.handle_path.reverse_proxy: "host.docker.internal:9001"
       # caddy.reverse_proxy: "host.docker.internal:8000"

@@ -15,7 +15,7 @@ services:
     # networks:
     #   - caddy
     labels:
-      caddy: inclubit2.testyta.se
+      caddy: ${SERVER_URL}
       caddy.handle_path: /auth*
       caddy.handle_path.reverse_proxy: "{{upstreams 3333}}"
   db:

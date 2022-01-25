@@ -131,7 +131,7 @@ import { login, getMe, getJwt } from 'src/modules/authClient';
 import { createSocket } from 'src/modules/webSocket';
 // import { RoomState } from 'shared-types/CustomTypes';
 
-const { sendRtpCapabilities, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume, onConsumerClosed } = usePeerClient();
+const { sendRtpCapabilities, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume, pauseConsumer, onConsumerClosed } = usePeerClient();
 // const { } = usePeerClient();
 const connectionStore = useConnectionStore();
 const roomStore = useRoomStore();

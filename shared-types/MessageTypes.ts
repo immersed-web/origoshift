@@ -37,8 +37,13 @@ export type AnyRequest =
     dtlsParameters: import('mediasoup').types.DtlsParameters,
   }>
   | RequestBuilder<'notifyCloseEvent', {
-    objectType: 'consumer',
+    objectType: 'router' | 'transport' | 'producer' | 'consumer' | 'dataproducer' | 'dataconsumer'
     objectId: string
+  }>
+  | RequestBuilder<'notifyPauseResume', {
+    objectType: 'producer' | 'consumer'
+    objectId: string
+    wasPaused: boolean
   }>
   | RequestBuilder<'createProducer', {
     transportId: string, // TODO: is this field needed? Where and when?
@@ -47,6 +52,10 @@ export type AnyRequest =
   }>
   | RequestBuilder<'createConsumer', {
     producerId: string,
+  }>
+  | RequestBuilder<'setPauseStateForConsumer', {
+    consumerId: string,
+    paused: boolean
   }>
   | RequestBuilder<'getClientState'>
   | RequestBuilder<'setName', {
@@ -72,7 +81,7 @@ export type AnyRequest =
 export type AnyMessage = 
   MessageBuilder<'gatheringStateUpdated', GatheringState>
   | MessageBuilder<'notifyCloseEvent', {
-    objectType: 'consumer',
+    objectType: 'router' | 'transport' | 'producer' | 'consumer' | 'dataproducer' | 'dataconsumer'
     objectId: string,
   }>
   | MessageBuilder<'chatMessage', {
@@ -117,9 +126,11 @@ export type AnyResponse =
   | ResponseBuilder<'createSendTransport', mediasoupClientTypes.TransportOptions>
   | ResponseBuilder<'createReceiveTransport', mediasoupClientTypes.TransportOptions>
   | ResponseBuilder<'createConsumer', mediasoupClientTypes.ConsumerOptions>
+  | ResponseBuilder<'setPauseStateForConsumer'>
   | ResponseBuilder<'createProducer', {producerId: string}>
   | ResponseBuilder<'connectTransport'>
   | ResponseBuilder<'notifyCloseEvent'>
+  | ResponseBuilder<'notifyPauseResume'>
   | ResponseBuilder<'setName'>
   | ResponseBuilder<'getClientState', ClientState>
   | ResponseBuilder<'createGathering', {gatheringId: string}>

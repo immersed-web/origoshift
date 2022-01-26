@@ -2,7 +2,7 @@
 	"folders": [
 		{"path": "./app"},
 		{"path": "./backend"},
-		{"path": "./shared-types"},
+		{"path": "./packages"},
 		{
 			"name": "root",
 			"path": "."

@@ -100,15 +100,15 @@
         </q-item>
       </q-list>
       <q-list id="video-list">
-        <!-- <q-item
-          v-for="track in receivedTracks"
-          :key="track.id"
+        <q-item
+          v-for="stream in receivedStreams"
+          :key="stream.id"
         >
           <video
             width="100px"
             autoplay
           />
-        </q-item> -->
+        </q-item>
       </q-list>
     </div>
     <div class="row q-mt-xl">
@@ -123,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, Ref, computed } from 'vue';
+import { ref, watch, Ref, computed, nextTick } from 'vue';
 import { useConnectionStore } from 'src/stores/connectionStore';
 import { useRoomStore } from 'src/stores/roomStore';
 import usePeerClient from 'src/composables/usePeerClient';
@@ -141,6 +141,13 @@ const gatheringId = ref<string>('');
 const localStream = ref<MediaStream>();
 const localVideoTag = ref<HTMLVideoElement>();
 const receivedTracks = ref<MediaStreamTrack[]>([]);
+const receivedStreams = computed(() => {
+  const receivedStreams: MediaStream[] = [];
+  receivedTracks.value.forEach(track => {
+    receivedStreams.push(new MediaStream([track]));
+  });
+  return receivedStreams;
+});
 
 const mediaDevices = ref<MediaDeviceInfo[]>([]);
 
@@ -166,16 +173,23 @@ listDevices();
 
 const uiMode = ref<'admin' | 'client'>('client');
 
-watch(receivedTracks, (newValue) => {
+watch(receivedTracks, async (newValue) => {
+  await nextTick();
   console.log('recievedTracks updated:', newValue);
   const videoList = document.getElementById('video-list');
+  if (!videoList) return;
   newValue.forEach((track) => {
-    const videoTag = new HTMLVideoElement();
-    videoList?.appendChild<HTMLVideoElement>(videoTag);
-    const stream = new MediaStream([track]);
-    videoTag.srcObject = stream;
+    const children = videoList.children;
+    for (const child of children) {
+      const video : HTMLVideoElement = child.firstElementChild as HTMLVideoElement;
+      video.srcObject = new MediaStream([track]);
+    }
   });
-});
+  //   videoList?.appendChild<HTMLVideoElement>(videoTag);
+  //   const stream = new MediaStream([track]);
+  //   videoTag.srcObject = stream;
+  // });
+}, { deep: true });
 onConsumerClosed((consumerId) => {
   const videoTag = document.getElementById(consumerId);
   videoTag?.remove();
@@ -198,20 +212,20 @@ const receiveStream = async (producerId: string) => {
   await createReceiveTransport();
   const { track, consumerId } = await consume(producerId);
   receivedTracks.value.push(track);
-  const videoList = document.getElementById('video-list');
-  console.log('fetched video-list container element:', videoList);
-  const videoTag = document.createElement('video');
-  videoTag.id = consumerId;
-  videoTag.autoplay = true;
-  console.log('created a videoElement:', videoTag);
-  const attachedElement = videoList?.appendChild<HTMLVideoElement>(videoTag);
-  console.log('attached element', attachedElement);
+  // const videoList = document.getElementById('video-list');
+  // console.log('fetched video-list container element:', videoList);
+  // const videoTag = document.createElement('video');
+  // videoTag.id = consumerId;
+  // videoTag.autoplay = true;
+  // console.log('created a videoElement:', videoTag);
+  // const attachedElement = videoList?.appendChild<HTMLVideoElement>(videoTag);
+  // console.log('attached element', attachedElement);
 
-  const stream = new MediaStream([track]);
-  videoTag.srcObject = stream;
-  setTimeout(() => {
-    videoTag.play();
-  }, 1000);
+  // const stream = new MediaStream([track]);
+  // videoTag.srcObject = stream;
+  // setTimeout(() => {
+  //   videoTag.play();
+  // }, 1000);
 };
 
 interface Action {

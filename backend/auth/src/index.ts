@@ -1,6 +1,8 @@
 import express, { json as parseJsonBody } from 'express';
 import cors from 'cors';
-// import { createJwt } from './jwtUtils';
+import { randomUUID } from 'crypto';
+import { createJwt } from 'shared-modules/jwtUtils';
+import { UserData } from 'shared-types/CustomTypes';
 import createUserRouter from './userRoutes';
 
 // console.log('environment: ', process.env);
@@ -25,6 +27,17 @@ app.get('/health', (req, res) => {
   res.status(200).send({
     message: 'I am Healthy! time:' + Date.now(),
   });
+});
+
+app.get('/guest-jwt', (req, res) => {
+  const guestObject: UserData = {
+    username: 'guest',
+    role: 'guest',
+    allowedActions: [],
+    uuid: randomUUID(),
+  };
+  const jwt = createJwt(guestObject, 60);
+  res.send(jwt);
 });
 
 

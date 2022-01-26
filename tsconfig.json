@@ -1,5 +1,10 @@
 {
-  "exclude": ["**/*.test.ts", "**/*.d.ts", "./src/testUtils"],
+  "references": [
+    {"path": "packages/shared-types/"},
+    {"path": "packages/shared-modules/"}
+  ],
+  // "exclude": ["**/*.test.ts", "**/*.d.ts", "**/testUtils/*"],
+  "exclude": ["**/*.test.ts", "**/testUtils/*"],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
 

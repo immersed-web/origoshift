@@ -7,6 +7,6 @@
   // ],
   "compilerOptions": {
     "baseUrl": ".",
-    "lib": ["DOM", "ES7"]
+    "lib": ["DOM", "ES7", "DOM.Iterable"]
   },
 }

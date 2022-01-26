@@ -5,7 +5,7 @@
   "main": "dist",
   "types": "dist",
   "exports": {
-    "./*": "./dist/"
+    "./": "./dist/"
   },
   "scripts": {
     "build": "tsc --build",

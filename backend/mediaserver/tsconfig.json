@@ -1,11 +1,11 @@
 {
   "extends": "../../tsconfig.json",
-  "references": [
-    {
-      "path": "../../shared-types",
-    },
-    {"path": "../shared-modules"}
-  ],
+  // "references": [
+  //   {
+  //     "path": "../../shared-types",
+  //   },
+  //   {"path": "../shared-modules"}
+  // ],
   "include": ["./src/**/*.ts"],
   // "include": ["./**/*.ts","../../types/*.ts"],
   "exclude": ["**/*.test.ts"],

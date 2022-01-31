@@ -7,7 +7,7 @@
 import { types as mediasoupTypes } from 'mediasoup-client';
 import * as mediasoupClient from 'mediasoup-client';
 // import { RoomState } from 'app/../types/types';
-import { sendRequest, onSocketReceivedReqOrMsg } from 'src/modules/webSocket';
+import { createSocket, sendRequest, onSocketReceivedReqOrMsg } from 'src/modules/webSocket';
 import { AnyMessage, AnyRequest, createRequest } from 'shared-types/MessageTypes';
 // import { pinia } from 'src/boot/pinia';
 // import { useRoomStore } from 'src/stores/roomStore';
@@ -26,6 +26,10 @@ export default class PeerClient {
   onRequestCallback? = undefined as unknown as (msg: AnyRequest) => unknown;
   onMessageCallback? = undefined as unknown as (msg: AnyMessage) => unknown;
   onConsumerClosed?: (consumerId: string) => unknown = undefined;
+
+  connect = (token) => {
+    return createSocket(token);
+  }
 
   constructor () {
     onSocketReceivedReqOrMsg((msg) => {

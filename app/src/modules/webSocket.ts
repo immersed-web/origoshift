@@ -11,39 +11,46 @@ let onReqOrMsgCallback: (msg: AnyRequest | AnyMessage) => unknown;
 
 let createSocketTimeout: number;
 let socket: WebSocket | null = null;
-export function createSocket (token: string) {
+export async function createSocket (token: string) {
   if (createSocketTimeout) {
     window.clearTimeout(createSocketTimeout);
   }
-  if (!process.env.MEDIASOUP_URL || !process.env.MEDIASOUP_PATH) {
-    console.error('No socket url provided from environment variables!! Huge error of doom!');
-    throw new Error('no socket url provided!');
+  const retryIn = (seconds: number) => {
+    createSocketTimeout = window.setTimeout(() => createSocket(token), seconds * 1000);
+  };
+  try {
+    if (!process.env.MEDIASOUP_URL || !process.env.MEDIASOUP_PATH) {
+      console.error('No socket url provided from environment variables!! Huge error of doom!');
+      throw new Error('no socket url provided!');
+    }
+    if (!token) {
+      console.error('no auth token provided for socket');
+      throw new Error('no auth token provided!');
+    }
+  } catch (err) {
+    return Promise.reject(err);
   }
-  if (!token) {
-    console.error('no auth token provided for socket');
-    throw new Error('no auth token provided!');
-  }
-  const connectionStore = useConnectionStore(pinia);
+  // const connectionStore = useConnectionStore(pinia);
   try {
     const connectionsString = `${process.env.MEDIASOUP_URL}/${process.env.MEDIASOUP_PATH}?${token}`;
     console.log('creating websocket with connectionsString;', connectionsString);
     socket = new WebSocket(connectionsString);
     socket.onopen = (ev) => {
       console.log('connected: ', ev);
-      connectionStore.connected = true;
+      // connectionStore.connected = true;
+      return Promise.resolve();
     };
     socket.onclose = (ev) => {
       console.error(ev);
       console.error('socket closed. will try to reconnect!');
-      connectionStore.connected = false;
-      createSocketTimeout = window.setTimeout(() => {
-        createSocket(token);
-      }, 4000);
+      // connectionStore.connected = false;
+      retryIn(4);
     };
     socket.onmessage = handleMessage;
   } catch (e) {
     console.error(e);
-    createSocketTimeout = window.setTimeout(createSocket, 4000);
+    retryIn(4);
+    return Promise.reject(e);
   }
 }
 const handleMessage = (ev: MessageEvent) => {

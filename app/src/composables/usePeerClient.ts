@@ -123,7 +123,7 @@ export default function usePeerClient () {
 
   // const { loadMediasoupDevice } = peer;
   const customExports = { requestMedia, createAndJoinRoom, produce, joinGathering, joinRoom, onConsumerClosed };
-  const reExported = pick(peer, ['sendRtpCapabilities', 'setName', 'createGathering', 'createRoom', 'loadMediasoupDevice', 'createSendTransport', 'createReceiveTransport', 'consume', 'pauseConsumer']);
+  const reExported = pick(peer, ['connect', 'sendRtpCapabilities', 'setName', 'createGathering', 'createRoom', 'loadMediasoupDevice', 'createSendTransport', 'createReceiveTransport', 'consume', 'pauseConsumer']);
 
   return {
     // loadMediasoupDevice,

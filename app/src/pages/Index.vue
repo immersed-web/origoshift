@@ -131,7 +131,7 @@ import { login, getMe, getJwt } from 'src/modules/authClient';
 import { createSocket } from 'src/modules/webSocket';
 // import { RoomState } from 'shared-types/CustomTypes';
 
-const { sendRtpCapabilities, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume, pauseConsumer, onConsumerClosed } = usePeerClient();
+const { sendRtpCapabilities, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume, onConsumerClosed } = usePeerClient();
 // const { } = usePeerClient();
 const connectionStore = useConnectionStore();
 const roomStore = useRoomStore();
@@ -210,7 +210,7 @@ const joinRoomAndStartConsuming = async (roomId: string) => {
 
 const receiveStream = async (producerId: string) => {
   await createReceiveTransport();
-  const { track, consumerId } = await consume(producerId);
+  const { track } = await consume(producerId);
   receivedTracks.value.push(track);
   // const videoList = document.getElementById('video-list');
   // console.log('fetched video-list container element:', videoList);

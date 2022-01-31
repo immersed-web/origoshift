@@ -8,13 +8,11 @@ import {types as soup} from 'mediasoup';
 
 import Room from './Room';
 import Client from './Client';
-import { on } from 'events';
 
 
 export default class Gathering {
   // First some static stuff for global housekeeping
   private static gatherings: Map<string, Gathering> = new Map();
-
 
   static async createGathering(id?: string, name?: string, worker?: soup.Worker) {
     try {
@@ -34,13 +32,30 @@ export default class Gathering {
     }
   }
 
-  static getGathering(id: string) {
-    const gathering = Gathering.gatherings.get(id);
-    if(!gathering){
-      console.warn('a gathering with that id doesnt exist');
-      return;
+  static getGathering(params:{id?: string, name?:string}) {
+    if(params.id){
+
+      const gathering = Gathering.gatherings.get(params.id);
+      if(!gathering){
+        throw new Error('a gathering with that id doesnt exist');
+      }
+      return gathering;
+    }else if(params.name){
+      return this.getGatheringFromName(params.name);
+    } else {
+      throw new Error('no id or name provided. Cant get gathering! Duuuh!');
     }
-    return gathering;
+  }
+
+  private static getGatheringFromName(name:string): Gathering {
+    console.log('searching gathering with name:',name);
+    for (const [key, gathering] of Gathering.gatherings) {
+      console.log('checking gathering:', gathering);
+      if(gathering.name === name){
+        return gathering;
+      }
+    }
+    throw new Error('couldnt find a gathering with that name!!! You fuckhead!');
   }
 
 

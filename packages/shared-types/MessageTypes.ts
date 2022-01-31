@@ -61,6 +61,9 @@ export type AnyRequest =
   | RequestBuilder<'setName', {
     name: string,
   }>
+  | RequestBuilder<'findGatheringByName', {
+    name: string
+  }>
   | RequestBuilder<'createGathering', {
     gatheringName: string,
   }>
@@ -133,6 +136,9 @@ export type AnyResponse =
   | ResponseBuilder<'notifyPauseResume'>
   | ResponseBuilder<'setName'>
   | ResponseBuilder<'getClientState', ClientState>
+  | ResponseBuilder<'findGatheringByName', {
+    id: string
+  }>
   | ResponseBuilder<'createGathering', {gatheringId: string}>
   | ResponseBuilder<'joinGathering'>
   | ResponseBuilder<'leaveGathering', {gatheringId: string}>

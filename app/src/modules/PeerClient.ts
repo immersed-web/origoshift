@@ -12,6 +12,7 @@ import { AnyMessage, AnyRequest, createRequest } from 'shared-types/MessageTypes
 // import { pinia } from 'src/boot/pinia';
 // import { useRoomStore } from 'src/stores/roomStore';
 
+type consumerClosedCallback = (consumerId: string) => unknown;
 export default class PeerClient {
   // socket: SocketExt;
   id = '';
@@ -25,9 +26,9 @@ export default class PeerClient {
 
   onRequestCallback? = undefined as unknown as (msg: AnyRequest) => unknown;
   onMessageCallback? = undefined as unknown as (msg: AnyMessage) => unknown;
-  onConsumerClosed?: (consumerId: string) => unknown = undefined;
+  onConsumerClosed?: consumerClosedCallback = undefined; // INFO for some reason I can't declare this function type inline. So i declared above ^
 
-  connect = (token) => {
+  connect = (token: string) => {
     return createSocket(token);
   }
 
@@ -85,13 +86,13 @@ export default class PeerClient {
     return new mediasoupClient.Device();
   }
 
-  async awaitConnection (): Promise<void> {
-    return new Promise((resolve) => {
-      // return this.socket.once('connect', () => resolve());
-      // TODO
-      resolve();
-    });
-  }
+  // async awaitConnection (): Promise<void> {
+  //   return new Promise((resolve) => {
+  //     // return this.socket.once('connect', () => resolve());
+  //     // TODO
+  //     resolve();
+  //   });
+  // }
 
   loadMediasoupDevice = async () => {
     console.log('this from loadMediasoupDevice: ', this);
@@ -120,7 +121,7 @@ export default class PeerClient {
     await sendRequest(setRtpCapabilitiesReq);
   }
 
-  async setName (name: string) {
+  setName = async (name: string) => {
     console.log('setting name', name);
     // return this.triggerSocketEvent('setName', name);
     // return this.socket.request('setName', { name });
@@ -128,7 +129,14 @@ export default class PeerClient {
     await sendRequest(setNameReq);
   }
 
-  async createGathering (gatheringName: string) {
+  findGathering = async (name: string) => {
+    const response = await sendRequest(createRequest('findGatheringByName', {
+      name: name,
+    }));
+    return response.data;
+  }
+
+  createGathering = async (gatheringName: string) => {
     const createGatheringReq = createRequest('createGathering', {
       gatheringName: gatheringName,
     });
@@ -137,7 +145,7 @@ export default class PeerClient {
     return response.data.gatheringId;
   }
 
-  async joinGathering (gatheringId: string) {
+  joinGathering = async (gatheringId: string) => {
     const joinGatheringReq = createRequest('joinGathering', { gatheringId });
     await sendRequest(joinGatheringReq);
     // if(!response.wasSuccess){
@@ -146,26 +154,26 @@ export default class PeerClient {
     // return response.
   }
 
-  async getGatheringState () {
-    const getRoomsReq = createRequest('getGatheringState');
-    const response = await sendRequest(getRoomsReq);
-    return response.data;
-  }
+   getGatheringState = async () => {
+     const getRoomsReq = createRequest('getGatheringState');
+     const response = await sendRequest(getRoomsReq);
+     return response.data;
+   }
 
-  async createRoom (roomName: string) {
-    const createRoomReq = createRequest('createRoom', {
-      name: roomName,
-    });
-    const response = await sendRequest(createRoomReq);
-    return response.data.roomId;
-  }
+   createRoom = async (roomName: string) => {
+     const createRoomReq = createRequest('createRoom', {
+       name: roomName,
+     });
+     const response = await sendRequest(createRoomReq);
+     return response.data.roomId;
+   }
 
-  async joinRoom (roomId: string) {
-    const joinRoomReq = createRequest('joinRoom', { roomId: roomId });
-    await sendRequest(joinRoomReq);
-    // this.closeAllConsumers();
-    // this.roomStore.currentRoomId = roomId;
-  }
+   joinRoom = async (roomId: string) => {
+     const joinRoomReq = createRequest('joinRoom', { roomId: roomId });
+     await sendRequest(joinRoomReq);
+     // this.closeAllConsumers();
+     // this.roomStore.currentRoomId = roomId;
+   }
 
   leaveRoom = async () => {
     const leaveRoomReq = createRequest('leaveRoom');
@@ -193,7 +201,7 @@ export default class PeerClient {
     this.attachTransportEvents(this.sendTransport);
   }
 
-  createReceiveTransport= async () => {
+  createReceiveTransport = async () => {
     if (!this.mediasoupDevice) {
       throw Error('cant create transport if mediasoup device isnt loaded');
     }
@@ -205,7 +213,7 @@ export default class PeerClient {
     this.attachTransportEvents(this.receiveTransport);
   }
 
-  attachTransportEvents (transport: mediasoupTypes.Transport) {
+  attachTransportEvents = (transport: mediasoupTypes.Transport) => {
     transport.on('connect', ({ dtlsParameters }: {dtlsParameters: mediasoupTypes.DtlsParameters}, callback: () => void, errback: (error: unknown) => void) => {
       void (async () => {
         const connectTransportReq = createRequest('connectTransport', {
@@ -305,11 +313,11 @@ export default class PeerClient {
     }
   }
 
-  pauseConsumer (consumerId: string) {
+  pauseConsumer = (consumerId: string) => {
     this.pauseResumeConsumer(consumerId, true);
   }
 
-  resumeConsumer (consumerId: string) {
+  resumeConsumer = (consumerId: string) => {
     this.pauseResumeConsumer(consumerId, false);
   }
 

@@ -26,8 +26,8 @@
         <h3 class="text-center">
           Join a private event
         </h3>
-        <div class="row q-gutter-md justify-between">
-          <q-form @submit.prevent="joinEvent(eventName)">
+        <q-form @submit.prevent="joinEvent(eventName)">
+          <div class="row q-gutter-md justify-between">
             <q-input
               outlined
               dense
@@ -40,8 +40,8 @@
               type="submit"
               icon-right="arrow_right"
             />
-          </q-form>
-        </div>
+          </div>
+        </q-form>
       </q-card>
     </div>
   </q-page>
@@ -49,11 +49,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import usePeerClient from 'src/composables/usePeerClient';
 import { guestJwt } from 'src/modules/authClient';
 import { useQuasar } from 'quasar';
 import { useUserStore } from 'src/stores/userStore';
 
+const router = useRouter();
 const peer = usePeerClient();
 const userStore = useUserStore();
 const $q = useQuasar();
@@ -69,9 +71,12 @@ const eventName = ref<string>('');
   $q.loading.hide();
 })();
 
-const joinEvent = () => {
+const joinEvent = async (eventName: string) => {
   await peer.connect(userStore.jwt);
-  await peer.joinGathering();
+  console.log('gonna find the event:', eventName);
+  const gathering = await peer.findGathering(eventName);
+  await peer.joinGathering(gathering.id);
+  router.push('/client');
 };
 
 </script>

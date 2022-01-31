@@ -116,6 +116,24 @@ export default class Client {
         this.send(response);
         break;
       }
+      case 'findGatheringByName': {
+        let response: ResponseTo<'findGatheringByName'>;
+        try{
+          const foundGathering = Gathering.getGathering({name: msg.data.name});
+          response = createResponse('findGatheringByName', msg.id, {
+            wasSuccess: true,
+            data: { id: foundGathering.id }
+          });
+        } catch(e){
+          response = createResponse('findGatheringByName', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to get gathering'),
+          }) ;
+        }
+        this.send(response);
+
+        break;
+      }
       case 'createGathering': {
         const gathering = await Gathering.createGathering(undefined, msg.data.gatheringName);
         this.gathering = gathering;
@@ -133,10 +151,11 @@ export default class Client {
           this.gathering.removeClient(this);
           this.gathering = undefined;
         }
+        // IMPORTANT
         // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join the gathering or not
         // console.log('request to join gathering', msg.data);
         // const gathering = Gathering.gatherings.get(msg.data.id);
-        const gathering = Gathering.getGathering(msg.data.gatheringId);
+        const gathering = Gathering.getGathering({id: msg.data.gatheringId});
         if(!gathering){
           console.warn('Cant join that gathering. Does not exist');
           return;

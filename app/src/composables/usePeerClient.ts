@@ -110,20 +110,20 @@ export default function usePeerClient () {
   //   return methods;
   // };
 
-  function pick<T extends PeerClient, U extends keyof T> (
-    obj: T,
-    paths: Array<U>,
-  ): Pick<T, U> {
-    const ret = Object.create(null);
-    for (const k of paths) {
-      ret[k] = obj[k];
-    }
-    return ret;
-  }
+  // function pick<T extends PeerClient, U extends keyof T> (
+  //   obj: T,
+  //   paths: Array<U>,
+  // ): Pick<T, U> {
+  //   const ret = Object.create(null);
+  //   for (const k of paths) {
+  //     ret[k] = obj[k];
+  //   }
+  //   return ret;
+  // }
 
   // const { loadMediasoupDevice } = peer;
   const customExports = { requestMedia, createAndJoinRoom, produce, joinGathering, joinRoom, onConsumerClosed };
-  const reExported = pick(peer, ['connect', 'sendRtpCapabilities', 'setName', 'createGathering', 'createRoom', 'loadMediasoupDevice', 'createSendTransport', 'createReceiveTransport', 'consume', 'pauseConsumer']);
+  // const reExported = pick(peer, ['connect', 'sendRtpCapabilities', 'setName', 'createGathering', 'createRoom', 'loadMediasoupDevice', 'createSendTransport', 'createReceiveTransport', 'consume', 'pauseConsumer']);
 
   return {
     // loadMediasoupDevice,
@@ -133,8 +133,8 @@ export default function usePeerClient () {
     // startProducing,
     // createAndJoinRoom,
     // consume,
-    ...reExported,
-    // ...peer,
+    // ...reExported,
+    ...peer, // Order matters here! customExports holds some overrides, so it must come after
     ...customExports,
     // peer,
     // peerId,

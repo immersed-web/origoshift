@@ -4,6 +4,14 @@ import { randomUUID } from 'crypto';
 import { createJwt } from 'shared-modules/jwtUtils';
 import { UserData } from 'shared-types/CustomTypes';
 import createUserRouter from './userRoutes';
+import Haikunator from 'haikunator';
+import wordlist from './haikunator-wordlist';
+
+const haikunator = new Haikunator({
+  adjectives: wordlist.adjectives,
+  nouns: wordlist.nouns,
+  defaults: { tokenLength: 2 }
+});
 
 // console.log('environment: ', process.env);
 const devMode = process.env.DEVELOPMENT;
@@ -30,8 +38,9 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/guest-jwt', (req, res) => {
+  const haikuName = haikunator.haikunate();
   const guestObject: UserData = {
-    username: 'guest',
+    username: haikuName,
     role: 'guest',
     allowedActions: [],
     uuid: randomUUID(),

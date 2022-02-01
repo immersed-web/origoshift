@@ -1,10 +1,12 @@
 <template>
-  <q-page padding>
-    <!-- content -->
-  </q-page>
+  <QPage padding>
+    <h3>Welcome! Login as Admin!</h3>
+    <login-box />
+  </QPage>
 </template>
 
 <script setup lang="ts">
+import LoginBox from 'src/components/LoginBox.vue';
 // export default {
 //   // name: 'PageName',
 // };

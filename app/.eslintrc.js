@@ -94,7 +94,8 @@ module.exports = {
     quotes: ['error', 'single', { avoidEscape: true }],
     'array-callback-return': ['warn', {
       checkForEach: true
-    }]
+    }],
+    'vue/component-name-in-template-casing': ['error', 'PascalCase'],
     
     // TypeScript
     indent: 'off',

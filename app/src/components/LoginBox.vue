@@ -41,12 +41,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['submit']);
-// // eslint-disable-next-line func-call-spacing, no-undef
-// defineEmits<{
-//   (e: 'change', id: number): void
-//   (e: 'update', value: string): void
-// }>();
+interface LoginBoxEmits {
+  (e: 'submit', creds: {username: string, password: string}): void
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const emits = defineEmits<LoginBoxEmits>();
 
 const username = ref<string>('Gunnar');
 const password = ref<string>('');

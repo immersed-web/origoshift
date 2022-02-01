@@ -86,14 +86,6 @@ export default class PeerClient {
     return new mediasoupClient.Device();
   }
 
-  // async awaitConnection (): Promise<void> {
-  //   return new Promise((resolve) => {
-  //     // return this.socket.once('connect', () => resolve());
-  //     // TODO
-  //     resolve();
-  //   });
-  // }
-
   loadMediasoupDevice = async () => {
     console.log('this from loadMediasoupDevice: ', this);
     if (!this.routerRtpCapabilities) {

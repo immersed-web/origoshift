@@ -41,6 +41,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+const emit = defineEmits(['submit']);
+// // eslint-disable-next-line func-call-spacing, no-undef
+// defineEmits<{
+//   (e: 'change', id: number): void
+//   (e: 'update', value: string): void
+// }>();
+
 const username = ref<string>('Gunnar');
 const password = ref<string>('');
 

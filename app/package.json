@@ -35,7 +35,7 @@
     "eslint-plugin-import": "^2.19.1",
     "eslint-plugin-node": "^11.0.0",
     "eslint-plugin-promise": "^5.1.0",
-    "eslint-plugin-vue": "^7.0.0"
+    "eslint-plugin-vue": "^8.0.0"
   },
   "browserslist": [
     "last 10 Chrome versions",

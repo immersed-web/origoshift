@@ -4,16 +4,18 @@
     class="q-pa-lg"
   >
     <QCardSection>
-      <div class="text-h6 text-center">
+      <div class="text-h4 text-center">
         Log In
       </div>
     </QCardSection>
-    <QCardSection>
+    <QCardSection class="q-gutter-md">
       <QInput
+        outlined
         label="username"
         v-model="username"
       />
       <QInput
+        outlined
         label="password"
         type="password"
         v-model="password"
@@ -21,6 +23,7 @@
     </QCardSection>
     <QCardActions
       align="right"
+      class="q-pa-md"
     >
       <QBtn
         color="primary"
@@ -46,6 +49,6 @@ const submit = () => {
 
 <style lang="scss">
 #login-container {
-  width: 35rem;
+  max-width: 25rem;
 }
 </style>

@@ -54,6 +54,7 @@ import usePeerClient from 'src/composables/usePeerClient';
 import { guestJwt } from 'src/modules/authClient';
 import { useQuasar } from 'quasar';
 import { useUserStore } from 'src/stores/userStore';
+import Timeout from 'await-timeout';
 
 const router = useRouter();
 const peer = usePeerClient();
@@ -66,7 +67,22 @@ const eventName = ref<string>('');
 
 // INFO: here we do the async work (suspense feature is still experimental)
 (async () => {
-  userStore.jwt = await guestJwt();
+  // await (async () => {
+  const fetchJwt = async () => {
+    if (userStore.jwt) {
+      console.log('already have an access token. will not fetch quest-token');
+      return;
+    }
+    try {
+      userStore.jwt = await guestJwt();
+    } catch (e) {
+      await Timeout.set(5000);
+      await fetchJwt();
+    }
+  };
+  await fetchJwt();
+  // })();
+
   // Hide loading spinner
   $q.loading.hide();
 })();

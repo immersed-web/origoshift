@@ -1,7 +1,8 @@
 <template>
   <QPage padding>
-    <h3>Welcome! Login as Admin!</h3>
-    <LoginBox />
+    <!-- <h3>Welcome! Login as Admin!</h3> -->
+
+    <LoginBox class="fixed-center" />
   </QPage>
 </template>
 

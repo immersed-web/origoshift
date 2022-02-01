@@ -10,4 +10,13 @@ const rootState: {
 
 export const useUserStore = defineStore('user', {
   state: () => (rootState),
+  getters: {
+    userData: (state) => {
+      try {
+        return JSON.parse(window.atob(state.jwt.split('.')[1]));
+      } catch (e) {
+        return '';
+      }
+    },
+  },
 });

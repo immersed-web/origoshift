@@ -45,13 +45,14 @@ interface LoginBoxEmits {
   (e: 'submit', creds: {username: string, password: string}): void
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const emits = defineEmits<LoginBoxEmits>();
+const emit = defineEmits<LoginBoxEmits>();
 
 const username = ref<string>('Gunnar');
 const password = ref<string>('');
 
 const submit = () => {
-  console.log('submitting login data:', username.value, password.value);
+  // console.log('loginbox emits login data:', username.value, password.value);
+  emit('submit', { username: username.value, password: password.value });
 };
 
 </script>

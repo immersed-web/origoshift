@@ -1,5 +1,6 @@
 // import { useConnectionStore } from '../stores/connectionStore';
 // import { pinia } from '../boot/pinia';
+import { TypedEmitter } from 'tiny-typed-emitter';
 import { Request, AnyResponse, SocketMessage, RequestSubjects, UnknownMessageType, SuccessResponseTo, AnySuccessResponse, AnyRequest, AnyMessage } from 'shared-types/MessageTypes';
 
 const requestTimeout = 3000;
@@ -9,9 +10,17 @@ const pendingRequests = new Map<number, {resolve: RequestResolver, reject: Reque
 
 let onReqOrMsgCallback: (msg: AnyRequest | AnyMessage) => unknown;
 
+interface SocketEvents {
+  'open': () => void;
+  'close': () => void;
+  'error': (error: Event) => void;
+}
+const socketEmitter = new TypedEmitter<SocketEvents>();
+export const connectionEvents = socketEmitter;
+
 let createSocketTimeout: number;
 let socket: WebSocket | null = null;
-export async function createSocket (token: string) {
+export async function createSocket (token: string): Promise<Event> {
   if (createSocketTimeout) {
     window.clearTimeout(createSocketTimeout);
   }
@@ -26,19 +35,22 @@ export async function createSocket (token: string) {
     console.error('no auth token provided for socket');
     throw new Error('no auth token provided!');
   }
-  const promise = new Promise((resolve, reject) => {
+  const promise = new Promise<Event>((resolve, reject) => {
     try {
       const connectionsString = `${process.env.MEDIASOUP_URL}/${process.env.MEDIASOUP_PATH}?${token}`;
       console.log('creating websocket with connectionsString;', connectionsString);
       socket = new WebSocket(connectionsString);
       socket.onopen = (ev) => {
+        socketEmitter.emit('open');
         console.log('connected: ', ev);
         resolve(ev);
       };
       socket.onerror = (err) => {
+        socketEmitter.emit('error', err);
         reject(err);
       };
       socket.onclose = (ev) => {
+        socketEmitter.emit('close');
         console.error(ev);
         console.error('socket closed. will try to reconnect!');
         retryIn(4);

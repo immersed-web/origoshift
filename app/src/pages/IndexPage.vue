@@ -125,7 +125,7 @@
 <script setup lang="ts">
 import { ref, watch, Ref, computed, nextTick } from 'vue';
 import { useConnectionStore } from 'src/stores/connectionStore';
-import { useRoomStore } from 'src/stores/roomStore';
+import { useSoupStore } from 'src/stores/soupStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { login, getMe, getJwt } from 'src/modules/authClient';
 import { createSocket } from 'src/modules/webSocket';
@@ -134,7 +134,7 @@ import { createSocket } from 'src/modules/webSocket';
 const { sendRtpCapabilities, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume, onConsumerClosed } = usePeerClient();
 // const { } = usePeerClient();
 const connectionStore = useConnectionStore();
-const roomStore = useRoomStore();
+const roomStore = useSoupStore();
 // const rooms = ref<RoomState[]>();
 const token = ref<string>('');
 const gatheringId = ref<string>('');

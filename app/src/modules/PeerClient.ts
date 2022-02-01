@@ -1,20 +1,10 @@
-// import { io, SocketExt } from 'socket.io-client';
-// import { io } from 'socket.io-client/build/index';
-// import { Socket } from 'socket.io-client/build/socket';
-// import { SocketExt } from 'socket.io-client';
-// import '../../socketAugmented';
-
 import { types as mediasoupTypes } from 'mediasoup-client';
 import * as mediasoupClient from 'mediasoup-client';
-// import { RoomState } from 'app/../types/types';
-import { createSocket, sendRequest, onSocketReceivedReqOrMsg } from 'src/modules/webSocket';
+import { createSocket, sendRequest, onSocketReceivedReqOrMsg, connectionEvents } from 'src/modules/webSocket';
 import { AnyMessage, AnyRequest, createRequest } from 'shared-types/MessageTypes';
-// import { pinia } from 'src/boot/pinia';
-// import { useRoomStore } from 'src/stores/roomStore';
 
 type consumerClosedCallback = (consumerId: string) => unknown;
 export default class PeerClient {
-  // socket: SocketExt;
   id = '';
   url?: string;
   mediasoupDevice: mediasoupTypes.Device;
@@ -23,6 +13,7 @@ export default class PeerClient {
   producers = new Map<string, mediasoupTypes.Producer>();
   consumers = new Map<string, mediasoupTypes.Consumer>();
   routerRtpCapabilities?: mediasoupTypes.RtpCapabilities;
+  connectionEvents = connectionEvents;
 
   onRequestCallback? = undefined as unknown as (msg: AnyRequest) => unknown;
   onMessageCallback? = undefined as unknown as (msg: AnyMessage) => unknown;

@@ -96,7 +96,7 @@ module.exports = configure(function (ctx) {
         type: 'http',
       },
       port: 8080,
-      open: true, // opens browser window automatically
+      open: false, // opens browser window automatically
       client: {
         // INFO: This is so we can do hot-reloading on remote server
         webSocketURL: 'auto://0.0.0.0:0/ws',

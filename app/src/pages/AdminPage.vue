@@ -3,23 +3,58 @@
     <!-- <h3>Welcome! Login as Admin!</h3> -->
 
     <LoginBox
-      v-if="true"
+      v-if="!soupStore.connected"
       @submit="submitted"
       class="fixed-center"
     />
+    <QCard v-else>
+      <QCardSection class="row">
+        <QInput
+          v-model="gatheringName"
+          label="gathering name"
+        />
+        <QBtn
+          label="create event"
+          @click="createAndJoinGathering(gatheringName)"
+        />
+      </QCardSection>
+      <QCardSection>
+        <QBtn
+          label="create room"
+          @click="peer.createAndJoinRoom(secretRoom)"
+        />
+      </QCardSection>
+      <QCardSection>
+        <QList>
+          <QItem
+            v-for="room in soupStore.gatheringState?.rooms"
+            :key="room.id"
+          >
+            <p> {{ room.roomId }}: {{ room.roomName }}</p>
+          </QItem>
+        </QList>
+      </QCardSection>
+    </QCard>
   </QPage>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import LoginBox from 'src/components/LoginBox.vue';
 import { getJwt, login } from 'src/modules/authClient';
-// import { useUserStore } from 'src/stores/userStore';
-// import { useRouter } from 'vue-router';
-// const router = useRouter();
 import usePeerClient from 'src/composables/usePeerClient';
-// const userStore = useUserStore();
 
+import { useSoupStore } from 'src/stores/soupStore';
+const soupStore = useSoupStore();
 const peer = usePeerClient();
+
+const gatheringName = ref<string>('');
+
+async function createAndJoinGathering (gatheringName:string) {
+  const gatheringId = await peer.createGathering(gatheringName);
+  await peer.joinGathering(gatheringId);
+}
+
 async function submitted (creds: Record<string, string>) {
   console.log('adminpage received login data');
   const { username, password } = creds;

@@ -1,35 +1,35 @@
 <template>
-  <q-card
+  <QCard
     id="login-container"
     class="q-pa-lg"
   >
-    <q-card-section>
+    <QCardSection>
       <div class="text-h6 text-center">
         Log In
       </div>
-    </q-card-section>
-    <q-card-section>
-      <q-input
+    </QCardSection>
+    <QCardSection>
+      <QInput
         label="username"
         v-model="username"
       />
-      <q-input
+      <QInput
         label="password"
         type="password"
         v-model="password"
       />
-    </q-card-section>
-    <q-card-actions
+    </QCardSection>
+    <QCardActions
       align="right"
     >
-      <q-btn
+      <QBtn
         color="primary"
         label="Login"
         @click="submit"
         q-card-actions
       />
-    </q-card-actions>
-  </q-card>
+    </QCardActions>
+  </QCard>
 </template>
 
 <script setup lang="ts">

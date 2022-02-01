@@ -1,7 +1,7 @@
 <template>
-  <q-page>
+  <QPage>
     <p>
-      Connected: {{ connectionStore.connected }} <q-toggle
+      Connected: {{ connectionStore.connected }} <QToggle
         :label="'uiMode ' + uiMode"
         v-model="uiMode"
         true-value="admin"
@@ -9,14 +9,14 @@
       />
     </p>
     <div class="row">
-      <q-list
+      <QList
         dense
       >
-        <q-item
+        <QItem
           v-for="adminOption in (uiMode === 'admin'? adminUI : clientUI)"
           :key="adminOption.label"
         >
-          <q-btn
+          <QBtn
             v-if="'fn' in adminOption"
             :label="adminOption.label"
             @click="adminOption.fn"
@@ -27,7 +27,7 @@
           >
             <p><strong>{{ adminOption.label }}: &nbsp; </strong> </p> <p>{{ adminOption.data.value }}</p>
           </div>
-          <q-select
+          <QSelect
             v-else-if="'options' in adminOption"
             style="width: 20rem;"
             :option-value="'deviceId'"
@@ -35,12 +35,12 @@
             v-model="adminOption.model.value"
             :options="adminOption.options.value"
           />
-          <q-input
+          <QInput
             v-else-if="'model' in adminOption"
             :label="adminOption.label"
             v-model="adminOption.model.value"
           />
-        </q-item>
+        </QItem>
         <!-- <q-item
           v-for="action in actions"
           :key="action.label"
@@ -64,24 +64,24 @@
         label="create room"
         @click="createRoom('testRum')"
       /> -->
-      </q-list>
-      <q-list
+      </QList>
+      <QList
         v-if="uiMode === 'client'"
         dense
       >
-        <q-item-label>
+        <QItemLabel>
           Room list:
-        </q-item-label>
-        <q-item
+        </QItemLabel>
+        <QItem
           v-for="room in roomStore.gatheringState?.rooms"
           :key="room.roomId"
         >
-          <q-icon
+          <QIcon
             v-if="roomStore.currentRoomId === room.roomId "
             name="keyboard_arrow_right"
             size="xl"
           />
-          <q-btn
+          <QBtn
             :label="room.roomId"
             @click="joinRoomAndStartConsuming(room.roomId)"
           />
@@ -97,10 +97,10 @@
               />
             </q-item>
           </template> -->
-        </q-item>
-      </q-list>
-      <q-list id="video-list">
-        <q-item
+        </QItem>
+      </QList>
+      <QList id="video-list">
+        <QItem
           v-for="stream in receivedStreams"
           :key="stream.id"
         >
@@ -108,8 +108,8 @@
             width="100px"
             autoplay
           />
-        </q-item>
-      </q-list>
+        </QItem>
+      </QList>
     </div>
     <div class="row q-mt-xl">
       <video
@@ -119,7 +119,7 @@
     </div>
 
     <!-- <pre>{{ roomStore }}</pre> -->
-  </q-page>
+  </QPage>
 </template>
 
 <script setup lang="ts">

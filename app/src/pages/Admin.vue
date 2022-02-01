@@ -1,7 +1,7 @@
 <template>
   <QPage padding>
     <h3>Welcome! Login as Admin!</h3>
-    <login-box />
+    <LoginBox />
   </QPage>
 </template>
 

@@ -7,6 +7,7 @@ export default class Room {
   // router: soup.Router;
   id: string;
   roomName: string | undefined;
+  mainProducer?: soupTypes.Producer;
   clients: Map<string, Client> = new Map();
   gathering: Gathering;
   get producers(): ReadonlyMap<string, soupTypes.Producer> {
@@ -16,6 +17,9 @@ export default class Room {
         producers.set(producer.id, producer);
       });
     });
+    if(this.mainProducer){
+      producers.set(this.mainProducer.id, this.mainProducer);
+    }
     return producers;
   }
 
@@ -61,24 +65,29 @@ export default class Room {
   }
 
   getRoomState() {
+    // const clients: RoomState['clients'] = {};
+    // this.clients.forEach((client, clientId) => {
+    //   const nickName = client.nickName;
+    //   const producers: RoomState['clients'][string]['producers'] = {};
+    //   client.producers.forEach((producer, producerId) => {
+    //     producers[producerId] = {
+    //       producerId: producerId,
+    //       kind: producer.kind,
+    //     };
+    //   });
+    //   clients[clientId] = { 
+    //     nickName,
+    //     clientId,
+    //     producers};
+    // });
     const clients: RoomState['clients'] = {};
-    this.clients.forEach((client, clientId) => {
-      const nickName = client.nickName;
-      const producers: RoomState['clients'][string]['producers'] = {};
-      client.producers.forEach((producer, producerId) => {
-        producers[producerId] = {
-          producerId: producerId,
-          kind: producer.kind,
-        };
-      });
-      clients[clientId] = { 
-        nickName,
-        clientId,
-        producers};
+    this.clients.forEach(client => {
+      clients[client.id] = client.clientState;
     });
 
     const roomInfo: RoomState = {
       roomId: this.id,
+      roomName: this.roomName,
       clients: clients,
     };
     return roomInfo;

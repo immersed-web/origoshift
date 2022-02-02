@@ -5,6 +5,8 @@ import {types as soupClientTypes} from 'mediasoup-client';
 import { ClientState, UserData, UserRole } from 'shared-types/CustomTypes';
 import { AnyRequest, createMessage, createRequest, createResponse, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
+// import { checkPermission } from '../modules/utilFns';
+import { checkPermission } from '../modules/utilFns';
 
 import Room from './Room';
 import Gathering from './Gathering';
@@ -21,11 +23,22 @@ export default class Client {
   id: string;
   private ws: SocketWrapper;
 
-  nickName = 'unnamed';
+  // TODO userdata should probably be required field in this class?!
+  userData?: UserData;
+  get userName(): string{
+    if(this.userData?.username){
+      return this.userData.username;
+    }
+    return 'John Doe';
+  }
+  get role (): UserRole {
+    if(this.userData?.role){
+      return this.userData.role;
+    }
+    return 'guest';
+  }
   connected = true;
 
-  role: UserRole = 'guest';
-  userData?: UserData;
 
   rtpCapabilities?: soupTypes.RtpCapabilities;
   receiveTransport?: soupTypes.WebRtcTransport;
@@ -41,7 +54,7 @@ export default class Client {
     this.ws = ws;
     if(userData){
       this.userData = userData;
-      this.nickName = userData.username;
+      // this.nickName = userData.username;
     }
 
 
@@ -69,14 +82,27 @@ export default class Client {
       console.error('no id in received request!!!');
       return;
     }
+    //check authorization
+    if(!checkPermission(this.userData, msg.subject)){
+      const response = createResponse(msg.subject, msg.id, {
+        wasSuccess: false,
+        message: 'NOT AUTHORIZED!!!! Get outta here!!'
+      });
+      this.send(response);
+      return;
+    }
     // console.log('received Request!!');
     switch (msg.subject) {
       case 'setName': {
-        this.nickName = msg.data.name;
-        const response = createResponse('setName', msg.id, {
-          wasSuccess: true,
-        });
-        this.send(response);
+        this.send(createResponse('setName', msg.id, {
+          wasSuccess: false,
+          message: 'NOT IMPLEMENTED YET!!! GO AWAAAY!',
+        }));
+        // this.nickName = msg.data.name;
+        // const response = createResponse('setName', msg.id, {
+        //   wasSuccess: true,
+        // });
+        // this.send(response);
         break;
       }
       case 'getClientState': {
@@ -143,6 +169,34 @@ export default class Client {
           },
           wasSuccess: true,
         });
+        this.send(response);
+        break;
+      }
+      case 'joinGatheringAsSender': {
+        let response: ResponseTo<'joinGatheringAsSender'>;
+        try {
+
+          if(this.gathering){
+            this.gathering.removeClient(this);
+            this.gathering = undefined;
+          }
+
+          const gathering = Gathering.getGathering({id: msg.data.gatheringId});
+          if(!gathering){
+            throw new Error('Cant join that gathering. Does not exist');
+          }
+          gathering.addSender(this);
+          this.gathering = gathering;
+
+          response = createResponse('joinGatheringAsSender', msg.id, {
+            wasSuccess: true,
+          });
+        } catch(e){
+          response = createResponse('joinGatheringAsSender', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to joingathering as sender. Verrrry Saad'),
+          });
+        }
         this.send(response);
         break;
       }
@@ -352,6 +406,31 @@ export default class Client {
         this.send(response);
         break;
       }
+      case 'assignMainProducerToRoom': {
+        let response: ResponseTo<'assignMainProducerToRoom'>;
+        const reqParams = msg.data;
+        try {
+          const room = this.gathering?.getRoom(reqParams.roomId);
+          if(!room) {
+            throw new Error('no such room maddafakka!');
+          }
+          const producer = this.gathering?.getClient(reqParams.clientId).producers.get(reqParams.producerId);
+          if(!producer){
+            throw new Error('no such producer found!');
+          }
+          room.mainProducer = producer;
+          response = createResponse('assignMainProducerToRoom', msg.id, { 
+            wasSuccess: true,
+          });
+        } catch(e){
+          response = createResponse('assignMainProducerToRoom', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to assign producer to room!! Now cry!'),
+          });
+        }
+        this.send(response);
+        break;
+      }
       case 'createProducer': {
         // A producer on server side represents a client producing media and sending it to the server.
         try {
@@ -361,7 +440,6 @@ export default class Client {
             throw Error('the provided transporId didnt math the id of the sendTransport');
           }
           const {kind, rtpParameters, transportId: id} = msg.data;
-          // TODO: create this in paused state!
           const producer = await this.sendTransport.produce({id, kind, rtpParameters});
           producer.on('transportclose', () => {
             console.log(`transport for producer ${producer.id} was closed`);
@@ -488,8 +566,20 @@ export default class Client {
   };
 
   get clientState(){
+    const producers: ClientState['producers'] = {};
+    for(const [_, producer] of this.producers){
+      
+      producers[producer.id] = {
+        producerId: producer.id,
+        kind: producer.kind,
+      };
+    }
     const state: ClientState = {
-      // clientId: this.id,
+      clientId: this.id,
+      username: this.userName,
+      connected: this.connected,
+      role: this.role,
+      producers: producers,
     };
     if(this.gathering){
       state.gatheringId = this.gathering.id;

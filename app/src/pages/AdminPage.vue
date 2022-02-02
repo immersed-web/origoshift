@@ -12,7 +12,7 @@
         v-if="!soupStore.gatheringState"
         class="row"
         tag="form"
-        @submit="createAndJoinGathering(gatheringName)"
+        @submit.prevent="createAndJoinGathering(gatheringName)"
       >
         <QInput
           outlined
@@ -40,6 +40,9 @@
           </QItem>
         </QList>
       </QCardSection>
+      <QCardSection>
+        <pre>{{ soupStore.gatheringState }}</pre>
+      </QCardSection>
     </QCard>
   </QPage>
 </template>
@@ -55,10 +58,10 @@ const soupStore = useSoupStore();
 const peer = usePeerClient();
 
 const gatheringName = ref<string>('');
-
 async function createAndJoinGathering (gatheringName:string) {
   const gatheringId = await peer.createGathering(gatheringName);
-  await peer.joinGathering(gatheringId);
+  await peer.joinGatheringAsSender(gatheringId);
+  soupStore.gatheringState = await peer.getGatheringState();
 }
 
 async function submitted (creds: Record<string, string>) {

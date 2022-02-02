@@ -63,6 +63,9 @@ export default class Gathering {
   name;
   router: soup.Router;
 
+  // Is it possible security risk that all:ish clients have a reference to the gathering and thus to the sender map?
+  private senderClients: Map<string, Client> = new Map();
+
   private rooms: Map<string, Room> = new Map();
 
   // TODO: perhaps make this a getter. Then we wouldn't need as much housekeeping for maintaining sync between clients in rooms and clients in gathering.
@@ -84,14 +87,32 @@ export default class Gathering {
     Gathering.gatherings.set(this.id, this);
   }
 
+  addSender(client: Client){
+    this.senderClients.set(client.id, client);
+  }
+
+  removeSender(client: Client){
+    this.senderClients.delete(client.id);
+  }
+
   addClient ( client : Client){
     this.clients.set(client.id, client);
     // We dont broadcast when a client joins. Broadcast is only relevant when they actually join a room
+    // At this stage we send the state back to the joining client so they are up to date with the others.
     this.sendGatheringStateTo(client);
   }
 
   removeClient (client: Client) {
     this.clients.delete(client.id);
+  }
+
+  // TODO: Somewhere in the server we probably need to protect access to this function 
+  getClient (clientId: string){
+    const client = this.clients.get(clientId);
+    if(!client){
+      throw new Error('no client with that id in gathering');
+    }
+    return client;
   }
 
   getRtpCapabilities(): soup.RtpCapabilities {
@@ -116,7 +137,9 @@ export default class Gathering {
     const gatheringState = this.getGatheringState();
     console.log(`gonna broadcast to ${this.clients.size} clients`);
 
-    this.clients.forEach((client) => {
+    const receivers = [...this.clients, ...this.senderClients];
+
+    receivers.forEach(([clientId, client]) => {
       if(client.id in clientsToSkip){
         console.log('skipping client:', client.id);
         return;
@@ -138,13 +161,16 @@ export default class Gathering {
   }
 
   getGatheringState() {
-    const gatheringState: GatheringState = { gatheringId: this.id, rooms: {} };
+    const gatheringState: GatheringState = { gatheringId: this.id, rooms: {}, senderClients: {} };
     if(this.name){
       gatheringState.gatheringName = this.name;
     }
     this.rooms.forEach((room) => {
       const roomstate = room.getRoomState();
       gatheringState.rooms[room.id] = roomstate;
+    });
+    this.senderClients.forEach(senderClient => {
+      gatheringState.senderClients[senderClient.id] = senderClient.clientState;
     });
     return gatheringState;
   }

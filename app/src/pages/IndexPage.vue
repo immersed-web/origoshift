@@ -99,7 +99,10 @@
           </template> -->
         </QItem>
       </QList>
-      <QList id="video-list">
+      <QList
+        id="video-list"
+        class="bg-grey"
+      >
         <QItem
           v-for="stream in receivedStreams"
           :key="stream.id"
@@ -131,7 +134,7 @@ import { login, getMe, getJwt } from 'src/modules/authClient';
 import { createSocket } from 'src/modules/webSocket';
 // import { RoomState } from 'shared-types/CustomTypes';
 
-const { sendRtpCapabilities, createRoom, createGathering, joinGathering, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume, onConsumerClosed } = usePeerClient();
+const { sendRtpCapabilities, createRoom, createGathering, joinGathering, joinGatheringAsSender, getRouterCapabilities, joinRoom, loadMediasoupDevice, requestMedia, createSendTransport, createReceiveTransport, produce, consume, onConsumerClosed } = usePeerClient();
 // const { } = usePeerClient();
 const connectionStore = useConnectionStore();
 const roomStore = useSoupStore();
@@ -175,6 +178,7 @@ const uiMode = ref<'admin' | 'client'>('client');
 
 watch(receivedTracks, async (newValue) => {
   await nextTick();
+  await nextTick();
   console.log('recievedTracks updated:', newValue);
   const videoList = document.getElementById('video-list');
   if (!videoList) return;
@@ -182,6 +186,7 @@ watch(receivedTracks, async (newValue) => {
     const children = videoList.children;
     for (const child of children) {
       const video : HTMLVideoElement = child.firstElementChild as HTMLVideoElement;
+      console.log('videoElement:', video);
       video.srcObject = new MediaStream([track]);
     }
   });
@@ -286,10 +291,11 @@ const adminUI: (Action | DataField | DataInput | DataSelect) [] = [
     model: gatheringId,
   },
   {
-    label: 'joingathering, sendTransport & loadDev',
+    label: 'joingatheringAsSender, sendTransport & loadDev',
     fn: async () => {
       // gatheringId.value = await createGathering('coolEvent');
-      await joinGathering(gatheringId.value);
+      await joinGatheringAsSender(gatheringId.value);
+      await getRouterCapabilities();
       await loadMediasoupDevice();
       await createSendTransport();
     },
@@ -338,6 +344,17 @@ const adminUI: (Action | DataField | DataInput | DataSelect) [] = [
       }
       const createdRoomId = await createRoom('coolRoom' + Math.floor(Math.random() * 100));
       await joinRoom(createdRoomId);
+      produce(localStream.value);
+    },
+  },
+  {
+    label: 'produce video',
+    fn: async () => {
+      if (!localStream.value) {
+        throw Error('no stream!!! Get video input first!!');
+      }
+      // const createdRoomId = await createRoom('coolRoom' + Math.floor(Math.random() * 100));
+      // await joinRoom(createdRoomId);
       produce(localStream.value);
     },
   },

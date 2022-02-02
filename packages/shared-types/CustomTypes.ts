@@ -7,37 +7,50 @@ import {types as soup} from 'mediasoup';
 import { RequestSubjects } from './MessageTypes';
 
 export interface ClientState {
+  clientId: string;
+  username?: string;
   gatheringId?: string;
   roomId?: string;
+  connected: boolean;
+  role: UserRole,
+  producers: {
+    [producerId: string]: {
+      producerId: string;
+      kind: soup.MediaKind;
+    }
+  }
 }
 
 export interface RoomState {
   roomId: string;
   roomName?: string;
   clients: {
-      [clientId: string]: {
-      clientId: string;
-      nickName?: string;
-      producers:  {
-        [producerId: string]: {
-          producerId: string;
-          kind: soup.MediaKind;
-        }
-      }
-    }
+      [clientId: string]: ClientState;
+      // {
+      // clientId: string;
+      // nickName?: string;
+      // producers:  {
+      //   [producerId: string]: {
+      //     producerId: string;
+      //     kind: soup.MediaKind;
+      //   }
+      // }
   }
 }
 
 export interface GatheringState {
   gatheringId: string;
   gatheringName?: string;
+  senderClients: {
+    [clientId: string] : ClientState
+  };
   rooms: {
     [roomId: string ] : RoomState;
   }
 }
 
 // export type AllowedActions  = Extract<RequestSubjects, 'createGathering' |'joinGathering' | 'gatheringState' | 'createRoom' | 'joinRoom'>
-export type AllowedAction  = RequestSubjects;
+export type AllowedAction  = RequestSubjects | '*';
 export interface UserData {
   uuid: string,
   username: string,

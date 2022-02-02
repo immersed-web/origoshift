@@ -137,26 +137,31 @@ export default class PeerClient {
     // return response.
   }
 
-   getGatheringState = async () => {
-     const getRoomsReq = createRequest('getGatheringState');
-     const response = await sendRequest(getRoomsReq);
-     return response.data;
-   }
+  joinGatheringAsSender = async (gatheringId:string) => {
+    const joinGatheringAsSenderReq = createRequest('joinGatheringAsSender', { gatheringId });
+    await sendRequest(joinGatheringAsSenderReq);
+  }
 
-   createRoom = async (roomName: string) => {
-     const createRoomReq = createRequest('createRoom', {
-       name: roomName,
-     });
-     const response = await sendRequest(createRoomReq);
-     return response.data.roomId;
-   }
+  getGatheringState = async () => {
+    const getRoomsReq = createRequest('getGatheringState');
+    const response = await sendRequest(getRoomsReq);
+    return response.data;
+  }
 
-   joinRoom = async (roomId: string) => {
-     const joinRoomReq = createRequest('joinRoom', { roomId: roomId });
-     await sendRequest(joinRoomReq);
-     // this.closeAllConsumers();
-     // this.roomStore.currentRoomId = roomId;
-   }
+  createRoom = async (roomName: string) => {
+    const createRoomReq = createRequest('createRoom', {
+      name: roomName,
+    });
+    const response = await sendRequest(createRoomReq);
+    return response.data.roomId;
+  }
+
+  joinRoom = async (roomId: string) => {
+    const joinRoomReq = createRequest('joinRoom', { roomId: roomId });
+    await sendRequest(joinRoomReq);
+    // this.closeAllConsumers();
+    // this.roomStore.currentRoomId = roomId;
+  }
 
   leaveRoom = async () => {
     const leaveRoomReq = createRequest('leaveRoom');

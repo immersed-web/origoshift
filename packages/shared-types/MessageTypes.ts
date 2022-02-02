@@ -46,7 +46,7 @@ export type AnyRequest =
     wasPaused: boolean
   }>
   | RequestBuilder<'createProducer', {
-    transportId: string, // TODO: is this field needed? Where and when?
+    transportId: string,
     kind: mediasoupClientTypes.MediaKind,
     rtpParameters: mediasoupClientTypes.RtpParameters
   }>
@@ -70,6 +70,9 @@ export type AnyRequest =
   | RequestBuilder<'joinGathering', {
     gatheringId: string,
   }>
+  | RequestBuilder<'joinGatheringAsSender', {
+    gatheringId: string,
+  }>
   | RequestBuilder<'leaveGathering'>
   | RequestBuilder<'getGatheringState'>
   | RequestBuilder<'createRoom', {
@@ -80,6 +83,11 @@ export type AnyRequest =
   }>
   | RequestBuilder<'leaveRoom'>
   | RequestBuilder<'roomStateUpdated', RoomState>
+  | RequestBuilder<'assignMainProducerToRoom',{
+    producerId: string,
+    clientId: string,
+    roomId: string,
+  }>
 
 export type AnyMessage = 
   MessageBuilder<'gatheringStateUpdated', GatheringState>
@@ -141,12 +149,14 @@ export type AnyResponse =
   }>
   | ResponseBuilder<'createGathering', {gatheringId: string}>
   | ResponseBuilder<'joinGathering'>
+  | ResponseBuilder<'joinGatheringAsSender'>
   | ResponseBuilder<'leaveGathering', {gatheringId: string}>
   | ResponseBuilder<'getGatheringState', GatheringState>
   | ResponseBuilder<'createRoom', {roomId: string}>
   | ResponseBuilder<'joinRoom'>
   | ResponseBuilder<'leaveRoom', {roomId: string}>
   | ResponseBuilder<'roomStateUpdated'>
+  | ResponseBuilder<'assignMainProducerToRoom'>
 
 export type AnySuccessResponse = Extract<AnyResponse, { wasSuccess: true }>;
 export type AnyFailResponse = Extract<AnyResponse, { wasSuccess: false }>;

@@ -187,31 +187,44 @@ export default class Client {
         break; 
       }
       case 'getGatheringState': {
-        if(!this.gathering){
-          console.warn('cant list rooms if isnt in a gathering');
-          return;
+        let response: ResponseTo<'getGatheringState'>;
+        try{
+          if(!this.gathering){
+            throw new Error('cant list rooms if isnt in a gathering');
+          }
+          const gatheringState = this.gathering.getGatheringState();
+          response = createResponse('getGatheringState', msg.id, {
+            wasSuccess: true,
+            data: gatheringState
+          });
+        } catch (e) {
+          response = createResponse('getGatheringState', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to get gathering state! You cry!');
+          });
         }
-        const gatheringState = this.gathering.getGatheringState();
-        const response = createResponse('getGatheringState', msg.id, {
-          wasSuccess: true,
-          data: gatheringState
-        });
         this.send(response);
         break;
       }
       case 'createRoom': {
-        if(!this.gathering){
-          console.error('no gathering to put the created room in!!!');
-          return;
-        }
-        const room = this.gathering.createRoom({roomName: msg.data.name});
-        // this.room = room;
-        const response = createResponse('createRoom', msg.id, {
-          wasSuccess: true,
-          data: {
-            roomId: room.id
+        let response: ResponseTo<'createRoom'>;
+        try {
+          if(!this.gathering){
+            throw new Error('no gathering to put the created room in!!!');
           }
-        });
+          const room = this.gathering.createRoom({roomName: msg.data.name});
+          response = createResponse('createRoom', msg.id, {
+            wasSuccess: true,
+            data: {
+              roomId: room.id
+            }
+          });
+        } catch (e) {
+         response = createResponse('createRoom', msg.id, {
+           wasSuccess: false,
+           message: extractMessageFromCatch(e, 'failed to create room!!')
+         }) 
+        }
         this.send(response);
         break;
       }

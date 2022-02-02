@@ -204,7 +204,7 @@ export default class Client {
           console.error('no gathering to put the created room in!!!');
           return;
         }
-        const room = this.gathering.createRoom();
+        const room = this.gathering.createRoom({roomName: msg.data.name});
         // this.room = room;
         const response = createResponse('createRoom', msg.id, {
           wasSuccess: true,

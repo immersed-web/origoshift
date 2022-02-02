@@ -6,6 +6,7 @@ import {types as soupTypes } from 'mediasoup';
 export default class Room {
   // router: soup.Router;
   id: string;
+  roomName: string | undefined;
   clients: Map<string, Client> = new Map();
   gathering: Gathering;
   get producers(): ReadonlyMap<string, soupTypes.Producer> {
@@ -18,14 +19,15 @@ export default class Room {
     return producers;
   }
 
-  static createRoom(id: string = randomUUID(), gathering: Gathering): Room {
-    const createdRoom = new Room(id, gathering);
+  static createRoom(params: {roomId?: string, roomName?: string, gathering: Gathering}): Room {
+    const createdRoom = new Room(params);
     return createdRoom;
   }
 
-  private constructor(id: string, gathering: Gathering) {
-    this.id = id;
+  private constructor({roomId = randomUUID(), roomName, gathering}: {roomId?: string, roomName?: string, gathering: Gathering}) {
+    this.id = roomId;
     this.gathering = gathering;
+    this.roomName = roomName;
   }
 
   addClient(client: Client){

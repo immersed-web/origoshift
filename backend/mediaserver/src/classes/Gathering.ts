@@ -98,8 +98,8 @@ export default class Gathering {
     return this.router.rtpCapabilities;
   }
 
-  createRoom(roomId?: string){
-    const room = Room.createRoom(roomId, this);
+  createRoom({roomId, roomName}: {roomId?: string, roomName?: string}){
+    const room = Room.createRoom({roomId, roomName, gathering: this});
     this.rooms.set(room.id, room);
     this.broadCastGatheringState();
 

@@ -8,27 +8,33 @@
       class="fixed-center"
     />
     <QCard v-else>
-      <QCardSection class="row">
+      <QCardSection
+        v-if="!soupStore.gatheringState"
+        class="row"
+        tag="form"
+        @submit="createAndJoinGathering(gatheringName)"
+      >
         <QInput
+          outlined
           v-model="gatheringName"
           label="gathering name"
         />
         <QBtn
           label="create event"
-          @click="createAndJoinGathering(gatheringName)"
+          type="submit"
         />
       </QCardSection>
       <QCardSection>
         <QBtn
           label="create room"
-          @click="peer.createAndJoinRoom(secretRoom)"
+          @click="peer.createAndJoinRoom('secretRoom')"
         />
       </QCardSection>
       <QCardSection>
         <QList>
           <QItem
             v-for="room in soupStore.gatheringState?.rooms"
-            :key="room.id"
+            :key="room.roomId"
           >
             <p> {{ room.roomId }}: {{ room.roomName }}</p>
           </QItem>

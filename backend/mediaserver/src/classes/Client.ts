@@ -200,7 +200,7 @@ export default class Client {
         } catch (e) {
           response = createResponse('getGatheringState', msg.id, {
             wasSuccess: false,
-            message: extractMessageFromCatch(e, 'failed to get gathering state! You cry!');
+            message: extractMessageFromCatch(e, 'failed to get gathering state! You cry!'),
           });
         }
         this.send(response);
@@ -220,10 +220,10 @@ export default class Client {
             }
           });
         } catch (e) {
-         response = createResponse('createRoom', msg.id, {
-           wasSuccess: false,
-           message: extractMessageFromCatch(e, 'failed to create room!!')
-         }) 
+          response = createResponse('createRoom', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to create room!!')
+          }); 
         }
         this.send(response);
         break;

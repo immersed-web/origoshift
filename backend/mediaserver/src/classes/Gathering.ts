@@ -49,7 +49,7 @@ export default class Gathering {
 
   private static getGatheringFromName(name:string): Gathering {
     console.log('searching gathering with name:',name);
-    for (const [key, gathering] of Gathering.gatherings) {
+    for (const [ _ , gathering] of Gathering.gatherings) {
       console.log('checking gathering:', gathering);
       if(gathering.name === name){
         return gathering;

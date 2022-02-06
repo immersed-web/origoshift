@@ -116,7 +116,7 @@ export default class PeerClient {
     const response = await sendRequest(createRequest('findGatheringByName', {
       name: name,
     }));
-    return response.data;
+    return response.data.id;
   }
 
   createGathering = async (gatheringName: string) => {
@@ -201,7 +201,7 @@ export default class PeerClient {
     this.attachTransportEvents(this.receiveTransport);
   }
 
-  attachTransportEvents = (transport: mediasoupTypes.Transport) => {
+  private attachTransportEvents = (transport: mediasoupTypes.Transport) => {
     transport.on('connect', ({ dtlsParameters }: {dtlsParameters: mediasoupTypes.DtlsParameters}, callback: () => void, errback: (error: unknown) => void) => {
       void (async () => {
         const connectTransportReq = createRequest('connectTransport', {

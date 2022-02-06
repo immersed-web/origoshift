@@ -41,6 +41,12 @@
         </QList>
       </QCardSection>
       <QCardSection>
+        <DevicePicker
+          style="width: 20rem"
+          media-type="videoinput"
+        />
+      </QCardSection>
+      <QCardSection>
         <pre>{{ soupStore.gatheringState }}</pre>
       </QCardSection>
     </QCard>
@@ -54,10 +60,11 @@ import { getJwt, login } from 'src/modules/authClient';
 import usePeerClient from 'src/composables/usePeerClient';
 
 import { useSoupStore } from 'src/stores/soupStore';
+import DevicePicker from 'src/components/DevicePicker.vue';
 const soupStore = useSoupStore();
 const peer = usePeerClient();
 
-const gatheringName = ref<string>('');
+const gatheringName = ref<string>('testEvent');
 async function createAndJoinGathering (gatheringName:string) {
   const gatheringId = await peer.createGathering(gatheringName);
   await peer.joinGatheringAsSender(gatheringId);

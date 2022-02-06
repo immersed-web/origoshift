@@ -89,10 +89,12 @@ export default class Gathering {
 
   addSender(client: Client){
     this.senderClients.set(client.id, client);
+    this.broadCastGatheringState();
   }
 
   removeSender(client: Client){
     this.senderClients.delete(client.id);
+    this.broadCastGatheringState();
   }
 
   addClient ( client : Client){

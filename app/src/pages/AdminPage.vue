@@ -33,20 +33,45 @@
       <QCardSection>
         <QList>
           <QItem
+            tag="label"
             v-for="room in soupStore.gatheringState?.rooms"
             :key="room.roomId"
           >
-            <p> {{ room.roomId }}: {{ room.roomName }}</p>
+            <QItemSection avatar>
+              <QRadio
+                v-model="selectedRoomId"
+                :val="room.roomId"
+              />
+            </QItemSection>
+            <QItemSection>
+              {{ room.roomName }}
+            </QItemSection>
           </QItem>
         </QList>
       </QCardSection>
       <QCardSection>
-        <DevicePicker
-          style="width: 20rem"
-          media-type="videoinput"
-        />
-      </QCardSection>
-      <QCardSection>
+        <QList>
+          <QItem
+            v-for="sender in soupStore.gatheringState?.senderClients"
+            :key="sender.clientId"
+          >
+            <QList>
+              <QItemLabel>
+                {{ sender.username }}
+              </QItemLabel>
+              <QItem
+                v-for="producer in sender.producers"
+                :key="producer.producerId"
+              >
+                <QBtn
+                  :disable="!selectedRoomId"
+                  :label="producer.producerId"
+                  @click="peer.assignProducerToRoom(sender.clientId, producer.producerId, selectedRoomId)"
+                />
+              </QItem>
+            </QList>
+          </QItem>
+        </QList>
         <pre>{{ soupStore.gatheringState }}</pre>
       </QCardSection>
     </QCard>
@@ -60,11 +85,11 @@ import { getJwt, login } from 'src/modules/authClient';
 import usePeerClient from 'src/composables/usePeerClient';
 
 import { useSoupStore } from 'src/stores/soupStore';
-import DevicePicker from 'src/components/DevicePicker.vue';
 const soupStore = useSoupStore();
 const peer = usePeerClient();
 
 const gatheringName = ref<string>('testEvent');
+const selectedRoomId = ref<string>();
 async function createAndJoinGathering (gatheringName:string) {
   const gatheringId = await peer.createGathering(gatheringName);
   await peer.joinGatheringAsSender(gatheringId);
@@ -79,4 +104,8 @@ async function submitted (creds: Record<string, string>) {
   peer.connect(jwt);
   // router.push()
 }
+
+// async function assignProducerToCurrentRoom (producerId: string) {
+//   peer.assignProducerToRoom();
+// }
 </script>

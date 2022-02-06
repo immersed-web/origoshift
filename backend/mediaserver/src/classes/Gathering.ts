@@ -97,6 +97,14 @@ export default class Gathering {
     this.broadCastGatheringState();
   }
 
+  getSender (clientId: string){
+    const client = this.senderClients.get(clientId);
+    if(!client){
+      throw new Error('no client with that id in gathering');
+    }
+    return client;
+  }
+
   addClient ( client : Client){
     this.clients.set(client.id, client);
     // We dont broadcast when a client joins. Broadcast is only relevant when they actually join a room

@@ -90,8 +90,8 @@ const eventName = ref<string>('');
 const joinEvent = async (eventName: string) => {
   await peer.connect(userStore.jwt);
   console.log('gonna find the event:', eventName);
-  const gathering = await peer.findGathering(eventName);
-  await peer.joinGathering(gathering.id);
+  const gatheringId = await peer.findGathering(eventName);
+  await peer.joinGathering(gatheringId);
   router.push('/client');
 };
 

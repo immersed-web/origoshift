@@ -262,6 +262,13 @@ export default class PeerClient {
     });
   }
 
+  assignProducerToRoom = async (clientId: string, producerId: string, roomId: string) => {
+    const assignProducerReq = createRequest('assignMainProducerToRoom', {
+      clientId, producerId, roomId,
+    });
+    await sendRequest(assignProducerReq);
+  }
+
   produce = async (track: MediaStreamTrack): Promise<mediasoupTypes.Producer['id']> => {
     if (!this.sendTransport) {
       return Promise.reject('Need a transport to be able to produce. No transport present');

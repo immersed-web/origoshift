@@ -201,24 +201,30 @@ export default class Client {
         break;
       }
       case 'joinGathering': {
-        if(this.gathering){
-          this.gathering.removeClient(this);
-          this.gathering = undefined;
+        let response: ResponseTo<'joinGathering'>;
+        try{ 
+
+          if(this.gathering){
+            this.gathering.removeClient(this);
+            this.gathering = undefined;
+          }
+          // IMPORTANT
+          // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join the gathering or not
+          const gathering = Gathering.getGathering({id: msg.data.gatheringId});
+          if(!gathering){
+            throw new Error('Cant join that gathering. Does not exist');
+          }
+          gathering.addClient(this);
+          this.gathering = gathering;
+          response = createResponse('joinGathering', msg.id, {
+            wasSuccess: true,
+          });
+        } catch (e){
+          response = createResponse('joinGathering', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to join gathering!!! Very inconvenient!'),
+          });
         }
-        // IMPORTANT
-        // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join the gathering or not
-        // console.log('request to join gathering', msg.data);
-        // const gathering = Gathering.gatherings.get(msg.data.id);
-        const gathering = Gathering.getGathering({id: msg.data.gatheringId});
-        if(!gathering){
-          console.warn('Cant join that gathering. Does not exist');
-          return;
-        }
-        gathering.addClient(this);
-        this.gathering = gathering;
-        const response = createResponse('joinGathering', msg.id, {
-          wasSuccess: true,
-        });
         this.send(response);
         break;
       }
@@ -414,7 +420,7 @@ export default class Client {
           if(!room) {
             throw new Error('no such room maddafakka!');
           }
-          const producer = this.gathering?.getClient(reqParams.clientId).producers.get(reqParams.producerId);
+          const producer = this.gathering?.getSender(reqParams.clientId).producers.get(reqParams.producerId);
           if(!producer){
             throw new Error('no such producer found!');
           }
@@ -433,6 +439,7 @@ export default class Client {
       }
       case 'createProducer': {
         // A producer on server side represents a client producing media and sending it to the server.
+        let response: ResponseTo<'createProducer'>;
         try {
           if(!this.sendTransport){
             throw Error('sendTransport is undefined. Need a sendtransport to produce');
@@ -450,16 +457,18 @@ export default class Client {
             }));
           });
           this.producers.set(producer.id, producer); 
-          const response = createResponse('createProducer', msg.id, { wasSuccess: true, data: {producerId: producer.id}});
-          this.send(response);
+          if(this.role === 'admin'){
+            this.gathering?.broadCastGatheringState();
+          }
+          response = createResponse('createProducer', msg.id, { wasSuccess: true, data: {producerId: producer.id}});
         } catch(e){
           const err = extractMessageFromCatch(e);
-          const response = createResponse('createProducer', msg.id, {
+          response = createResponse('createProducer', msg.id, {
             wasSuccess: false,
             message: err,
           });
-          this.send(response);
         }
+        this.send(response);
         break;
       }
       case 'createConsumer': {

@@ -42,7 +42,7 @@ app.get('/guest-jwt', (req, res) => {
   const guestObject: UserData = {
     username: haikuName,
     role: 'guest',
-    allowedActions: [],
+    allowedActions: ['*'],
     uuid: randomUUID(),
   };
   const jwt = createJwt(guestObject, 60);

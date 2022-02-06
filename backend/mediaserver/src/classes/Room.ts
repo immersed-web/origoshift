@@ -88,6 +88,7 @@ export default class Room {
     const roomInfo: RoomState = {
       roomId: this.id,
       roomName: this.roomName,
+      mainProducer: this.mainProducer?.id,
       clients: clients,
     };
     return roomInfo;

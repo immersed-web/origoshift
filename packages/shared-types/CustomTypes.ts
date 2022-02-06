@@ -24,6 +24,7 @@ export interface ClientState {
 export interface RoomState {
   roomId: string;
   roomName?: string;
+  mainProducer?: string
   clients: {
       [clientId: string]: ClientState;
       // {

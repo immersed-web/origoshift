@@ -425,6 +425,7 @@ export default class Client {
             throw new Error('no such producer found!');
           }
           room.mainProducer = producer;
+          this.gathering?.broadCastGatheringState();
           response = createResponse('assignMainProducerToRoom', msg.id, { 
             wasSuccess: true,
           });

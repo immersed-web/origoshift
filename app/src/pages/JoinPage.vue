@@ -63,7 +63,7 @@ const $q = useQuasar();
 
 $q.loading.show();
 
-const eventName = ref<string>('');
+const eventName = ref<string>('testEvent');
 
 // INFO: here we do the async work (suspense feature is still experimental)
 (async () => {

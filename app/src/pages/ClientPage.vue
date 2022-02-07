@@ -59,22 +59,22 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
-import { useUserStore } from 'src/stores/userStore';
+// import { useUserStore } from 'src/stores/userStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
-const userStore = useUserStore();
+// const userStore = useUserStore();
 
-const otherUsersInRoom = computed(() => {
-  const usersInRoom = Object.values(soupStore.currentRoom?.clients);
+// const otherUsersInRoom = computed(() => {
+//   const usersInRoom = Object.values(soupStore.currentRoom?.clients);
 
-  return usersInRoom.filter(client => {
-    return client.clientId !== soupStore.clientState?.clientId;
-  });
-});
+//   return usersInRoom.filter(client => {
+//     return client.clientId !== soupStore.clientState?.clientId;
+//   });
+// });
 
 soupStore.$subscribe((mutation, state) => {
   if (!state.connected) {

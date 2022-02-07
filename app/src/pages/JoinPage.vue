@@ -1,10 +1,9 @@
 <template>
-  <QPage>
-    <div
-      id="main-container"
-      class="row justify-around no-wrap items-center content-center"
-    >
-      <!-- <QCard class="q-ma-md col-6">
+  <div
+    id="main-container"
+    class="row justify-around no-wrap items-center content-center"
+  >
+    <!-- <QCard class="q-ma-md col-6">
         <h3 class="text-center">
           Publika event
         </h3>
@@ -19,39 +18,38 @@
           </QItem>
         </QList>
       </QCard> -->
-      <QCard
-        id="custom-event-container"
-        class="q-ma-md q-pa-lg"
+    <QCard
+      id="custom-event-container"
+      class="q-ma-md q-pa-lg"
+    >
+      <QCardSection>
+        <div class="text-h3 text-center">
+          Vilket event vill du besöka?
+        </div>
+      </QCardSection>
+      <QCardSection
+        tag="form"
+        @submit.prevent="joinEvent(eventName)"
       >
-        <QCardSection>
-          <div class="text-h3 text-center">
-            Vilket event vill du besöka?
-          </div>
-        </QCardSection>
-        <QCardSection
-          tag="form"
-          @submit.prevent="joinEvent(eventName)"
-        >
-          <div class="row q-gutter-md justify-between">
-            <QInput
-              outlined
-              dense
-              v-model="eventName"
-              class="col-grow"
-            />
-            <QBtn
-              label="Join"
-              color="primary"
-              type="submit"
-              no-caps
-              rounded
-              icon-right="forward"
-            />
-          </div>
-        </QCardSection>
-      </QCard>
-    </div>
-  </QPage>
+        <div class="row q-gutter-md justify-between">
+          <QInput
+            outlined
+            dense
+            v-model="eventName"
+            class="col-grow"
+          />
+          <QBtn
+            label="Join"
+            color="primary"
+            type="submit"
+            no-caps
+            rounded
+            icon-right="forward"
+          />
+        </div>
+      </QCardSection>
+    </QCard>
+  </div>
 </template>
 
 <script setup lang="ts">

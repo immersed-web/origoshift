@@ -1,52 +1,50 @@
 <template>
-  <QPage padding>
-    <!-- content -->
-    <LoginBox
-      class="fixed-center"
-      @submit="loginSubmitted"
-      v-if="!soupStore.connected"
-    />
-    <QCard
-      v-else
-      class="fixed-center main-card"
+  <!-- content -->
+  <LoginBox
+    class="fixed-center"
+    @submit="loginSubmitted"
+    v-if="!soupStore.connected"
+  />
+  <QCard
+    v-else
+    class="fixed-center main-card"
+  >
+    <QCardSection
+      v-if="!soupStore.gatheringState"
+      class="q-gutter-md"
+      tag="form"
+      @submit.prevent="connectToEvent"
     >
-      <QCardSection
-        v-if="!soupStore.gatheringState"
-        class="q-gutter-md"
-        tag="form"
-        @submit.prevent="connectToEvent"
-      >
-        <QInput
-          outlined
-          v-model="gatheringName"
-          label="event name"
-        />
-        <QBtn
-          type="submit"
-          label="connect to event"
-        />
-      </QCardSection>
-      <QCardSection class="q-gutter-lg">
-        <DevicePicker
-          style="min-width: 15rem;"
-          media-type="videoinput"
-          @deviceselected="requestMedia"
-        />
-        <video
-          v-if="pickedVideoDevice"
-          ref="videoTag"
-          autoplay
-          style="max-width: 10rem;"
-        />
-        <QBtn
-          color="primary"
-          :disable="!mediaStream"
-          label="send video"
-          @click="produceVideo"
-        />
-      </QCardSection>
-    </QCard>
-  </QPage>
+      <QInput
+        outlined
+        v-model="gatheringName"
+        label="event name"
+      />
+      <QBtn
+        type="submit"
+        label="connect to event"
+      />
+    </QCardSection>
+    <QCardSection class="q-gutter-lg">
+      <DevicePicker
+        style="min-width: 15rem;"
+        media-type="videoinput"
+        @deviceselected="requestMedia"
+      />
+      <video
+        v-if="pickedVideoDevice"
+        ref="videoTag"
+        autoplay
+        style="max-width: 10rem;"
+      />
+      <QBtn
+        color="primary"
+        :disable="!mediaStream"
+        label="send video"
+        @click="produceVideo"
+      />
+    </QCardSection>
+  </QCard>
 </template>
 
 <script setup lang="ts">

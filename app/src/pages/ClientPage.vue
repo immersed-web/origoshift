@@ -1,50 +1,49 @@
 <template>
-  <QPage>
-    <QCard
-      tag="div"
-      id="overlay"
-    >
-      <QList>
-        <QItemLabel header>
-          I detta rum:
-        </QItemLabel>
-        <QItem
-          v-for="client in soupStore.currentRoom?.clients"
-          :key="client.clientId"
-        >
-          {{ client.username }}
-          <template v-if="client.clientId === soupStore.clientState?.clientId">
-            (du)
-          </template>
-        </QItem>
-      </QList>
-    </QCard>
-    <div
-      id="main-container"
-      class="row justify-between no-wrap items-center content-center"
-    >
-      <QBtn
-        class="q-ma-md"
-        icon="keyboard_arrow_left"
-        round
-        color="primary"
-        @click="prevProducer()"
-      />
-      <video
-        id="main-video"
-        class="col"
-        autoplay
-        ref="videoTag"
-      />
-      <QBtn
-        class="q-ma-md"
-        round
-        icon="keyboard_arrow_right"
-        color="primary"
-        @click="nextProducer()"
-      />
-    </div>
-    <!-- <QList>
+  <QCard
+    tag="div"
+    id="overlay"
+  >
+    <QList>
+      <QItemLabel header>
+        I detta rum:
+      </QItemLabel>
+      <QItem
+        v-for="client in soupStore.currentRoom?.clients"
+        :key="client.clientId"
+      >
+        {{ client.username }}
+        <template v-if="client.clientId === soupStore.clientState?.clientId">
+          (du)
+        </template>
+      </QItem>
+    </QList>
+  </QCard>
+  <div
+    id="main-container"
+    class="row justify-between no-wrap items-center content-center"
+  >
+    <QBtn
+      class="q-ma-md"
+      icon="keyboard_arrow_left"
+      round
+      color="primary"
+      @click="prevProducer()"
+    />
+    <video
+      id="main-video"
+      class="col"
+      autoplay
+      ref="videoTag"
+    />
+    <QBtn
+      class="q-ma-md"
+      round
+      icon="keyboard_arrow_right"
+      color="primary"
+      @click="nextProducer()"
+    />
+  </div>
+  <!-- <QList>
       <QItem
         v-for="producerInfo in producers"
         :key="producerInfo.producerId"
@@ -55,7 +54,6 @@
         />
       </QItem>
     </QList> -->
-  </QPage>
 </template>
 
 <script setup lang="ts">

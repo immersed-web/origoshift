@@ -6,10 +6,16 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/EmptyLayout.vue'),
     children: [
       { path: '', component: () => import('pages/JoinPage.vue') },
+      { path: '/admin', component: () => import('pages/AdminPage.vue') },
+    ],
+  },
+  {
+    path: '/',
+    component: () => import('layouts/NoScrollLayout.vue'),
+    children: [
+      { path: '/send', component: () => import('pages/SenderPage.vue') },
       { path: '/join', component: () => import('pages/JoinPage.vue') },
       { path: '/client', component: () => import('pages/ClientPage.vue') },
-      { path: '/admin', component: () => import('pages/AdminPage.vue') },
-      { path: '/send', component: () => import('pages/SenderPage.vue') },
     ],
   },
 

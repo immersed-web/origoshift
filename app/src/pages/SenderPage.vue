@@ -11,6 +11,7 @@
       class="fixed-center main-card"
     >
       <QCardSection
+        v-if="!soupStore.gatheringState"
         class="q-gutter-md"
         tag="form"
         @submit.prevent="connectToEvent"
@@ -38,6 +39,7 @@
           style="max-width: 10rem;"
         />
         <QBtn
+          color="primary"
           :disable="!mediaStream"
           label="send video"
           @click="produceVideo"

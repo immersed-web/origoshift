@@ -5,7 +5,7 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: () => import('layouts/EmptyLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/IndexPage.vue') },
+      { path: '', component: () => import('pages/JoinPage.vue') },
       { path: '/join', component: () => import('pages/JoinPage.vue') },
       { path: '/client', component: () => import('pages/ClientPage.vue') },
       { path: '/admin', component: () => import('pages/AdminPage.vue') },

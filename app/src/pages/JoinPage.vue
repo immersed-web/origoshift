@@ -1,6 +1,9 @@
 <template>
-  <QPage padding>
-    <div class="row full-height justify-around no-wrap">
+  <QPage>
+    <div
+      id="main-container"
+      class="row justify-around no-wrap items-center content-center"
+    >
       <!-- <QCard class="q-ma-md col-6">
         <h3 class="text-center">
           Publika event
@@ -18,12 +21,17 @@
       </QCard> -->
       <QCard
         id="custom-event-container"
-        class="q-ma-md q-pa-lg col-6"
+        class="q-ma-md q-pa-lg"
       >
-        <h3 class="text-center">
-          Vilket event vill du besöka?
-        </h3>
-        <QForm @submit.prevent="joinEvent(eventName)">
+        <QCardSection>
+          <div class="text-h3 text-center">
+            Vilket event vill du besöka?
+          </div>
+        </QCardSection>
+        <QCardSection
+          tag="form"
+          @submit.prevent="joinEvent(eventName)"
+        >
           <div class="row q-gutter-md justify-between">
             <QInput
               outlined
@@ -32,13 +40,15 @@
               class="col-grow"
             />
             <QBtn
-              label="join"
+              label="Join"
               color="primary"
               type="submit"
-              icon-right="arrow_right"
+              no-caps
+              rounded
+              icon-right="forward"
             />
           </div>
-        </QForm>
+        </QCardSection>
       </QCard>
     </div>
   </QPage>
@@ -93,3 +103,9 @@ const joinEvent = async (eventName: string) => {
 };
 
 </script>
+<style lang="scss">
+#main-container {
+  width: 100vw;
+  height: 100vh;
+}
+</style>

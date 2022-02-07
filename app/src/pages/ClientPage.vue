@@ -1,15 +1,24 @@
 <template>
   <QPage>
-    <div id="overlay">
+    <QCard
+      tag="div"
+      id="overlay"
+    >
       <QList>
+        <QItemLabel header>
+          I detta rum:
+        </QItemLabel>
         <QItem
           v-for="client in soupStore.currentRoom?.clients"
           :key="client.clientId"
         >
           {{ client.username }}
+          <template v-if="client.clientId === soupStore.clientState?.clientId">
+            (du)
+          </template>
         </QItem>
       </QList>
-    </div>
+    </QCard>
     <div
       id="main-container"
       class="row justify-between no-wrap items-center content-center"
@@ -52,12 +61,22 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
+import { useUserStore } from 'src/stores/userStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
+const userStore = useUserStore();
+
+const otherUsersInRoom = computed(() => {
+  const usersInRoom = Object.values(soupStore.currentRoom?.clients);
+
+  return usersInRoom.filter(client => {
+    return client.clientId !== soupStore.clientState?.clientId;
+  });
+});
 
 soupStore.$subscribe((mutation, state) => {
   if (!state.connected) {
@@ -131,6 +150,8 @@ async function consume (producerInfo: typeof producers.value[number]) {
 
 #overlay {
   position: absolute;
+  background-color: rgba(100, 100, 150, 0.5);
+  font-weight: bold;
   left: 2rem;
   top: 2rem;
 }

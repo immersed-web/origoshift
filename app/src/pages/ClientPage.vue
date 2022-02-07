@@ -1,5 +1,15 @@
 <template>
   <QPage>
+    <div id="overlay">
+      <QList>
+        <QItem
+          v-for="client in soupStore.currentRoom?.clients"
+          :key="client.clientId"
+        >
+          {{ client.username }}
+        </QItem>
+      </QList>
+    </div>
     <div
       id="main-container"
       class="row justify-between no-wrap items-center content-center"
@@ -40,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
@@ -93,7 +103,7 @@ function prevProducer () {
 
 async function consume (producerInfo: typeof producers.value[number]) {
   await peer.joinRoom(producerInfo.roomId);
-  const { consumerId, track } = await peer.consume(producerInfo.producerId);
+  const { track } = await peer.consume(producerInfo.producerId);
   if (!videoTag.value) return;
   videoTag.value.srcObject = new MediaStream([track]);
 }
@@ -117,5 +127,11 @@ async function consume (producerInfo: typeof producers.value[number]) {
 #main-video {
   max-height: 100vh;
   max-width: 100vw;
+}
+
+#overlay {
+  position: absolute;
+  left: 2rem;
+  top: 2rem;
 }
 </style>

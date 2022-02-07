@@ -16,4 +16,10 @@ const rootState =
 
 export const useSoupStore = defineStore('soup', {
   state: () => (rootState),
+  getters: {
+    currentRoom: (state) => {
+      if (!state.gatheringState?.rooms || !state.currentRoomId) return undefined;
+      return state.gatheringState.rooms[state.currentRoomId];
+    },
+  },
 });

@@ -1,10 +1,7 @@
 <template>
   <QPage padding>
-    <h2 class="text-center">
-      Välkommen! Vilket event vill du besöka?
-    </h2>
-    <div class="row justify-around no-wrap">
-      <QCard class="q-ma-md col-6">
+    <div class="row full-height justify-around no-wrap">
+      <!-- <QCard class="q-ma-md col-6">
         <h3 class="text-center">
           Publika event
         </h3>
@@ -18,13 +15,13 @@
             Cool event {{ index }}
           </QItem>
         </QList>
-      </QCard>
+      </QCard> -->
       <QCard
         id="custom-event-container"
         class="q-ma-md q-pa-lg col-6"
       >
         <h3 class="text-center">
-          Join a private event
+          Vilket event vill du besöka?
         </h3>
         <QForm @submit.prevent="joinEvent(eventName)">
           <div class="row q-gutter-md justify-between">

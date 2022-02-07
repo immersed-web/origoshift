@@ -19,8 +19,10 @@ export default class PeerClient {
   onMessageCallback? = undefined as unknown as (msg: AnyMessage) => unknown;
   onConsumerClosed?: consumerClosedCallback = undefined; // INFO for some reason I can't declare this function type inline. So i declared above ^
 
-  connect = (token: string) => {
-    return createSocket(token);
+  connect = async (token: string) => {
+    await createSocket(token);
+    const clientStateReq = createRequest('getClientState');
+    return sendRequest(clientStateReq);
   }
 
   constructor () {

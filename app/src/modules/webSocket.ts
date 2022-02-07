@@ -42,7 +42,7 @@ export async function createSocket (token: string): Promise<Event> {
       socket = new WebSocket(connectionsString);
       socket.onopen = (ev) => {
         socketEmitter.emit('open');
-        console.log('connected: ', ev);
+        // console.log('connected: ', ev);
         resolve(ev);
       };
       socket.onerror = (err) => {

@@ -30,7 +30,8 @@ export default function usePeerClient () {
   //* ************************************ */
 
   async function connect (token:string) {
-    await peer.connect(token);
+    const response = await peer.connect(token);
+    soupStore.clientState = response.data;
     soupStore.connected = true;
   }
 

@@ -27,7 +27,7 @@
       <QCardSection>
         <QBtn
           label="create room"
-          @click="peer.createAndJoinRoom('secretRoom')"
+          @click="peer.createRoom('secretRoom')"
         />
       </QCardSection>
       <QCardSection>

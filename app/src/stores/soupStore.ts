@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
-import { GatheringState } from 'shared-types/CustomTypes';
+import { GatheringState, ClientState } from 'shared-types/CustomTypes';
 
 let gatheringState: GatheringState | undefined;
+let clientState: ClientState | undefined;
 const rootState =
 // : {
 //   connected: boolean
@@ -11,7 +12,8 @@ const rootState =
  {
    connected: false,
    currentRoomId: '',
-   gatheringState: gatheringState,
+   gatheringState,
+   clientState,
  };
 
 export const useSoupStore = defineStore('soup', {

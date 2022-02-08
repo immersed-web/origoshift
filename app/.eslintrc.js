@@ -97,7 +97,8 @@ module.exports = {
       checkForEach: true
     }],
     'vue/component-name-in-template-casing': ['error', 'PascalCase', {
-      'registeredComponentsOnly': false
+      'registeredComponentsOnly': false,
+      'ignores': ['/^(a-)/']
     }],
     
     // TypeScript

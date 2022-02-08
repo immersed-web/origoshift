@@ -42,6 +42,18 @@
       color="primary"
       @click="nextProducer()"
     />
+    <a-scene embedded>
+      <a-camera
+        look-controls-enabled
+        wasd-controls-enabled="false"
+      />
+      <a-videosphere />
+      <a-video
+        width="16"
+        height="9"
+        position="0 0 -20"
+      />
+    </a-scene>
   </div>
   <!-- <QList>
       <QItem
@@ -57,11 +69,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, nextTick } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 // import { useUserStore } from 'src/stores/userStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
+import 'aframe';
 
 const router = useRouter();
 const peer = usePeerClient();
@@ -123,6 +136,8 @@ async function consume (producerInfo: typeof producers.value[number]) {
   const { track } = await peer.consume(producerInfo.producerId);
   if (!videoTag.value) return;
   videoTag.value.srcObject = new MediaStream([track]);
+  await nextTick();
+  initVideoSphere();
 }
 (async () => {
   await peer.getRouterCapabilities();
@@ -133,6 +148,24 @@ async function consume (producerInfo: typeof producers.value[number]) {
     await consume(producers.value[currentProducerIndex]);
   }
 })();
+
+async function initVideoSphere () {
+  // const sceneEl = document.querySelector('a-scene');
+  // TODO: Check whether we need to remove and insert new sphere, or if it's enough to update src of existing one.
+  // const prevVSphere = sceneEl.querySelector('a-videosphere');
+  // if (prevVSphere) {
+  //   prevVSphere.remove();
+  // }
+  // const vSphere = document.createElement('a-videosphere');
+  const vSphere = document.querySelector('a-videosphere');
+  if (!vSphere) throw new Error('no videosphere found in DOM!!! What have you done Gunnar??');
+  // vSphere.setAttribute('srcObject', 'https://bitmovin.com/player-content/playhouse-vr/progressive.mp4');
+  vSphere.setAttribute('src', '#main-video');
+  const vVideo = document.querySelector('a-video');
+  if (!vVideo) throw new Error('no videosphere found in DOM!!! What have you done Gunnar??');
+  vVideo.setAttribute('src', '#main-video');
+  // sceneEl.appendChild(vSphere);
+}
 
 </script>
 

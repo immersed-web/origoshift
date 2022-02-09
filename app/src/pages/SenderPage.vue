@@ -37,7 +37,10 @@
         autoplay
         style="max-width: 10rem;"
       />
-      <canvas ref="canvasTag" />
+      <canvas
+        style="max-width: 75vw"
+        ref="canvasTag"
+      />
     </QCardSection>
     <QCardSection>
       <QBtn
@@ -101,26 +104,42 @@ async function requestMedia (deviceInfo: MediaDeviceInfo) {
     console.log('template ref not available');
     return;
   }
-  mediaStream.value = await peer.requestMedia(deviceInfo.deviceId);
-  videoTag.value.srcObject = mediaStream.value;
+  const stream = await peer.requestMedia(deviceInfo.deviceId);
+  const videoSettings = stream.getVideoTracks()[0].getSettings();
+  if (!videoSettings) throw new Error('coludnt get settings from videotrack!!!');
+  videoTag.value.srcObject = stream;
+
+  if (!canvasTag.value) throw new Error('no canvas tag available');
+  const { width, height } = videoSettings;
+  if (!width || !height) throw new Error('couldnt read width and/or heigth from videotrack');
+  canvasTag.value.width = width;
+  canvasTag.value.height = height;
+
+  const fps = videoSettings.frameRate ? videoSettings.frameRate : 30;
+  mediaStream.value = canvasTag.value?.captureStream();
+  // mediaStream.value = stream;
 }
 
 async function attachVideoToCanvas () {
   const vTag = videoTag.value;
   const cTag = canvasTag.value;
-  const ctx = cTag?.getContext('2d');
+  const ctx = cTag?.getContext('2d', { alpha: false });
   if (!cTag || !vTag || !ctx) {
     throw new Error('canvas or video tag not available');
   }
   const update = () => {
-    ctx.filter = 'blur(10px)';
-    ctx.drawImage(vTag, 0, 0, cTag.width, cTag.height);
-    const xStart = 0.25;
-    const xEnd = 0.50;
-    const imageData = ctx.getImageData(cTag.width * xStart, 0, cTag.width * xEnd, cTag.height);
-    ctx.filter = 'none';
-    ctx.drawImage(vTag, 0, 0, cTag.width, cTag.height);
-    ctx.putImageData(imageData, cTag.width * xStart, 0);
+    const xStart = Math.floor(cTag.width * 0.25);
+    const xWidth = Math.floor(cTag.width * 0.50);
+
+    // ctx.filter = 'blur(15px)';
+    // ctx.drawImage(vTag, 0, 0);
+    // const imageData = ctx.getImageData(xStart, 0, xWidth, cTag.height);
+    // ctx.filter = 'none';
+
+    ctx.drawImage(vTag, 0, 0);
+
+    ctx.fillRect(xStart, 0, xWidth, cTag.height);
+    // ctx.putImageData(imageData, xStart, 0);
     requestAnimationFrame(update);
   };
   requestAnimationFrame(update);

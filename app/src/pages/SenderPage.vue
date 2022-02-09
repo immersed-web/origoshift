@@ -113,7 +113,14 @@ async function attachVideoToCanvas () {
     throw new Error('canvas or video tag not available');
   }
   const update = () => {
+    ctx.filter = 'blur(10px)';
     ctx.drawImage(vTag, 0, 0, cTag.width, cTag.height);
+    const xStart = 0.25;
+    const xEnd = 0.50;
+    const imageData = ctx.getImageData(cTag.width * xStart, 0, cTag.width * xEnd, cTag.height);
+    ctx.filter = 'none';
+    ctx.drawImage(vTag, 0, 0, cTag.width, cTag.height);
+    ctx.putImageData(imageData, cTag.width * xStart, 0);
     requestAnimationFrame(update);
   };
   requestAnimationFrame(update);

@@ -37,11 +37,19 @@
         autoplay
         style="max-width: 10rem;"
       />
+    </QCardSection>
+    <QCardSection>
+      <QBtn
+        label="share screen"
+        @click="shareScreen"
+      />
+    </QCardSection>
+    <QCardSection>
       <QBtn
         color="primary"
         :disable="!mediaStream"
         label="send video"
-        @click="produceVideo"
+        @click="startProducing"
       />
     </QCardSection>
   </QCard>
@@ -75,6 +83,14 @@ async function requestMedia (deviceInfo: MediaDeviceInfo) {
   videoTag.value.srcObject = mediaStream.value;
 }
 
+async function shareScreen () {
+  const stream = await navigator.mediaDevices.getDisplayMedia();
+  mediaStream.value = stream;
+  mediaStream.value.getTracks()[0].onended = () => {
+    stopProducing();
+  };
+}
+
 async function loginSubmitted ({ username, password }: {username: string, password: string}) {
   await login(username, password);
   const jwt = await getJwt();
@@ -85,13 +101,17 @@ async function connectToEvent () {
   await peer.joinGatheringAsSender(gatheringId);
 }
 
-async function produceVideo () {
+async function startProducing () {
   if (!mediaStream.value) return;
   await peer.getRouterCapabilities();
   await peer.loadMediasoupDevice();
   await peer.createSendTransport();
   const producerId = await peer.produce(mediaStream.value);
   console.log('produce returned: ', producerId);
+}
+
+async function stopProducing () {
+  peer.producers.forEach(producer => { producer.close(); });
 }
 </script>
 

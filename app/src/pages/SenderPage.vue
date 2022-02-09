@@ -32,11 +32,12 @@
         @deviceselected="requestMedia"
       />
       <video
-        v-if="pickedVideoDevice"
+        v-show="false"
         ref="videoTag"
         autoplay
         style="max-width: 10rem;"
       />
+      <canvas ref="canvasTag" />
     </QCardSection>
     <QCardSection>
       <QBtn
@@ -55,22 +56,43 @@
   </QCard>
 </template>
 
+<script lang="ts">
+import { useUserStore } from 'src/stores/userStore';
+// import { getJwt } from 'src/modules/authClient';
+import { getJwt, login, getMe } from 'src/modules/authClient';
+export default {
+  async preFetch () {
+    const userStore = useUserStore();
+    const jwt = await getJwt();
+    userStore.jwt = jwt;
+    console.log('userStore:', userStore.userData);
+    console.log('RUNNING PREFETCH');
+  },
+};
+</script>
+
 <script setup lang="ts">
 import { ref, nextTick } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import LoginBox from 'src/components/LoginBox.vue';
 import DevicePicker from 'src/components/DevicePicker.vue';
-import { getJwt, login } from 'src/modules/authClient';
 import usePeerClient from 'src/composables/usePeerClient';
 
 const peer = usePeerClient();
 const soupStore = useSoupStore();
 
 const videoTag = ref<HTMLVideoElement>();
+const canvasTag = ref<HTMLCanvasElement>();
 
 const pickedVideoDevice = ref<MediaDeviceInfo>();
 const mediaStream = ref<MediaStream>();
 const gatheringName = ref<string>('testEvent');
+
+const userStore = useUserStore();
+(async () => {
+  await peer.connect(userStore.jwt);
+  attachVideoToCanvas();
+})();
 
 async function requestMedia (deviceInfo: MediaDeviceInfo) {
   pickedVideoDevice.value = deviceInfo;
@@ -83,6 +105,20 @@ async function requestMedia (deviceInfo: MediaDeviceInfo) {
   videoTag.value.srcObject = mediaStream.value;
 }
 
+async function attachVideoToCanvas () {
+  const vTag = videoTag.value;
+  const cTag = canvasTag.value;
+  const ctx = cTag?.getContext('2d');
+  if (!cTag || !vTag || !ctx) {
+    throw new Error('canvas or video tag not available');
+  }
+  const update = () => {
+    ctx.drawImage(vTag, 0, 0, cTag.width, cTag.height);
+    requestAnimationFrame(update);
+  };
+  requestAnimationFrame(update);
+}
+
 async function shareScreen () {
   const stream = await navigator.mediaDevices.getDisplayMedia();
   mediaStream.value = stream;
@@ -93,6 +129,8 @@ async function shareScreen () {
 
 async function loginSubmitted ({ username, password }: {username: string, password: string}) {
   await login(username, password);
+  const me = await getMe();
+  console.log('got me: ', me);
   const jwt = await getJwt();
   await peer.connect(jwt);
 }

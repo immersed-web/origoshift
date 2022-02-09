@@ -19,6 +19,7 @@ module.exports = configure(function (ctx) {
     envVars = dotenv.config({ path: '../backend/.env' }).parsed;
   }
   return {
+    preFetch: true,
     // https://quasar.dev/quasar-cli/supporting-ts
     supportTS: {
       tsCheckerConfig: {

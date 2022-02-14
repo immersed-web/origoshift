@@ -1,4 +1,9 @@
 <template>
+  <video
+    autoplay
+    style="max-width: 40rem;"
+    id="dest-video"
+  />
   <LoginBox
     class="fixed-center"
     @submit="loginSubmitted"
@@ -32,7 +37,7 @@
       />
       <CensorControl @update="updateCensorShield" />
       <video
-        v-show="false"
+        v-show="true"
         ref="videoTag"
         autoplay
         style="max-width: 10rem;"
@@ -117,8 +122,10 @@ async function requestMedia (deviceInfo: MediaDeviceInfo) {
   canvasTag.value.height = height;
 
   const fps = videoSettings.frameRate ? videoSettings.frameRate : 30;
-  mediaStream.value = canvasTag.value?.captureStream();
-  // mediaStream.value = stream;
+  const canvasStream = canvasTag.value?.captureStream();
+  const destVideo: HTMLVideoElement = document.querySelector<HTMLVideoElement>('#dest-video');
+  destVideo.srcObject = canvasStream;
+  mediaStream.value = canvasStream;
 }
 
 type CensorUpdateHandler = Exclude<(InstanceType<typeof CensorControl>)['onUpdate'], undefined>;
@@ -189,13 +196,16 @@ async function loginSubmitted ({ username, password }: {username: string, passwo
 async function connectToEvent () {
   const gatheringId = await peer.findGathering(gatheringName.value);
   await peer.joinGatheringAsSender(gatheringId);
+  await peer.getRouterCapabilities();
+  await peer.loadMediasoupDevice();
+  await peer.createSendTransport();
 }
 
 async function startProducing () {
   if (!mediaStream.value) return;
-  await peer.getRouterCapabilities();
-  await peer.loadMediasoupDevice();
-  await peer.createSendTransport();
+  // await peer.getRouterCapabilities();
+  // await peer.loadMediasoupDevice();
+  // await peer.createSendTransport();
   const producerId = await peer.produce(mediaStream.value);
   console.log('produce returned: ', producerId);
 }

@@ -223,7 +223,7 @@ export default class PeerClient {
       transport.on('produce', async ({
         kind,
         rtpParameters,
-      }: {kind: mediasoupTypes.MediaKind, rtpParameters: mediasoupTypes.RtpParameters}, callback: (data: unknown) => void, errorback: (error: unknown) => void) => {
+      }: {kind: mediasoupTypes.MediaKind, rtpParameters: mediasoupTypes.RtpParameters}, callback: ({ id }: {id: string}) => void, errorback: (error: unknown) => void) => {
       // void (async () => {
         // const params: {transportId: string | undefined, kind: mediasoupTypes.MediaKind, rtpParameters: mediasoupTypes.RtpParameters } = { transportId: transport?.id, kind, rtpParameters };
         try {
@@ -235,7 +235,10 @@ export default class PeerClient {
           });
           const response = await sendRequest(createProducerReq);
           if (response.wasSuccess) {
-            callback(response.data);
+            const cbData = {
+              id: response.data.producerId,
+            };
+            callback(cbData);
             return;
           }
           errorback(response.message);

@@ -447,8 +447,8 @@ export default class Client {
           } else if(this.sendTransport.id !== msg.data.transportId){
             throw Error('the provided transporId didnt math the id of the sendTransport');
           }
-          const {kind, rtpParameters, transportId: id} = msg.data;
-          const producer = await this.sendTransport.produce({id, kind, rtpParameters});
+          const {kind, rtpParameters} = msg.data;
+          const producer = await this.sendTransport.produce({ kind, rtpParameters});
           producer.on('transportclose', () => {
             console.log(`transport for producer ${producer.id} was closed`);
             this.producers.delete(producer.id);

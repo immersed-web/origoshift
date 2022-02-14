@@ -45,6 +45,7 @@
     <a-scene embedded>
       <a-camera
         look-controls-enabled
+        reverse-mouse-drag="true"
         wasd-controls-enabled="false"
       />
       <a-videosphere />

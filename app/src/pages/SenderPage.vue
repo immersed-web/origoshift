@@ -1,5 +1,4 @@
 <template>
-  <!-- content -->
   <LoginBox
     class="fixed-center"
     @submit="loginSubmitted"
@@ -31,6 +30,7 @@
         media-type="videoinput"
         @deviceselected="requestMedia"
       />
+      <CensorControl @update="updateCensorShield" />
       <video
         v-show="false"
         ref="videoTag"
@@ -62,6 +62,7 @@
 <script lang="ts">
 import { useUserStore } from 'src/stores/userStore';
 // import { getJwt } from 'src/modules/authClient';
+import CensorControl from 'src/components/CensorControl.vue';
 import { getJwt, login, getMe } from 'src/modules/authClient';
 export default {
   async preFetch () {
@@ -75,7 +76,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, watch, reactive } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import LoginBox from 'src/components/LoginBox.vue';
 import DevicePicker from 'src/components/DevicePicker.vue';
@@ -120,6 +121,18 @@ async function requestMedia (deviceInfo: MediaDeviceInfo) {
   // mediaStream.value = stream;
 }
 
+type CensorUpdateHandler = Exclude<(InstanceType<typeof CensorControl>)['onUpdate'], undefined>;
+// type test2 = Exclude<test, undefined>
+// type asdkj= Extract<ssd, Record<string, unknown>>
+// const censorComponent = ref<InstanceType<typeof CensorControl>>();
+
+// const censorSettings = ref<Parameters<CensorUpdateHandler>[0]>({});
+let censorSettings: Parameters<CensorUpdateHandler>[0];
+const updateCensorShield: CensorUpdateHandler = (shieldState) => {
+  console.log('censorshield emitted');
+  censorSettings = shieldState;
+};
+
 async function attachVideoToCanvas () {
   const vTag = videoTag.value;
   const cTag = canvasTag.value;
@@ -128,8 +141,16 @@ async function attachVideoToCanvas () {
     throw new Error('canvas or video tag not available');
   }
   const update = () => {
-    const xStart = Math.floor(cTag.width * 0.25);
-    const xWidth = Math.floor(cTag.width * 0.50);
+    let coverStart = 0;
+    let coverWidth = 100;
+    let inverted = false;
+    if (censorSettings) {
+      coverStart = censorSettings.range.min;
+      coverWidth = censorSettings.range.max;
+      inverted = censorSettings.inverted;
+    }
+    const xStart = Math.floor(cTag.width * (coverStart * 0.01));
+    const xWidth = Math.floor(cTag.width * ((coverWidth - coverStart) * 0.01));
 
     // ctx.filter = 'blur(15px)';
     // ctx.drawImage(vTag, 0, 0);
@@ -138,7 +159,12 @@ async function attachVideoToCanvas () {
 
     ctx.drawImage(vTag, 0, 0);
 
-    ctx.fillRect(xStart, 0, xWidth, cTag.height);
+    if (inverted) {
+      ctx.fillRect(0, 0, xStart, cTag.height);
+      ctx.fillRect(xStart + xWidth, 0, cTag.width, cTag.height);
+    } else {
+      ctx.fillRect(xStart, 0, xWidth, cTag.height);
+    }
     // ctx.putImageData(imageData, xStart, 0);
     requestAnimationFrame(update);
   };

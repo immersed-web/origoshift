@@ -66,6 +66,7 @@ export default function usePeerClient () {
   async function createAndJoinRoom (roomName: string) {
     const roomId = await peer.createRoom(roomName);
     await peer.joinRoom(roomId);
+    return roomId;
   }
 
   async function produce (stream: MediaStream) {

@@ -17,7 +17,7 @@
       v-if="!soupStore.gatheringState"
       class="q-gutter-md"
       tag="form"
-      @submit.prevent="connectToEvent"
+      @submit.prevent="connectToEvent()"
     >
       <QInput
         outlined
@@ -25,8 +25,13 @@
         label="event name"
       />
       <QBtn
+        color="primary"
         type="submit"
         label="connect to event"
+      />
+      <QBtn
+        label="create event"
+        @click="createAndJoinEvent"
       />
     </QCardSection>
     <QCardSection class="q-gutter-lg">
@@ -59,6 +64,11 @@
         :disable="!mediaStream"
         label="send video"
         @click="startProducing"
+      />
+      <QBtn
+        color="secondary"
+        label="consume myself"
+        @click="consumeMyself"
       />
     </QCardSection>
   </QCard>
@@ -123,8 +133,8 @@ async function requestMedia (deviceInfo: MediaDeviceInfo) {
 
   const fps = videoSettings.frameRate ? videoSettings.frameRate : 30;
   const canvasStream = canvasTag.value?.captureStream();
-  const destVideo: HTMLVideoElement = document.querySelector<HTMLVideoElement>('#dest-video');
-  destVideo.srcObject = canvasStream;
+  // const destVideo: HTMLVideoElement = document.querySelector<HTMLVideoElement>('#dest-video');
+  // destVideo.srcObject = canvasStream;
   mediaStream.value = canvasStream;
 }
 
@@ -193,21 +203,47 @@ async function loginSubmitted ({ username, password }: {username: string, passwo
   const jwt = await getJwt();
   await peer.connect(jwt);
 }
-async function connectToEvent () {
-  const gatheringId = await peer.findGathering(gatheringName.value);
+async function connectToEvent (gatheringId?: string) {
+  if (!gatheringId) {
+    gatheringId = await peer.findGathering(gatheringName.value);
+  }
   await peer.joinGatheringAsSender(gatheringId);
   await peer.getRouterCapabilities();
   await peer.loadMediasoupDevice();
   await peer.createSendTransport();
 }
 
+let roomId: string;
+async function createAndJoinEvent () {
+  const gatheringId = await peer.createGathering(gatheringName.value);
+  // console.log('create Gathering response: ', gatheringId);
+  await connectToEvent(gatheringId);
+  roomId = await peer.createAndJoinRoom('testRoom');
+}
+
+let producerId: string;
 async function startProducing () {
   if (!mediaStream.value) return;
   // await peer.getRouterCapabilities();
   // await peer.loadMediasoupDevice();
   // await peer.createSendTransport();
-  const producerId = await peer.produce(mediaStream.value);
+  producerId = await peer.produce(mediaStream.value);
   console.log('produce returned: ', producerId);
+  if (!soupStore.clientState) {
+    throw new Error('no roomid. cant assign producer to room');
+  }
+  peer.assignProducerToRoom(soupStore.clientState?.clientId, producerId, roomId);
+}
+
+async function consumeMyself () {
+  if (!producerId) throw new Error('no producerId. cant consume!');
+  await peer.createReceiveTransport();
+  await peer.sendRtpCapabilities();
+  const { consumerId, track } = await peer.consume(producerId);
+  console.log(`consumer created! consumerId: ${consumerId}, track: ${track}`);
+  const destVideo: HTMLVideoElement = document.querySelector<HTMLVideoElement>('#dest-video');
+  const consumeStream = new MediaStream([track]);
+  destVideo.srcObject = consumeStream;
 }
 
 async function stopProducing () {

@@ -23,6 +23,10 @@
           label="create event"
           type="submit"
         />
+        <QBtn
+          label="join event"
+          @click="joinEvent"
+        />
       </QCardSection>
       <QCardSection>
         <QBtn
@@ -93,6 +97,13 @@ const selectedRoomId = ref<string>();
 async function createAndJoinGathering (gatheringName:string) {
   const gatheringId = await peer.createGathering(gatheringName);
   await peer.joinGatheringAsSender(gatheringId);
+  soupStore.gatheringState = await peer.getGatheringState();
+}
+
+async function joinEvent () {
+  const gatheringId = await peer.findGathering(gatheringName.value);
+  // await peer.joinGatheringAsSender(gatheringId);
+  await peer.joinGathering(gatheringId);
   soupStore.gatheringState = await peer.getGatheringState();
 }
 

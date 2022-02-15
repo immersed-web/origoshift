@@ -114,6 +114,10 @@ export default class PeerClient {
     await sendRequest(setNameReq);
   }
 
+  setCustomProperties = async (props: Record<string, unknown>) => {
+    await sendRequest(createRequest('setCustomClientProperties', props));
+  }
+
   findGathering = async (name: string) => {
     const response = await sendRequest(createRequest('findGatheringByName', {
       name: name,

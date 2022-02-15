@@ -9,6 +9,7 @@ import { RequestSubjects } from './MessageTypes';
 export interface ClientState {
   clientId: string;
   username?: string;
+  customProperties: Record<string, unknown>
   gatheringId?: string;
   roomId?: string;
   connected: boolean;

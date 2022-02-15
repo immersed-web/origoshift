@@ -10,9 +10,9 @@ interface IPacket {
   // data: unknown
 }
 
-// Interfaces for outgoing (ie not response) messages
 type PossiblyData<Data> = Data extends undefined ? unknown : {data: Data}
 
+// Interfaces for outgoing (ie not response) messages
 interface IRequest extends IPacket {
   type: 'request'
 }
@@ -88,9 +88,15 @@ export type AnyRequest =
     clientId: string,
     roomId: string,
   }>
+  | RequestBuilder<'setCustomClientProperties', Record<string, unknown>>
+  | RequestBuilder<'customRequest', {
+    customRequestType: string,
+    requestData: string | Record<string, unknown>,
+  }>
 
 export type AnyMessage = 
   MessageBuilder<'gatheringStateUpdated', GatheringState>
+  | MessageBuilder<'clientStateUpdated', ClientState>
   | MessageBuilder<'notifyCloseEvent', {
     objectType: 'router' | 'transport' | 'producer' | 'consumer' | 'dataproducer' | 'dataconsumer'
     objectId: string,
@@ -157,6 +163,8 @@ export type AnyResponse =
   | ResponseBuilder<'leaveRoom', {roomId: string}>
   | ResponseBuilder<'roomStateUpdated'>
   | ResponseBuilder<'assignMainProducerToRoom'>
+  | ResponseBuilder<'setCustomClientProperties'>
+  | ResponseBuilder<'customRequest', string | Record<string, unknown>>
 
 export type AnySuccessResponse = Extract<AnyResponse, { wasSuccess: true }>;
 export type AnyFailResponse = Extract<AnyResponse, { wasSuccess: false }>;
@@ -184,7 +192,7 @@ type DataForMessage<Subject extends MessageSubjects> = Message<Subject>['data'];
 // type DataForRequest<Key extends RequestSubjects> = Extract<AnyRequestWithData, Request<Key>>['data']
 type DataForRequest<Key extends RequestSubjects> = RequestWithData<Key>['data']
 // type DataForResponse<Key extends RequestSubjects> = Extract<AnyResponsWithData, ResponseTo<Key>>['data']
-type DataForResponse<Key extends RequestSubjects> = ResponseWithData<Key>['data']
+type DataForResponse<Key extends RequestSubjects> = ResponseWithData<Key> extends { data: unknown } ?  ResponseWithData<Key>['data'] : never
 
 export const createMessage = <Subject extends MessageSubjects>(subject: Subject, data: DataForMessage<Subject>) => {
   const msg: Message<Subject> = {
@@ -224,6 +232,29 @@ type ResponseParams<Subject extends RequestSubjects> = {
 {
   wasSuccess: false,
   message: string,
+}
+
+
+export const createFailResponse = (msg: AnyRequest, message: string) => {
+  return createResponse(msg.subject, msg.id, {
+    wasSuccess: false,
+    message: message,
+  })
+}
+
+export const createSuccessResponse = <ReqType extends AnyRequest>(msg: ReqType, data?: DataForResponse<ReqType['subject']>) => {
+  let responseField: ResponseParams<ReqType['subject']>;
+  if(data){
+    responseField = {
+      wasSuccess: true,
+      data: data,
+    }
+  } else {
+    responseField = {
+      wasSuccess: true
+    }
+  }
+  return createResponse(msg.subject, msg.id, responseField);
 }
 
 export const createResponse = <Subject extends RequestSubjects>(subject: Subject, id:number, responseFields: ResponseParams<Subject>): ResponseTo<Subject> => {

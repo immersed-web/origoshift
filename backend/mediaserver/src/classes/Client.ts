@@ -3,7 +3,7 @@ import SocketWrapper from './SocketWrapper';
 import {types as soupTypes} from 'mediasoup';
 import {types as soupClientTypes} from 'mediasoup-client';
 import { ClientState, UserData, UserRole } from 'shared-types/CustomTypes';
-import { AnyRequest, createMessage, createRequest, createResponse, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
+import { AnyRequest, createFailResponse, createMessage, createRequest, createResponse, createSuccessResponse, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 // import { checkPermission } from '../modules/utilFns';
 import { checkPermission } from '../modules/utilFns';
@@ -45,6 +45,8 @@ export default class Client {
   sendTransport?: soupTypes.WebRtcTransport;
   consumers: Map<string, soupTypes.Consumer> = new Map();
   producers: Map<string, soupTypes.Producer> = new Map();
+
+  customProperties: Record<string, unknown> = {};
 
   gathering?: Gathering;
   room? : Room;
@@ -570,6 +572,21 @@ export default class Client {
         this.send(response);
         break; 
       }
+      case 'setCustomClientProperties': {
+        let response: ResponseTo<'setCustomClientProperties'>;
+        try {
+
+          this.setCustomProperties(msg.data);
+          // this.send(createSuccessResponse(msg));
+          response = createResponse('setCustomClientProperties', msg.id, { wasSuccess: true });
+        } catch (e) {
+          response = createResponse('setCustomClientProperties', msg.id, { wasSuccess: false, message: extractMessageFromCatch(e, 'failed to set custom props on client')});
+          // const failString = extractMessageFromCatch(e, 'failed to set custom props on client');
+          // this.send(createFailResponse(msg, failString));
+        }
+        this.send(response);
+        break;
+      }
       default:
         break;
     }
@@ -587,6 +604,7 @@ export default class Client {
     const state: ClientState = {
       clientId: this.id,
       username: this.userName,
+      customProperties: this.customProperties,
       connected: this.connected,
       role: this.role,
       producers: producers,
@@ -598,6 +616,13 @@ export default class Client {
       state.roomId = this.room.id;
     }
     return state;
+  }
+
+  setCustomProperties (props : Record<string, unknown>)  {
+    for(const [key, prop] of Object.entries(props)) {
+      this.customProperties[key] = prop;
+    }
+    this.send(createMessage('clientStateUpdated', this.clientState));
   }
 
   private leaveCurrentRoom(): string;

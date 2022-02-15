@@ -1,9 +1,9 @@
 <template>
-  <video
+  <!-- <video
     autoplay
     style="max-width: 40rem;"
     id="dest-video"
-  />
+  /> -->
   <LoginBox
     class="fixed-center"
     @submit="loginSubmitted"
@@ -32,6 +32,12 @@
       <QBtn
         label="create event"
         @click="createAndJoinEvent"
+      />
+    </QCardSection>
+    <QCardSection class="q-gutter-md">
+      <QBtn
+        label="send custom prop 'handWave' to client"
+        @click="peer.setCustomProperties({handWave: true})"
       />
     </QCardSection>
     <QCardSection class="q-gutter-lg">

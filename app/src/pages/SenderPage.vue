@@ -9,75 +9,83 @@
     @submit="loginSubmitted"
     v-if="!soupStore.connected"
   />
-  <QCard
+  <div
     v-else
-    class="fixed-center main-card"
+    class="row q-ma-md"
   >
-    <QCardSection
-      v-if="!soupStore.gatheringState"
-      class="q-gutter-md"
-      tag="form"
-      @submit.prevent="connectToEvent()"
+    <QCard
+      class="col-4 q-mr-md"
     >
-      <QInput
-        outlined
-        v-model="gatheringName"
-        label="event name"
-      />
-      <QBtn
-        color="primary"
-        type="submit"
-        label="connect to event"
-      />
-      <QBtn
-        label="create event"
-        @click="createAndJoinEvent"
-      />
-    </QCardSection>
-    <QCardSection class="q-gutter-md">
-      <QBtn
-        label="send custom prop 'handWave' to client"
-        @click="peer.setCustomProperties({handWave: true})"
-      />
-    </QCardSection>
-    <QCardSection class="q-gutter-lg">
-      <DevicePicker
-        style="min-width: 15rem;"
-        media-type="videoinput"
-        @deviceselected="requestMedia"
-      />
-      <CensorControl @update="updateCensorShield" />
-      <video
-        v-show="true"
-        ref="videoTag"
-        autoplay
-        style="max-width: 10rem;"
-      />
-      <canvas
-        style="max-width: 75vw"
-        ref="canvasTag"
-      />
-    </QCardSection>
-    <QCardSection>
-      <QBtn
-        label="share screen"
-        @click="shareScreen"
-      />
-    </QCardSection>
-    <QCardSection>
-      <QBtn
-        color="primary"
-        :disable="!mediaStream"
-        label="send video"
-        @click="startProducing"
-      />
-      <QBtn
-        color="secondary"
-        label="consume myself"
-        @click="consumeMyself"
-      />
-    </QCardSection>
-  </QCard>
+      <QCardSection
+        v-if="!soupStore.gatheringState"
+        class="q-gutter-md"
+        tag="form"
+        @submit.prevent="connectToEvent()"
+      >
+        <QInput
+          outlined
+          v-model="gatheringName"
+          label="event name"
+        />
+        <QBtn
+          color="primary"
+          type="submit"
+          label="connect to event"
+        />
+        <QBtn
+          label="create event"
+          @click="createAndJoinEvent"
+        />
+      </QCardSection>
+      <QCardSection class="q-gutter-md">
+        <QBtn
+          label="send custom prop 'handWave' to client"
+          @click="peer.setCustomProperties({handWave: true})"
+        />
+      </QCardSection>
+      <QCardSection>
+        <QBtn
+          label="share screen"
+          @click="shareScreen"
+        />
+      </QCardSection>
+      <QCardSection>
+        <QBtn
+          color="primary"
+          :disable="!mediaStream"
+          label="send video"
+          @click="startProducing"
+        />
+        <QBtn
+          color="secondary"
+          label="consume myself"
+          @click="consumeMyself"
+        />
+      </QCardSection>
+    </QCard>
+    <QCard class="col">
+      <QCardSection class="q-gutter-lg">
+        <DevicePicker
+          style="min-width: 15rem;"
+          media-type="videoinput"
+          @deviceselected="requestMedia"
+        />
+        <div style="width: fit-content;">
+          <CensorControl @update="updateCensorShield" />
+          <video
+            v-show="false"
+            ref="videoTag"
+            autoplay
+            style="max-width: 10rem;"
+          />
+          <canvas
+            style="max-width: 100%;"
+            ref="canvasTag"
+          />
+        </div>
+      </QCardSection>
+    </QCard>
+  </div>
 </template>
 
 <script lang="ts">

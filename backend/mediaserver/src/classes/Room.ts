@@ -3,6 +3,7 @@ import Client from './Client';
 import { RoomState } from 'shared-types/CustomTypes';
 import Gathering from './Gathering';
 import {types as soupTypes } from 'mediasoup';
+import { createMessage } from 'shared-types/MessageTypes';
 export default class Room {
   // router: soup.Router;
   id: string;
@@ -64,7 +65,7 @@ export default class Room {
     }
   }
 
-  getRoomState() {
+  get roomState() {
     // const clients: RoomState['clients'] = {};
     // this.clients.forEach((client, clientId) => {
     //   const nickName = client.nickName;
@@ -95,13 +96,16 @@ export default class Room {
   }
 
   // INFO: As of now we rely on the state of the gathering instead of updating each room individually. We'll see further ahead if that turns out to be a good solution
-  // broadcastRoomInfo(clientToSkip?: Client){
-  //   const roomState = this.getRoomState();
-  //   this.clients.forEach((client) => {
-  //     if(clientToSkip && clientToSkip === client){
-  //       return;
-  //     }
-  //     client.roomInfoUpdated(roomState);
-  //   });
-  // }
+  // broadcastRoomState(clientToSkip?: Client){
+  broadcastRoomState(){
+    const roomState = this.roomState;
+    this.clients.forEach((client) => {
+      // if(clientToSkip && clientToSkip === client){
+      //   return;
+      // }
+      // client.roomInfoUpdated(roomState);
+      const msg = createMessage('roomStateUpdated', roomState);
+      client.send(msg);
+    });
+  }
 }

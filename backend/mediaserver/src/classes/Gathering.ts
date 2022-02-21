@@ -149,7 +149,7 @@ export default class Gathering {
 
     const receivers = [...this.clients, ...this.senderClients];
 
-    receivers.forEach(([clientId, client]) => {
+    receivers.forEach(([_clientId, client]) => {
       if(client.id in clientsToSkip){
         console.log('skipping client:', client.id);
         return;
@@ -176,7 +176,7 @@ export default class Gathering {
       gatheringState.gatheringName = this.name;
     }
     this.rooms.forEach((room) => {
-      const roomstate = room.getRoomState();
+      const roomstate = room.roomState;
       gatheringState.rooms[room.id] = roomstate;
     });
     this.senderClients.forEach(senderClient => {

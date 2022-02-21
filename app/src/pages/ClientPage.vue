@@ -2,6 +2,7 @@
   <QCard
     tag="div"
     id="overlay"
+    class="q-pa-md"
   >
     <QList>
       <QItemLabel header>
@@ -17,6 +18,13 @@
         </template>
       </QItem>
     </QList>
+    <QBtn
+      icon="waving_hand"
+      color="primary"
+      text-color="yellow"
+      round
+      @click="raiseHand"
+    />
   </QCard>
   <div
     id="main-container"
@@ -30,17 +38,11 @@
       @click="prevProducer()"
     />
     <video
+      v-show="false"
       id="main-video"
       class="col"
       autoplay
       ref="videoTag"
-    />
-    <QBtn
-      class="q-ma-md"
-      round
-      icon="keyboard_arrow_right"
-      color="primary"
-      @click="nextProducer()"
     />
     <a-scene embedded>
       <a-camera
@@ -55,6 +57,13 @@
         position="0 0 -20"
       />
     </a-scene>
+    <QBtn
+      class="q-ma-md"
+      round
+      icon="keyboard_arrow_right"
+      color="primary"
+      @click="nextProducer()"
+    />
   </div>
   <!-- <QList>
       <QItem
@@ -132,6 +141,12 @@ function prevProducer () {
   consume(producers.value[currentProducerIndex]);
 }
 
+async function raiseHand () {
+  await peer.setCustomProperties({
+    handRaised: true,
+  });
+}
+
 async function consume (producerInfo: typeof producers.value[number]) {
   await peer.joinRoom(producerInfo.roomId);
   const { track } = await peer.consume(producerInfo.producerId);
@@ -172,6 +187,9 @@ async function initVideoSphere () {
 
 <style lang="scss">
 #main-container {
+  position: absolute;
+  left: 0;
+  right: 0;
   width: 100vw;
   height: 100vh;
 }
@@ -181,6 +199,7 @@ async function initVideoSphere () {
 }
 
 #overlay {
+  z-index: 100;
   position: absolute;
   background-color: rgba(100, 100, 150, 0.5);
   font-weight: bold;

@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
-import { GatheringState, ClientState } from 'shared-types/CustomTypes';
+import { GatheringState, ClientState, RoomState } from 'shared-types/CustomTypes';
 
 let gatheringState: GatheringState | undefined;
+let roomState: RoomState | undefined;
 let clientState: ClientState | undefined;
 const rootState =
 // : {
@@ -13,6 +14,7 @@ const rootState =
    connected: false,
    currentRoomId: '',
    gatheringState,
+   roomState,
    clientState,
  };
 

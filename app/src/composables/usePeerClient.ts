@@ -12,6 +12,10 @@ export default function usePeerClient () {
         soupStore.gatheringState = msg.data;
         break;
       }
+      case 'roomStateUpdated': {
+        soupStore.roomState = msg.data;
+        break;
+      }
       case 'clientStateUpdated': {
         soupStore.clientState = msg.data;
         break;

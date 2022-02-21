@@ -622,7 +622,13 @@ export default class Client {
     for(const [key, prop] of Object.entries(props)) {
       this.customProperties[key] = prop;
     }
-    this.send(createMessage('clientStateUpdated', this.clientState));
+    if(!this.room)
+      return;
+    // TODO: We need to handle (on clientside?) when updating clientstate, roomstate and gatheringstate. How should broadcast of state for client, room and gathering work together?
+    // For example, if a user changes clientstate this should propagate to frontend clientstate aswell as potential room and gatheringstate on all clients (including the client itself) 
+    // hmmmm. curious...
+    this.room.broadcastRoomState();
+    // this.send(createMessage('roomStateUpdated', ));
   }
 
   private leaveCurrentRoom(): string;

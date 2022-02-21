@@ -96,6 +96,7 @@ export type AnyRequest =
 
 export type AnyMessage = 
   MessageBuilder<'gatheringStateUpdated', GatheringState>
+  | MessageBuilder<'roomStateUpdated', RoomState>
   | MessageBuilder<'clientStateUpdated', ClientState>
   | MessageBuilder<'notifyCloseEvent', {
     objectType: 'router' | 'transport' | 'producer' | 'consumer' | 'dataproducer' | 'dataconsumer'

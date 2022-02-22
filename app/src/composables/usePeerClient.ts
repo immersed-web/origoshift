@@ -5,23 +5,31 @@ export default function usePeerClient () {
   const soupStore = useSoupStore();
 
   // Attach callbacks! ***************************
-  peer.onMessageCallback = (msg) => {
-    console.log('received message: ', msg);
-    switch (msg.subject) {
-      case 'gatheringStateUpdated': {
-        soupStore.gatheringState = msg.data;
-        break;
-      }
-      case 'roomStateUpdated': {
-        soupStore.roomState = msg.data;
-        break;
-      }
-      case 'clientStateUpdated': {
-        soupStore.clientState = msg.data;
-        break;
-      }
-    }
-  };
+  peer.on('gatheringStateUpdated', data => {
+    soupStore.gatheringState = data;
+  });
+  peer.on('roomStateUpdated', data => {
+    console.log('roomStateUpdated event triggered!!');
+    soupStore.roomState = data;
+  });
+  peer.on('clientStateUpdated', data => { soupStore.clientState = data; });
+  // peer.onMessageCallback = (msg) => {
+  //   console.log('received message: ', msg);
+  //   switch (msg.subject) {
+  //     case 'gatheringStateUpdated': {
+  //       soupStore.gatheringState = msg.data;
+  //       break;
+  //     }
+  //     case 'roomStateUpdated': {
+  //       soupStore.roomState = msg.data;
+  //       break;
+  //     }
+  //     case 'clientStateUpdated': {
+  //       soupStore.clientState = msg.data;
+  //       break;
+  //     }
+  //   }
+  // };
   peer.onRequestCallback = (msg) => {
     console.log('received request: ', msg);
   };

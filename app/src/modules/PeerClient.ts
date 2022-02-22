@@ -1,10 +1,23 @@
 import { types as mediasoupTypes } from 'mediasoup-client';
 import * as mediasoupClient from 'mediasoup-client';
-import { createSocket, sendRequest, onSocketReceivedReqOrMsg, connectionEvents } from 'src/modules/webSocket';
-import { AnyMessage, AnyRequest, createRequest } from 'shared-types/MessageTypes';
+import { createSocket, sendRequest, socketEvents } from 'src/modules/webSocket';
+import { AnyMessage, AnyRequest, createRequest, Message } from 'shared-types/MessageTypes';
+import { TypedEmitter } from 'tiny-typed-emitter';
 
 type consumerClosedCallback = (consumerId: string) => unknown;
-export default class PeerClient {
+
+type MsgEvents<Msg extends AnyMessage> = {
+  [event in Msg['subject']]: (data: Message<event>['data']) => void;
+};
+// } | {
+//   [reqEvent in Extract<Subject, RequestSubjects>]: (data?: Request<reqEvent> extends {data: unknown}? Request<reqEvent>['data']: undefined) => void;
+// }
+
+// type ReqEvents<ReqSubjects extends RequestSubjects> = {
+//   [event in ReqSubjects]: (data?: Request<event> extends {data: unknown}? Request<event>['data']: undefined) => void;
+// }
+// type PeerEvents<Subject extends RequestSubjects | MessageSubjects> = MsgEvents<Subject> | ReqEvents<Subject>;
+export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
   id = '';
   url?: string;
   mediasoupDevice: mediasoupTypes.Device;
@@ -13,10 +26,10 @@ export default class PeerClient {
   producers = new Map<string, mediasoupTypes.Producer>();
   consumers = new Map<string, mediasoupTypes.Consumer>();
   routerRtpCapabilities?: mediasoupTypes.RtpCapabilities;
-  connectionEvents = connectionEvents;
+  connectionEvents = socketEvents;
 
   onRequestCallback? = undefined as unknown as (msg: AnyRequest) => unknown;
-  onMessageCallback? = undefined as unknown as (msg: AnyMessage) => unknown;
+  // onMessageCallback? = undefined as unknown as (msg: AnyMessage) => unknown;
   onConsumerClosed?: consumerClosedCallback = undefined; // INFO for some reason I can't declare this function type inline. So i declared above ^
 
   connect = async (token: string) => {
@@ -26,40 +39,41 @@ export default class PeerClient {
   }
 
   constructor () {
-    onSocketReceivedReqOrMsg((msg) => {
-      // console.log(msg);
-      if (msg.type === 'message') {
-        switch (msg.subject) {
-          case 'notifyCloseEvent': {
-            switch (msg.data.objectType) {
-              case 'consumer': {
-                // this.close;
-                const consumer = this.consumers.get(msg.data.objectId);
-                if (!consumer) {
-                  throw Error(`no consumer with that id found in client: ${msg.data.objectId}`);
-                }
-                consumer.close();
-                if (this.onConsumerClosed) {
-                  this.onConsumerClosed(consumer.id);
-                }
+    super();
+
+    socketEvents.on('message', (msg) => {
+      // TODO: Find a way to do this! I shouldnt have to type narrow the arguments since I know the properties of the possible inputs map correctly to each other
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      this.emit(msg.subject, msg.data);
+      switch (msg.subject) {
+        case 'notifyCloseEvent': {
+          switch (msg.data.objectType) {
+            case 'consumer': {
+              // this.close;
+              const consumer = this.consumers.get(msg.data.objectId);
+              if (!consumer) {
+                throw Error(`no consumer with that id found in client: ${msg.data.objectId}`);
+              }
+              consumer.close();
+              if (this.onConsumerClosed) {
+                this.onConsumerClosed(consumer.id);
               }
             }
-            break;
           }
-          default: {
-            if (this.onMessageCallback) {
-              this.onMessageCallback(msg);
-            }
-          }
+          break;
         }
-      } else {
-        // if (msg.subject === 'roomStateUpdated') {
-        //   // this.consumers = msg.data.consumers;
-        //   console.log('received new roomstate', msg.data);
-        // }
-        if (this.onRequestCallback) {
-          this.onRequestCallback(msg);
+        default: {
+          // if (this.onMessageCallback) {
+          //   this.onMessageCallback(msg);
+          // }
+          break;
         }
+      }
+    });
+    socketEvents.on('request', req => {
+      if (this.onRequestCallback) {
+        this.onRequestCallback(req);
       }
     });
 

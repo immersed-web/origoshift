@@ -103,7 +103,7 @@ export type AnyMessage =
     objectId: string,
   }>
   | MessageBuilder<'chatMessage', {
-    message: string
+    textMessage: string
   }>
 
 export type MessageSubjects = AnyMessage['subject'];

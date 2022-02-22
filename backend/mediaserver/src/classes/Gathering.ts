@@ -143,6 +143,7 @@ export default class Gathering {
     client.send(msg);
   }
 
+  // TODO: We should throttle some or perhaps all of the broadcast functions so we protect from overload
   broadCastGatheringState(clientsToSkip: string[] = []) {
     const gatheringState = this.getGatheringState();
     console.log(`gonna broadcast to ${this.clients.size} clients`);

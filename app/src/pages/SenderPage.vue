@@ -105,7 +105,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { ref, nextTick, watch, reactive } from 'vue';
+import { ref, nextTick } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import LoginBox from 'src/components/LoginBox.vue';
 import DevicePicker from 'src/components/DevicePicker.vue';

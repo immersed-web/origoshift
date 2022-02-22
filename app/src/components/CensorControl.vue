@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, toRefs, watch } from 'vue';
+import { reactive, watch } from 'vue';
 
 const localState = reactive<{range: {min: number, max: number}, inverted: boolean }>({
   // enabled: false,

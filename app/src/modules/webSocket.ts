@@ -8,15 +8,16 @@ type RequestResolver = (msg: AnySuccessResponse) => void;
 type RequestRejecter = (msg: unknown) => void;
 const pendingRequests = new Map<number, {resolve: RequestResolver, reject: RequestRejecter}>();
 
-let onReqOrMsgCallback: (msg: AnyRequest | AnyMessage) => unknown;
-
 interface SocketEvents {
   'open': () => void;
   'close': () => void;
   'error': (error: Event) => void;
+  'request': (req: AnyRequest) => void;
+  'message': (msg: AnyMessage) => void;
 }
-const socketEmitter = new TypedEmitter<SocketEvents>();
-export const connectionEvents = socketEmitter;
+
+const eventEmitter = new TypedEmitter<SocketEvents>();
+export const socketEvents = eventEmitter;
 
 let createSocketTimeout: number;
 let socket: WebSocket | null = null;
@@ -41,16 +42,16 @@ export async function createSocket (token: string): Promise<Event> {
       console.log('creating websocket with connectionsString;', connectionsString);
       socket = new WebSocket(connectionsString);
       socket.onopen = (ev) => {
-        socketEmitter.emit('open');
+        eventEmitter.emit('open');
         // console.log('connected: ', ev);
         resolve(ev);
       };
       socket.onerror = (err) => {
-        socketEmitter.emit('error', err);
+        eventEmitter.emit('error', err);
         reject(err);
       };
       socket.onclose = (ev) => {
-        socketEmitter.emit('close');
+        eventEmitter.emit('close');
         console.error(ev);
         console.error('socket closed. will try to reconnect!');
         retryIn(4);
@@ -89,19 +90,22 @@ const handleMessage = (ev: MessageEvent) => {
     } catch (e) {
       console.error(e);
     }
-  } else {
-    if (onReqOrMsgCallback) {
-      onReqOrMsgCallback(msg);
-    } else {
-      console.log('message received, but no callback attached');
-      console.log('this is the received message: ', msg);
-    }
+  } else if (msg.type === 'request') {
+    eventEmitter.emit('request', msg);
+    // if (onReqOrMsgCallback) {
+    //   onReqOrMsgCallback(msg);
+    // } else {
+    //   console.log('message received, but no callback attached');
+    //   console.log('this is the received message: ', msg);
+    // }
+  } else if (msg.type === 'message') {
+    eventEmitter.emit('message', msg);
   }
 };
 
-export const onSocketReceivedReqOrMsg = (callback: (msg: AnyRequest | AnyMessage) => unknown) => {
-  onReqOrMsgCallback = callback;
-};
+// export const onSocketReceivedReqOrMsg = (callback: (msg: AnyRequest | AnyMessage) => unknown) => {
+//   onReqOrMsgCallback = callback;
+// };
 
 export const send = (msg: SocketMessage<UnknownMessageType>) => {
   const string = JSON.stringify(msg);

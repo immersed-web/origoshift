@@ -9,6 +9,12 @@
 		}
 	],
   "settings": {
+		"files.watcherExclude": {
+			"**/.git/objects/**": true,
+			"**/.git/subtree-cache/**": true,
+			"**/node_modules/*/**": true,
+			"**/.hg/store/**": true
+		},
 		"remote.autoForwardPorts": false,
 		"eslint.workingDirectories": [ // This is so we can have the .eslintrc.js in subfolders without problem
 			{

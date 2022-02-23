@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { GatheringState, ClientState, RoomState } from 'shared-types/CustomTypes';
 
 let gatheringState: GatheringState | undefined;
-let roomState: RoomState | undefined;
+// let roomState: RoomState | undefined;
 let clientState: ClientState | undefined;
 const rootState =
 // : {
@@ -15,32 +15,44 @@ const rootState =
    //  currentRoomId: '',
    gatheringState,
    //  roomState,
-   //  clientState,
+   clientState,
  };
 
-let clientStateUnlinked: ClientState;
+// let clientStateUnlinked: ClientState;
 
 export const useSoupStore = defineStore('soup', {
   state: () => (rootState),
   getters: {
-    roomState: (state) => {
-      if (!state.gatheringState?.rooms || !state.clientState?.roomId) return undefined;
-      return state.gatheringState.rooms[state.clientState.roomId];
+    clientId: (state) => {
+      return state.clientState?.clientId;
     },
-    clientState (): ClientState {
-      if (this.gatheringState && this.clientState.roomId) {
-        const room = this.gatheringState.rooms[this.clientState.roomId];
-        const clientState = room.clients[this.clientState.clientId];
-        return clientState;
-      } else {
-        return clientStateUnlinked;
-      }
+    roomId: (state) => {
+      return state.clientState?.roomId;
     },
+    roomState (): RoomState | undefined {
+      if (!this.gatheringState?.rooms || !this.roomId) return undefined;
+      return this.gatheringState.rooms[this.roomId];
+    },
+    // clientState (): ClientState {
+    //   if (this.gatheringState && this.clientState.roomId) {
+    //     const room = this.gatheringState.rooms[this.clientState.roomId];
+    //     const clientState = room.clients[this.clientState.clientId];
+    //     return clientState;
+    //   } else {
+    //     return clientStateUnlinked;
+    //   }
+    // },
   },
   actions: {
     setGatheringState (gatheringState: GatheringState) {
       this.gatheringState = gatheringState;
-      // if(this.gatheringState.rooms)
+      if (!this.clientId) { throw new Error('clientId is undefined. Something must have gone terribly wrong!!'); }
+      const allCLients = { ...this.gatheringState.clients, ...this.gatheringState.senderClients };
+      if (!allCLients[this.clientId]) {
+        throw new Error('client was not found in gatheringState object. Something must be off!');
+      }
+      console.log('gonna set clientState from data in gatheringState');
+      this.clientState = allCLients[this.clientId];
     },
     setRoomState (roomState: RoomState) {
       if (!this.gatheringState?.rooms) {
@@ -48,8 +60,8 @@ export const useSoupStore = defineStore('soup', {
       }
       this.gatheringState.rooms[roomState.roomId] = roomState;
     },
-    setClientState (clientState: ClientState) {
+    // setClientState (clientState: ClientState) {
 
-    },
+    // },
   },
 });

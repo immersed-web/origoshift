@@ -187,13 +187,14 @@ export default class Client {
           if(!gathering){
             throw new Error('Cant join that gathering. Does not exist');
           }
-          gathering.addSender(this);
           this.gathering = gathering;
+          gathering.addSender(this);
 
           response = createResponse('joinGatheringAsSender', msg.id, {
             wasSuccess: true,
           });
         } catch(e){
+          this.gathering = undefined;
           response = createResponse('joinGatheringAsSender', msg.id, {
             wasSuccess: false,
             message: extractMessageFromCatch(e, 'failed to joingathering as sender. Verrrry Saad'),
@@ -211,17 +212,20 @@ export default class Client {
             this.gathering = undefined;
           }
           // IMPORTANT
-          // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join the gathering or not
+          // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join that gathering or not
           const gathering = Gathering.getGathering({id: msg.data.gatheringId});
           if(!gathering){
             throw new Error('Cant join that gathering. Does not exist');
           }
-          gathering.addClient(this);
+          // ORDER MATTERS HERE! the gathering will read the client's gathering field when broadcasting,
+          // so we need to set it before calling 'addClient'.
           this.gathering = gathering;
+          gathering.addClient(this);
           response = createResponse('joinGathering', msg.id, {
             wasSuccess: true,
           });
         } catch (e){
+          this.gathering = undefined;
           response = createResponse('joinGathering', msg.id, {
             wasSuccess: false,
             message: extractMessageFromCatch(e, 'failed to join gathering!!! Very inconvenient!'),
@@ -305,11 +309,12 @@ export default class Client {
           if(!foundRoom){
             throw Error('no such room in gathering');
           }
-          foundRoom.addClient(this);
           this.room = foundRoom;
+          foundRoom.addClient(this);
           response.wasSuccess = true;
           response.message = 'succesfully joined room';
         } catch(e){
+          this.room = undefined;
           response.message = extractMessageFromCatch(e, `failed to joinRoom: ${msg.data.roomId}`);
           response.wasSuccess = false;
         }

@@ -63,13 +63,11 @@ export default class Gathering {
   name;
   router: soup.Router;
 
-  // Is it possible security risk that all:ish clients have a reference to the gathering and thus to the sender map?
+  // Is it a possible security risk that all:ish clients have a reference to the gathering and thus to the sender map?
   private senderClients: Map<string, Client> = new Map();
 
   private rooms: Map<string, Room> = new Map();
 
-  // TODO: perhaps make this a getter. Then we wouldn't need as much housekeeping for maintaining sync between clients in rooms and clients in gathering.
-  // It would involve looking up all clients in every room in this gathering as a getter function
   private clients: Map<string, Client> = new Map();
 
   private constructor(id = randomUUID(), name = 'unnamed', router: soup.Router){
@@ -113,6 +111,8 @@ export default class Gathering {
   }
 
   removeClient (client: Client) {
+    // TODO: We should probably broadcast when clients leave
+    // TODO: We should also handle if client leaves gathering while in a room. Here or elsewhere
     this.clients.delete(client.id);
   }
 
@@ -130,6 +130,7 @@ export default class Gathering {
   }
 
   createRoom({roomId, roomName}: {roomId?: string, roomName?: string}){
+    // TODO: Pehaps we should verify uniqueness of id if provided? Or do we trust a uuid is provided
     const room = Room.createRoom({roomId, roomName, gathering: this});
     this.rooms.set(room.id, room);
     this.broadCastGatheringState();
@@ -169,10 +170,11 @@ export default class Gathering {
       return;
     }
     this.rooms.delete(roomOrId.id);
+    this.broadCastGatheringState();
   }
 
   getGatheringState() {
-    const gatheringState: GatheringState = { gatheringId: this.id, rooms: {}, senderClients: {} };
+    const gatheringState: GatheringState = { gatheringId: this.id, rooms: {}, senderClients: {}, clients: {} };
     if(this.name){
       gatheringState.gatheringName = this.name;
     }
@@ -182,6 +184,9 @@ export default class Gathering {
     });
     this.senderClients.forEach(senderClient => {
       gatheringState.senderClients[senderClient.id] = senderClient.clientState;
+    });
+    this.clients.forEach(client => {
+      gatheringState.clients[client.id] = client.clientState;
     });
     return gatheringState;
   }

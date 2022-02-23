@@ -6,13 +6,20 @@ export default function usePeerClient () {
 
   // Attach callbacks! ***************************
   peer.on('gatheringStateUpdated', data => {
-    soupStore.gatheringState = data;
+    console.log('gatheringStateUpdated event triggered!!');
+    console.log(data);
+    soupStore.setGatheringState(data);
   });
   peer.on('roomStateUpdated', data => {
     console.log('roomStateUpdated event triggered!!');
-    soupStore.roomState = data;
+    console.log(data);
+    soupStore.setRoomState(data);
   });
-  peer.on('clientStateUpdated', data => { soupStore.clientState = data; });
+  peer.on('clientStateUpdated', data => {
+    console.log('clientStateUpdated event triggered!!');
+    console.log(data);
+    soupStore.clientState = data;
+  });
   // peer.onMessageCallback = (msg) => {
   //   console.log('received message: ', msg);
   //   switch (msg.subject) {
@@ -77,7 +84,7 @@ export default function usePeerClient () {
 
   async function joinRoom (roomId: string) {
     await peer.joinRoom(roomId);
-    soupStore.currentRoomId = roomId;
+    // soupStore.currentRoomId = roomId;
   }
 
   async function createAndJoinRoom (roomName: string) {

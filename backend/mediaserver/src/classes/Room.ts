@@ -81,9 +81,10 @@ export default class Room {
     //     clientId,
     //     producers};
     // });
-    const clients: RoomState['clients'] = {};
+    const clients: RoomState['clients'] = [];
     this.clients.forEach(client => {
-      clients[client.id] = client.clientState;
+      // clients[client.id] = client.clientState;
+      clients.push(client.id);
     });
 
     const roomInfo: RoomState = {

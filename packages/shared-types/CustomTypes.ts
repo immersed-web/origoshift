@@ -26,18 +26,10 @@ export interface RoomState {
   roomId: string;
   roomName?: string;
   mainProducer?: string
-  clients: {
-      [clientId: string]: ClientState;
-      // {
-      // clientId: string;
-      // nickName?: string;
-      // producers:  {
-      //   [producerId: string]: {
-      //     producerId: string;
-      //     kind: soup.MediaKind;
-      //   }
-      // }
-  }
+  clients: string[]
+  // {
+  //     [clientId: string]: ClientState;
+  // }
 }
 
 export interface GatheringState {
@@ -48,6 +40,9 @@ export interface GatheringState {
   };
   rooms: {
     [roomId: string ] : RoomState;
+  }
+  clients: {
+      [clientId: string]: ClientState;
   }
 }
 

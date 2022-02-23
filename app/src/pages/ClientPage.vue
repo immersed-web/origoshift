@@ -25,6 +25,10 @@
       round
       @click="raiseHand"
     />
+    <QBtn
+      label="update video-sphere"
+      @click="initVideoSphere"
+    />
   </QCard>
   <div
     id="main-container"
@@ -38,7 +42,7 @@
       @click="prevProducer()"
     />
     <video
-      v-show="false"
+      v-show="true"
       id="main-video"
       class="col"
       autoplay
@@ -153,8 +157,9 @@ async function consume (producerInfo: typeof producers.value[number]) {
   if (!videoTag.value) return;
   videoTag.value.srcObject = new MediaStream([track]);
   await nextTick();
-  initVideoSphere();
+  // initVideoSphere();
 }
+initVideoSphere();
 (async () => {
   await peer.getRouterCapabilities();
   await peer.loadMediasoupDevice();
@@ -178,7 +183,7 @@ async function initVideoSphere () {
   // vSphere.setAttribute('srcObject', 'https://bitmovin.com/player-content/playhouse-vr/progressive.mp4');
   vSphere.setAttribute('src', '#main-video');
   const vVideo = document.querySelector('a-video');
-  if (!vVideo) throw new Error('no videosphere found in DOM!!! What have you done Gunnar??');
+  if (!vVideo) throw new Error('no videoframe found in (a-frame) DOM!!! What have you done Gunnar??');
   vVideo.setAttribute('src', '#main-video');
   // sceneEl.appendChild(vSphere);
 }
@@ -194,8 +199,13 @@ async function initVideoSphere () {
   height: 100vh;
 }
 #main-video {
-  max-height: 100vh;
-  max-width: 100vw;
+  z-index: 50;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  max-width: 20rem;
+  max-height: 20rem;
+  background-color: aqua;
 }
 
 #overlay {

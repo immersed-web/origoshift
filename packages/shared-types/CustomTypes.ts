@@ -27,11 +27,12 @@ export interface RoomState {
   roomName?: string;
   mainProducer?: string
   clients: string[]
-  // {
+  // clients: {
   //     [clientId: string]: ClientState;
   // }
 }
 
+type ShallowRoomState = Omit<RoomState, 'clients'> & {clients: string[]}
 export interface GatheringState {
   gatheringId: string;
   gatheringName?: string;

@@ -70,7 +70,10 @@
           media-type="videoinput"
           @deviceselected="requestMedia"
         />
-        <div style="width: fit-content;">
+        <div
+          class="relative-position"
+          style="width: fit-content;"
+        >
           <CensorControl @update="updateCensorShield" />
           <video
             v-show="false"
@@ -82,6 +85,9 @@
             style="max-width: 100%;"
             ref="canvasTag"
           />
+          <div id="video-info">
+            <pre>{{ videoInfo }}</pre>
+          </div>
         </div>
       </QCardSection>
     </QCard>
@@ -118,6 +124,7 @@ const videoTag = ref<HTMLVideoElement>();
 const canvasTag = ref<HTMLCanvasElement>();
 
 const pickedVideoDevice = ref<MediaDeviceInfo>();
+const videoInfo = ref<Record<string, string | number | undefined>>();
 const mediaStream = ref<MediaStream>();
 const gatheringName = ref<string>('testEvent');
 
@@ -140,7 +147,8 @@ async function requestMedia (deviceInfo: MediaDeviceInfo) {
   videoTag.value.srcObject = stream;
 
   if (!canvasTag.value) throw new Error('no canvas tag available');
-  const { width, height } = videoSettings;
+  const { width, height, frameRate, aspectRatio } = videoSettings;
+  videoInfo.value = { width, height, frameRate, aspectRatio };
   if (!width || !height) throw new Error('couldnt read width and/or heigth from videotrack');
   canvasTag.value.width = width;
   canvasTag.value.height = height;
@@ -268,5 +276,14 @@ async function stopProducing () {
 <style lang="scss">
 .main-card {
   min-width: 30rem
+}
+
+#video-info {
+  position: absolute;
+  padding: 1rem;
+  left: 0;
+  bottom: 0;
+  z-index: 80;
+  background-color: rgba(231, 188, 255, 0.2);
 }
 </style>

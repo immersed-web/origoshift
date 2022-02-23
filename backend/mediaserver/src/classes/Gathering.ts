@@ -139,14 +139,14 @@ export default class Gathering {
   }
 
   sendGatheringStateTo(client: Client){
-    const state = this.getGatheringState();
+    const state = this.gatheringState;
     const msg = createMessage('gatheringStateUpdated', state);
     client.send(msg);
   }
 
   // TODO: We should throttle some or perhaps all of the broadcast functions so we protect from overload
   broadCastGatheringState(clientsToSkip: string[] = []) {
-    const gatheringState = this.getGatheringState();
+    const gatheringState = this.gatheringState;
     console.log(`gonna broadcast to ${this.clients.size} clients`);
 
     const receivers = [...this.clients, ...this.senderClients];
@@ -173,7 +173,7 @@ export default class Gathering {
     this.broadCastGatheringState();
   }
 
-  getGatheringState() {
+  get gatheringState() {
     const gatheringState: GatheringState = { gatheringId: this.id, rooms: {}, senderClients: {}, clients: {} };
     if(this.name){
       gatheringState.gatheringName = this.name;

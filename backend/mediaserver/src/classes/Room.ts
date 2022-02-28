@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import Client from './Client';
-import { RoomState } from 'shared-types/CustomTypes';
+import { RoomState, ShallowRoomState } from 'shared-types/CustomTypes';
 import Gathering from './Gathering';
 import {types as soupTypes } from 'mediasoup';
 import { createMessage } from 'shared-types/MessageTypes';
@@ -65,47 +65,36 @@ export default class Room {
     }
   }
 
-  get roomState() {
-    // const clients: RoomState['clients'] = {};
-    // this.clients.forEach((client, clientId) => {
-    //   const nickName = client.nickName;
-    //   const producers: RoomState['clients'][string]['producers'] = {};
-    //   client.producers.forEach((producer, producerId) => {
-    //     producers[producerId] = {
-    //       producerId: producerId,
-    //       kind: producer.kind,
-    //     };
-    //   });
-    //   clients[clientId] = { 
-    //     nickName,
-    //     clientId,
-    //     producers};
-    // });
-    const clients: RoomState['clients'] = [];
+  get roomState(): RoomState {
+    const clients: RoomState['clients'] = {};
     this.clients.forEach(client => {
-      // clients[client.id] = client.clientState;
-      clients.push(client.id);
+      clients[client.id] = client.clientState;
+      // clients.push(client.id);
     });
 
     const roomInfo: RoomState = {
       roomId: this.id,
       roomName: this.roomName,
       mainProducer: this.mainProducer?.id,
-      clients: clients,
+      clients,
     };
     return roomInfo;
   }
 
+  get shallowRoomState (): ShallowRoomState {
+    return {...this.roomState, clients: Object.keys(this.clients)};
+  }
+
   // INFO: As of now we rely on the state of the gathering instead of updating each room individually. We'll see further ahead if that turns out to be a good solution
   // broadcastRoomState(clientToSkip?: Client){
-  broadcastRoomState(){
-    const roomState = this.roomState;
+  broadcastGlobalStateToRoom(){
+    const gatheringState = this.gathering.gatheringState;
     this.clients.forEach((client) => {
       // if(clientToSkip && clientToSkip === client){
       //   return;
       // }
       // client.roomInfoUpdated(roomState);
-      const msg = createMessage('roomStateUpdated', roomState);
+      const msg = createMessage('gatheringStateUpdated', gatheringState);
       client.send(msg);
     });
   }

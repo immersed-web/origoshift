@@ -1,15 +1,11 @@
 import { defineStore } from 'pinia';
-import { GatheringState, ClientState, RoomState } from 'shared-types/CustomTypes';
+import { GatheringState, ClientState, RoomState, ShallowRoomState } from 'shared-types/CustomTypes';
 
 let gatheringState: GatheringState | undefined;
 // let roomState: RoomState | undefined;
 let clientState: ClientState | undefined;
+
 const rootState =
-// : {
-//   connected: boolean
-//   currentRoomId: string
-//   gatheringState?: GatheringState
-// }
  {
    connected: false,
    //  currentRoomId: '',
@@ -17,8 +13,6 @@ const rootState =
    //  roomState,
    clientState,
  };
-
-// let clientStateUnlinked: ClientState;
 
 export const useSoupStore = defineStore('soup', {
   state: () => (rootState),
@@ -31,7 +25,13 @@ export const useSoupStore = defineStore('soup', {
     },
     roomState (): RoomState | undefined {
       if (!this.gatheringState?.rooms || !this.roomId) return undefined;
-      return this.gatheringState.rooms[this.roomId];
+      const clientMap: Record<string, ClientState> = {};
+      for (const clientId of this.gatheringState.rooms[this.roomId].clients) {
+        clientMap[clientId] = this.gatheringState.clients[clientId];
+      }
+
+      const roomState: RoomState = { ...this.gatheringState.rooms[this.roomId], clients: clientMap };
+      return roomState;
     },
     // clientState (): ClientState {
     //   if (this.gatheringState && this.clientState.roomId) {
@@ -55,10 +55,22 @@ export const useSoupStore = defineStore('soup', {
       this.clientState = allCLients[this.clientId];
     },
     setRoomState (roomState: RoomState) {
-      if (!this.gatheringState?.rooms) {
-        throw new Error('fuck no! Couldnt set roomstate because gatheringstate has no rooms props (or gatheringstate is undefined)');
+      if (!this.gatheringState) {
+        throw new Error('no gatheringState! That is nooo good!');
       }
-      this.gatheringState.rooms[roomState.roomId] = roomState;
+      if (!this.gatheringState.rooms[roomState.roomId]) {
+        throw new Error('fuck no! Couldnt set roomstate because gatheringstate has no such room');
+      }
+
+      // Create a shallRoomState for the gatheringstate
+      const clientIds = Object.keys(roomState.clients);
+      const shallowRoomstate: ShallowRoomState = { ...roomState, clients: clientIds };
+      this.gatheringState.rooms[roomState.roomId] = shallowRoomstate;
+
+      // update/create the clients in gatheringstate from the (potentially) updated clients in the received roomstate
+      for (const [clientId, client] of Object.entries(roomState.clients)) {
+        this.gatheringState.clients[clientId] = client;
+      }
     },
     // setClientState (clientState: ClientState) {
 

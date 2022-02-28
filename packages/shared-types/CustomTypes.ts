@@ -26,12 +26,13 @@ export interface RoomState {
   roomId: string;
   roomName?: string;
   mainProducer?: string
-  clients: string[]
-  // {
-  //     [clientId: string]: ClientState;
-  // }
+  // clients: string[]
+  clients: {
+      [clientId: string]: ClientState;
+  }
 }
 
+export type ShallowRoomState = Omit<RoomState, 'clients'> & {clients: string[]}
 export interface GatheringState {
   gatheringId: string;
   gatheringName?: string;
@@ -39,7 +40,7 @@ export interface GatheringState {
     [clientId: string] : ClientState
   };
   rooms: {
-    [roomId: string ] : RoomState;
+    [roomId: string ] : ShallowRoomState;
   }
   clients: {
       [clientId: string]: ClientState;
@@ -47,7 +48,7 @@ export interface GatheringState {
 }
 
 // export type AllowedActions  = Extract<RequestSubjects, 'createGathering' |'joinGathering' | 'gatheringState' | 'createRoom' | 'joinRoom'>
-export type AllowedAction  = RequestSubjects | '*';
+export type AllowedAction  =  RequestSubjects | '*';
 export interface UserData {
   uuid: string,
   username: string,

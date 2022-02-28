@@ -258,7 +258,7 @@ export default class Client {
           if(!this.gathering){
             throw new Error('cant list rooms if isnt in a gathering');
           }
-          const gatheringState = this.gathering.getGatheringState();
+          const gatheringState = this.gathering.gatheringState;
           response = createResponse('getGatheringState', msg.id, {
             wasSuccess: true,
             data: gatheringState
@@ -630,9 +630,9 @@ export default class Client {
     if(!this.room)
       return;
     // TODO: We need to handle (on clientside?) when updating clientstate, roomstate and gatheringstate. How should broadcast of state for client, room and gathering work together?
-    // For example, if a user changes clientstate this should propagate to frontend clientstate aswell as potential room and gatheringstate on all clients (including the client itself) 
+    // For example, if a user changes clientstate this should (perhaps) propagate to frontend clientstate as well as potential room and gatheringstate on all clients (including the client itself) 
     // hmmmm. curious...
-    this.room.broadcastRoomState();
+    this.room.broadcastGlobalStateToRoom();
     // this.send(createMessage('roomStateUpdated', ));
   }
 

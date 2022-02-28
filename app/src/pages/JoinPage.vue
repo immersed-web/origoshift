@@ -97,6 +97,7 @@ const joinEvent = async (eventName: string) => {
   console.log('gonna find the event:', eventName);
   const gatheringId = await peer.findGathering(eventName);
   await peer.joinGathering(gatheringId);
+  await peer.getRouterCapabilities();
   router.push('/client');
 };
 

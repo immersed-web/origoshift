@@ -99,12 +99,12 @@ export default function usePeerClient () {
     return producerId;
   }
 
-  async function joinGathering (gatheringId: string) {
-    await peer.joinGathering(gatheringId);
-    await peer.getRouterCapabilities();
-  }
+  // async function joinGathering (gatheringId: string) {
+  //   await peer.joinGathering(gatheringId);
+  //   await peer.getRouterCapabilities();
+  // }
 
-  const customExports = { connect, requestMedia, createAndJoinRoom, produce, joinGathering, joinRoom, onConsumerClosed };
+  const customExports = { connect, requestMedia, createAndJoinRoom, produce, joinRoom, onConsumerClosed };
 
   return {
     ...peer, // Order matters here! customExports holds some overrides, so it must come after

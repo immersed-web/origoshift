@@ -30,15 +30,19 @@ export interface RoomState {
   clients: {
       [clientId: string]: ClientState;
   }
+  // senderClients: {
+  //     [clientId: string]: ClientState;
+  // }
 }
 
 export type ShallowRoomState = Omit<RoomState, 'clients'> & {clients: string[]}
+
 export interface GatheringState {
   gatheringId: string;
   gatheringName?: string;
-  senderClients: {
-    [clientId: string] : ClientState
-  };
+  // senderClients: {
+  //   [clientId: string] : ClientState
+  // };
   rooms: {
     [roomId: string ] : ShallowRoomState;
   }

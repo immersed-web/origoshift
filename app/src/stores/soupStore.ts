@@ -25,12 +25,16 @@ export const useSoupStore = defineStore('soup', {
     },
     roomState (): RoomState | undefined {
       if (!this.gatheringState?.rooms || !this.roomId) return undefined;
-      const clientMap: Record<string, ClientState> = {};
+      const clients: RoomState['clients'] = {};
       for (const clientId of this.gatheringState.rooms[this.roomId].clients) {
-        clientMap[clientId] = this.gatheringState.clients[clientId];
+        clients[clientId] = this.gatheringState.clients[clientId];
       }
+      // const senderClients : RoomState['senderClients'] = {};
+      // for (const clientId of this.gatheringState.rooms[this.roomId].senderClients) {
+      //   senderClients[clientId] = this.gatheringState.clients[clientId];
+      // }
 
-      const roomState: RoomState = { ...this.gatheringState.rooms[this.roomId], clients: clientMap };
+      const roomState: RoomState = { ...this.gatheringState.rooms[this.roomId], clients };
       return roomState;
     },
     // clientState (): ClientState {
@@ -47,7 +51,8 @@ export const useSoupStore = defineStore('soup', {
     setGatheringState (gatheringState: GatheringState) {
       this.gatheringState = gatheringState;
       if (!this.clientId) { throw new Error('clientId is undefined. Something must have gone terribly wrong!!'); }
-      const allCLients = { ...this.gatheringState.clients, ...this.gatheringState.senderClients };
+      // const allCLients = { ...this.gatheringState.clients, ...this.gatheringState.senderClients };
+      const allCLients = { ...this.gatheringState.clients };
       if (!allCLients[this.clientId]) {
         throw new Error('client was not found in gatheringState object. Something must be off!');
       }
@@ -64,6 +69,7 @@ export const useSoupStore = defineStore('soup', {
 
       // Create a shallRoomState for the gatheringstate
       const clientIds = Object.keys(roomState.clients);
+      // const senderClientIds = Object.keys(roomState.senderClients);
       const shallowRoomstate: ShallowRoomState = { ...roomState, clients: clientIds };
       this.gatheringState.rooms[roomState.roomId] = shallowRoomstate;
 
@@ -71,6 +77,9 @@ export const useSoupStore = defineStore('soup', {
       for (const [clientId, client] of Object.entries(roomState.clients)) {
         this.gatheringState.clients[clientId] = client;
       }
+      // for (const [clientId, client] of Object.entries(roomState.senderClients)) {
+      //   this.gatheringState.senderClients[clientId] = client;
+      // }
     },
     // setClientState (clientState: ClientState) {
 

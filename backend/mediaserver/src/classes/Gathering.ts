@@ -16,6 +16,16 @@ export default class Gathering {
 
   static async createGathering(id?: string, name?: string, worker?: soup.Worker) {
     try {
+      // Not shure if good, but for now let's not allow duplicate names for gatherings.
+      if(name){
+        this.gatherings.forEach(gathering => {
+          if(gathering.name === name){
+            throw new Error('Gathering with that name already exists!!');
+          }
+        });
+      }
+
+
       const routerOptions: soup.RouterOptions = {};
       if(mediasoupConfig.router.mediaCodecs){
         routerOptions.mediaCodecs = mediasoupConfig.router.mediaCodecs;
@@ -85,23 +95,23 @@ export default class Gathering {
     Gathering.gatherings.set(this.id, this);
   }
 
-  addSender(client: Client){
-    this.senderClients.set(client.id, client);
-    this.broadCastGatheringState();
-  }
+  // addSender(client: Client){
+  //   this.senderClients.set(client.id, client);
+  //   this.broadCastGatheringState();
+  // }
 
-  removeSender(client: Client){
-    this.senderClients.delete(client.id);
-    this.broadCastGatheringState();
-  }
+  // removeSender(client: Client){
+  //   this.senderClients.delete(client.id);
+  //   this.broadCastGatheringState();
+  // }
 
-  getSender (clientId: string){
-    const client = this.senderClients.get(clientId);
-    if(!client){
-      throw new Error('no client with that id in gathering');
-    }
-    return client;
-  }
+  // getSender (clientId: string){
+  //   const client = this.senderClients.get(clientId);
+  //   if(!client){
+  //     throw new Error('no client with that id in gathering');
+  //   }
+  //   return client;
+  // }
 
   addClient ( client : Client){
     this.clients.set(client.id, client);
@@ -146,19 +156,19 @@ export default class Gathering {
 
   // TODO: We should throttle some or perhaps all of the broadcast functions so we protect from overload
   broadCastGatheringState(clientsToSkip: string[] = []) {
-    const gatheringState = this.gatheringState;
+    // const gatheringState = this.gatheringState;
     console.log(`gonna broadcast to ${this.clients.size} clients`);
 
-    const receivers = [...this.clients, ...this.senderClients];
+    // const receivers = [...this.clients, ...this.senderClients];
 
-    receivers.forEach(([_clientId, client]) => {
+    this.clients.forEach(client => {
       if(client.id in clientsToSkip){
         console.log('skipping client:', client.id);
         return;
       }
-      const gatheringRoomsMsg = createMessage('gatheringStateUpdated', gatheringState);
+      const gatheringStateMsg = createMessage('gatheringStateUpdated', this.gatheringState);
       console.log(`sending gatheringStateUpdated to client ${client.id}`);
-      client.send(gatheringRoomsMsg);
+      client.send(gatheringStateMsg);
     });
     // });
   }
@@ -174,7 +184,8 @@ export default class Gathering {
   }
 
   get gatheringState() {
-    const gatheringState: GatheringState = { gatheringId: this.id, rooms: {}, senderClients: {}, clients: {} };
+    // const gatheringState: GatheringState = { gatheringId: this.id, rooms: {}, senderClients: {}, clients: {} };
+    const gatheringState: GatheringState = { gatheringId: this.id, rooms: {}, clients: {} };
     if(this.name){
       gatheringState.gatheringName = this.name;
     }
@@ -182,9 +193,9 @@ export default class Gathering {
       const roomstate = room.shallowRoomState;
       gatheringState.rooms[room.id] = roomstate;
     });
-    this.senderClients.forEach(senderClient => {
-      gatheringState.senderClients[senderClient.id] = senderClient.clientState;
-    });
+    // this.senderClients.forEach(senderClient => {
+    //   gatheringState.senderClients[senderClient.id] = senderClient.clientState;
+    // });
     this.clients.forEach(client => {
       gatheringState.clients[client.id] = client.clientState;
     });

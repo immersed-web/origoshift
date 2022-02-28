@@ -163,46 +163,55 @@ export default class Client {
         break;
       }
       case 'createGathering': {
-        const gathering = await Gathering.createGathering(undefined, msg.data.gatheringName);
-        this.gathering = gathering;
-        const response = createResponse('createGathering', msg.id, {
-          data: {
-            gatheringId: gathering.id
-          },
-          wasSuccess: true,
-        });
-        this.send(response);
-        break;
-      }
-      case 'joinGatheringAsSender': {
-        let response: ResponseTo<'joinGatheringAsSender'>;
-        try {
+        let response: ResponseTo<'createGathering'>;
+        try{
 
-          if(this.gathering){
-            this.gathering.removeClient(this);
-            this.gathering = undefined;
-          }
-
-          const gathering = Gathering.getGathering({id: msg.data.gatheringId});
-          if(!gathering){
-            throw new Error('Cant join that gathering. Does not exist');
-          }
+          const gathering = await Gathering.createGathering(undefined, msg.data.gatheringName);
           this.gathering = gathering;
-          gathering.addSender(this);
-
-          response = createResponse('joinGatheringAsSender', msg.id, {
+          response = createResponse('createGathering', msg.id, {
+            data: {
+              gatheringId: gathering.id
+            },
             wasSuccess: true,
           });
-        } catch(e){
-          this.gathering = undefined;
-          response = createResponse('joinGatheringAsSender', msg.id, {
+        } catch (e) {
+          response = createResponse('createGathering', msg.id, {
             wasSuccess: false,
-            message: extractMessageFromCatch(e, 'failed to joingathering as sender. Verrrry Saad'),
+            message: extractMessageFromCatch(e, 'failed to create gathering!'),
           });
         }
         this.send(response);
         break;
       }
+      // case 'joinGatheringAsSender': {
+      //   let response: ResponseTo<'joinGatheringAsSender'>;
+      //   try {
+
+      //     if(this.gathering){
+      //       this.gathering.removeClient(this);
+      //       this.gathering = undefined;
+      //     }
+
+      //     const gathering = Gathering.getGathering({id: msg.data.gatheringId});
+      //     if(!gathering){
+      //       throw new Error('Cant join that gathering. Does not exist');
+      //     }
+      //     this.gathering = gathering;
+      //     gathering.addSender(this);
+
+      //     response = createResponse('joinGatheringAsSender', msg.id, {
+      //       wasSuccess: true,
+      //     });
+      //   } catch(e){
+      //     this.gathering = undefined;
+      //     response = createResponse('joinGatheringAsSender', msg.id, {
+      //       wasSuccess: false,
+      //       message: extractMessageFromCatch(e, 'failed to joingathering as sender. Verrrry Saad'),
+      //     });
+      //   }
+      //   this.send(response);
+      //   break;
+      // }
       case 'joinGathering': {
         let response: ResponseTo<'joinGathering'>;
         try{ 
@@ -298,7 +307,7 @@ export default class Client {
       case 'joinRoom': {
         this.leaveCurrentRoom(false);
         //default to fail message
-        const response = createResponse('joinRoom', msg.id, { wasSuccess: false, message: 'failed to join room'});
+        let response: ResponseTo<'joinRoom'>;
         try{
 
           if(!this.gathering){
@@ -311,12 +320,15 @@ export default class Client {
           }
           this.room = foundRoom;
           foundRoom.addClient(this);
-          response.wasSuccess = true;
-          response.message = 'succesfully joined room';
+          response = createResponse('joinRoom', msg.id, {
+            wasSuccess: true,
+          });
         } catch(e){
           this.room = undefined;
-          response.message = extractMessageFromCatch(e, `failed to joinRoom: ${msg.data.roomId}`);
-          response.wasSuccess = false;
+          response = createResponse('joinRoom', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, `failed to joinRoom: ${msg.data.roomId}`)
+          });
         }
         this.send(response);
         break;
@@ -427,7 +439,7 @@ export default class Client {
           if(!room) {
             throw new Error('no such room maddafakka!');
           }
-          const producer = this.gathering?.getSender(reqParams.clientId).producers.get(reqParams.producerId);
+          const producer = this.gathering?.getClient(reqParams.clientId).producers.get(reqParams.producerId);
           if(!producer){
             throw new Error('no such producer found!');
           }
@@ -452,7 +464,7 @@ export default class Client {
           if(!this.sendTransport){
             throw Error('sendTransport is undefined. Need a sendtransport to produce');
           } else if(this.sendTransport.id !== msg.data.transportId){
-            throw Error('the provided transporId didnt math the id of the sendTransport');
+            throw Error('the provided transporId didnt match the id of the sendTransport');
           }
           const {kind, rtpParameters} = msg.data;
           const producer = await this.sendTransport.produce({ kind, rtpParameters});
@@ -530,6 +542,13 @@ export default class Client {
             }));
             this.consumers.delete(consumer.id);
           });
+
+          consumer.on('producerpause', () => {
+            console.log('producer was paused! Handler NOT IMPLEMENTED YET!');
+          });
+          consumer.on('producerresume', () => {
+            console.log('producer was resumed! Handler NOT IMPLEMENTED YET!');
+          });
           
           const {id, producerId, kind, rtpParameters} = consumer;
 
@@ -549,6 +568,7 @@ export default class Client {
         break; 
       }
       case 'notifyPauseResume': {
+        console.log('received notify Pause resume:', msg.data);
         let response: ResponseTo<'notifyPauseResume'>;
         try {
           let prodcon: soupTypes.Producer | soupTypes.Consumer | undefined;
@@ -632,7 +652,7 @@ export default class Client {
     // TODO: We need to handle (on clientside?) when updating clientstate, roomstate and gatheringstate. How should broadcast of state for client, room and gathering work together?
     // For example, if a user changes clientstate this should (perhaps) propagate to frontend clientstate as well as potential room and gatheringstate on all clients (including the client itself) 
     // hmmmm. curious...
-    this.room.broadcastGlobalStateToRoom();
+    this.room.broadcastRoomState();
     // this.send(createMessage('roomStateUpdated', ));
   }
 
@@ -717,7 +737,7 @@ export default class Client {
     if(!transport){
       throw new Error('failed to create transport!!');
     }
-    transport.on('routerclose', () => {
+    transport.addListener('routerclose', () => {
       this.sendRequest(createRequest('notifyCloseEvent', {
         objectType: 'transport',
         objectId: transport.id,
@@ -725,12 +745,12 @@ export default class Client {
     });
     if(direction == 'receive'){
       this.receiveTransport = transport;
-      this.receiveTransport.on('routerclose',()=> {
+      this.receiveTransport.addListener('routerclose', ()=> {
         this.receiveTransport = undefined;
       });
     } else {
       this.sendTransport = transport;
-      this.sendTransport.on('routerclose',()=> {
+      this.sendTransport.addListener('routerclose',()=> {
         this.sendTransport = undefined;
       });
     }

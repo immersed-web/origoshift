@@ -62,6 +62,29 @@
           @click="consumeMyself"
         />
       </QCardSection>
+      <QCardSection>
+        <QList>
+          <QItem
+            v-for="(client, clientKey) in soupStore.roomState?.clients"
+            :key="clientKey"
+          >
+            <QItemSection>
+              {{ client.clientId }}: {{ client.username }}
+            </QItemSection>
+            <QList>
+              <QItem
+                v-for="(prop, propKey) in client.customProperties"
+                :key="propKey"
+              >
+                <QItemSection>
+                  {{ propKey }}: {{ prop }}
+                </QItemSection>
+              </QItem>
+            </QList>
+          </QItem>
+        </QList>
+        {{ soupStore.roomState }}
+      </QCardSection>
     </QCard>
     <QCard class="col">
       <QCardSection class="q-gutter-lg">
@@ -229,7 +252,8 @@ async function connectToEvent (gatheringId?: string) {
   if (!gatheringId) {
     gatheringId = await peer.findGathering(gatheringName.value);
   }
-  await peer.joinGatheringAsSender(gatheringId);
+  // await peer.joinGatheringAsSender(gatheringId);
+  await peer.joinGathering(gatheringId);
   await peer.getRouterCapabilities();
   await peer.loadMediasoupDevice();
   await peer.createSendTransport();

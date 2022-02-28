@@ -42,7 +42,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     super();
 
     socketEvents.on('message', (msg) => {
-      // TODO: Find a way to do this! I shouldnt have to type narrow the arguments since I know the properties of the possible inputs map correctly to each other
+      // TODO: Find a way to do this! I shouldnt have to type narrow the arguments since I know the possible types of the two parameters map correctly to each other
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this.emit(msg.subject, msg.data);
@@ -157,10 +157,10 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     // return response.
   }
 
-  joinGatheringAsSender = async (gatheringId:string) => {
-    const joinGatheringAsSenderReq = createRequest('joinGatheringAsSender', { gatheringId });
-    await sendRequest(joinGatheringAsSenderReq);
-  }
+  // joinGatheringAsSender = async (gatheringId:string) => {
+  //   const joinGatheringAsSenderReq = createRequest('joinGatheringAsSender', { gatheringId });
+  //   await sendRequest(joinGatheringAsSenderReq);
+  // }
 
   getGatheringState = async () => {
     const getRoomsReq = createRequest('getGatheringState');

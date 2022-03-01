@@ -643,17 +643,21 @@ export default class Client {
     return state;
   }
 
+  // Not sure yet if we can rely on always broadcasting to room if inside one and send to self if not.
+  // Also, how about gatherings? Do we sometimes want to broadcast clientstate changes on gathering level?
+  onClientStateUpdated() {
+    if(this.room){
+      this.room.broadcastRoomState();
+    } else {
+      this.send(createMessage('clientStateUpdated', this.clientState));
+    }
+  }
+
   setCustomProperties (props : Record<string, unknown>)  {
     for(const [key, prop] of Object.entries(props)) {
       this.customProperties[key] = prop;
     }
-    if(!this.room)
-      return;
-    // TODO: We need to handle (on clientside?) when updating clientstate, roomstate and gatheringstate. How should broadcast of state for client, room and gathering work together?
-    // For example, if a user changes clientstate this should (perhaps) propagate to frontend clientstate as well as potential room and gatheringstate on all clients (including the client itself) 
-    // hmmmm. curious...
-    this.room.broadcastRoomState();
-    // this.send(createMessage('roomStateUpdated', ));
+    this.onClientStateUpdated();
   }
 
   private leaveCurrentRoom(): string;
@@ -767,11 +771,6 @@ export default class Client {
 
   }
 
-  // roomInfoUpdated(newRoomState: RoomState){
-  //   console.log('roomState updated', newRoomState);
-  //   const roomStateUpdate = createRequest('roomStateUpdated', newRoomState);
-  //   this.send(roomStateUpdate);
-  // }
 
   // /**
   //  * I would prefer to not need this function. but uWebsockets is not attaching incoming messages to the socket object itself, but rather the server.

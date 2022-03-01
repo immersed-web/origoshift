@@ -29,10 +29,6 @@ export const useSoupStore = defineStore('soup', {
       for (const clientId of this.gatheringState.rooms[this.roomId].clients) {
         clients[clientId] = this.gatheringState.clients[clientId];
       }
-      // const senderClients : RoomState['senderClients'] = {};
-      // for (const clientId of this.gatheringState.rooms[this.roomId].senderClients) {
-      //   senderClients[clientId] = this.gatheringState.clients[clientId];
-      // }
 
       const roomState: RoomState = { ...this.gatheringState.rooms[this.roomId], clients };
       return roomState;
@@ -77,12 +73,15 @@ export const useSoupStore = defineStore('soup', {
       for (const [clientId, client] of Object.entries(roomState.clients)) {
         this.gatheringState.clients[clientId] = client;
       }
-      // for (const [clientId, client] of Object.entries(roomState.senderClients)) {
-      //   this.gatheringState.senderClients[clientId] = client;
-      // }
-    },
-    // setClientState (clientState: ClientState) {
 
-    // },
+      if (!this.clientId) {
+        throw new Error('clientId was undeinfed inside setRoomState action');
+      }
+
+      // update clientState from the (potentially) updated clientobject in roomstate
+      if (this.clientId in roomState.clients) {
+        this.clientState = roomState.clients[this.clientId];
+      }
+    },
   },
 });

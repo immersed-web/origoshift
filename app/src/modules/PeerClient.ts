@@ -9,6 +9,14 @@ type consumerClosedCallback = (consumerId: string) => unknown;
 type MsgEvents<Msg extends AnyMessage> = {
   [event in Msg['subject']]: (data: Message<event>['data']) => void;
 };
+
+interface TransportProduceParams {
+  kind: mediasoupTypes.MediaKind;
+  rtpParameters: mediasoupTypes.RtpParameters;
+  appData: {
+    producerInfo: Record<string, unknown>
+  }
+}
 // } | {
 //   [reqEvent in Extract<Subject, RequestSubjects>]: (data?: Request<reqEvent> extends {data: unknown}? Request<reqEvent>['data']: undefined) => void;
 // }
@@ -241,15 +249,18 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
       transport.on('produce', async ({
         kind,
         rtpParameters,
-      }: {kind: mediasoupTypes.MediaKind, rtpParameters: mediasoupTypes.RtpParameters}, callback: ({ id }: {id: string}) => void, errorback: (error: unknown) => void) => {
+        appData,
+      }: TransportProduceParams, callback: ({ id }: {id: string}) => void, errorback: (error: unknown) => void) => {
       // void (async () => {
         // const params: {transportId: string | undefined, kind: mediasoupTypes.MediaKind, rtpParameters: mediasoupTypes.RtpParameters } = { transportId: transport?.id, kind, rtpParameters };
         try {
+          const { producerInfo } = appData;
           // const response = await this.socket.request('createProducer', { transportId: transport.id, kind, rtpParameters });
           const createProducerReq = createRequest('createProducer', {
             kind,
             rtpParameters,
             transportId: transport.id,
+            producerInfo,
           });
           const response = await sendRequest(createProducerReq);
           if (response.wasSuccess) {
@@ -296,7 +307,9 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     if (!this.sendTransport) {
       return Promise.reject('Need a transport to be able to produce. No transport present');
     }
-    const producer = await this.sendTransport.produce({ track });
+    // TODO: Send actual producerinfo along
+    const appData = { producerinfo: { type: 'screenshare' } };
+    const producer = await this.sendTransport.produce({ track, appData });
     this.producers.set(producer.id, producer);
     return producer.id;
   }

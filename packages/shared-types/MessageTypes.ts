@@ -48,7 +48,8 @@ export type AnyRequest =
   | RequestBuilder<'createProducer', {
     transportId: string,
     kind: mediasoupClientTypes.MediaKind,
-    rtpParameters: mediasoupClientTypes.RtpParameters
+    rtpParameters: mediasoupClientTypes.RtpParameters,
+    producerInfo: Record<string, unknown>,
   }>
   | RequestBuilder<'createConsumer', {
     producerId: string,

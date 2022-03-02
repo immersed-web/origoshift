@@ -303,13 +303,15 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     await sendRequest(assignProducerReq);
   }
 
-  produce = async (track: MediaStreamTrack): Promise<mediasoupTypes.Producer['id']> => {
+  produce = async (track: MediaStreamTrack, producerInfo?: Record<string, unknown>): Promise<mediasoupTypes.Producer['id']> => {
     if (!this.sendTransport) {
       return Promise.reject('Need a transport to be able to produce. No transport present');
     }
-    // TODO: Send actual producerinfo along
-    const appData = { producerinfo: { type: 'screenshare' } };
-    const producer = await this.sendTransport.produce({ track, appData });
+    const producerOptions: mediasoupTypes.ProducerOptions = { track };
+    if (producerInfo) {
+      producerOptions.appData = { producerInfo };
+    }
+    const producer = await this.sendTransport.produce(producerOptions);
     this.producers.set(producer.id, producer);
     return producer.id;
   }

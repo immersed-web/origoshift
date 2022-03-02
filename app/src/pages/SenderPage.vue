@@ -232,6 +232,13 @@ async function shareScreen () {
   mediaStream.value.getTracks()[0].onended = () => {
     stopProducing();
   };
+
+  producerId = await peer.produce(mediaStream.value, { screenShare: true });
+  console.log('produce returned: ', producerId);
+  if (!soupStore.clientState) {
+    throw new Error('no roomid. cant assign producer to room');
+  }
+  peer.assignProducerToRoom(soupStore.clientState?.clientId, producerId, roomId);
 }
 
 // async function loginSubmitted ({ username, password }: {username: string, password: string}) {

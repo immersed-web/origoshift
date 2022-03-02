@@ -93,9 +93,9 @@ export default function usePeerClient () {
     return roomId;
   }
 
-  async function produce (stream: MediaStream) {
+  async function produce (stream: MediaStream, producerInfo?: Record<string, unknown>) {
     const track = stream.getVideoTracks()[0];
-    const producerId = await peer.produce(track);
+    const producerId = await peer.produce(track, producerInfo);
     return producerId;
   }
 

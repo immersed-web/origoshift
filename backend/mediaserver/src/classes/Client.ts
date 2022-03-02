@@ -466,8 +466,9 @@ export default class Client {
           } else if(this.sendTransport.id !== msg.data.transportId){
             throw Error('the provided transporId didnt match the id of the sendTransport');
           }
-          const {kind, rtpParameters} = msg.data;
-          const producer = await this.sendTransport.produce({ kind, rtpParameters});
+          const {kind, rtpParameters, producerInfo} = msg.data;
+          const appData = { producerInfo };
+          const producer = await this.sendTransport.produce({ kind, rtpParameters, appData});
           producer.on('transportclose', () => {
             console.log(`transport for producer ${producer.id} was closed`);
             this.producers.delete(producer.id);

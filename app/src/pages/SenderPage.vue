@@ -238,7 +238,7 @@ async function shareScreen () {
   if (!soupStore.clientState) {
     throw new Error('no roomid. cant assign producer to room');
   }
-  peer.assignProducerToRoom(soupStore.clientState?.clientId, producerId, roomId);
+  // peer.assignProducerToRoom(soupStore.clientState?.clientId, producerId, roomId);
 }
 
 // async function loginSubmitted ({ username, password }: {username: string, password: string}) {

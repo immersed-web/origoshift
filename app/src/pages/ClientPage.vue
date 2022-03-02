@@ -9,7 +9,7 @@
         I detta rum:
       </QItemLabel>
       <QItem
-        v-for="client in soupStore.currentRoom?.clients"
+        v-for="client in soupStore.roomState?.clients"
         :key="client.clientId"
       >
         {{ client.username }}
@@ -112,19 +112,19 @@ soupStore.$subscribe((mutation, state) => {
 const videoTag = ref<HTMLVideoElement>();
 let currentProducerIndex = 0;
 
-const producers = computed(() => {
-  const producers = [];
+const rooms = computed(() => {
   const rooms = soupStore.gatheringState?.rooms;
   if (!rooms) return [];
+  const roomWithClientStates = [];
   for (const room of Object.values(rooms)) {
     if (room.mainProducer) {
-      producers.push({
-        roomId: room.roomId,
-        producerId: room.mainProducer,
-      });
+      // roomsWithClientStates.push({
+      //   roomId: room.roomId,
+      //   producerId: room.mainProducer,
+      // });
     }
   }
-  return producers;
+  return rooms;
 });
 // watch(() => producers, (newProducers, oldProducers) => {
 //   console.log('watch for producers triggered: ', newProducers, oldProducers);
@@ -135,14 +135,14 @@ const producers = computed(() => {
 
 function nextProducer () {
   currentProducerIndex++;
-  currentProducerIndex %= producers.value.length;
-  consume(producers.value[currentProducerIndex]);
+  currentProducerIndex %= rooms.value.length;
+  consume(rooms.value[currentProducerIndex]);
 }
 
 function prevProducer () {
-  currentProducerIndex += producers.value.length - 1;
-  currentProducerIndex %= producers.value.length;
-  consume(producers.value[currentProducerIndex]);
+  currentProducerIndex += rooms.value.length - 1;
+  currentProducerIndex %= rooms.value.length;
+  consume(rooms.value[currentProducerIndex]);
 }
 
 async function raiseHand () {
@@ -151,7 +151,7 @@ async function raiseHand () {
   });
 }
 
-async function consume (producerInfo: typeof producers.value[number]) {
+async function consume (producerInfo: typeof rooms.value[number]) {
   await peer.joinRoom(producerInfo.roomId);
   const { track } = await peer.consume(producerInfo.producerId);
   if (!videoTag.value) return;
@@ -165,8 +165,8 @@ initVideoSphere();
   await peer.loadMediasoupDevice();
   await peer.createReceiveTransport();
   await peer.sendRtpCapabilities();
-  if (producers.value.length) {
-    await consume(producers.value[currentProducerIndex]);
+  if (rooms.value.length) {
+    await consume(rooms.value[currentProducerIndex]);
   }
 })();
 

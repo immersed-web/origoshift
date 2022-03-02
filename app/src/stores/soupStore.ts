@@ -33,6 +33,18 @@ export const useSoupStore = defineStore('soup', {
       const roomState: RoomState = { ...this.gatheringState.rooms[this.roomId], clients };
       return roomState;
     },
+    rooms: (state) => {
+      if (!state.gatheringState || !state.gatheringState.rooms) {
+        return undefined;
+      }
+      const rooms = Object.values(state.gatheringState.rooms);
+      return rooms.map(room => {
+        const clients = room.clients.map(clientId => {
+          return state.gatheringState?.clients[clientId];
+        });
+        return { ...room, clients };
+      });
+    },
     // clientState (): ClientState {
     //   if (this.gatheringState && this.clientState.roomId) {
     //     const room = this.gatheringState.rooms[this.clientState.roomId];

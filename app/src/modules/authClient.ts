@@ -1,4 +1,5 @@
 // import axios, { AxiosInstance } from 'axios';
+import { UserData } from 'app/../packages/shared-types/CustomTypes';
 import { AxiosResponse } from 'axios';
 import { api } from 'boot/axios';
 
@@ -20,6 +21,9 @@ export const login = async (username: string, password: string) => {
   }
 };
 
-export const getMe = () => handleResponse(() => api.get('/me'));
+export const getMe = () => handleResponse<UserData>(() => api.get('/me'));
 export const getJwt = () => handleResponse<string>(() => api.get('/jwt'));
 export const guestJwt = () => handleResponse<string>(() => api.get('/guest-jwt'));
+export const logout = () => {
+  handleResponse<void>(() => api.get('/logout'));
+};

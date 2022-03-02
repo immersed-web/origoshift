@@ -62,6 +62,7 @@ export interface UserData {
 
 export type UserRole = 
 'guest' |
-'user' |
+'client' |
+'sender' |
 'admin' |
 'gunnar' 

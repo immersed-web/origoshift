@@ -4,13 +4,7 @@
     style="max-width: 40rem;"
     id="dest-video"
   /> -->
-  <LoginBox
-    class="fixed-center"
-    @submit="loginSubmitted"
-    v-if="!soupStore.connected"
-  />
   <div
-    v-else
     class="row q-ma-md"
   >
     <QCard
@@ -121,7 +115,7 @@
 import { useUserStore } from 'src/stores/userStore';
 // import { getJwt } from 'src/modules/authClient';
 import CensorControl from 'src/components/CensorControl.vue';
-import { getJwt, login, getMe } from 'src/modules/authClient';
+import { getJwt } from 'src/modules/authClient';
 export default {
   async preFetch () {
     const userStore = useUserStore();
@@ -136,7 +130,6 @@ export default {
 <script setup lang="ts">
 import { ref, nextTick } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
-import LoginBox from 'src/components/LoginBox.vue';
 import DevicePicker from 'src/components/DevicePicker.vue';
 import usePeerClient from 'src/composables/usePeerClient';
 
@@ -241,13 +234,13 @@ async function shareScreen () {
   };
 }
 
-async function loginSubmitted ({ username, password }: {username: string, password: string}) {
-  await login(username, password);
-  const me = await getMe();
-  console.log('got me: ', me);
-  const jwt = await getJwt();
-  await peer.connect(jwt);
-}
+// async function loginSubmitted ({ username, password }: {username: string, password: string}) {
+//   await login(username, password);
+//   const me = await getMe();
+//   console.log('got me: ', me);
+//   const jwt = await getJwt();
+//   await peer.connect(jwt);
+// }
 async function connectToEvent (gatheringId?: string) {
   if (!gatheringId) {
     gatheringId = await peer.findGathering(gatheringName.value);

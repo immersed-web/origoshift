@@ -18,6 +18,10 @@ const devMode = process.env.DEVELOPMENT;
 
 const app = express();
 
+
+// We need to trust first proxy. Foremost to get secure cookie to function  properly
+app.set('trust proxy', 1);
+
 if(devMode){
   console.log('allowing cors for frontend');
   app.use(cors({

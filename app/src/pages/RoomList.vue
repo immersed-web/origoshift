@@ -46,7 +46,7 @@ function knockOnRoom (roomId: string) {
 }
 
 function enterRoom (roomId: string) {
-  router.push(`/room/:${roomId}`);
+  router.push(`/room/${roomId}`);
 }
 
 </script>

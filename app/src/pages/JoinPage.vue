@@ -60,10 +60,12 @@ import { guestJwt } from 'src/modules/authClient';
 import { useQuasar } from 'quasar';
 import { useUserStore } from 'src/stores/userStore';
 import Timeout from 'await-timeout';
+import { useSoupStore } from 'src/stores/soupStore';
 
 const router = useRouter();
 const peer = usePeerClient();
 const userStore = useUserStore();
+const soupStore = useSoupStore();
 const $q = useQuasar();
 
 $q.loading.show();
@@ -95,7 +97,8 @@ const joinEvent = async (eventName: string) => {
     await peer.connect(userStore.jwt);
     console.log('gonna find the event:', eventName);
     const gatheringId = await peer.findGathering(eventName);
-    await peer.joinGathering(gatheringId);
+    const gatheringState = await peer.joinGathering(gatheringId);
+    soupStore.setGatheringState(gatheringState);
     await peer.getRouterCapabilities();
     await peer.loadMediasoupDevice();
     router.push('/roomlist');

@@ -183,35 +183,6 @@ export default class Client {
         this.send(response);
         break;
       }
-      // case 'joinGatheringAsSender': {
-      //   let response: ResponseTo<'joinGatheringAsSender'>;
-      //   try {
-
-      //     if(this.gathering){
-      //       this.gathering.removeClient(this);
-      //       this.gathering = undefined;
-      //     }
-
-      //     const gathering = Gathering.getGathering({id: msg.data.gatheringId});
-      //     if(!gathering){
-      //       throw new Error('Cant join that gathering. Does not exist');
-      //     }
-      //     this.gathering = gathering;
-      //     gathering.addSender(this);
-
-      //     response = createResponse('joinGatheringAsSender', msg.id, {
-      //       wasSuccess: true,
-      //     });
-      //   } catch(e){
-      //     this.gathering = undefined;
-      //     response = createResponse('joinGatheringAsSender', msg.id, {
-      //       wasSuccess: false,
-      //       message: extractMessageFromCatch(e, 'failed to joingathering as sender. Verrrry Saad'),
-      //     });
-      //   }
-      //   this.send(response);
-      //   break;
-      // }
       case 'joinGathering': {
         let response: ResponseTo<'joinGathering'>;
         try{ 
@@ -231,6 +202,7 @@ export default class Client {
           this.gathering = gathering;
           gathering.addClient(this);
           response = createResponse('joinGathering', msg.id, {
+            data: this.gathering.gatheringState,
             wasSuccess: true,
           });
         } catch (e){

@@ -158,7 +158,8 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
 
   joinGathering = async (gatheringId: string) => {
     const joinGatheringReq = createRequest('joinGathering', { gatheringId });
-    await sendRequest(joinGatheringReq);
+    const response = await sendRequest(joinGatheringReq);
+    return response.data;
     // if(!response.wasSuccess){
     //   throw new Error(response.message);
     // }
@@ -186,7 +187,8 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
 
   joinRoom = async (roomId: string) => {
     const joinRoomReq = createRequest('joinRoom', { roomId: roomId });
-    await sendRequest(joinRoomReq);
+    const response = await sendRequest(joinRoomReq);
+    return response.data;
     // this.closeAllConsumers();
     // this.roomStore.currentRoomId = roomId;
   }

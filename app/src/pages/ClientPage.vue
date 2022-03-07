@@ -143,7 +143,8 @@ async function consume (producerId: string) {
     if (!route.params.roomId || Array.isArray(route.params.roomId)) {
       throw new Error('no or incorrectly formatted roomId specified in route!');
     }
-    await peer.joinRoom(route.params.roomId);
+    const roomState = await peer.joinRoom(route.params.roomId);
+    soupStore.setRoomState(roomState);
 
     await peer.createReceiveTransport();
     await peer.sendRtpCapabilities();

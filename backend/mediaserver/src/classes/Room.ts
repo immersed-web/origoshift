@@ -41,8 +41,9 @@ export default class Room {
       // console.warn('This client is already in the room!!');
       // return false;
     }
+    // TODO; Should we perhaps only broadcast roomstate here?
     this.clients.set(client.id, client);
-    this.gathering.broadCastGatheringState();
+    this.gathering.broadCastGatheringState([client.id]);
   }
 
   removeClient(client: Client, skipBroadcast = false ){

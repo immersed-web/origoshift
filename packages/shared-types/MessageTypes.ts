@@ -156,7 +156,7 @@ export type AnyResponse =
     id: string
   }>
   | ResponseBuilder<'createGathering', {gatheringId: string}>
-  | ResponseBuilder<'joinGathering'>
+  | ResponseBuilder<'joinGathering', GatheringState>
   | ResponseBuilder<'joinGatheringAsSender'>
   | ResponseBuilder<'leaveGathering', {gatheringId: string}>
   | ResponseBuilder<'getGatheringState', GatheringState>

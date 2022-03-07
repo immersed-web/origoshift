@@ -1,5 +1,4 @@
 import { RouteRecordRaw } from 'vue-router';
-import { logout } from 'src/modules/authClient';
 import { UserRole } from 'shared-types/CustomTypes';
 
 // type CustomMeta = RouteMeta |
@@ -24,17 +23,12 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', component: () => import('pages/JoinPage.vue') },
       { path: '/login', component: () => import('pages/LoginPage.vue'), meta: { lowestAccessLevel: 'guest' } },
-      {
-        path: '/logout',
-        component: () => import('pages/LoginPage.vue'),
-        // meta: { lowestAccessLevel: 'guest' },
-        beforeEnter: async () => {
-          await logout();
-        },
-      },
+      { path: '/logout', component: () => import('pages/LogoutPage.vue') },
       { path: '/send', component: () => import('pages/SenderPage.vue'), meta: { lowestAccessLevel: 'sender' } },
       { path: '/join', component: () => import('pages/JoinPage.vue') },
-      { path: '/client', component: () => import('pages/ClientPage.vue') },
+      { path: '/roomlist', component: () => import('pages/RoomList.vue') },
+      // { path: '/client', component: () => import('pages/ClientPage.vue') },
+      { path: '/room/:roomId', component: () => import('pages/ClientPage.vue') },
     ],
   },
 

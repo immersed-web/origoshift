@@ -34,13 +34,13 @@
     id="main-container"
     class="row justify-between no-wrap items-center content-center"
   >
-    <QBtn
+    <!-- <QBtn
       class="q-ma-md"
       icon="keyboard_arrow_left"
       round
       color="primary"
-      @click="prevProducer()"
-    />
+      @click="prevRoom()"
+    /> -->
     <video
       v-show="true"
       id="main-video"
@@ -61,13 +61,13 @@
         position="0 0 -20"
       />
     </a-scene>
-    <QBtn
+    <!-- <QBtn
       class="q-ma-md"
       round
       icon="keyboard_arrow_right"
       color="primary"
-      @click="nextProducer()"
-    />
+      @click="nextRoom()"
+    /> -->
   </div>
   <!-- <QList>
       <QItem
@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, nextTick } from 'vue';
+import { ref, nextTick } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 // import { useUserStore } from 'src/stores/userStore';
 import usePeerClient from 'src/composables/usePeerClient';
@@ -93,15 +93,22 @@ import 'aframe';
 const router = useRouter();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
-// const userStore = useUserStore();
 
-// const otherUsersInRoom = computed(() => {
-//   const usersInRoom = Object.values(soupStore.currentRoom?.clients);
+soupStore.$onAction(({ name, after, onError, store }) => {
+  if (name === 'setRoomState') {
+    after(() => {
+      console.log('roomStateUpdated!!!');
 
-//   return usersInRoom.filter(client => {
-//     return client.clientId !== soupStore.clientState?.clientId;
-//   });
-// });
+      if (!store.roomState?.mainProducer) return;
+      consume(store.roomState.mainProducer);
+    });
+
+    onError(error => {
+      console.error(error);
+      router.back();
+    });
+  }
+});
 
 soupStore.$subscribe((mutation, state) => {
   if (!state.connected) {
@@ -110,40 +117,6 @@ soupStore.$subscribe((mutation, state) => {
 });
 
 const videoTag = ref<HTMLVideoElement>();
-let currentProducerIndex = 0;
-
-const rooms = computed(() => {
-  const rooms = soupStore.gatheringState?.rooms;
-  if (!rooms) return [];
-  const roomWithClientStates = [];
-  for (const room of Object.values(rooms)) {
-    if (room.mainProducer) {
-      // roomsWithClientStates.push({
-      //   roomId: room.roomId,
-      //   producerId: room.mainProducer,
-      // });
-    }
-  }
-  return rooms;
-});
-// watch(() => producers, (newProducers, oldProducers) => {
-//   console.log('watch for producers triggered: ', newProducers, oldProducers);
-//   if (oldProducers.value.length === 0 && newProducers.value.length) {
-//     consume(producers.value[0]);
-//   }
-// }, { deep: true });
-
-function nextProducer () {
-  currentProducerIndex++;
-  currentProducerIndex %= rooms.value.length;
-  consume(rooms.value[currentProducerIndex]);
-}
-
-function prevProducer () {
-  currentProducerIndex += rooms.value.length - 1;
-  currentProducerIndex %= rooms.value.length;
-  consume(rooms.value[currentProducerIndex]);
-}
 
 async function raiseHand () {
   await peer.setCustomProperties({
@@ -151,23 +124,39 @@ async function raiseHand () {
   });
 }
 
-async function consume (producerInfo: typeof rooms.value[number]) {
-  await peer.joinRoom(producerInfo.roomId);
-  const { track } = await peer.consume(producerInfo.producerId);
+async function consume (producerId: string) {
+  // await peer.joinRoom(producerInfo.roomId);
   if (!videoTag.value) return;
+  const { track } = await peer.consume(producerId);
   videoTag.value.srcObject = new MediaStream([track]);
   await nextTick();
-  // initVideoSphere();
+  initVideoSphere();
 }
-initVideoSphere();
+// initVideoSphere();
+
+//
+// ***************
+// INITIALIZE
 (async () => {
-  await peer.getRouterCapabilities();
-  await peer.loadMediasoupDevice();
-  await peer.createReceiveTransport();
-  await peer.sendRtpCapabilities();
-  if (rooms.value.length) {
-    await consume(rooms.value[currentProducerIndex]);
+  const route = router.currentRoute.value;
+  try {
+    if (!route.params.roomId || Array.isArray(route.params.roomId)) {
+      throw new Error('no or incorrectly formatted roomId specified in route!');
+    }
+    await peer.joinRoom(route.params.roomId);
+
+    await peer.createReceiveTransport();
+    await peer.sendRtpCapabilities();
+  } catch (e) {
+    console.error(e);
+    router.back();
   }
+
+  // Now we should be ready to start consuming media!!!
+
+  // if (rooms.value.length) {
+  //   await consume(rooms.value[currentRoomIndex]);
+  // }
 })();
 
 async function initVideoSphere () {

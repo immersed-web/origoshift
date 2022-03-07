@@ -136,7 +136,7 @@ export default class Client {
           return;
         }
         const roomRtpCaps = this.gathering.getRtpCapabilities();
-        console.log('client want routerRtpCaps. They are: ', roomRtpCaps);
+        // console.log('client want routerRtpCaps. They are: ', roomRtpCaps);
         const response = createResponse('getRouterRtpCapabilities', msg.id, {
           wasSuccess: true,
           data: roomRtpCaps,
@@ -321,6 +321,7 @@ export default class Client {
           this.room = foundRoom;
           foundRoom.addClient(this);
           response = createResponse('joinRoom', msg.id, {
+            data: foundRoom.roomState,
             wasSuccess: true,
           });
         } catch(e){

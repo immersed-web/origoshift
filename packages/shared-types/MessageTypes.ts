@@ -161,7 +161,7 @@ export type AnyResponse =
   | ResponseBuilder<'leaveGathering', {gatheringId: string}>
   | ResponseBuilder<'getGatheringState', GatheringState>
   | ResponseBuilder<'createRoom', {roomId: string}>
-  | ResponseBuilder<'joinRoom'>
+  | ResponseBuilder<'joinRoom', RoomState>
   | ResponseBuilder<'leaveRoom', {roomId: string}>
   | ResponseBuilder<'roomStateUpdated'>
   | ResponseBuilder<'assignMainProducerToRoom'>

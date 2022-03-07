@@ -26,6 +26,19 @@ async function loginUser (creds: Creds) {
   const savedRedirect = window.sessionStorage.getItem('loginRedirect');
   if (savedRedirect) {
     redirect = savedRedirect;
+    window.sessionStorage.removeItem('loginRedirect');
+  } else {
+    switch (me.role) {
+      case 'client':
+        redirect = '/roomlist';
+        break;
+      case 'sender':
+        redirect = '/send';
+        break;
+      case 'admin':
+        redirect = '/admin';
+        break;
+    }
   }
   router.replace(redirect);
 }

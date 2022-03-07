@@ -14,6 +14,16 @@ const rootState =
    clientState,
  };
 
+function unshallowRoomState (shallowRoomState: ShallowRoomState, allClients: GatheringState['clients']): RoomState {
+  const presentClients: RoomState['clients'] = {};
+  for (const clientId of shallowRoomState.clients) {
+    presentClients[clientId] = allClients[clientId];
+  }
+
+  const roomState: RoomState = { ...shallowRoomState, clients: presentClients };
+  return roomState;
+}
+
 export const useSoupStore = defineStore('soup', {
   state: () => (rootState),
   getters: {
@@ -24,26 +34,21 @@ export const useSoupStore = defineStore('soup', {
       return state.clientState?.roomId;
     },
     roomState (): RoomState | undefined {
-      if (!this.gatheringState?.rooms || !this.roomId) return undefined;
-      const clients: RoomState['clients'] = {};
-      for (const clientId of this.gatheringState.rooms[this.roomId].clients) {
-        clients[clientId] = this.gatheringState.clients[clientId];
-      }
-
-      const roomState: RoomState = { ...this.gatheringState.rooms[this.roomId], clients };
-      return roomState;
+      if (!this.rooms || !this.roomId) return undefined;
+      return this.rooms[this.roomId];
     },
-    rooms: (state) => {
+    rooms: (state): Record<string, RoomState> | undefined => {
       if (!state.gatheringState || !state.gatheringState.rooms) {
         return undefined;
       }
-      const rooms = Object.values(state.gatheringState.rooms);
-      return rooms.map(room => {
-        const clients = room.clients.map(clientId => {
-          return state.gatheringState?.clients[clientId];
-        });
-        return { ...room, clients };
-      });
+      // Seems I have to use this intermediate variable to make ts understand the gathering is narrowed from undefined... sigh...
+      const gatheringState: GatheringState = state.gatheringState;
+      const shallowRooms: ShallowRoomState [] = Object.values(state.gatheringState.rooms);
+      const rooms: Record<string, RoomState> = {};
+      for (const shallowRoom of shallowRooms) {
+        rooms[shallowRoom.roomId] = unshallowRoomState(shallowRoom, gatheringState.clients);
+      }
+      return rooms;
     },
     // clientState (): ClientState {
     //   if (this.gatheringState && this.clientState.roomId) {

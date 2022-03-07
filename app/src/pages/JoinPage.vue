@@ -72,10 +72,9 @@ const eventName = ref<string>('testEvent');
 
 // INFO: here we do the async work (suspense feature is still experimental)
 (async () => {
-  // await (async () => {
   const fetchJwt = async () => {
     if (userStore.jwt) {
-      console.log('already have an access token. will not fetch quest-token');
+      console.log('already have an access token. will not fetch guest-token');
       return;
     }
     try {
@@ -86,19 +85,28 @@ const eventName = ref<string>('testEvent');
     }
   };
   await fetchJwt();
-  // })();
 
   // Hide loading spinner
   $q.loading.hide();
 })();
 
 const joinEvent = async (eventName: string) => {
-  await peer.connect(userStore.jwt);
-  console.log('gonna find the event:', eventName);
-  const gatheringId = await peer.findGathering(eventName);
-  await peer.joinGathering(gatheringId);
-  await peer.getRouterCapabilities();
-  router.push('/client');
+  try {
+    await peer.connect(userStore.jwt);
+    console.log('gonna find the event:', eventName);
+    const gatheringId = await peer.findGathering(eventName);
+    await peer.joinGathering(gatheringId);
+    await peer.getRouterCapabilities();
+    await peer.loadMediasoupDevice();
+    router.push('/roomlist');
+  } catch (e) {
+    console.error(e);
+    $q.notify({
+      type: 'negative',
+      message: 'Very not good! Failed to join the event!!',
+    });
+    // router.replace('/logout');
+  }
 };
 
 </script>

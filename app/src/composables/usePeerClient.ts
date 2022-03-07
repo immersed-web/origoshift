@@ -82,11 +82,6 @@ export default function usePeerClient () {
     return localStream;
   }
 
-  async function joinRoom (roomId: string) {
-    await peer.joinRoom(roomId);
-    // soupStore.currentRoomId = roomId;
-  }
-
   async function createAndJoinRoom (roomName: string) {
     const roomId = await peer.createRoom(roomName);
     await peer.joinRoom(roomId);
@@ -104,7 +99,7 @@ export default function usePeerClient () {
   //   await peer.getRouterCapabilities();
   // }
 
-  const customExports = { connect, requestMedia, createAndJoinRoom, produce, joinRoom, onConsumerClosed };
+  const customExports = { connect, requestMedia, createAndJoinRoom, produce, onConsumerClosed };
 
   return {
     ...peer, // Order matters here! customExports holds some overrides, so it must come after

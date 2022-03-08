@@ -7,8 +7,10 @@
 
 <script setup lang="ts">
 import LoginBox from 'src/components/LoginBox.vue';
-import { getMe, login } from 'src/modules/authClient';
+import { getMe, login, getJwt } from 'src/modules/authClient';
+import { useUserStore } from 'src/stores/userStore';
 import { useRouter } from 'vue-router';
+const userStore = useUserStore();
 
 const router = useRouter();
 type Creds = Parameters<InstanceType<typeof LoginBox>['$emit']>[1]
@@ -22,6 +24,7 @@ async function loginUser (creds: Creds) {
   await login(creds.username, creds.password);
   const me = await getMe();
   console.log('me:', me);
+  userStore.jwt = await getJwt();
   let redirect = '/';
   const savedRedirect = window.sessionStorage.getItem('loginRedirect');
   if (savedRedirect) {
@@ -30,7 +33,7 @@ async function loginUser (creds: Creds) {
   } else {
     switch (me.role) {
       case 'client':
-        redirect = '/roomlist';
+        redirect = '/join';
         break;
       case 'sender':
         redirect = '/send';

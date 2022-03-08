@@ -10,7 +10,19 @@ export default class Room {
   roomName: string | undefined;
   mainProducer?: soupTypes.Producer;
   clients: Map<string, Client> = new Map();
-  gathering: Gathering;
+
+  private gatheringId: string | undefined = undefined;
+  setGathering(gatheringId: string | undefined){
+    this.gatheringId = gatheringId;
+  }
+  get gathering() {
+    try{
+      return Gathering.getGathering({id: this.gatheringId });
+    } catch (e) {
+      console.error(e);
+      return undefined;
+    }
+  }
   get producers(): ReadonlyMap<string, soupTypes.Producer> {
     const producers: Map<string, soupTypes.Producer> = new Map();
     this.clients.forEach((client) => {
@@ -31,7 +43,7 @@ export default class Room {
 
   private constructor({roomId = randomUUID(), roomName, gathering}: {roomId?: string, roomName?: string, gathering: Gathering}) {
     this.id = roomId;
-    this.gathering = gathering;
+    this.setGathering(gathering.id);
     this.roomName = roomName;
   }
 
@@ -43,7 +55,7 @@ export default class Room {
     }
     // TODO; Should we perhaps only broadcast roomstate here?
     this.clients.set(client.id, client);
-    this.gathering.broadCastGatheringState([client.id]);
+    this.gathering?.broadCastGatheringState([client.id]);
   }
 
   removeClient(client: Client, skipBroadcast = false ){
@@ -62,7 +74,7 @@ export default class Room {
       throw new Error(`failed to remove client ${client.id} from room`);
     }
     if(!skipBroadcast){
-      this.gathering.broadCastGatheringState([client.id]);
+      this.gathering?.broadCastGatheringState([client.id]);
     }
   }
 

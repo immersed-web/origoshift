@@ -24,7 +24,7 @@
     >
       <QCardSection>
         <div class="text-h3 text-center">
-          Vilket event vill du besöka?
+          Vilken skola vill du besöka?
         </div>
       </QCardSection>
       <QCardSection

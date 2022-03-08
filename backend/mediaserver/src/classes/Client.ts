@@ -8,8 +8,9 @@ import { extractMessageFromCatch } from 'shared-modules/utilFns';
 // import { checkPermission } from '../modules/utilFns';
 import { checkPermission } from '../modules/utilFns';
 
-import Room from './Room';
 import Gathering from './Gathering';
+
+
 
 interface constructionParams {
   id?: string,
@@ -48,8 +49,34 @@ export default class Client {
 
   customProperties: Record<string, unknown> = {};
 
-  gathering?: Gathering;
-  room? : Room;
+  private gatheringId?: string;
+  setGathering(gatheringId: string | undefined){
+    this.gatheringId = gatheringId;
+  }
+  get gathering() {
+    try{
+      if(!this.gatheringId) return undefined;
+      return Gathering.getGathering({id: this.gatheringId });
+    } catch (e) {
+      console.error(e);
+      return undefined;
+    }
+  }
+
+
+  private roomId?: string;
+  setRoom(roomId: string | undefined){
+    this.roomId = roomId;
+  }
+  get room() {
+    try {
+      if(!this.roomId) return undefined;
+      return this.gathering?.getRoom(this.roomId);
+    } catch(e) {
+      console.error(e);
+      return undefined;
+    }
+  }
 
   constructor({id = randomUUID(), ws, userData}: constructionParams){
     this.id = id;
@@ -108,7 +135,15 @@ export default class Client {
         break;
       }
       case 'getClientState': {
-        const response = createResponse('getClientState', msg.id, { wasSuccess: true, data: this.clientState});
+        let response: ResponseTo<'getClientState'>;
+        try{
+          response = createResponse('getClientState', msg.id, { wasSuccess: true, data: this.clientState});
+        } catch( e){
+          response = createResponse('getClientState', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to get clientState'),
+          });
+        }
         this.send(response);
         break;
       }
@@ -167,7 +202,7 @@ export default class Client {
         try{
 
           const gathering = await Gathering.createGathering(undefined, msg.data.gatheringName);
-          this.gathering = gathering;
+          this.setGathering(gathering.id);
           response = createResponse('createGathering', msg.id, {
             data: {
               gatheringId: gathering.id
@@ -189,7 +224,7 @@ export default class Client {
 
           if(this.gathering){
             this.gathering.removeClient(this);
-            this.gathering = undefined;
+            this.setGathering(undefined);
           }
           // IMPORTANT
           // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join that gathering or not
@@ -199,14 +234,14 @@ export default class Client {
           }
           // ORDER MATTERS HERE! the gathering will read the client's gathering field when broadcasting,
           // so we need to set it before calling 'addClient'.
-          this.gathering = gathering;
+          this.setGathering(gathering.id);
           gathering.addClient(this);
           response = createResponse('joinGathering', msg.id, {
-            data: this.gathering.gatheringState,
+            data: gathering.gatheringState,
             wasSuccess: true,
           });
         } catch (e){
-          this.gathering = undefined;
+          this.setGathering(undefined);
           response = createResponse('joinGathering', msg.id, {
             wasSuccess: false,
             message: extractMessageFromCatch(e, 'failed to join gathering!!! Very inconvenient!'),
@@ -224,7 +259,7 @@ export default class Client {
             throw Error('not in a gathering. Thus cant leave one');
           }
           this.gathering.removeClient(this);
-          this.gathering = undefined;
+          this.setGathering(undefined);
         } catch(e){
           response.wasSuccess = false;
           const msg = extractMessageFromCatch(e, 'failed to leave gathering');
@@ -290,14 +325,14 @@ export default class Client {
           if(!foundRoom){
             throw Error('no such room in gathering');
           }
-          this.room = foundRoom;
+          this.setRoom(foundRoom.id);
           foundRoom.addClient(this);
           response = createResponse('joinRoom', msg.id, {
             data: foundRoom.roomState,
             wasSuccess: true,
           });
         } catch(e){
-          this.room = undefined;
+          this.setRoom(undefined);
           response = createResponse('joinRoom', msg.id, {
             wasSuccess: false,
             message: extractMessageFromCatch(e, `failed to joinRoom: ${msg.data.roomId}`)
@@ -599,6 +634,9 @@ export default class Client {
         producerId: producer.id,
         kind: producer.kind,
       };
+      if(producer.appData.producerInfo){
+        producers[producer.id].producerInfo = producer.appData.producerInfo;
+      }
     }
     const state: ClientState = {
       clientId: this.id,
@@ -647,7 +685,7 @@ export default class Client {
     this.closeAllConsumers();
     const roomId = this.room.id;
     this.room.removeClient(this);
-    this.room = undefined;
+    this.setRoom(undefined);
     return roomId;
   }
 

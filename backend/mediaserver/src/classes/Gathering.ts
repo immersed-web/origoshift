@@ -43,6 +43,8 @@ export default class Gathering {
   }
 
   static getGathering(params:{id?: string, name?:string}) {
+    console.log('trying to get a gathering with params: ', params);
+    console.log('gatherings map:', Gathering.gatherings);
     if(params.id){
 
       const gathering = Gathering.gatherings.get(params.id);
@@ -121,9 +123,13 @@ export default class Gathering {
   }
 
   removeClient (client: Client) {
-    // TODO: We should probably broadcast when clients leave
     // TODO: We should also handle if client leaves gathering while in a room. Here or elsewhere
     this.clients.delete(client.id);
+    this.broadCastGatheringState();
+
+    if(!this.clients.size){
+      Gathering.gatherings.delete(this.id);
+    }
   }
 
   // TODO: Somewhere in the server we probably need to protect access to this function 

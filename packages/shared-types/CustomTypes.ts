@@ -18,6 +18,7 @@ export interface ClientState {
     [producerId: string]: {
       producerId: string;
       kind: soup.MediaKind;
+      producerInfo?: Record<string, unknown>
     }
   }
 }

@@ -24,21 +24,39 @@ model Profile {
   userId String @unique @db.Uuid
 }
 
-model Role {
-  id   Int    @id @default(autoincrement())
-  // uuid String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role String
-  user User[]
+model Gathering {
+  uuid  String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name  String @unique
+  users User[]
+  rooms Room[]
+}
 
-  @@unique([role])
+model Room {
+  uuid        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  gathering   Gathering @relation(fields: [gatheringId], references: [uuid])
+  gatheringId String    @db.Uuid
+  users       User[]
+
+  @@unique([name, gatheringId])
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  // uuid String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role  String @unique
+  users User[]
 }
 
 model User {
-  uuid      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  updatedAt DateTime @updatedAt
-  username  String   @unique
-  password  String
-  role      Role?    @relation(fields: [roleId], references: [id])
-  roleId    Int?
-  profile   Profile?
+  uuid        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  updatedAt   DateTime   @updatedAt
+  username    String     @unique
+  password    String
+  role        Role?      @relation(fields: [roleId], references: [id])
+  roleId      Int?
+  profile     Profile?
+  gathering   Gathering? @relation(fields: [gatheringId], references: [uuid])
+  gatheringId String?    @db.Uuid
+  rooms       Room[]
 }

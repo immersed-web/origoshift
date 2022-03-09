@@ -8,6 +8,7 @@ import {types as soup} from 'mediasoup';
 
 import Room from './Room';
 import Client from './Client';
+import { valueIsAlreadyTaken } from '../modules/utilFns';
 
 
 export default class Gathering {
@@ -16,13 +17,18 @@ export default class Gathering {
 
   static async createGathering(id?: string, name?: string, worker?: soup.Worker) {
     try {
-      // Not shure if good, but for now let's not allow duplicate names for gatherings.
+      // We enforce uniqueness for eventNames!
       if(name){
-        this.gatherings.forEach(gathering => {
-          if(gathering.name === name){
-            throw new Error('Gathering with that name already exists!!');
-          }
-        });
+        const gatheringNames = Array.from(this.gatherings.values()).map(gathering => gathering.name);
+        if(valueIsAlreadyTaken(name, gatheringNames)){
+          throw new Error('Gathering with that name already exists!!');
+        }
+      }
+      if(id){
+        const gatheringIds = Array.from(this.gatherings.keys());
+        if(valueIsAlreadyTaken(id, gatheringIds)){
+          throw new Error('NOT ACCEPTABLE! Gathering with that id already exists!!!');
+        }
       }
 
 
@@ -146,7 +152,20 @@ export default class Gathering {
   }
 
   createRoom({roomId, roomName}: {roomId?: string, roomName?: string}){
-    // TODO: Pehaps we should verify uniqueness of id if provided? Or do we trust a uuid is provided
+    if(roomId){
+      this.rooms.forEach(room => {
+        if(room.id === roomId){
+          throw new Error('NO CAN DO!! A room with that ID already exists in the gathering.');
+        }
+      });
+    }
+    if(roomName){
+      this.rooms.forEach(room => {
+        if(room.roomName === roomName){
+          throw new Error('NO CAN DO!! A room with that name already exists in the gathering.');
+        }
+      });
+    }
     const room = Room.createRoom({roomId, roomName, gathering: this});
     this.rooms.set(room.id, room);
     this.broadCastGatheringState();

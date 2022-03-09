@@ -5,7 +5,7 @@
   "author": "Gunnar Oledal",
   "license": "MIT",
   "prisma": {
-    "seed": "node ./seed.js"
+    "seed": "ts-node ./seed.ts"
   },
   "scripts": {
     "migrate": "dotenv -e ../.env.dev yarn prisma migrate dev",
@@ -13,14 +13,16 @@
     "seed": "dotenv -e ../.env.dev yarn prisma db seed",
     "studio": "dotenv -e ../.env.dev yarn prisma studio",
     "dbpush": "dotenv -e ../.env.dev yarn prisma db push"
-
   },
   "devDependencies": {
-    "prisma": "^3.5.0"
+    "prisma": "^3.5.0",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.2"
   },
   "dependencies": {
     "@prisma/client": "^3.5.0",
     "@types/bcrypt": "^5.0.0",
-    "bcrypt": "^5.0.1"
+    "bcrypt": "^5.0.1",
+    "shared-types": "1.0.0"
   }
 }

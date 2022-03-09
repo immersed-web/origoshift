@@ -37,8 +37,7 @@ export default class Room {
   }
 
   static createRoom(params: {roomId?: string, roomName?: string, gathering: Gathering}): Room {
-    const createdRoom = new Room(params);
-    return createdRoom;
+    return new Room(params);
   }
 
   private constructor({roomId = randomUUID(), roomName, gathering}: {roomId?: string, roomName?: string, gathering: Gathering}) {

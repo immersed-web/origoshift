@@ -43,8 +43,8 @@ export default class Gathering {
   }
 
   static getGathering(params:{id?: string, name?:string}) {
-    console.log('trying to get a gathering with params: ', params);
-    console.log('gatherings map:', Gathering.gatherings);
+    // console.log('trying to get a gathering with params: ', params);
+    // console.log('gatherings map:', Gathering.gatherings);
     if(params.id){
 
       const gathering = Gathering.gatherings.get(params.id);
@@ -76,7 +76,7 @@ export default class Gathering {
   router: soup.Router;
 
   // Is it a possible security risk that all:ish clients have a reference to the gathering and thus to the sender map?
-  private senderClients: Map<string, Client> = new Map();
+  // private senderClients: Map<string, Client> = new Map();
 
   private rooms: Map<string, Room> = new Map();
 

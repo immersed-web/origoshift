@@ -202,7 +202,7 @@ export default class Client {
         try{
 
           const gathering = await Gathering.createGathering(undefined, msg.data.gatheringName);
-          this.setGathering(gathering.id);
+          // this.setGathering(gathering.id);
           response = createResponse('createGathering', msg.id, {
             data: {
               gatheringId: gathering.id
@@ -222,9 +222,14 @@ export default class Client {
         let response: ResponseTo<'joinGathering'>;
         try{ 
 
-          if(this.gathering){
-            this.gathering.removeClient(this);
-            this.setGathering(undefined);
+          const prevGathering = this.gathering;
+          if(prevGathering) {
+            if(prevGathering.id === msg.data.gatheringId){
+              throw new Error('Already in that gathering. No need to join!');
+            } else {
+              prevGathering.removeClient(this);
+              this.setGathering(undefined);
+            } 
           }
           // IMPORTANT
           // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join that gathering or not

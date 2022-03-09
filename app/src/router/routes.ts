@@ -17,7 +17,7 @@ const routes: RouteRecordRaw[] = [
       // { path: '', alias: '/join', redirect: '/join' },
       { path: '/login', component: () => import('pages/LoginPage.vue'), meta: { lowestAccessLevel: 'guest' } },
       { path: '/logout', component: () => import('pages/LogoutPage.vue') },
-      { path: '/send', component: () => import('pages/SenderPage.vue'), meta: { lowestAccessLevel: 'sender' } },
+      { path: '/camera', component: () => import('pages/CameraPage.vue'), meta: { lowestAccessLevel: 'sender' } },
       { path: '/join', component: () => import('pages/JoinPage.vue'), alias: '' },
       { path: '/roomlist', component: () => import('pages/RoomList.vue') },
       // { path: '/client', component: () => import('pages/ClientPage.vue') },

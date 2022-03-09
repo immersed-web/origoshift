@@ -6,6 +6,7 @@ export const userDataFromDBResponse = (userWithRole: UserWithRole): UserData => 
   if(userWithRole.role?.role){
     role = userWithRole.role.role as UserRole;
   }
+
   // TODO: We really need to clean this db shit up!!!!
   const clientActions: AllowedAction[] = ['setRtpCapabilities', 'setName', 'getRouterRtpCapabilities', 'joinGathering', 'joinRoom', 'leaveGathering', 'leaveRoom', 'notifyCloseEvent', 'notifyPauseResume','createReceiveTransport', 'connectTransport', 'createConsumer', 'findGatheringByName'];
   const adminActions: AllowedAction[]  = ['*', 'joinGatheringAsSender', ...clientActions];
@@ -17,5 +18,6 @@ export const userDataFromDBResponse = (userWithRole: UserWithRole): UserData => 
     role: role,
     // TODO: Actually retrieve this data!!!!!
     allowedActions: allowedActions,
+    allowedGatherings:
   };
 };

@@ -58,7 +58,7 @@ export interface UserData {
   uuid: string,
   username: string,
   role: UserRole | null, // TODO: should we really allow null here? shouldn't default just be guest?
-  allowedGatherings?: '*' | string[]
+  gathering?: '*' | string
   allowedRooms?: '*' | string[]
   allowedActions: Array<AllowedAction>
 }

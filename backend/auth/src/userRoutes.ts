@@ -2,9 +2,9 @@ import { RequestHandler, Router } from 'express';
 import bcrypt from 'bcrypt';
 import session from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
-import prisma, {Prisma} from './prismaClient';
+import prisma, {Prisma, user} from './prismaClient';
 import { createJwt } from 'shared-modules/jwtUtils';
-import { userDataFromDBResponse } from './utils';
+// import { userDataFromDBResponse } from './utils';
 import 'shared-types/augmentedRequest';
 
 
@@ -78,17 +78,18 @@ export const loginUser: RequestHandler = async (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   try{
-    const foundUser = await prisma.user.findUnique({where: {username: username}, include:{ role: true}});
-    if(foundUser){
-      const correct = await bcrypt.compare(password, foundUser.password);
-      if(correct){
-        const userData = userDataFromDBResponse(foundUser);
-        // console.log('userdata:', userData);
-        req.session.userId = userData.uuid;
-        req.session.user = userData;
-        res.status(200).send();
-        return;
-      }
+    const foundUser = await prisma.user.findUnique({where: {username: username}, include:{ role: true, rooms: true, gathering: true}});
+    if(!foundUser){
+      throw new Error('no user with that username found!');
+    }
+    const correct = await bcrypt.compare(password, foundUser.password);
+    if(correct){
+      const userData = user.userResponseToUserData(foundUser);
+      // console.log('userdata:', userData);
+      req.session.userId = userData.uuid;
+      req.session.user = userData;
+      res.status(200).send();
+      return;
     }
   } catch (e) {
     console.error(e);

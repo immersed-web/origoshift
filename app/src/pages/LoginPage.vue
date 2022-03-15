@@ -38,6 +38,9 @@ async function loginUser (creds: Creds) {
       case 'sender':
         redirect = '/send';
         break;
+      case 'gatheringEditor':
+        redirect = '/edit-users';
+        break;
       case 'admin':
         redirect = '/admin';
         break;

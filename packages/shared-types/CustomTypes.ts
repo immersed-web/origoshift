@@ -70,3 +70,12 @@ export type UserRole =
 'gatheringEditor' |
 'admin' |
 'gunnar' 
+
+export const securityLevels: UserRole[] = [
+'guest',
+'client',
+'sender',
+'gatheringEditor',
+'admin',
+'gunnar' 
+]

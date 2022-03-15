@@ -21,7 +21,8 @@ import Timeout from 'await-timeout';
 
 const router = useRouter();
 (async () => {
-  await Promise.all([logout(), Timeout.set(1500)]);
+  window.sessionStorage.removeItem('loginRedirect');
+  await Promise.all([logout(), Timeout.set(1000)]);
   router.replace('login');
 })();
 </script>

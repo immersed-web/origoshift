@@ -4,7 +4,15 @@ import { AllowedAction, UserData, UserRole } from 'shared-types/CustomTypes';
 const prisma = new PrismaClient();
 
 
-
+export function exclude<User, Key extends keyof User>(
+  user: User,
+  ...keys: Key[]
+): Omit<User, Key> {
+  for (const key of keys) {
+    delete user[key];
+  }
+  return user;
+}
 
 type Includes = {
   [Property in keyof Pick<Required<Prisma.UserInclude>, 'gathering' | 'role' | 'rooms'>]: true
@@ -22,7 +30,7 @@ const userWithIncludes = Prisma.validator<Prisma.UserArgs>()({
 type UserWithIncludes = Prisma.UserGetPayload<typeof userWithIncludes>
 type UserQueryWithIncludes = Prisma.UserFindUniqueArgs & {include: typeof includes };
 
-const user = Object.assign(prisma.user, {
+export const users = Object.assign(prisma.user, {
 
   userResponseToUserData(user: UserWithIncludes){
 
@@ -60,8 +68,6 @@ const user = Object.assign(prisma.user, {
     return this.userResponseToUserData(foundUser);
   }
 });
-
-export { user };
 
 export default prisma;
 

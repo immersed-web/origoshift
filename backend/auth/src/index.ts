@@ -6,6 +6,7 @@ import { UserData } from 'shared-types/CustomTypes';
 import createUserRouter from './userRoutes';
 import Haikunator from 'haikunator';
 import wordlist from './haikunator-wordlist';
+import { extractMessageFromCatch } from 'shared-modules/utilFns';
 
 const haikunator = new Haikunator({
   adjectives: wordlist.adjectives,
@@ -30,7 +31,27 @@ if(devMode){
   }));
 }
 
-app.use(parseJsonBody());
+app.use((req, res, next) => {
+  return parseJsonBody()(req, res, (err) => {
+    if(err){
+      //There was error!!
+      const msg = extractMessageFromCatch(err, 'failed to parse your shitt request!');
+      res.status(400).send(`You suck!!! ${msg}`);
+    } else {
+      next();
+    }
+  });
+});
+// const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
+//   console.log(error);
+//   if(error){
+//     console.error('Mega error of doom!!½½½½½', error);
+//     const msg = extractMessageFromCatch(error, 'failed reeeaaal HARD!');
+//     res.status(500).send(`Noooo good: ${msg}`);
+//   }
+//   next();
+// };
+// app.use(errorHandler);
 
 const userRouter = createUserRouter(process.env);
 app.use('/', userRouter);

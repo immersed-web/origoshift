@@ -21,6 +21,8 @@ export const login = async (username: string, password: string) => {
   }
 };
 
+export const getUsers = (payload: Record<string, unknown>) => handleResponse<Record<string, number>[]>(() => api.post('get-users', payload));
+
 export const getMe = () => handleResponse<UserData>(() => api.get('/me'));
 export const getJwt = () => handleResponse<string>(() => api.get('/jwt'));
 export const guestJwt = () => handleResponse<string>(() => api.get('/guest-jwt'));

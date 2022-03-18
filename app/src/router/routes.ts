@@ -18,6 +18,7 @@ const routes: RouteRecordRaw[] = [
       { path: '/login', component: () => import('pages/LoginPage.vue'), meta: { lowestAccessLevel: 'guest' } },
       { path: '/logout', component: () => import('pages/LogoutPage.vue') },
       { path: '/camera', component: () => import('pages/CameraPage.vue'), meta: { lowestAccessLevel: 'sender' } },
+      { path: '/room-control', component: () => import('pages/RoomControlPage.vue'), meta: { lowestAccessLevel: 'sender' } },
       { path: '/edit-users', component: () => import('pages/ManageUsersPage.vue'), meta: { lowestAccessLevel: 'gatheringEditor' } },
       { path: '/join', component: () => import('pages/JoinPage.vue'), alias: '' },
       { path: '/roomlist', component: () => import('pages/RoomList.vue') },

@@ -7,6 +7,10 @@ import createUserRouter from './userRoutes';
 import Haikunator from 'haikunator';
 import wordlist from './haikunator-wordlist';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
+import session from 'express-session';
+import { PrismaSessionStore } from '@quixo3/prisma-session-store';
+import prisma from './prismaClient';
+import createApiRouter from './apiRoutes';
 
 const haikunator = new Haikunator({
   adjectives: wordlist.adjectives,
@@ -53,8 +57,56 @@ app.use((req, res, next) => {
 // };
 // app.use(errorHandler);
 
+if (!process.env.SESSION_KEY) {
+  console.error('no session key provided!!!');
+  throw new Error('no session key provided when starting api server');
+}
+
+// const userRouter = Router();
+
+// TODO: Make sure we use nice settings for the cookie!!! These are kind of arbitrary chosen
+// userRouter.use(session({
+//   secret: env.SESSION_KEY,
+//   cookie: {
+//     httpOnly: true,
+//     secure: true,
+//     maxAge: 7 * 24 * 60 * 60 * 1000 // ms
+//   },
+//   name: 'inclubit',
+//   resave: false,
+//   saveUninitialized: false,
+//   store: new PrismaSessionStore(prisma,
+//     {
+//       checkPeriod: 2 * 60 * 1000, // ms
+//       dbRecordIdIsSessionId: true,
+//       dbRecordIdFunction: undefined,
+//     })
+// }));
+
+app.use(session({
+  secret: process.env.SESSION_KEY,
+  cookie: {
+    httpOnly: true,
+    secure: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000 // ms
+  },
+  name: 'inclubit',
+  resave: false,
+  saveUninitialized: false,
+  store: new PrismaSessionStore(prisma,
+    {
+      checkPeriod: 2 * 60 * 1000, // ms
+      dbRecordIdIsSessionId: true,
+      dbRecordIdFunction: undefined,
+    })
+}),
+);
 const userRouter = createUserRouter(process.env);
 app.use('/', userRouter);
+
+const apiRouter = createApiRouter();
+app.use('/', apiRouter);
+  
 
 app.get('/health', (req, res) => {
   res.status(200).send({
@@ -67,7 +119,7 @@ app.get('/guest-jwt', (req, res) => {
   const guestObject: UserData = {
     username: haikuName,
     role: 'guest',
-    allowedActions: ['*'],
+    // allowedActions: ['*'],
     uuid: randomUUID(),
   };
   const jwt = createJwt(guestObject, 60);

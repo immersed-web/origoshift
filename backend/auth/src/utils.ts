@@ -1,3 +1,5 @@
+import prisma from './prismaClient';
+import { RequestHandler } from 'express';
 // import { UserWithRole } from './prismaClient';
 // import { UserData, UserRole, AllowedAction } from 'shared-types/CustomTypes';
 // export const userDataFromDBResponse = (userWithRole: UserWithRole): UserData => {
@@ -6,6 +8,7 @@
 //   if(userWithRole.role?.role){
 //     role = userWithRole.role.role as UserRole;
 //   }
+
 
 //   // TODO: We really need to clean this db shit up!!!!
 //   const clientActions: AllowedAction[] = ['setRtpCapabilities', 'setName', 'getRouterRtpCapabilities', 'joinGathering', 'joinRoom', 'leaveGathering', 'leaveRoom', 'notifyCloseEvent', 'notifyPauseResume','createReceiveTransport', 'connectTransport', 'createConsumer', 'findGatheringByName'];
@@ -21,3 +24,26 @@
 //     allowedGatherings:
 //   };
 // };
+export const validateUserSession: RequestHandler = async (req, res, next) => {
+  if (req.session.userId) {
+    // const user = await prisma.user.findUnique({
+    //   where: {uuid: req.session.userId},
+    //   select: {
+    //     uuid: true,
+    //     // username: true,
+    //     // profile: true,
+    //     // role: true
+    //   }
+    // });
+
+    const user = await prisma.user.findUnique({ where: { uuid: req.session.userId }, include: { role: true } });
+    if (user) {
+      // req.user = user;
+      // req.session.user = user;
+      next();
+      return;
+    }
+  }
+  res.status(403).send({ message: 'fuck you!!!!' });
+  return;
+};

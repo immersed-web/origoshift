@@ -1,16 +1,11 @@
 <template>
-  <!-- <video
-    autoplay
-    style="max-width: 40rem;"
-    id="dest-video"
-  /> -->
   <div
     class="row q-ma-md"
   >
     <QCard
       class="col-4 q-mr-md"
     >
-      <QCardSection
+      <!-- <QCardSection
         v-if="!soupStore.gatheringState"
         class="q-gutter-md"
         tag="form"
@@ -30,7 +25,7 @@
           label="create event"
           @click="createAndJoinEvent"
         />
-      </QCardSection>
+      </QCardSection> -->
       <QCardSection class="q-gutter-md">
         <QBtn
           label="send custom prop 'handWave' to client"
@@ -46,15 +41,15 @@
       <QCardSection>
         <QBtn
           color="primary"
-          :disable="!mediaStream"
+          :disable="!outputCameraStream"
           label="send video"
           @click="startProducing"
         />
-        <QBtn
+        <!-- <QBtn
           color="secondary"
           label="consume myself"
           @click="consumeMyself"
-        />
+        /> -->
       </QCardSection>
       <QCardSection>
         <QList>
@@ -111,28 +106,18 @@
   </div>
 </template>
 
-<script lang="ts">
-import { useUserStore } from 'src/stores/userStore';
-// import { getJwt } from 'src/modules/authClient';
-import CensorControl from 'src/components/CensorControl.vue';
-import { getJwt } from 'src/modules/authClient';
-export default {
-  async preFetch () {
-    const userStore = useUserStore();
-    const jwt = await getJwt();
-    userStore.jwt = jwt;
-    console.log('userStore:', userStore.userData);
-    console.log('RUNNING PREFETCH');
-  },
-};
-</script>
-
 <script setup lang="ts">
+import CensorControl from 'src/components/CensorControl.vue';
 import { ref, nextTick } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import DevicePicker from 'src/components/DevicePicker.vue';
 import usePeerClient from 'src/composables/usePeerClient';
+import { useUserStore } from 'src/stores/userStore';
+import { usePersistedStore } from 'src/stores/persistedStore';
+import { QDialogOptions, useQuasar } from 'quasar';
+import { getAllGatherings, getGathering } from 'src/modules/authClient';
 
+const $q = useQuasar();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
 
@@ -140,16 +125,87 @@ const videoTag = ref<HTMLVideoElement>();
 const canvasTag = ref<HTMLCanvasElement>();
 
 const pickedVideoDevice = ref<MediaDeviceInfo>();
-const videoInfo = ref<Record<string, string | number | undefined>>();
-const mediaStream = ref<MediaStream>();
-const gatheringName = ref<string>('testEvent');
+interface VideoInfo {
+  width?: number, height?:number, frameRate?:number, aspectRatio?:number,
+}
+const videoInfo = ref<VideoInfo>();
+const outputCameraStream = ref<MediaStream>();
+// const gatheringName = ref<string>('testEvent');
 
 const userStore = useUserStore();
+const persistedStore = usePersistedStore();
 (async () => {
+  if (!userStore.userData) {
+    throw new Error('no userstate! needed to run camerapage');
+  }
+  let { gathering } = userStore.userData;
+  if (!gathering) {
+    if (!persistedStore.gatheringName) {
+      persistedStore.gatheringName = await pickGathering();
+    }
+    gathering = persistedStore.gatheringName;
+  }
+
   await peer.connect(userStore.jwt);
-  attachVideoToCanvas();
+  if (!persistedStore.roomName) {
+    persistedStore.roomName = await pickRoom(gathering);
+  }
+  await enterGatheringAndRoom(gathering, persistedStore.roomName);
+  // attachVideoToCanvas();
 })();
 
+async function asyncDialog (options: QDialogOptions): Promise<unknown> {
+  const dialogPromise = new Promise((resolve, reject) => {
+    $q.dialog(options).onOk((payload) => {
+      resolve(payload);
+    }).onCancel(() => {
+      reject();
+    }).onDismiss(() => {
+      reject();
+    });
+  });
+  return dialogPromise;
+}
+
+async function pickGathering (): Promise<string> {
+  console.log('no gathering defined. Must pick one!');
+  const gatherings = await getAllGatherings();
+  if (!gatherings) {
+    throw new Error('no gatherings found/fetched!');
+  }
+  const radioOptions = gatherings.map(gathering => {
+    return { label: gathering.name, value: gathering.name };
+  });
+  const dialogPromise = asyncDialog({
+    options: {
+      model: '',
+      items: radioOptions,
+    },
+  });
+  return dialogPromise as Promise<string>;
+}
+
+async function pickRoom (gatheringName: string): Promise<string> {
+  console.log('no room defined. Must pick one!');
+  const gatheringResponse = await getGathering({ gathering: gatheringName });
+  if (!gatheringResponse.rooms) {
+    throw new Error('no rooms in api response!');
+  }
+  const radioOptions = gatheringResponse.rooms.map(room => {
+    return { label: room.name, value: room.name };
+  });
+  // console.log(gatheringResponse);
+  const dialogPromise = asyncDialog({
+    title: 'Välj Rum',
+    options: {
+      model: '',
+      items: radioOptions,
+    },
+  });
+  return dialogPromise as Promise<string>;
+}
+
+let videoStream: MediaStream;
 async function requestMedia (deviceInfo: MediaDeviceInfo) {
   pickedVideoDevice.value = deviceInfo;
   await nextTick();
@@ -157,38 +213,45 @@ async function requestMedia (deviceInfo: MediaDeviceInfo) {
     console.log('template ref not available');
     return;
   }
-  const stream = await peer.requestMedia(deviceInfo.deviceId);
-  const videoSettings = stream.getVideoTracks()[0].getSettings();
-  if (!videoSettings) throw new Error('coludnt get settings from videotrack!!!');
-  videoTag.value.srcObject = stream;
-
-  if (!canvasTag.value) throw new Error('no canvas tag available');
+  videoStream = await peer.requestMedia(deviceInfo.deviceId);
+  const videoSettings = videoStream.getVideoTracks()[0].getSettings();
+  if (!videoSettings) throw new Error('couldnt get settings from videotrack!!!');
   const { width, height, frameRate, aspectRatio } = videoSettings;
   videoInfo.value = { width, height, frameRate, aspectRatio };
-  if (!width || !height) throw new Error('couldnt read width and/or heigth from videotrack');
+
+  videoTag.value.srcObject = videoStream;
+}
+
+function setCanvasPropsFromVideoInfo () {
+  if (!canvasTag.value) throw new Error('no canvas tag available');
+  if (!videoInfo.value) throw new Error('videoInfo is undefined!');
+  const { width, height } = videoInfo.value;
+  if (!width || !height) throw new Error('couldnt get width and/or height from videotrack');
   canvasTag.value.width = width;
   canvasTag.value.height = height;
 
-  const fps = videoSettings.frameRate ? videoSettings.frameRate : 30;
-  const canvasStream = canvasTag.value?.captureStream();
-  // const destVideo: HTMLVideoElement = document.querySelector<HTMLVideoElement>('#dest-video');
-  // destVideo.srcObject = canvasStream;
-  mediaStream.value = canvasStream;
+  // const fps = videoSettings.frameRate ? videoSettings.frameRate : 30;
+  // const canvasStream = canvasTag.value?.captureStream();
+  // // const destVideo: HTMLVideoElement = document.querySelector<HTMLVideoElement>('#dest-video');
+  // // destVideo.srcObject = canvasStream;
+  // mediaStream.value = canvasStream;
 }
 
 type CensorUpdateHandler = Exclude<(InstanceType<typeof CensorControl>)['onUpdate'], undefined>;
-// type test2 = Exclude<test, undefined>
-// type asdkj= Extract<ssd, Record<string, unknown>>
-// const censorComponent = ref<InstanceType<typeof CensorControl>>();
-
-// const censorSettings = ref<Parameters<CensorUpdateHandler>[0]>({});
 let censorSettings: Parameters<CensorUpdateHandler>[0];
 const updateCensorShield: CensorUpdateHandler = (shieldState) => {
   console.log('censorshield emitted');
   censorSettings = shieldState;
+
+  if (censorSettings.enabled === false) {
+    detachVideoFromCanvas();
+  }
 };
 
-async function attachVideoToCanvas () {
+let canvasStream: MediaStream |undefined;
+let drawToCanvas = false;
+function attachVideoToCanvas () {
+  drawToCanvas = true;
   const vTag = videoTag.value;
   const cTag = canvasTag.value;
   const ctx = cTag?.getContext('2d', { alpha: false });
@@ -221,19 +284,30 @@ async function attachVideoToCanvas () {
       ctx.fillRect(xStart, 0, xWidth, cTag.height);
     }
     // ctx.putImageData(imageData, xStart, 0);
-    requestAnimationFrame(update);
+    if (drawToCanvas) {
+      requestAnimationFrame(update);
+    }
   };
   requestAnimationFrame(update);
+
+  // const capturedStream = cTag.captureStream();
+  // if(!capturedStream) throw new Error('failed to capture stream from canvas!');
+  canvasStream = cTag.captureStream();
 }
 
+function detachVideoFromCanvas () {
+  drawToCanvas = false;
+  canvasStream = undefined;
+}
+let screenStream: MediaStream;
 async function shareScreen () {
   const stream = await navigator.mediaDevices.getDisplayMedia();
-  mediaStream.value = stream;
-  mediaStream.value.getTracks()[0].onended = () => {
+  screenStream = stream;
+  screenStream.getTracks()[0].onended = () => {
     stopProducing();
   };
 
-  producerId = await peer.produce(mediaStream.value, { screenShare: true });
+  producerId = await peer.produce(screenStream, { screenShare: true });
   console.log('produce returned: ', producerId);
   if (!soupStore.clientState) {
     throw new Error('no roomid. cant assign producer to room');
@@ -241,56 +315,45 @@ async function shareScreen () {
   // peer.assignProducerToRoom(soupStore.clientState?.clientId, producerId, roomId);
 }
 
-// async function loginSubmitted ({ username, password }: {username: string, password: string}) {
-//   await login(username, password);
-//   const me = await getMe();
-//   console.log('got me: ', me);
-//   const jwt = await getJwt();
-//   await peer.connect(jwt);
-// }
-async function connectToEvent (gatheringId?: string) {
-  if (!gatheringId) {
-    gatheringId = await peer.findGathering(gatheringName.value);
-  }
-  // await peer.joinGatheringAsSender(gatheringId);
-  await peer.joinGathering(gatheringId);
+// TODO: How to handle roles without assigned gathering (admin)
+async function enterGatheringAndRoom (gatheringName: string, roomName: string) {
+  // if (!userStore.userData) throw new Error('no userstate! needed to run camerapage');
+  // if (!gatheringName) {
+  //   throw new Error('no gathering assigned for user! Cant connect...');
+  // }
+  soupStore.setGatheringState(await peer.joinOrCreateGathering(gatheringName));
   await peer.getRouterCapabilities();
   await peer.loadMediasoupDevice();
   await peer.createSendTransport();
-}
 
-let roomId: string;
-async function createAndJoinEvent () {
-  const gatheringId = await peer.createGathering(gatheringName.value);
-  // console.log('create Gathering response: ', gatheringId);
-  await connectToEvent(gatheringId);
-  roomId = await peer.createAndJoinRoom('testRoom');
+  const roomState = await peer.joinOrCreateRoom(roomName);
+  soupStore.setRoomState(roomState);
 }
 
 let producerId: string;
 async function startProducing () {
-  if (!mediaStream.value) return;
+  if (!outputCameraStream.value) return;
   // await peer.getRouterCapabilities();
   // await peer.loadMediasoupDevice();
   // await peer.createSendTransport();
-  producerId = await peer.produce(mediaStream.value);
+  producerId = await peer.produce(outputCameraStream.value);
   console.log('produce returned: ', producerId);
-  if (!soupStore.clientState) {
+  if (!soupStore.clientState?.roomId || !soupStore.clientId) {
     throw new Error('no roomid. cant assign producer to room');
   }
-  peer.assignProducerToRoom(soupStore.clientState?.clientId, producerId, roomId);
+  peer.assignProducerToRoom(soupStore.clientId, producerId, soupStore.clientState.roomId);
 }
 
-async function consumeMyself () {
-  if (!producerId) throw new Error('no producerId. cant consume!');
-  await peer.createReceiveTransport();
-  await peer.sendRtpCapabilities();
-  const { consumerId, track } = await peer.consume(producerId);
-  console.log(`consumer created! consumerId: ${consumerId}, track: ${track}`);
-  const destVideo: HTMLVideoElement = document.querySelector<HTMLVideoElement>('#dest-video');
-  const consumeStream = new MediaStream([track]);
-  destVideo.srcObject = consumeStream;
-}
+// async function consumeMyself () {
+//   if (!producerId) throw new Error('no producerId. cant consume!');
+//   await peer.createReceiveTransport();
+//   await peer.sendRtpCapabilities();
+//   const { consumerId, track } = await peer.consume(producerId);
+//   console.log(`consumer created! consumerId: ${consumerId}, track: ${track}`);
+//   const destVideo: HTMLVideoElement = document.querySelector<HTMLVideoElement>('#dest-video');
+//   const consumeStream = new MediaStream([track]);
+//   destVideo.srcObject = consumeStream;
+// }
 
 async function stopProducing () {
   peer.producers.forEach(producer => { producer.close(); });

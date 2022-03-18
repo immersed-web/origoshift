@@ -1,5 +1,5 @@
 import { PrismaClient, Prisma } from '@prisma/client';
-import { AllowedAction, UserData, UserRole } from 'shared-types/CustomTypes';
+import { UserData, UserRole } from 'shared-types/CustomTypes';
 
 const prisma = new PrismaClient();
 
@@ -35,10 +35,10 @@ export const users = Object.assign(prisma.user, {
   userResponseToUserData(user: UserWithIncludes){
 
     // TODO: Probably should define allowedactions for different models elsewhere!
-    const clientActions: AllowedAction[] = ['setRtpCapabilities', 'setName', 'getRouterRtpCapabilities', 'joinGathering', 'joinRoom', 'leaveGathering', 'leaveRoom', 'notifyCloseEvent', 'notifyPauseResume', 'createReceiveTransport', 'connectTransport', 'createConsumer', 'findGatheringByName'];
-    const adminActions: AllowedAction[] = ['*', ...clientActions];
+    // const clientActions: AllowedAction[] = ['setRtpCapabilities', 'setName', 'getRouterRtpCapabilities', 'joinGathering', 'joinRoom', 'leaveGathering', 'leaveRoom', 'notifyCloseEvent', 'notifyPauseResume', 'createReceiveTransport', 'connectTransport', 'createConsumer', 'findGatheringByName'];
+    // const adminActions: AllowedAction[] = ['*', ...clientActions];
 
-    const allowedActions = user.role?.role == 'admin' ? adminActions : clientActions;
+    // const allowedActions = user.role?.role == 'admin' ? adminActions : clientActions;
 
     const rooms = user.rooms.map(room => {
       return room.name;
@@ -50,7 +50,7 @@ export const users = Object.assign(prisma.user, {
       uuid: user.uuid,
       gathering: user.gathering?.name,
       allowedRooms: rooms,
-      allowedActions: allowedActions,
+      // allowedActions: allowedActions,
     };
   },
   

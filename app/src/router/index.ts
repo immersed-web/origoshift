@@ -8,7 +8,8 @@ import {
 // import { StateInterface } from '../store';
 import routes from './routes';
 
-import { getMe } from 'src/modules/authClient';
+import { getJwt } from 'src/modules/authClient';
+import { useUserStore } from 'src/stores/userStore';
 
 /*
  * If not building with SSR mode, you can
@@ -44,10 +45,20 @@ export default route(function (/* { store, ssrContext } */) {
         console.log('route not protected. Letting through');
         return;
       }
-      const me = await getMe();
-      if (!me.uuid) {
-        throw new Error('response contained no user uuid');
+      // const me = await getMe();
+      // if (!me.uuid) {
+      //   throw new Error('response contained no user uuid');
+      // }
+      const userStore = useUserStore();
+      if (userStore.jwt) {
+        return;
       }
+      console.log('trying to fetch jwt!');
+      const jwt = await getJwt();
+      if (!jwt) {
+        throw new Error('failed to fetch jwt');
+      }
+      userStore.jwt = jwt;
       return;
     } catch (e) {
       console.error('route not allowed. Redirecting to login');

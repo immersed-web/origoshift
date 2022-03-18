@@ -13,6 +13,7 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
+    "@prisma/client": "^3.5.0",
     "@quasar/extras": "^1.0.0",
     "@types/aframe": "^1.2.0",
     "@types/await-timeout": "^0.3.1",
@@ -22,6 +23,7 @@
     "core-js": "^3.6.5",
     "mediasoup-client": "3",
     "pinia": "^2.0.6",
+    "pinia-plugin-persistedstate": "^1.5.1",
     "quasar": "^2.0.0",
     "shared-types": "^1.0.0",
     "tiny-typed-emitter": "^2.1.0"

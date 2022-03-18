@@ -227,14 +227,22 @@ export default class Gathering {
     return gatheringState;
   }
 
-  getRoom(id: string) {
-    const foundRoom = this.rooms.get(id);
+  getRoom({id, name}: {id?: string, name?: string}) {
+    let foundRoom: Room | undefined;
+    if(id){
+      foundRoom = this.rooms.get(id);
+    }
+    if(name){
+      for (const [ _ , room] of this.rooms) {
+        if(room.roomName === name){
+          foundRoom = room;
+        }
+      }
+    }
     if(!foundRoom){
-      console.warn('the gathering doesnt have a room with that id');
-      return;
+      throw new Error('the gathering doesnt have a room with that id or name');
     }
     return foundRoom;
-    
   }
 
   async createWebRtcTransport() {

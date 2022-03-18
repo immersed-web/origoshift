@@ -1,23 +1,27 @@
 <template>
   <div>
-    <!-- <QBtn
-      label="censorShield"
-      @click="toggle"
-    /> -->
+    <QToggle
+      v-model="localState.enabled"
+      :label="`censorshield ${localState.enabled?'enabled':'disabled'}`"
+    />
     <QBtn
+      :disable="!localState.enabled"
       icon="filter_b_and_w"
       round
       @click="invert"
     />
-    <QRange v-model="localState.range" />
+    <QRange
+      :disable="!localState.enabled"
+      v-model="localState.range"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
 
-const localState = reactive<{range: {min: number, max: number}, inverted: boolean }>({
-  // enabled: false,
+const localState = reactive<{enabled: boolean, range: {min: number, max: number}, inverted: boolean }>({
+  enabled: false,
   inverted: false,
   range: {
     min: 0,
@@ -25,9 +29,6 @@ const localState = reactive<{range: {min: number, max: number}, inverted: boolea
   },
 });
 defineExpose();
-
-// const asRefs = toRefs(localState);
-// defineExpose({ localState });
 
 interface CensorControlEmits {
   (e: 'update', values: typeof localState): void
@@ -37,11 +38,6 @@ const emit = defineEmits<CensorControlEmits>();
 watch(localState, (newState) => {
   emit('update', newState);
 });
-
-// function toggle () {
-//   console.log('censorshield toggled');
-//   localState.enabled = !localState.enabled;
-// }
 
 function invert () {
   console.log('range inverted!');

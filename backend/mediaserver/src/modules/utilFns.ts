@@ -1,15 +1,17 @@
 
-import { UserData } from 'shared-types/CustomTypes';
+import { AllowedAction, allowedActions, UserRole } from 'shared-types/CustomTypes';
 
-export function checkPermission(userData: UserData | undefined, action: UserData['allowedActions'][number]) {
-  if(!userData){
+export function checkPermission(role: UserRole, action: AllowedAction) {
+  if(!role){
     return false;
   }
-  const actions = userData.allowedActions;
-  if(actions.includes('*')){
+  if(!allowedActions[role]){
+    throw new Error('provide role not found in roleList');
+  }
+  if(allowedActions[role].includes('*')){
     return true;
   }
-  return actions.includes(action);
+  return allowedActions[role].includes(action);
 }
 
 

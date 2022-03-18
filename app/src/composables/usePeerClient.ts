@@ -20,23 +20,7 @@ export default function usePeerClient () {
     console.log(data);
     soupStore.clientState = data;
   });
-  // peer.onMessageCallback = (msg) => {
-  //   console.log('received message: ', msg);
-  //   switch (msg.subject) {
-  //     case 'gatheringStateUpdated': {
-  //       soupStore.gatheringState = msg.data;
-  //       break;
-  //     }
-  //     case 'roomStateUpdated': {
-  //       soupStore.roomState = msg.data;
-  //       break;
-  //     }
-  //     case 'clientStateUpdated': {
-  //       soupStore.clientState = msg.data;
-  //       break;
-  //     }
-  //   }
-  // };
+
   peer.onRequestCallback = (msg) => {
     console.log('received request: ', msg);
   };
@@ -82,11 +66,10 @@ export default function usePeerClient () {
     return localStream;
   }
 
-  async function createAndJoinRoom (roomName: string) {
-    const roomId = await peer.createRoom(roomName);
-    await peer.joinRoom(roomId);
-    return roomId;
-  }
+  // async function createAndJoinRoom (roomName: string) {
+  //   const roomState = await peer.createRoom(roomName);
+  //   return peer.joinRoom(roomState.roomId);
+  // }
 
   async function produce (stream: MediaStream, producerInfo?: Record<string, unknown>) {
     const track = stream.getVideoTracks()[0];
@@ -99,7 +82,7 @@ export default function usePeerClient () {
   //   await peer.getRouterCapabilities();
   // }
 
-  const customExports = { connect, requestMedia, createAndJoinRoom, produce, onConsumerClosed };
+  const customExports = { connect, requestMedia, produce, onConsumerClosed };
 
   return {
     ...peer, // Order matters here! customExports holds some overrides, so it must come after

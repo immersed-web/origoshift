@@ -1,11 +1,11 @@
 import { RequestHandler, Router, Request as ExpressReq } from 'express';
 import bcrypt from 'bcrypt';
-import session from 'express-session';
-import { PrismaSessionStore } from '@quixo3/prisma-session-store';
+// import session from 'express-session';
+// import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import prisma, { Prisma, users, exclude } from './prismaClient';
 import { createJwt } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-// import { userDataFromDBResponse } from './utils';
+import { validateUserSession } from './utils';
 import 'shared-types/augmentedRequest';
 import { UserRole, securityLevels } from 'shared-types/CustomTypes';
 
@@ -203,31 +203,6 @@ const getUsers: RequestHandler = async (req: GetUsersRequest, res) => {
   res.send(withoutPasswords);
 };
 
-
-const validateUserSession: RequestHandler = async (req, res, next) => {
-  if (req.session.userId) {
-    // const user = await prisma.user.findUnique({
-    //   where: {uuid: req.session.userId},
-    //   select: {
-    //     uuid: true,
-    //     // username: true,
-    //     // profile: true,
-    //     // role: true
-    //   }
-    // });
-
-    const user = await prisma.user.findUnique({ where: { uuid: req.session.userId }, include: { role: true } });
-    if (user) {
-      // req.user = user;
-      // req.session.user = user;
-      next();
-      return;
-    }
-  }
-  res.status(403).send({ message: 'fuck you!!!!' });
-  return;
-};
-
 const loginUser: RequestHandler = async (req, res) => {
   // console.log('login req received');
   const username = req.body.username;
@@ -290,31 +265,31 @@ const getJwt: RequestHandler = async (req, res) => {
 };
 
 export default function createUserRouter(env: NodeJS.ProcessEnv) {
-  if (!env.SESSION_KEY) {
-    console.error('no session key provided!!!');
-    throw new Error('no session key provided when creating user router');
-  }
+  // if (!env.SESSION_KEY) {
+  //   console.error('no session key provided!!!');
+  //   throw new Error('no session key provided when creating user router');
+  // }
 
   const userRouter = Router();
 
   // TODO: Make sure we use nice settings for the cookie!!! These are kind of arbitrary chosen
-  userRouter.use(session({
-    secret: env.SESSION_KEY,
-    cookie: {
-      httpOnly: true,
-      secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000 // ms
-    },
-    name: 'inclubit',
-    resave: false,
-    saveUninitialized: false,
-    store: new PrismaSessionStore(prisma,
-      {
-        checkPeriod: 2 * 60 * 1000, // ms
-        dbRecordIdIsSessionId: true,
-        dbRecordIdFunction: undefined,
-      })
-  }));
+  // userRouter.use(session({
+  //   secret: env.SESSION_KEY,
+  //   cookie: {
+  //     httpOnly: true,
+  //     secure: true,
+  //     maxAge: 7 * 24 * 60 * 60 * 1000 // ms
+  //   },
+  //   name: 'inclubit',
+  //   resave: false,
+  //   saveUninitialized: false,
+  //   store: new PrismaSessionStore(prisma,
+  //     {
+  //       checkPeriod: 2 * 60 * 1000, // ms
+  //       dbRecordIdIsSessionId: true,
+  //       dbRecordIdFunction: undefined,
+  //     })
+  // }));
 
   userRouter.get('', index);
 

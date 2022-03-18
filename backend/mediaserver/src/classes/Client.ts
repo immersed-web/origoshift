@@ -15,7 +15,7 @@ import Gathering from './Gathering';
 interface constructionParams {
   id?: string,
   ws: SocketWrapper,
-  userData?: UserData,
+  userData: UserData,
 }
 /**
  * This class represents a client in the backend. This class is also responsible for the communication with the "actual" client (i.e. the frontend).
@@ -25,18 +25,18 @@ export default class Client {
   private ws: SocketWrapper;
 
   // TODO userdata should probably be required field in this class?!
-  userData?: UserData;
+  userData: UserData;
   get userName(): string{
-    if(this.userData?.username){
-      return this.userData.username;
-    }
+    // if(this.userData?.username){
+    return this.userData.username;
+    // }
     return 'John Doe';
   }
   get role (): UserRole {
-    if(this.userData?.role){
-      return this.userData.role;
-    }
-    return 'guest';
+    // if(this.userData?.role){
+    return this.userData.role;
+    // }
+    // return 'guest';
   }
   connected = true;
 
@@ -71,7 +71,7 @@ export default class Client {
   get room() {
     try {
       if(!this.roomId) return undefined;
-      return this.gathering?.getRoom(this.roomId);
+      return this.gathering?.getRoom({ id: this.roomId });
     } catch(e) {
       console.error(e);
       return undefined;
@@ -81,10 +81,8 @@ export default class Client {
   constructor({id = randomUUID(), ws, userData}: constructionParams){
     this.id = id;
     this.ws = ws;
-    if(userData){
-      this.userData = userData;
-      // this.nickName = userData.username;
-    }
+    this.userData = userData;
+    // this.nickName = userData.username;
 
 
     ws.registerReceivedMessageCallback((msg) => {
@@ -112,7 +110,7 @@ export default class Client {
       return;
     }
     //check authorization
-    if(!checkPermission(this.userData, msg.subject)){
+    if(!checkPermission(this.userData.role, msg.subject)){
       const response = createResponse(msg.subject, msg.id, {
         wasSuccess: false,
         message: 'NOT AUTHORIZED!!!! Get outta here!!'
@@ -202,11 +200,8 @@ export default class Client {
         try{
 
           const gathering = await Gathering.createGathering(undefined, msg.data.gatheringName);
-          // this.setGathering(gathering.id);
           response = createResponse('createGathering', msg.id, {
-            data: {
-              gatheringId: gathering.id
-            },
+            data: gathering.gatheringState,
             wasSuccess: true,
           });
         } catch (e) {
@@ -293,6 +288,26 @@ export default class Client {
         this.send(response);
         break;
       }
+      case 'findRoomByName': {
+        let response: ResponseTo<'findRoomByName'>;
+        try {
+          if(!this.gathering){
+            throw new Error('not in a gathering. Must be in a gathering to search for rooms');
+          }
+          const room = this.gathering.getRoom({name: msg.data.roomName});
+          response = createResponse('findRoomByName', msg.id, {
+            wasSuccess: true,
+            data: {id: room.id }
+          });
+        } catch(e){
+          response = createResponse('findRoomByName', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to get room')
+          });
+        }
+        this.send(response);
+        break;
+      }
       case 'createRoom': {
         let response: ResponseTo<'createRoom'>;
         try {
@@ -302,9 +317,7 @@ export default class Client {
           const room = this.gathering.createRoom({roomName: msg.data.name});
           response = createResponse('createRoom', msg.id, {
             wasSuccess: true,
-            data: {
-              roomId: room.id
-            }
+            data: room.roomState,
           });
         } catch (e) {
           response = createResponse('createRoom', msg.id, {
@@ -326,7 +339,7 @@ export default class Client {
             throw Error('not in a gathering. Can not join a room without being in a gathering');
           }
           const roomId = msg.data.roomId;
-          const foundRoom = this.gathering.getRoom(roomId);
+          const foundRoom = this.gathering.getRoom({id: roomId});
           if(!foundRoom){
             throw Error('no such room in gathering');
           }
@@ -448,7 +461,7 @@ export default class Client {
         let response: ResponseTo<'assignMainProducerToRoom'>;
         const reqParams = msg.data;
         try {
-          const room = this.gathering?.getRoom(reqParams.roomId);
+          const room = this.gathering?.getRoom({id: reqParams.roomId});
           if(!room) {
             throw new Error('no such room maddafakka!');
           }

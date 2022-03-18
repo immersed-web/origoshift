@@ -57,25 +57,64 @@ export type AllowedAction  =  RequestSubjects | '*';
 export interface UserData {
   uuid: string,
   username: string,
-  role: UserRole | null, // TODO: should we really allow null here? shouldn't default just be guest?
+  role: UserRole,
   gathering?: '*' | string
   allowedRooms?: '*' | string[]
-  allowedActions: Array<AllowedAction>
+  // allowedActions: Array<AllowedAction>
 }
 
-export type UserRole = 
-'guest' |
-'client' |
-'sender' |
-'gatheringEditor' |
-'admin' |
-'gunnar' 
+// export type UserRole = 
+// 'guest' |
+// 'client' |
+// 'sender' |
+// 'gatheringEditor' |
+// 'admin' |
+// 'gunnar' 
 
-export const securityLevels: UserRole[] = [
+export const securityLevels = [
 'guest',
 'client',
 'sender',
 'gatheringEditor',
 'admin',
 'gunnar' 
+] as const;
+
+export type UserRole = (typeof securityLevels)[number];
+
+
+// TODO: This securitylevel array shit is reaaal hacky. No fun!!! You cry
+
+const defaultActions = [
+  'connectTransport',
+  'createReceiveTransport',
+  'createConsumer',
+  'getRouterRtpCapabilities',
+  'setRtpCapabilities',
+  'notifyCloseEvent',
+  'notifyPauseResume',
+  'joinRoom',
+  'leaveRoom',
+  'findRoomByName',
+  'joinGathering',
+  'leaveGathering',
+  'findGatheringByName',
+  'setName',
+  'getClientState',
+] as const;
+
+
+type DefaultAction = (typeof defaultActions)[number];
+type NonDefaultAction = Exclude<AllowedAction, DefaultAction>
+const gatheringEditorActions: NonDefaultAction[] = [
+'assignMainProducerToRoom', 'createGathering','createProducer', 'createRoom', 'createSendTransport', 'customRequest', 'getGatheringState','setCustomClientProperties'
 ]
+
+export const allowedActions: Record<UserRole, AllowedAction[]> = {
+  gunnar: ['*'],
+  admin: ['*'],
+  gatheringEditor: [...defaultActions, ...gatheringEditorActions],
+  sender: [...defaultActions],
+  client: [...defaultActions],
+  guest: [...defaultActions],
+}

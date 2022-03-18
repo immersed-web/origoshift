@@ -27,6 +27,22 @@ type MessageBuilder<Key, Data = undefined> = IMessage & {
   subject: Key,
   data: Data,
 }
+
+// const reqBuilder = <Data = undefined>(name: string) => {
+//   function tp(input: RequestBuilder<name, Data>): void {
+//     return
+//   }
+//   return name;
+// }
+
+// const subj = [
+//   reqBuilder<{test: string}>('test'),
+//   reqBuilder<'bajs', {tessss: string}>(),
+//   reqBuilder<'test', {telkj: string, slkj: number}>(),
+// ]
+
+// type Anyreq = Parameters<(typeof subj)[number]>[0]
+
 export type AnyRequest = 
   RequestBuilder<'getRouterRtpCapabilities'>
   | RequestBuilder<'setRtpCapabilities', import('mediasoup').types.RtpCapabilities>
@@ -71,11 +87,15 @@ export type AnyRequest =
   | RequestBuilder<'joinGathering', {
     gatheringId: string,
   }>
-  | RequestBuilder<'joinGatheringAsSender', {
-    gatheringId: string,
-  }>
+  // | RequestBuilder<'joinGatheringAsSender', {
+  //   gatheringId: string,
+  // }>
   | RequestBuilder<'leaveGathering'>
   | RequestBuilder<'getGatheringState'>
+  | RequestBuilder<'findRoomByName', {
+    // gatheringName: string,
+    roomName: string
+  }>
   | RequestBuilder<'createRoom', {
     name: string,
   }>
@@ -83,7 +103,7 @@ export type AnyRequest =
     roomId: string,
   }>
   | RequestBuilder<'leaveRoom'>
-  | RequestBuilder<'roomStateUpdated', RoomState>
+  // | RequestBuilder<'roomStateUpdated', RoomState>
   | RequestBuilder<'assignMainProducerToRoom',{
     producerId: string,
     clientId: string,
@@ -155,15 +175,18 @@ export type AnyResponse =
   | ResponseBuilder<'findGatheringByName', {
     id: string
   }>
-  | ResponseBuilder<'createGathering', {gatheringId: string}>
+  | ResponseBuilder<'createGathering', GatheringState>
   | ResponseBuilder<'joinGathering', GatheringState>
-  | ResponseBuilder<'joinGatheringAsSender'>
+  // | ResponseBuilder<'joinGatheringAsSender'>
   | ResponseBuilder<'leaveGathering', {gatheringId: string}>
   | ResponseBuilder<'getGatheringState', GatheringState>
-  | ResponseBuilder<'createRoom', {roomId: string}>
+  | ResponseBuilder<'findRoomByName', {
+    id: string
+  }>
+  | ResponseBuilder<'createRoom', RoomState>
   | ResponseBuilder<'joinRoom', RoomState>
   | ResponseBuilder<'leaveRoom', {roomId: string}>
-  | ResponseBuilder<'roomStateUpdated'>
+  // | ResponseBuilder<'roomStateUpdated'>
   | ResponseBuilder<'assignMainProducerToRoom'>
   | ResponseBuilder<'setCustomClientProperties'>
   | ResponseBuilder<'customRequest', string | Record<string, unknown>>

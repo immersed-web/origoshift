@@ -9,3 +9,7 @@ export function extractMessageFromCatch (e: unknown, fallbackMessage?: string){
   }
   return 'there was an error!'
 }
+
+// export function slugifyString(text: string) {
+
+// }

@@ -153,23 +153,25 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     });
     // return sendRequest(createGatheringReq);
     const response = await sendRequest(createGatheringReq);
-    return response.data.gatheringId;
+    return response.data;
   }
 
   joinGathering = async (gatheringId: string) => {
     const joinGatheringReq = createRequest('joinGathering', { gatheringId });
     const response = await sendRequest(joinGatheringReq);
     return response.data;
-    // if(!response.wasSuccess){
-    //   throw new Error(response.message);
-    // }
-    // return response.
   }
 
-  // joinGatheringAsSender = async (gatheringId:string) => {
-  //   const joinGatheringAsSenderReq = createRequest('joinGatheringAsSender', { gatheringId });
-  //   await sendRequest(joinGatheringAsSenderReq);
-  // }
+  joinOrCreateGathering = async (gatheringName: string) => {
+    try {
+      const foundGatheringId = await this.findGathering(gatheringName);
+      return this.joinGathering(foundGatheringId);
+    } catch (e) {
+      console.warn(e);
+      const gathState = await this.createGathering(gatheringName);
+      return this.joinGathering(gathState.gatheringId);
+    }
+  }
 
   getGatheringState = async () => {
     const getRoomsReq = createRequest('getGatheringState');
@@ -177,12 +179,18 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     return response.data;
   }
 
+  findRoom = async (roomName: string) => {
+    const findReq = createRequest('findRoomByName', { roomName });
+    const response = await sendRequest(findReq);
+    return response.data.id;
+  }
+
   createRoom = async (roomName: string) => {
     const createRoomReq = createRequest('createRoom', {
       name: roomName,
     });
     const response = await sendRequest(createRoomReq);
-    return response.data.roomId;
+    return response.data;
   }
 
   joinRoom = async (roomId: string) => {
@@ -191,6 +199,17 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     return response.data;
     // this.closeAllConsumers();
     // this.roomStore.currentRoomId = roomId;
+  }
+
+  joinOrCreateRoom = async (roomName: string) => {
+    try {
+      const roomId = await this.findRoom(roomName);
+      return this.joinRoom(roomId);
+    } catch (e) {
+      console.warn(e);
+      const roomState = await this.createRoom(roomName);
+      return this.joinRoom(roomState.roomId);
+    }
   }
 
   leaveRoom = async () => {

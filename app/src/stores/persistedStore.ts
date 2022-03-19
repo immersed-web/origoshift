@@ -6,9 +6,11 @@ import { defineStore } from 'pinia';
 const rootState: {
   roomName?: string,
   gatheringName?: string,
+  deviceId?: string,
 } = {
   roomName: undefined,
   gatheringName: undefined,
+  deviceId: undefined,
 };
 
 export const usePersistedStore = defineStore('persisted', {

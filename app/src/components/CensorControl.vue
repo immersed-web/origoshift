@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, watch } from 'vue';
+import { reactive, watch, onMounted } from 'vue';
 
 const localState = reactive<{enabled: boolean, range: {min: number, max: number}, inverted: boolean }>({
   enabled: false,
@@ -37,6 +37,10 @@ const emit = defineEmits<CensorControlEmits>();
 
 watch(localState, (newState) => {
   emit('update', newState);
+});
+
+onMounted(() => {
+  emit('update', localState);
 });
 
 function invert () {

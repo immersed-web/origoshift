@@ -317,7 +317,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     });
   }
 
-  assignProducerToRoom = async (clientId: string, producerId: string, roomId: string) => {
+  assignMainProducerToRoom = async (clientId: string, producerId: string, roomId: string) => {
     const assignProducerReq = createRequest('assignMainProducerToRoom', {
       clientId, producerId, roomId,
     });
@@ -335,6 +335,14 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     const producer = await this.sendTransport.produce(producerOptions);
     this.producers.set(producer.id, producer);
     return producer.id;
+  }
+
+  replaceProducerTrack = async (producerId: string, track: MediaStreamTrack) => {
+    const producer = this.producers.get(producerId);
+    if (!producer) {
+      throw new Error('no producer with that id found');
+    }
+    return producer.replaceTrack({ track });
   }
 
   consume = async (producerId: string): Promise<{track: MediaStreamTrack, consumerId: string}> => {

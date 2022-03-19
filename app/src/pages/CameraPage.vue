@@ -26,31 +26,26 @@
           @click="createAndJoinEvent"
         />
       </QCardSection> -->
-      <QCardSection class="q-gutter-md">
+      <!-- <QCardSection class="q-gutter-md">
         <QBtn
           label="send custom prop 'handWave' to client"
           @click="peer.setCustomProperties({handWave: true})"
         />
-      </QCardSection>
-      <QCardSection>
+      </QCardSection> -->
+      <!-- <QCardSection>
         <QBtn
           label="share screen"
           @click="shareScreen"
         />
-      </QCardSection>
-      <QCardSection>
+      </QCardSection> -->
+      <!-- <QCardSection>
         <QBtn
           color="primary"
           :disable="!outputCameraStream"
           label="send video"
           @click="startProducing"
         />
-        <!-- <QBtn
-          color="secondary"
-          label="consume myself"
-          @click="consumeMyself"
-        /> -->
-      </QCardSection>
+      </QCardSection> -->
       <QCardSection>
         <QList>
           <QItem
@@ -72,7 +67,9 @@
             </QList>
           </QItem>
         </QList>
-        {{ soupStore.roomState }}
+        <pre>
+          {{ soupStore.roomState }}
+        </pre>
       </QCardSection>
     </QCard>
     <QCard class="col">
@@ -87,15 +84,16 @@
           style="width: fit-content;"
         >
           <CensorControl @update="updateCensorShield" />
+          <canvas
+            v-show="censorSettings && censorSettings.enabled"
+            style="max-width: 100%; background-color: aqua;"
+            ref="canvasTag"
+          />
           <video
-            v-show="false"
+            v-show="censorSettings && !censorSettings.enabled"
             ref="videoTag"
             autoplay
-            style="max-width: 10rem;"
-          />
-          <canvas
-            style="max-width: 100%;"
-            ref="canvasTag"
+            style="max-width: 100%; background-color: darkcyan;"
           />
           <div id="video-info">
             <pre>{{ videoInfo }}</pre>
@@ -108,7 +106,7 @@
 
 <script setup lang="ts">
 import CensorControl from 'src/components/CensorControl.vue';
-import { ref, nextTick } from 'vue';
+import { ref } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import DevicePicker from 'src/components/DevicePicker.vue';
 import usePeerClient from 'src/composables/usePeerClient';
@@ -129,7 +127,7 @@ interface VideoInfo {
   width?: number, height?:number, frameRate?:number, aspectRatio?:number,
 }
 const videoInfo = ref<VideoInfo>();
-const outputCameraStream = ref<MediaStream>();
+// const outputCameraStream = ref<MediaStream>();
 // const gatheringName = ref<string>('testEvent');
 
 const userStore = useUserStore();
@@ -208,7 +206,8 @@ async function pickRoom (gatheringName: string): Promise<string> {
 let videoStream: MediaStream;
 async function requestMedia (deviceInfo: MediaDeviceInfo) {
   pickedVideoDevice.value = deviceInfo;
-  await nextTick();
+  persistedStore.deviceId = deviceInfo.deviceId;
+  // await nextTick();
   if (!videoTag.value) {
     console.log('template ref not available');
     return;
@@ -220,6 +219,37 @@ async function requestMedia (deviceInfo: MediaDeviceInfo) {
   videoInfo.value = { width, height, frameRate, aspectRatio };
 
   videoTag.value.srcObject = videoStream;
+  setCanvasPropsFromVideoInfo();
+
+  handleVideoStreamChanged();
+}
+
+async function handleVideoStreamChanged () {
+  // Ok. The videoStream was changed. we must update the producer and/or the canvas accordingly
+
+  // We have a producer created.
+  if (producerId) {
+    if (!censorSettings.value.enabled) {
+      peer.replaceProducerTrack(producerId, videoStream.getVideoTracks()[0]);
+    } else {
+      // Hmm. we shouldnt need to do anything here. The videoElement should already be linked to the canvas
+    }
+  } else {
+    let stream = videoStream;
+    if (censorSettings.value.enabled) {
+      attachVideoToCanvas();
+      setCanvasPropsFromVideoInfo();
+      if (!canvasStream) throw new Error('canvasStream undefined! cant use it for producer');
+      stream = canvasStream;
+    }
+    producerId = await peer.produce(stream);
+    console.log('produce returned: ', producerId);
+    if (!soupStore.clientState?.roomId || !soupStore.clientId) {
+      throw new Error('no roomid. cant assign producer to room');
+    }
+    peer.assignMainProducerToRoom(soupStore.clientId, producerId, soupStore.clientState.roomId);
+    // startProducing();
+  }
 }
 
 function setCanvasPropsFromVideoInfo () {
@@ -229,22 +259,18 @@ function setCanvasPropsFromVideoInfo () {
   if (!width || !height) throw new Error('couldnt get width and/or height from videotrack');
   canvasTag.value.width = width;
   canvasTag.value.height = height;
-
-  // const fps = videoSettings.frameRate ? videoSettings.frameRate : 30;
-  // const canvasStream = canvasTag.value?.captureStream();
-  // // const destVideo: HTMLVideoElement = document.querySelector<HTMLVideoElement>('#dest-video');
-  // // destVideo.srcObject = canvasStream;
-  // mediaStream.value = canvasStream;
 }
 
 type CensorUpdateHandler = Exclude<(InstanceType<typeof CensorControl>)['onUpdate'], undefined>;
-let censorSettings: Parameters<CensorUpdateHandler>[0];
+const censorSettings = ref<Parameters<CensorUpdateHandler>[0]>();
 const updateCensorShield: CensorUpdateHandler = (shieldState) => {
   console.log('censorshield emitted');
-  censorSettings = shieldState;
+  censorSettings.value = shieldState;
 
-  if (censorSettings.enabled === false) {
+  if (censorSettings.value.enabled === false) {
     detachVideoFromCanvas();
+  } else {
+    attachVideoToCanvas();
   }
 };
 
@@ -262,10 +288,10 @@ function attachVideoToCanvas () {
     let coverStart = 0;
     let coverWidth = 100;
     let inverted = false;
-    if (censorSettings) {
-      coverStart = censorSettings.range.min;
-      coverWidth = censorSettings.range.max;
-      inverted = censorSettings.inverted;
+    if (censorSettings.value) {
+      coverStart = censorSettings.value.range.min;
+      coverWidth = censorSettings.value.range.max;
+      inverted = censorSettings.value.inverted;
     }
     const xStart = Math.floor(cTag.width * (coverStart * 0.01));
     const xWidth = Math.floor(cTag.width * ((coverWidth - coverStart) * 0.01));
@@ -331,18 +357,18 @@ async function enterGatheringAndRoom (gatheringName: string, roomName: string) {
 }
 
 let producerId: string;
-async function startProducing () {
-  if (!outputCameraStream.value) return;
-  // await peer.getRouterCapabilities();
-  // await peer.loadMediasoupDevice();
-  // await peer.createSendTransport();
-  producerId = await peer.produce(outputCameraStream.value);
-  console.log('produce returned: ', producerId);
-  if (!soupStore.clientState?.roomId || !soupStore.clientId) {
-    throw new Error('no roomid. cant assign producer to room');
-  }
-  peer.assignProducerToRoom(soupStore.clientId, producerId, soupStore.clientState.roomId);
-}
+// async function startProducing () {
+//   if (!outputCameraStream.value) return;
+//   // await peer.getRouterCapabilities();
+//   // await peer.loadMediasoupDevice();
+//   // await peer.createSendTransport();
+//   producerId = await peer.produce(outputCameraStream.value);
+//   console.log('produce returned: ', producerId);
+//   if (!soupStore.clientState?.roomId || !soupStore.clientId) {
+//     throw new Error('no roomid. cant assign producer to room');
+//   }
+//   peer.assignProducerToRoom(soupStore.clientId, producerId, soupStore.clientState.roomId);
+// }
 
 // async function consumeMyself () {
 //   if (!producerId) throw new Error('no producerId. cant consume!');

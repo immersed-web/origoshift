@@ -59,11 +59,13 @@ import usePeerClient from 'src/composables/usePeerClient';
 import { useQuasar } from 'quasar';
 import { useUserStore } from 'src/stores/userStore';
 import { useSoupStore } from 'src/stores/soupStore';
+import { usePersistedStore } from 'src/stores/persistedStore';
 
 const router = useRouter();
 const peer = usePeerClient();
 const userStore = useUserStore();
 const soupStore = useSoupStore();
+const persistedStore = usePersistedStore();
 const $q = useQuasar();
 
 $q.loading.show();
@@ -92,11 +94,15 @@ const eventName = ref<string>('testEvent');
 
 const joinEvent = async (eventName: string) => {
   try {
+    if (!userStore.jwt) {
+      throw new Error('jwt is undefined!');
+    }
     await peer.connect(userStore.jwt);
     console.log('gonna find the event:', eventName);
     const gatheringId = await peer.findGathering(eventName);
     const gatheringState = await peer.joinGathering(gatheringId);
     soupStore.setGatheringState(gatheringState);
+    persistedStore.gatheringName = gatheringState.gatheringName;
     await peer.getRouterCapabilities();
     await peer.loadMediasoupDevice();
     router.push('/roomlist');

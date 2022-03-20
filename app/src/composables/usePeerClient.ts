@@ -1,8 +1,12 @@
 import PeerClient from 'src/modules/PeerClient';
 import { useSoupStore } from 'src/stores/soupStore';
+import { usePersistedStore } from 'src/stores/persistedStore';
+import { useUserStore } from 'src/stores/userStore';
 const peer = new PeerClient();
 export default function usePeerClient () {
   const soupStore = useSoupStore();
+  const userStore = useUserStore();
+  const persistedStore = usePersistedStore();
 
   // Attach callbacks! ***************************
   peer.on('gatheringStateUpdated', data => {
@@ -71,18 +75,44 @@ export default function usePeerClient () {
   //   return peer.joinRoom(roomState.roomId);
   // }
 
-  async function produce (stream: MediaStream, producerInfo?: Record<string, unknown>) {
-    const track = stream.getVideoTracks()[0];
-    const producerId = await peer.produce(track, producerInfo);
-    return producerId;
-  }
+  // async function produce (stream: MediaStream, producerInfo?: Record<string, unknown>) {
+  //   const track = stream.getVideoTracks()[0];
+  //   const producerId = await peer.produce(track, producerInfo);
+  //   return producerId;
+  // }
 
   // async function joinGathering (gatheringId: string) {
   //   await peer.joinGathering(gatheringId);
   //   await peer.getRouterCapabilities();
   // }
 
-  const customExports = { connect, requestMedia, produce, onConsumerClosed };
+  async function restoreOrInitializeGathering () {
+    if (!userStore.userData || !userStore.jwt) {
+      throw new Error('no userstate! needed to recover gathering');
+    }
+    if (!soupStore.connected) {
+      console.log('not connected. will automatically try to connect.');
+      const { data: clientState } = await peer.connect(userStore.jwt);
+      soupStore.clientState = clientState;
+    }
+    let { gathering: gatheringName } = userStore.userData;
+    if (!gatheringName) {
+      if (!persistedStore.gatheringName) {
+        // persistedStore.gatheringName = await pickGathering();
+        throw new Error('no gathering in userStore or persistedStore. Impossible to recover/init gathering connection');
+      }
+      gatheringName = persistedStore.gatheringName;
+    }
+
+    // const gatheringId = await peer.findGathering(gathering);
+    const gatheringState = await peer.joinOrCreateGathering(gatheringName);
+    soupStore.setGatheringState(gatheringState);
+    await peer.getRouterCapabilities();
+    await peer.loadMediasoupDevice();
+    // await peer.createSendTransport();
+  }
+
+  const customExports = { connect, requestMedia, onConsumerClosed, restoreOrInitializeGathering };
 
   return {
     ...peer, // Order matters here! customExports holds some overrides, so it must come after

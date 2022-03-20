@@ -83,14 +83,17 @@
           class="relative-position"
           style="width: fit-content;"
         >
-          <CensorControl @update="updateCensorShield" />
+          <CensorControl
+            @update="updateCensorShield"
+            @toggle="censorshieldToggled"
+          />
           <canvas
-            v-show="censorSettings && censorSettings.enabled"
+            v-show="censorSettings && censorshieldEnabled"
             style="max-width: 100%; background-color: aqua;"
             ref="canvasTag"
           />
           <video
-            v-show="censorSettings && !censorSettings.enabled"
+            v-show="censorSettings && !censorshieldEnabled"
             ref="videoTag"
             autoplay
             style="max-width: 100%; background-color: darkcyan;"
@@ -132,8 +135,10 @@ const videoInfo = ref<VideoInfo>();
 
 const userStore = useUserStore();
 const persistedStore = usePersistedStore();
+
+// INITIALIZE;
 (async () => {
-  if (!userStore.userData) {
+  if (!userStore.userData || !userStore.jwt) {
     throw new Error('no userstate! needed to run camerapage');
   }
   let { gathering } = userStore.userData;
@@ -224,25 +229,33 @@ async function requestMedia (deviceInfo: MediaDeviceInfo) {
   handleVideoStreamChanged();
 }
 
+let producerId: string;
+let originalVideoTrack: MediaStreamTrack;
 async function handleVideoStreamChanged () {
   // Ok. The videoStream was changed. we must update the producer and/or the canvas accordingly
 
+  if (!censorSettings.value) {
+    throw new Error('censorSettings is undefined');
+  }
   // We have a producer created.
   if (producerId) {
-    if (!censorSettings.value.enabled) {
-      peer.replaceProducerTrack(producerId, videoStream.getVideoTracks()[0]);
-    } else {
-      // Hmm. we shouldnt need to do anything here. The videoElement should already be linked to the canvas
+    originalVideoTrack.stop();
+    originalVideoTrack = videoStream.getVideoTracks()[0];
+    if (!censorshieldEnabled.value) {
+      peer.replaceProducerTrack(producerId, originalVideoTrack.clone());
     }
   } else {
-    let stream = videoStream;
-    if (censorSettings.value.enabled) {
+    originalVideoTrack = videoStream.getVideoTracks()[0];
+    let clonedTrack = originalVideoTrack.clone();
+    if (censorshieldEnabled.value) {
       attachVideoToCanvas();
       setCanvasPropsFromVideoInfo();
       if (!canvasStream) throw new Error('canvasStream undefined! cant use it for producer');
-      stream = canvasStream;
+      // stream = canvasStream;
+      clonedTrack = canvasStream.getVideoTracks()[0];
     }
-    producerId = await peer.produce(stream);
+
+    producerId = await peer.produce(clonedTrack);
     console.log('produce returned: ', producerId);
     if (!soupStore.clientState?.roomId || !soupStore.clientId) {
       throw new Error('no roomid. cant assign producer to room');
@@ -266,11 +279,22 @@ const censorSettings = ref<Parameters<CensorUpdateHandler>[0]>();
 const updateCensorShield: CensorUpdateHandler = (shieldState) => {
   console.log('censorshield emitted');
   censorSettings.value = shieldState;
+};
 
-  if (censorSettings.value.enabled === false) {
-    detachVideoFromCanvas();
-  } else {
+const censorshieldEnabled = ref<boolean>(false);
+const censorshieldToggled = (enabled: boolean) => {
+  censorshieldEnabled.value = enabled;
+  if (censorshieldEnabled.value) {
     attachVideoToCanvas();
+    if (producerId && canvasStream) {
+      peer.replaceProducerTrack(producerId, canvasStream.getVideoTracks()[0]);
+    }
+  } else {
+    if (producerId) {
+      const clonedVideoTrack = originalVideoTrack.clone();
+      peer.replaceProducerTrack(producerId, clonedVideoTrack);
+    }
+    detachVideoFromCanvas();
   }
 };
 
@@ -325,21 +349,6 @@ function detachVideoFromCanvas () {
   drawToCanvas = false;
   canvasStream = undefined;
 }
-let screenStream: MediaStream;
-async function shareScreen () {
-  const stream = await navigator.mediaDevices.getDisplayMedia();
-  screenStream = stream;
-  screenStream.getTracks()[0].onended = () => {
-    stopProducing();
-  };
-
-  producerId = await peer.produce(screenStream, { screenShare: true });
-  console.log('produce returned: ', producerId);
-  if (!soupStore.clientState) {
-    throw new Error('no roomid. cant assign producer to room');
-  }
-  // peer.assignProducerToRoom(soupStore.clientState?.clientId, producerId, roomId);
-}
 
 // TODO: How to handle roles without assigned gathering (admin)
 async function enterGatheringAndRoom (gatheringName: string, roomName: string) {
@@ -355,31 +364,6 @@ async function enterGatheringAndRoom (gatheringName: string, roomName: string) {
   const roomState = await peer.joinOrCreateRoom(roomName);
   soupStore.setRoomState(roomState);
 }
-
-let producerId: string;
-// async function startProducing () {
-//   if (!outputCameraStream.value) return;
-//   // await peer.getRouterCapabilities();
-//   // await peer.loadMediasoupDevice();
-//   // await peer.createSendTransport();
-//   producerId = await peer.produce(outputCameraStream.value);
-//   console.log('produce returned: ', producerId);
-//   if (!soupStore.clientState?.roomId || !soupStore.clientId) {
-//     throw new Error('no roomid. cant assign producer to room');
-//   }
-//   peer.assignProducerToRoom(soupStore.clientId, producerId, soupStore.clientState.roomId);
-// }
-
-// async function consumeMyself () {
-//   if (!producerId) throw new Error('no producerId. cant consume!');
-//   await peer.createReceiveTransport();
-//   await peer.sendRtpCapabilities();
-//   const { consumerId, track } = await peer.consume(producerId);
-//   console.log(`consumer created! consumerId: ${consumerId}, track: ${track}`);
-//   const destVideo: HTMLVideoElement = document.querySelector<HTMLVideoElement>('#dest-video');
-//   const consumeStream = new MediaStream([track]);
-//   destVideo.srcObject = consumeStream;
-// }
 
 async function stopProducing () {
   peer.producers.forEach(producer => { producer.close(); });

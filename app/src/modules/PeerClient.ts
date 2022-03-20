@@ -316,7 +316,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     });
   }
 
-  assignProducerToRoom = async (clientId: string, producerId: string, roomId: string) => {
+  assignMainProducerToRoom = async (clientId: string, producerId: string, roomId: string) => {
     const assignProducerReq = createRequest('assignMainProducerToRoom', {
       clientId, producerId, roomId,
     });
@@ -341,6 +341,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     if (!producer) {
       throw new Error('no producer with that id found');
     }
+    console.log('replacing producer track');
     return producer.replaceTrack({ track });
   }
 

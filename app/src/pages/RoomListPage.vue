@@ -34,12 +34,22 @@
 
 <script setup lang="ts">
 
+import usePeerClient from 'src/composables/usePeerClient';
 import { useSoupStore } from 'src/stores/soupStore';
 import { useRouter } from 'vue-router';
 
+const peer = usePeerClient();
 const router = useRouter();
 
 const soupStore = useSoupStore();
+
+// TODO: UNify functionality for "recovering" gathering connection primarily from userdata and secondary from persistedStore.
+// Failing triggers either redirect to login or perhaps pickGathering modal?
+(async () => {
+  if (!soupStore.gatheringState) {
+    await peer.restoreOrInitializeGathering();
+  }
+})();
 
 function knockOnRoom (roomId: string) {
   console.log('knock on Room not implemented yet!!!!!', roomId);

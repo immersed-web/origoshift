@@ -44,9 +44,14 @@
     <video
       v-show="true"
       id="main-video"
-      class="col"
       autoplay
       ref="videoTag"
+    />
+    <video
+      v-show="true"
+      id="screen-video"
+      autoplay
+      ref="screenTag"
     />
     <a-scene embedded>
       <a-camera
@@ -83,20 +88,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, watch } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 // import { useUserStore } from 'src/stores/userStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
 import 'aframe';
-import { usePersistedStore } from 'src/stores/persistedStore';
-import { useUserStore } from 'src/stores/userStore';
 
 const router = useRouter();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
-const userStore = useUserStore();
-const persistedStore = usePersistedStore();
 
 // soupStore.$onAction(({ name, after, onError, store }) => {
 //   if (name === 'setRoomState') {
@@ -120,7 +121,39 @@ soupStore.$subscribe((mutation, state) => {
   }
 });
 
+watch(() => soupStore.roomState?.mainProducer, (newMainProducer, oldMainProducer) => {
+  if (!newMainProducer) return;
+  if (oldMainProducer !== newMainProducer) {
+    consume(newMainProducer);
+  }
+}, {
+  immediate: true,
+});
+
+// TODO: This will not protect from clients "stealing" the broadcasting of the screenshare
+let consumedScreenProducerId: string;
+watch(() => soupStore.roomState?.clients, async (newClients, oldCLients) => {
+  if (!newClients) return;
+  for (const [clientId, client] of Object.entries(newClients)) {
+    for (const [producerId, producer] of Object.entries(client.producers)) {
+      if (producer.producerInfo) {
+        if (producer.producerInfo.screenShare) {
+          if (producer.producerId !== consumedScreenProducerId) {
+            console.log('screeeen share!!');
+            if (!screenTag.value) return;
+            const { track } = await peer.consume(producer.producerId);
+            screenTag.value.srcObject = new MediaStream([track]);
+            await nextTick();
+            initVideoSphere();
+          }
+        }
+      }
+    }
+  }
+}, { immediate: true, deep: true });
+
 const videoTag = ref<HTMLVideoElement>();
+const screenTag = ref<HTMLVideoElement>();
 
 async function raiseHand () {
   await peer.setCustomProperties({
@@ -129,14 +162,12 @@ async function raiseHand () {
 }
 
 async function consume (producerId: string) {
-  // await peer.joinRoom(producerInfo.roomId);
   if (!videoTag.value) return;
   const { track } = await peer.consume(producerId);
   videoTag.value.srcObject = new MediaStream([track]);
   await nextTick();
   initVideoSphere();
 }
-// initVideoSphere();
 
 //
 // ***************
@@ -145,34 +176,18 @@ async function consume (producerId: string) {
   const route = router.currentRoute.value;
 
   try {
-    await peer.connect(userStore.jwt);
     // First check if not yet connected to a gathering
     if (!soupStore.gatheringState) {
-      // if not. connect to one, starting by checking if available in userdata, and then check persistedStore. If no gatheringName found, pick one from dialog.
-      let gatheringName: string;
-      if (userStore.userData?.gathering) {
-        gatheringName = userStore.userData.gathering;
-      } else if (persistedStore.gatheringName) {
-        gatheringName = persistedStore.gatheringName;
-      }
-      if (!gatheringName) {
-        // TODO: Maybe show dialog to choose gathering?
-        throw new Error('no gathering set. cant join room and gathering without specifying gathering!');
-      }
-
-      const gatheringId = await peer.findGathering(gatheringName);
-      const gState = await peer.joinGathering(gatheringId);
-      soupStore.setGatheringState(gState);
-      await peer.getRouterCapabilities();
-      await peer.loadMediasoupDevice();
+      // if not, try to connect using stores to choose gatheringName
+      await peer.restoreOrInitializeGathering();
     }
 
     // if success joining gathering, join the room defined by the route!
     if (!route.params.roomId || Array.isArray(route.params.roomId)) {
       throw new Error('no or incorrectly formatted roomId specified in route!');
     }
-    await peer.createReceiveTransport();
     await peer.sendRtpCapabilities();
+    await peer.createReceiveTransport();
 
     const roomState = await peer.joinRoom(route.params.roomId);
     soupStore.setRoomState(roomState);
@@ -202,7 +217,7 @@ async function initVideoSphere () {
   vSphere.setAttribute('src', '#main-video');
   const vVideo = document.querySelector('a-video');
   if (!vVideo) throw new Error('no videoframe found in (a-frame) DOM!!! What have you done Gunnar??');
-  vVideo.setAttribute('src', '#main-video');
+  vVideo.setAttribute('src', '#screen-video');
   // sceneEl.appendChild(vSphere);
 }
 
@@ -220,6 +235,16 @@ async function initVideoSphere () {
   z-index: 50;
   position: fixed;
   left: 0;
+  bottom: 0;
+  max-width: 20rem;
+  max-height: 20rem;
+  background-color: aqua;
+}
+
+#screen-video {
+  z-index: 50;
+  position: fixed;
+  left: 20rem;
   bottom: 0;
   max-width: 20rem;
   max-height: 20rem;

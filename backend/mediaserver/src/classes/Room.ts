@@ -68,6 +68,12 @@ export default class Room {
       console.warn('client is NOT in the room, Cant remove client from the room');
       return;
     }
+    if(this.mainProducer){
+      if(client.producers.has(this.mainProducer.id)){
+        console.log('removed client was also mainProducer. Will remove it as well from the room');
+        this.mainProducer = undefined;
+      }
+    }
     const ok = this.clients.delete(client.id);
     if(!ok){
       throw new Error(`failed to remove client ${client.id} from room`);

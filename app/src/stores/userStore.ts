@@ -4,17 +4,20 @@ import { defineStore } from 'pinia';
 // import { GatheringState } from 'shared-types/CustomTypes';
 
 const rootState: {
-  jwt: string
+  jwt?: string
 } = {
-  jwt: '',
+  jwt: undefined,
 };
 
 export const useUserStore = defineStore('user', {
   state: () => (rootState),
   getters: {
-    userData: (state): UserData | undefined => {
+    userData: (state) => {
       try {
-        return JSON.parse(window.atob(state.jwt.split('.')[1]));
+        if (!state.jwt) {
+          throw new Error('jwt is undefined');
+        }
+        return JSON.parse(window.atob(state.jwt.split('.')[1])) as UserData;
       } catch (e) {
         return undefined;
       }

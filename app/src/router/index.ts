@@ -8,8 +8,9 @@ import {
 // import { StateInterface } from '../store';
 import routes from './routes';
 
-import { getJwt } from 'src/modules/authClient';
+import { getJwt, guestJwt } from 'src/modules/authClient';
 import { useUserStore } from 'src/stores/userStore';
+import { securityLevels } from 'app/../packages/shared-types/CustomTypes';
 
 /*
  * If not building with SSR mode, you can
@@ -39,30 +40,31 @@ export default route(function (/* { store, ssrContext } */) {
 
   Router.beforeEach(async (to) => {
     console.log('Running navigation guard');
-    // At this point we only distinguish between logged in or not. Different types of logged in users is treated the same here!
-    try {
-      if (!to.meta.lowestAccessLevel || to.meta.lowestAccessLevel === 'guest') {
-        console.log('route not protected. Letting through');
+    // in this hook we only distinguish between logged in or not. Different types of logged in users is treated the same here!
+    const userStore = useUserStore();
+    if (!userStore.jwt) {
+      try {
+        userStore.jwt = await getJwt();
         return;
+      } catch {
+        try {
+          userStore.jwt = await guestJwt();
+        } catch (e) {
+          console.error('couldnt get any jwt (user or guest). Something is wroong');
+          console.error(e);
+        }
       }
-      // const me = await getMe();
-      // if (!me.uuid) {
-      //   throw new Error('response contained no user uuid');
-      // }
-      const userStore = useUserStore();
-      if (userStore.jwt) {
-        return;
-      }
-      console.log('trying to fetch jwt!');
-      const jwt = await getJwt();
-      if (!jwt) {
-        throw new Error('failed to fetch jwt');
-      }
-      userStore.jwt = jwt;
-      return;
-    } catch (e) {
+    }
+    const role = userStore.userData?.role;
+    if (!role) {
+      return '/login';
+    }
+    const guestLevel = securityLevels.indexOf('guest');
+    const clientLevel = securityLevels.indexOf(role);
+    if (!to.meta.lowestAccessLevel || to.meta.lowestAccessLevel === 'guest') {
+      console.log('route not protected. Letting through');
+    } else if (clientLevel <= guestLevel) {
       console.error('route not allowed. Redirecting to login');
-      console.error(e);
       window.sessionStorage.setItem('loginRedirect', to.fullPath);
       return '/login';
     }

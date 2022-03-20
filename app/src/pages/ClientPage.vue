@@ -89,26 +89,30 @@ import { useSoupStore } from 'src/stores/soupStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
 import 'aframe';
+import { usePersistedStore } from 'src/stores/persistedStore';
+import { useUserStore } from 'src/stores/userStore';
 
 const router = useRouter();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
+const userStore = useUserStore();
+const persistedStore = usePersistedStore();
 
-soupStore.$onAction(({ name, after, onError, store }) => {
-  if (name === 'setRoomState') {
-    after(() => {
-      console.log('roomStateUpdated!!!');
+// soupStore.$onAction(({ name, after, onError, store }) => {
+//   if (name === 'setRoomState') {
+//     after(() => {
+//       console.log('roomStateUpdated!!!');
 
-      if (!store.roomState?.mainProducer) return;
-      consume(store.roomState.mainProducer);
-    });
+//       // if (!store.roomState?.mainProducer) return;
+//       // consume(store.roomState.mainProducer);
+//     });
 
-    onError(error => {
-      console.error(error);
-      router.back();
-    });
-  }
-});
+//     onError(error => {
+//       console.error(error);
+//       router.back();
+//     });
+//   }
+// });
 
 soupStore.$subscribe((mutation, state) => {
   if (!state.connected) {
@@ -139,15 +143,39 @@ async function consume (producerId: string) {
 // INITIALIZE
 (async () => {
   const route = router.currentRoute.value;
+
   try {
+    await peer.connect(userStore.jwt);
+    // First check if not yet connected to a gathering
+    if (!soupStore.gatheringState) {
+      // if not. connect to one, starting by checking if available in userdata, and then check persistedStore. If no gatheringName found, pick one from dialog.
+      let gatheringName: string;
+      if (userStore.userData?.gathering) {
+        gatheringName = userStore.userData.gathering;
+      } else if (persistedStore.gatheringName) {
+        gatheringName = persistedStore.gatheringName;
+      }
+      if (!gatheringName) {
+        // TODO: Maybe show dialog to choose gathering?
+        throw new Error('no gathering set. cant join room and gathering without specifying gathering!');
+      }
+
+      const gatheringId = await peer.findGathering(gatheringName);
+      const gState = await peer.joinGathering(gatheringId);
+      soupStore.setGatheringState(gState);
+      await peer.getRouterCapabilities();
+      await peer.loadMediasoupDevice();
+    }
+
+    // if success joining gathering, join the room defined by the route!
     if (!route.params.roomId || Array.isArray(route.params.roomId)) {
       throw new Error('no or incorrectly formatted roomId specified in route!');
     }
-    const roomState = await peer.joinRoom(route.params.roomId);
-    soupStore.setRoomState(roomState);
-
     await peer.createReceiveTransport();
     await peer.sendRtpCapabilities();
+
+    const roomState = await peer.joinRoom(route.params.roomId);
+    soupStore.setRoomState(roomState);
   } catch (e) {
     console.error(e);
     router.back();

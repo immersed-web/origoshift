@@ -21,7 +21,7 @@ const routes: RouteRecordRaw[] = [
       { path: '/room-control', component: () => import('pages/RoomControlPage.vue'), meta: { lowestAccessLevel: 'sender' } },
       { path: '/edit-users', component: () => import('pages/ManageUsersPage.vue'), meta: { lowestAccessLevel: 'gatheringEditor' } },
       { path: '/join', component: () => import('pages/JoinPage.vue'), alias: '' },
-      { path: '/roomlist', component: () => import('pages/RoomList.vue') },
+      { path: '/roomlist', component: () => import('pages/RoomListPage.vue') },
       // { path: '/client', component: () => import('pages/ClientPage.vue') },
       { path: '/room/:roomId', component: () => import('pages/ClientPage.vue') },
     ],

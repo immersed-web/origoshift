@@ -74,19 +74,19 @@ const eventName = ref<string>('testEvent');
 
 // INFO: here we do the async work (suspense feature is still experimental)
 (async () => {
-  const fetchJwt = async () => {
-    if (userStore.jwt) {
-      console.log('already have an access token. will not fetch guest-token');
-      return;
-    }
-    try {
-      userStore.jwt = await guestJwt();
-    } catch (e) {
-      await Timeout.set(5000);
-      await fetchJwt();
-    }
-  };
-  await fetchJwt();
+  // const fetchJwt = async () => {
+  //   if (userStore.jwt) {
+  //     console.log('already have an access token. will not fetch guest-token');
+  //     return;
+  //   }
+  //   try {
+  //     userStore.jwt = await guestJwt();
+  //   } catch (e) {
+  //     await Timeout.set(5000);
+  //     await fetchJwt();
+  //   }
+  // };
+  // await fetchJwt();
 
   // Hide loading spinner
   $q.loading.hide();

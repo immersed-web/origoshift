@@ -305,7 +305,6 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
         case 'connecting':
           break;
         case 'connected':
-        // localVideo.srcObject = stream
           break;
         case 'failed':
           console.error('transport connectionstatechange failed');
@@ -317,7 +316,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     });
   }
 
-  assignMainProducerToRoom = async (clientId: string, producerId: string, roomId: string) => {
+  assignProducerToRoom = async (clientId: string, producerId: string, roomId: string) => {
     const assignProducerReq = createRequest('assignMainProducerToRoom', {
       clientId, producerId, roomId,
     });

@@ -56,10 +56,8 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import usePeerClient from 'src/composables/usePeerClient';
-import { guestJwt } from 'src/modules/authClient';
 import { useQuasar } from 'quasar';
 import { useUserStore } from 'src/stores/userStore';
-import Timeout from 'await-timeout';
 import { useSoupStore } from 'src/stores/soupStore';
 
 const router = useRouter();

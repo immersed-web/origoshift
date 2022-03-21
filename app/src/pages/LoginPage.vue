@@ -42,7 +42,7 @@ async function loginUser (creds: Creds) {
         redirect = '/camera';
         break;
       case 'admin':
-        redirect = '/admin';
+        redirect = '/camera';
         break;
     }
   }

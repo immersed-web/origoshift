@@ -8,7 +8,7 @@ import { UserRole } from 'shared-types/CustomTypes'
 let role: Exclude<UserRole, 'guest'> = 'admin';
 
 async function seed() {
-  const hashedPassword = await bcrypt.hash('bajskorv', 10);
+  const hashedPassword = await bcrypt.hash('password', 10);
 
   const testSkolan = await prisma.gathering.create({
     data: {
@@ -99,6 +99,11 @@ async function seed() {
           }
         }
       },
+      gathering: {
+        connect: {
+          name: 'TestSkolan'
+        }
+      }
     }
   })
 

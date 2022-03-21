@@ -61,6 +61,7 @@ export default function usePeerClient () {
       constraints = {
         video: {
           deviceId: deviceId,
+          frameRate: 10,
         },
       };
     } else {

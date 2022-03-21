@@ -2,76 +2,12 @@
   <div
     class="row q-ma-md"
   >
-    <QCard
+    <ClientList
+      v-if="soupStore.roomState && soupStore.roomState.clients && soupStore.clientId"
       class="col-4 q-mr-md"
-    >
-      <!-- <QCardSection
-        v-if="!soupStore.gatheringState"
-        class="q-gutter-md"
-        tag="form"
-        @submit.prevent="connectToEvent()"
-      >
-        <QInput
-          outlined
-          v-model="gatheringName"
-          label="event name"
-        />
-        <QBtn
-          color="primary"
-          type="submit"
-          label="connect to event"
-        />
-        <QBtn
-          label="create event"
-          @click="createAndJoinEvent"
-        />
-      </QCardSection> -->
-      <!-- <QCardSection class="q-gutter-md">
-        <QBtn
-          label="send custom prop 'handWave' to client"
-          @click="peer.setCustomProperties({handWave: true})"
-        />
-      </QCardSection> -->
-      <!-- <QCardSection>
-        <QBtn
-          label="share screen"
-          @click="shareScreen"
-        />
-      </QCardSection> -->
-      <!-- <QCardSection>
-        <QBtn
-          color="primary"
-          :disable="!outputCameraStream"
-          label="send video"
-          @click="startProducing"
-        />
-      </QCardSection> -->
-      <QCardSection>
-        <QList>
-          <QItem
-            v-for="(client, clientKey) in soupStore.roomState?.clients"
-            :key="clientKey"
-          >
-            <QItemSection>
-              {{ client.clientId }}: {{ client.username }}
-            </QItemSection>
-            <QList>
-              <QItem
-                v-for="(prop, propKey) in client.customProperties"
-                :key="propKey"
-              >
-                <QItemSection>
-                  {{ propKey }}: {{ prop }}
-                </QItemSection>
-              </QItem>
-            </QList>
-          </QItem>
-        </QList>
-        <pre>
-          {{ soupStore.roomState }}
-        </pre>
-      </QCardSection>
-    </QCard>
+      :clients="soupStore.roomState?.clients"
+      :client-id="soupStore.clientId"
+    />
     <QCard class="col">
       <QCardSection class="q-gutter-lg">
         <DevicePicker
@@ -98,9 +34,6 @@
             autoplay
             style="max-width: 100%; background-color: darkcyan;"
           />
-          <div id="video-info">
-            <pre>{{ videoInfo }}</pre>
-          </div>
         </div>
       </QCardSection>
     </QCard>
@@ -117,6 +50,7 @@ import { useUserStore } from 'src/stores/userStore';
 import { usePersistedStore } from 'src/stores/persistedStore';
 import { QDialogOptions, useQuasar } from 'quasar';
 import { getAllGatherings, getGathering } from 'src/modules/authClient';
+import ClientList from 'src/components/ClientList.vue';
 
 const $q = useQuasar();
 const peer = usePeerClient();

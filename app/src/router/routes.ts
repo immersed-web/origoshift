@@ -14,7 +14,7 @@ const routes: RouteRecordRaw[] = [
     path: '',
     component: () => import('layouts/NoScrollLayout.vue'),
     children: [
-      // { path: '', alias: '/join', redirect: '/join' },
+      { path: '', redirect: '/login' },
       { path: '/login', component: () => import('pages/LoginPage.vue'), meta: { lowestAccessLevel: 'guest' } },
       { path: '/logout', component: () => import('pages/LogoutPage.vue') },
       { path: '/camera', component: () => import('pages/CameraPage.vue'), meta: { lowestAccessLevel: 'sender' } },

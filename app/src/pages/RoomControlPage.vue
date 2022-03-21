@@ -1,5 +1,11 @@
 <template>
-  <h5>Rumskontroll</h5>
+  <h5>LärarKontroll</h5>
+  <ClientList
+    class="q-ma-md"
+    v-if="soupStore.roomState && soupStore.roomState.clients && soupStore.clientId"
+    :client-id="soupStore.clientId"
+    :clients="soupStore.roomState.clients"
+  />
   <QBtn
     @click="shareScreen"
     color="primary"
@@ -13,6 +19,7 @@ import { useRouter } from 'vue-router';
 import usePeerClient from 'src/composables/usePeerClient';
 import { usePersistedStore } from 'src/stores/persistedStore';
 import { useSoupStore } from 'src/stores/soupStore';
+import ClientList from 'src/components/ClientList.vue';
 
 const router = useRouter();
 const peer = usePeerClient();

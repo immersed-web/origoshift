@@ -33,13 +33,13 @@ async function loginUser (creds: Creds) {
   } else {
     switch (me.role) {
       case 'client':
-        redirect = '/join';
+        redirect = '/roomlist';
         break;
       case 'sender':
-        redirect = '/send';
+        redirect = '/camera';
         break;
       case 'gatheringEditor':
-        redirect = '/edit-users';
+        redirect = '/camera';
         break;
       case 'admin':
         redirect = '/admin';

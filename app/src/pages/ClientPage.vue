@@ -18,18 +18,16 @@
         </template>
       </QItem>
     </QList>
-    <QBtn
-      icon="waving_hand"
-      color="primary"
-      text-color="yellow"
-      round
-      @click="raiseHand"
-    />
-    <QBtn
-      label="update video-sphere"
-      @click="initVideoSphere"
-    />
   </QCard>
+  <QBtn
+    id="raise-hand-button"
+    :class="{waving: handRaised}"
+    icon="waving_hand"
+    color="primary"
+    text-color="yellow"
+    round
+    @click="toggleRaiseHand"
+  />
   <div
     id="main-container"
     class="row justify-between no-wrap items-center content-center"
@@ -42,13 +40,13 @@
       @click="prevRoom()"
     /> -->
     <video
-      v-show="true"
+      v-show="false"
       id="main-video"
       autoplay
       ref="videoTag"
     />
     <video
-      v-show="true"
+      v-show="false"
       id="screen-video"
       autoplay
       ref="screenTag"
@@ -155,9 +153,11 @@ watch(() => soupStore.roomState?.clients, async (newClients, oldCLients) => {
 const videoTag = ref<HTMLVideoElement>();
 const screenTag = ref<HTMLVideoElement>();
 
-async function raiseHand () {
+const handRaised = ref<boolean>(false);
+async function toggleRaiseHand () {
+  handRaised.value = !handRaised.value;
   await peer.setCustomProperties({
-    handRaised: true,
+    handRaised: handRaised.value,
   });
 }
 
@@ -258,5 +258,25 @@ async function initVideoSphere () {
   font-weight: bold;
   left: 2rem;
   top: 2rem;
+  pointer-events: none;
+}
+
+@keyframes wave {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-90deg);
+  }
+}
+
+#raise-hand-button {
+  position: fixed;
+  z-index: 1000;
+  top: 2rem;
+  right: 2rem;
+  &.waving {
+    animation: wave 0.5s linear 0s infinite alternate;
+  }
 }
 </style>

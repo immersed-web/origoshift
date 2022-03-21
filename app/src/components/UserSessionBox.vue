@@ -3,7 +3,7 @@
     v-if="userStore.userData"
     id="user-info-box"
   >
-    <QCardSection class="row items-center no-wrap q-gutter-sm">
+    <QCardSection class="q-py-xs row items-center no-wrap q-gutter-sm">
       <div>
         Inloggad som:
       </div>

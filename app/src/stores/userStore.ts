@@ -10,7 +10,7 @@ const rootState: {
 };
 
 export const useUserStore = defineStore('user', {
-  state: () => (rootState),
+  state: () => ({ ...rootState }),
   getters: {
     userData: (state) => {
       try {

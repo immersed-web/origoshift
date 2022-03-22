@@ -134,8 +134,14 @@ export default class Gathering {
     this.broadCastGatheringState();
 
     if(!this.clients.size){
-      Gathering.gatherings.delete(this.id);
+      this.destroy();
     }
+  }
+  
+  destroy() {
+    this.router.close();
+    this.rooms.forEach(room => room.destroy());    
+    Gathering.gatherings.delete(this.id);
   }
 
   // TODO: Somewhere in the server we probably need to protect access to this function 

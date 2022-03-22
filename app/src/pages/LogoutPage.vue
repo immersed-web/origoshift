@@ -19,18 +19,25 @@ import { logout } from 'src/modules/authClient';
 import { useRouter } from 'vue-router';
 import Timeout from 'await-timeout';
 import { usePersistedStore } from 'src/stores/persistedStore';
+import { useUserStore } from 'src/stores/userStore';
+import { useSoupStore } from 'src/stores/soupStore';
+import usePeerClient from 'src/composables/usePeerClient';
 const persistedStore = usePersistedStore();
+const userStore = useUserStore();
+const peer = usePeerClient();
 
 const router = useRouter();
 (async () => {
   window.sessionStorage.removeItem('loginRedirect');
+
+  const soupStore = useSoupStore();
+  if (soupStore.connected) {
+    peer.disconnect();
+  }
+
   console.log('resetting persistedStore!');
-  // Reset doesnt seem to work!!!
-  // persistedStore.$reset();
-  persistedStore.$patch({
-    gatheringName: undefined,
-    roomName: undefined,
-  });
+  persistedStore.$reset();
+  userStore.$reset();
   await Promise.all([logout(), Timeout.set(1000)]);
   router.replace('login');
 })();

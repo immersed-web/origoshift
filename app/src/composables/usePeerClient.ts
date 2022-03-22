@@ -2,8 +2,17 @@ import PeerClient from 'src/modules/PeerClient';
 import { useSoupStore } from 'src/stores/soupStore';
 import { usePersistedStore } from 'src/stores/persistedStore';
 import { useUserStore } from 'src/stores/userStore';
-const peer = new PeerClient();
+
+let peer: PeerClient | undefined;
+export function destroy () {
+  const soupStore = useSoupStore();
+  soupStore.$reset();
+  peer = undefined;
+}
 export default function usePeerClient () {
+  if (!peer) {
+    peer = new PeerClient();
+  }
   const soupStore = useSoupStore();
   const userStore = useUserStore();
   const persistedStore = usePersistedStore();
@@ -28,24 +37,21 @@ export default function usePeerClient () {
   peer.onRequestCallback = (msg) => {
     console.log('received request: ', msg);
   };
-  peer.onConsumerClosed = (consumerId) => {
-    console.log('consumer close: ', consumerId);
-    if (consumerClosedCallback) {
-      consumerClosedCallback(consumerId);
-    }
-  };
 
-  let consumerClosedCallback: (consumerId: string) => unknown | undefined;
-  const onConsumerClosed = (callback: typeof consumerClosedCallback) => {
-    consumerClosedCallback = callback;
-  };
   //* ************************************ */
 
-  async function connect (token:string) {
-    const response = await peer.connect(token);
+  const connect = async (token: string) => {
+    const response = await peer!.connect(token);
     soupStore.clientState = response.data;
     soupStore.connected = true;
-  }
+  };
+
+  const disconnect = () => {
+    peer!.disconnect();
+    const soupStore = useSoupStore();
+    soupStore.$reset();
+    peer = undefined;
+  };
 
   peer.connectionEvents.on('open', () => { soupStore.connected = true; });
   peer.connectionEvents.on('close', () => { soupStore.connected = false; });
@@ -93,7 +99,7 @@ export default function usePeerClient () {
     }
     if (!soupStore.connected) {
       console.log('not connected. will automatically try to connect.');
-      const { data: clientState } = await peer.connect(userStore.jwt);
+      const { data: clientState } = await peer!.connect(userStore.jwt);
       soupStore.clientState = clientState;
     }
     let { gathering: gatheringName } = userStore.userData;
@@ -106,14 +112,14 @@ export default function usePeerClient () {
     }
 
     // const gatheringId = await peer.findGathering(gathering);
-    const gatheringState = await peer.joinOrCreateGathering(gatheringName);
+    const gatheringState = await peer!.joinOrCreateGathering(gatheringName);
     soupStore.setGatheringState(gatheringState);
-    await peer.getRouterCapabilities();
-    await peer.loadMediasoupDevice();
+    await peer!.getRouterCapabilities();
+    await peer!.loadMediasoupDevice();
     // await peer.createSendTransport();
   }
 
-  const customExports = { connect, requestMedia, onConsumerClosed, restoreOrInitializeGathering };
+  const customExports = { disconnect, connect, requestMedia, restoreOrInitializeGathering };
 
   return {
     ...peer, // Order matters here! customExports holds some overrides, so it must come after

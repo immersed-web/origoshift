@@ -734,11 +734,16 @@ export default class Client {
     this.consumers.delete(consumerId);
   }
 
+  // This function currently assumes we want to destroy everything related to the client connection. I.E not handle reconnect.
+  // TODO: Decide if we want to have some recover functionality for reconnecting sockets.
+  // If so, we should probably have one disconnect function and one destroy function, to handle thos two different scenarios.
   onDisconnected(){
     this.connected = false;
-    // this.ws = undefined;
-    this.room?.removeClient(this);
+    this.room?.removeClient(this, true);
     this.gathering?.removeClient(this);
+    this.sendTransport?.close();
+    this.receiveTransport?.close();
+    // this.ws = undefined;
   }
 
   onReconnected() {

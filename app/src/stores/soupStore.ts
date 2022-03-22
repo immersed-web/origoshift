@@ -25,7 +25,7 @@ function unshallowRoomState (shallowRoomState: ShallowRoomState, allClients: Gat
 }
 
 export const useSoupStore = defineStore('soup', {
-  state: () => (rootState),
+  state: () => ({ ...rootState }),
   getters: {
     clientId: (state) => {
       return state.clientState?.clientId;

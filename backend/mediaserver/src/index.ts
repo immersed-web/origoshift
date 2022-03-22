@@ -1,8 +1,9 @@
-process.env.DEBUG = 'mediasoup*';
+process.env.DEBUG = 'Room* mediasoup*';
 
-
-import { debug } from 'util';
-const messageLogger = debug('socketMessage');
+// import { debug } from 'util';
+// const messageLogger = debug('socketMessage');
+import observerLogger from './observers';
+observerLogger();
 import uWebSockets from 'uWebSockets.js';
 const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import Client from './classes/Client';

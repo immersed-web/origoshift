@@ -102,13 +102,16 @@ const defaultActions = [
   'setName',
   'getClientState',
   'setCustomClientProperties',
+  'createGathering',
+  'createProducer',
+  'createSendTransport',
 ] as const;
 
 
 type DefaultAction = (typeof defaultActions)[number];
 type NonDefaultAction = Exclude<AllowedAction, DefaultAction>
 const gatheringEditorActions: NonDefaultAction[] = [
-'assignMainProducerToRoom', 'createGathering','createProducer', 'createRoom', 'createSendTransport', 'customRequest', 'getGatheringState',
+'assignMainProducerToRoom', 'createRoom',  'customRequest', 'getGatheringState',
 ]
 
 export const allowedActions: Record<UserRole, AllowedAction[]> = {

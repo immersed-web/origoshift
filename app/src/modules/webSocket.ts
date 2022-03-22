@@ -21,11 +21,14 @@ export const socketEvents = eventEmitter;
 
 let createSocketTimeout: number;
 let socket: WebSocket | null = null;
+// TODO wrap socket creation so we can toggle retryIsActive properly
+// let retryIsActive = true;
 export async function createSocket (token: string): Promise<Event> {
   if (createSocketTimeout) {
     window.clearTimeout(createSocketTimeout);
   }
   const retryIn = (seconds: number) => {
+    // if (!retryIsActive) return;
     createSocketTimeout = window.setTimeout(() => createSocket(token), seconds * 1000);
   };
   if (!process.env.MEDIASOUP_URL || !process.env.MEDIASOUP_PATH) {
@@ -52,8 +55,11 @@ export async function createSocket (token: string): Promise<Event> {
       };
       socket.onclose = (ev) => {
         eventEmitter.emit('close');
-        console.error(ev);
-        console.error('socket closed. will try to reconnect!');
+        if (ev.code === 1000) {
+          console.log('socket closed. Reason:', ev.reason);
+          return;
+        }
+        console.error('socket closed unexpectedly. will try to reconnect!');
         retryIn(4);
       };
       socket.onmessage = handleMessage;
@@ -65,6 +71,12 @@ export async function createSocket (token: string): Promise<Event> {
   });
   return promise;
 }
+
+export const tearDown = () => {
+  // retryIsActive = false;
+  if (!socket) return;
+  socket.close(1000, 'closed by user');
+};
 
 const handleMessage = (ev: MessageEvent) => {
   const parsedMessage = JSON.parse(ev.data);

@@ -4,6 +4,10 @@ import { RoomState, ShallowRoomState } from 'shared-types/CustomTypes';
 import Gathering from './Gathering';
 import {types as soupTypes } from 'mediasoup';
 import { createMessage } from 'shared-types/MessageTypes';
+import debug from 'debug';
+const roomLog = debug('Room');
+const roomError = debug('Room:ERROR');
+const roomWarn = debug('Room:WARNING');
 export default class Room {
   // router: soup.Router;
   id: string;
@@ -19,7 +23,7 @@ export default class Room {
     try{
       return Gathering.getGathering({id: this.gatheringId });
     } catch (e) {
-      console.error(e);
+      roomError(e);
       return undefined;
     }
   }
@@ -40,16 +44,21 @@ export default class Room {
     return new Room(params);
   }
 
+  destroy() {
+    this.clients.forEach(client => this.removeClient(client));
+  }
+
   private constructor({roomId = randomUUID(), roomName, gathering}: {roomId?: string, roomName?: string, gathering: Gathering}) {
     this.id = roomId;
     this.setGathering(gathering.id);
     this.roomName = roomName;
+    roomLog('Room created:', this.id);
   }
 
   addClient(client: Client){
     if(this.clients.has(client.id)){
       throw Error('This client is already in the room!!');
-      // console.warn('This client is already in the room!!');
+      // roomWarn('This client is already in the room!!');
       // return false;
     }
     // TODO; Should we perhaps only broadcast roomstate here?
@@ -59,18 +68,19 @@ export default class Room {
 
   removeClient(client: Client, skipBroadcast = false ){
     if(!client.id){
-      // console.warn('invalid client object provided when trying to remove client from room. id missing!');
+      // roomWarn('invalid client object provided when trying to remove client from room. id missing!');
       // return false;
       throw new Error('invalid client object provided when trying to remove client from room. id missing!');
     }
     const isInDictionary = this.clients.has(client.id);
     if(!isInDictionary){
-      console.warn('client is NOT in the room, Cant remove client from the room');
+      roomWarn('client is NOT in the room, Cant remove client from the room');
       return;
     }
     if(this.mainProducer){
+      roomLog('HAS MAINPRODUCER!!!!');
       if(client.producers.has(this.mainProducer.id)){
-        console.log('removed client was also mainProducer. Will remove it as well from the room');
+        roomLog('removed client was also mainProducer. Will remove it as well from the room');
         this.mainProducer = undefined;
       }
     }

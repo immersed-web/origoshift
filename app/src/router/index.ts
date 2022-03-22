@@ -39,6 +39,12 @@ export default route(function (/* { store, ssrContext } */) {
   });
 
   Router.beforeEach(async (to) => {
+    console.log('changed route to: ', to);
+    const ignoredRoutes = ['/login', '/logout'];
+    if (ignoredRoutes.includes(to.path)) {
+      console.log('non userdata route');
+      return;
+    }
     console.log('Running navigation guard');
     // in this hook we only distinguish between logged in or not. Different types of logged in users is treated the same here!
     const userStore = useUserStore();

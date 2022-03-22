@@ -1,10 +1,8 @@
 import { types as mediasoupTypes } from 'mediasoup-client';
 import * as mediasoupClient from 'mediasoup-client';
-import { createSocket, sendRequest, socketEvents } from 'src/modules/webSocket';
+import { createSocket, tearDown, sendRequest, socketEvents } from 'src/modules/webSocket';
 import { AnyMessage, AnyRequest, createRequest, Message } from 'shared-types/MessageTypes';
 import { TypedEmitter } from 'tiny-typed-emitter';
-
-type consumerClosedCallback = (consumerId: string) => unknown;
 
 type MsgEvents<Msg extends AnyMessage> = {
   [event in Msg['subject']]: (data: Message<event>['data']) => void;
@@ -37,13 +35,15 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
   connectionEvents = socketEvents;
 
   onRequestCallback? = undefined as unknown as (msg: AnyRequest) => unknown;
-  // onMessageCallback? = undefined as unknown as (msg: AnyMessage) => unknown;
-  onConsumerClosed?: consumerClosedCallback = undefined; // INFO for some reason I can't declare this function type inline. So i declared above ^
 
   connect = async (token: string) => {
     await createSocket(token);
     const clientStateReq = createRequest('getClientState');
     return sendRequest(clientStateReq);
+  }
+
+  disconnect = () => {
+    tearDown();
   }
 
   constructor () {
@@ -63,18 +63,19 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
               if (!consumer) {
                 throw Error(`no consumer with that id found in client: ${msg.data.objectId}`);
               }
+              this.consumers.delete(consumer.id);
               consumer.close();
-              if (this.onConsumerClosed) {
-                this.onConsumerClosed(consumer.id);
-              }
+              break;
+            }
+            default: {
+              console.error('NotifyCloseEvent with no handler implemented!!!:', msg);
+              break;
             }
           }
           break;
         }
         default: {
-          // if (this.onMessageCallback) {
-          //   this.onMessageCallback(msg);
-          // }
+          console.log(`message received ${msg.subject}`, msg);
           break;
         }
       }
@@ -359,8 +360,10 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
       const response = await sendRequest(createConsumerReq);
 
       const consumerOptions = response.data;
+      console.log('createConsumerRequest gave these options: ', consumerOptions);
       const consumer = await this.receiveTransport.consume(consumerOptions);
       this.consumers.set(consumer.id, consumer);
+      console.log('conmsumers map is: ', this.consumers);
 
       const setPauseReq = createRequest('notifyPauseResume', {
         objectType: 'consumer',

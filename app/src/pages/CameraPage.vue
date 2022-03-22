@@ -51,8 +51,12 @@ import { usePersistedStore } from 'src/stores/persistedStore';
 import { QDialogOptions, useQuasar } from 'quasar';
 import { getAllGatherings, getGathering } from 'src/modules/authClient';
 import ClientList from 'src/components/ClientList.vue';
+import { extractMessageFromCatch } from 'shared-modules/utilFns';
+import { useRouter } from 'vue-router';
+import Timeout from 'await-timeout';
 
 const $q = useQuasar();
+const router = useRouter();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
 
@@ -72,23 +76,57 @@ const persistedStore = usePersistedStore();
 
 // INITIALIZE;
 (async () => {
-  if (!userStore.userData || !userStore.jwt) {
-    throw new Error('no userstate! needed to run camerapage');
-  }
-  let { gathering } = userStore.userData;
-  if (!gathering) {
-    if (!persistedStore.gatheringName) {
-      persistedStore.gatheringName = await pickGathering();
+  try {
+    $q.loading.show();
+    if (!userStore.userData || !userStore.jwt) {
+      throw new Error('no userstate! needed to run camerapage');
     }
-    gathering = persistedStore.gatheringName;
-  }
+    let { gathering } = userStore.userData;
+    let rooms;
+    if (!gathering) {
+      if (!persistedStore.gatheringName) {
+        console.log('no gathering defined. Must pick one!');
+        const gatherings = await getAllGatherings();
+        if (!gatherings) {
+          throw new Error('no gatherings found/fetched!');
+        }
+        $q.loading.hide();
+        const pickedGatheringName = await pickGathering(gatherings.map(gathering => gathering.name));
+        $q.loading.show();
+        const pickedGathering = gatherings.find(gathering => gathering.name === pickedGatheringName);
+        if (!pickedGathering) throw new Error('pickedGatheringName not found in gathering array. THis should not happen. Bug');
+        rooms = pickedGathering.rooms;
+        persistedStore.gatheringName = pickedGatheringName;
+      }
+      gathering = persistedStore.gatheringName;
+    }
 
-  await peer.connect(userStore.jwt);
-  if (!persistedStore.roomName) {
-    persistedStore.roomName = await pickRoom(gathering);
+    await peer.connect(userStore.jwt);
+    if (!persistedStore.roomName) {
+      console.log('no room defined. Must pick one!');
+      if (!rooms) {
+        const gatheringResponse = await getGathering({ gathering });
+        if (!gatheringResponse.rooms) {
+          throw new Error('no rooms in api response!');
+        }
+        rooms = gatheringResponse.rooms;
+      }
+      $q.loading.hide();
+      persistedStore.roomName = await pickRoom(rooms);
+      $q.loading.show();
+    }
+    await enterGatheringAndRoom(gathering, persistedStore.roomName);
+    $q.loading.hide();
+  } catch (e) {
+    const msg = extractMessageFromCatch(e, 'failed to initialize camerapage!');
+    $q.notify({
+      type: 'negative',
+      message: msg,
+    });
+    // $q.notify('will return to previous page');
+    // await Timeout.set(1500);
+    // router.back();
   }
-  await enterGatheringAndRoom(gathering, persistedStore.roomName);
-  // attachVideoToCanvas();
 })();
 
 async function asyncDialog (options: QDialogOptions): Promise<unknown> {
@@ -104,36 +142,38 @@ async function asyncDialog (options: QDialogOptions): Promise<unknown> {
   return dialogPromise;
 }
 
-async function pickGathering (): Promise<string> {
-  console.log('no gathering defined. Must pick one!');
-  const gatherings = await getAllGatherings();
-  if (!gatherings) {
-    throw new Error('no gatherings found/fetched!');
-  }
-  const radioOptions = gatherings.map(gathering => {
-    return { label: gathering.name, value: gathering.name };
+type PickedGathering = Awaited<ReturnType<(typeof getAllGatherings)>>[number]
+async function pickGathering (gatherings: string[]): Promise<string> {
+  const radioOptions = gatherings.map(gatheringName => {
+    return { label: gatheringName, value: gatheringName };
   });
   const dialogPromise = asyncDialog({
+    title: 'Skola',
+    message: 'Vilken skola vill du ansluta till?',
+    noRouteDismiss: false,
+    noBackdropDismiss: true,
+    noEscDismiss: true,
     options: {
-      model: '',
+      model: gatherings[0],
       items: radioOptions,
     },
   });
   return dialogPromise as Promise<string>;
 }
 
-async function pickRoom (gatheringName: string): Promise<string> {
-  console.log('no room defined. Must pick one!');
-  const gatheringResponse = await getGathering({ gathering: gatheringName });
-  if (!gatheringResponse.rooms) {
-    throw new Error('no rooms in api response!');
-  }
-  const radioOptions = gatheringResponse.rooms.map(room => {
+type Rooms = PickedGathering['rooms'];
+async function pickRoom (rooms: Rooms): Promise<string> {
+  const radioOptions = rooms.map(room => {
     return { label: room.name, value: room.name };
   });
   // console.log(gatheringResponse);
   const dialogPromise = asyncDialog({
-    title: 'Välj Rum',
+    title: 'Rum',
+    message: 'Vilket rum vill du gå med i?',
+    // persistent: true,
+    noBackdropDismiss: true,
+    noEscDismiss: true,
+    noRouteDismiss: false,
     options: {
       model: '',
       items: radioOptions,

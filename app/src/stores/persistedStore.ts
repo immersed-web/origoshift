@@ -17,7 +17,7 @@ export const usePersistedStore = defineStore('persisted', {
   persist: {
     storage: window.sessionStorage,
   },
-  state: () => (rootState),
+  state: () => ({ ...rootState }),
   // getters: {
   //   userData: (state): UserData | undefined => {
   //     try {

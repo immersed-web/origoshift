@@ -84,7 +84,8 @@ export default route(function (/* { store, ssrContext } */) {
       userStore.$reset();
 
       // TODO: fix bug where user is caught in eternal cycle when logging in to a valid role but role is below loginRedirect
-      window.sessionStorage.setItem('loginRedirect', to.fullPath);
+      // for now we just skip auto redirect!!
+      // window.sessionStorage.setItem('loginRedirect', to.fullPath);
       return '/login';
     }
   });

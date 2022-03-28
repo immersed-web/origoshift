@@ -12,6 +12,8 @@ import { getJwt, guestJwt } from 'src/modules/authClient';
 import { useUserStore } from 'src/stores/userStore';
 import { securityLevels } from 'app/../packages/shared-types/CustomTypes';
 
+import { Notify } from 'quasar';
+
 /*
  * If not building with SSR mode, you can
  * directly export the Router instantiation;
@@ -46,14 +48,15 @@ export default route(function (/* { store, ssrContext } */) {
       return;
     }
     console.log('Running navigation guard');
-    // in this hook we only distinguish between logged in or not. Different types of logged in users is treated the same here!
     const userStore = useUserStore();
     if (!userStore.jwt) {
       try {
+        console.log('trying to get userJwt!');
         userStore.jwt = await getJwt();
-        return;
+        // return;
       } catch {
         try {
+          console.log('failed to get userJwt. Trying to get guestJwt instead!');
           userStore.jwt = await guestJwt();
         } catch (e) {
           console.error('couldnt get any jwt (user or guest). Something is wroong');
@@ -63,14 +66,24 @@ export default route(function (/* { store, ssrContext } */) {
     }
     const role = userStore.userData?.role;
     if (!role) {
-      return '/login';
+      throw new Error('role is undefined. That should never happen with a loaded userStore');
     }
+    console.log('role is: ', role);
     const guestLevel = securityLevels.indexOf('guest');
+    const routeLevel = securityLevels.indexOf(to.meta.lowestAccessLevel);
     const clientLevel = securityLevels.indexOf(role);
     if (!to.meta.lowestAccessLevel || to.meta.lowestAccessLevel === 'guest') {
       console.log('route not protected. Letting through');
-    } else if (clientLevel <= guestLevel) {
+    } else if (clientLevel < routeLevel) {
+      Notify.create({
+        type: 'negative',
+        message: 'saknar behörighet till den sidan. omdirigerad till inloggning',
+      });
       console.error('route not allowed. Redirecting to login');
+      // hack to unset guest from userStore if directed to login:
+      userStore.$reset();
+
+      // TODO: fix bug where user is caught in eternal cycle when logging in to a valid role but role is below loginRedirect
       window.sessionStorage.setItem('loginRedirect', to.fullPath);
       return '/login';
     }

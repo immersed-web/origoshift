@@ -44,12 +44,14 @@ export default function usePeerClient () {
   //* ************************************ */
 
   const connect = async (token: string) => {
+    console.log('Connecting peerClient!');
     const response = await peer.connect(token);
     soupStore.clientState = response.data;
     soupStore.connected = true;
   };
 
   const disconnect = () => {
+    console.log('Disconnecting peerClient!');
     peer.disconnect();
     const soupStore = useSoupStore();
     soupStore.$reset();

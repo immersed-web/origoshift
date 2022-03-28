@@ -51,18 +51,15 @@ let screenStream: MediaStream;
 async function shareScreen () {
   const stream = await navigator.mediaDevices.getDisplayMedia();
   screenStream = stream;
-  screenStream.getTracks()[0].onended = () => {
-    // TODO temporary solution. We should probably stop the correct producer instead of all of them
-    peer.producers.forEach(producer => {
-      producer.close();
-    });
-  };
 
-  const producerId = await peer.produce(screenStream.getVideoTracks()[0], { screenShare: true });
+  const videoTrack = screenStream.getVideoTracks()[0];
+  const producerId = await peer.produce(videoTrack, { screenShare: true });
   console.log('produce returned: ', producerId);
+
+  videoTrack.onended = () => {
+    console.log('gonna close producer!!');
+    peer.closeAndNotifyProducer(producerId);
+  };
 }
 
-async function stopSharing () {
-  console.log('stopSharing called');
-}
 </script>

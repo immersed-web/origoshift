@@ -2,7 +2,7 @@ import { types as mediasoupTypes } from 'mediasoup-client';
 import * as mediasoupClient from 'mediasoup-client';
 // import { createSocket, tearDown, sendRequest, socketEvents } from 'src/modules/webSocket';
 import socketutils from 'src/modules/webSocket';
-import { AnyMessage, createRequest, Message } from 'shared-types/MessageTypes';
+import { AnyMessage, createMessage, createRequest, Message } from 'shared-types/MessageTypes';
 import { TypedEmitter } from 'tiny-typed-emitter';
 
 type MsgEvents<Msg extends AnyMessage> = {
@@ -414,7 +414,35 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     await socketutils.sendRequest(pauseReq);
   }
 
-  closeAllConsumers = async () => {
+  closeAndNotifyProducer = async (producerId: string) => {
+    const producer = this.producers.get(producerId);
+    if (!producer) {
+      throw new Error('no producer with that id! cant close it');
+    }
+    producer.close();
+    const closeReq = createRequest('notifyCloseEvent', {
+      objectType: 'producer',
+      objectId: producerId,
+    });
+    socketutils.sendRequest(closeReq);
+    this.producers.delete(producerId);
+  }
+
+  closeAndNotifyConsumer = async (consumerId: string) => {
+    const consumer = this.consumers.get(consumerId);
+    if (!consumer) {
+      throw new Error('no consumer with that id! cant close it');
+    }
+    consumer.close();
+    const closeReq = createRequest('notifyCloseEvent', {
+      objectType: 'consumer',
+      objectId: consumerId,
+    });
+    socketutils.sendRequest(closeReq);
+    this.consumers.delete(consumerId);
+  }
+
+  closeAndNotifyAllConsumers = async () => {
     console.log('closeAllConsumers called');
     console.log('number of consumers:', this.consumers.size);
     for (const [consumerKey, consumer] of this.consumers.entries()) {

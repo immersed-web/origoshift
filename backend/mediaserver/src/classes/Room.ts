@@ -113,14 +113,15 @@ export default class Room {
     return {...this.roomState, clients: Array.from(this.clients.keys())};
   }
 
-  // INFO: As of now we rely on the state of the gathering instead of updating each room individually. We'll see further ahead if that turns out to be a good solution
   // broadcastRoomState(clientToSkip?: Client){
-  broadcastRoomState(){
+  broadcastRoomState(reason?: string){
+    let updateReason = 'reason not specified';
+    if(reason) updateReason = reason;
     // const gatheringState = this.gathering.gatheringState;
     this.clients.forEach((client) => {
       // const msg = createMessage('gatheringStateUpdated', gatheringState);
       // client.send(msg);
-      const msg = createMessage('roomStateUpdated', this.roomState);
+      const msg = createMessage('roomStateUpdated',{newState: this.roomState, reason: updateReason});
       client.send(msg);
     });
   }

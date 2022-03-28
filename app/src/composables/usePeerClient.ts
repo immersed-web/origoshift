@@ -20,19 +20,19 @@ export default function usePeerClient () {
 
   // Attach callbacks! ***************************
   peer.on('gatheringStateUpdated', data => {
-    console.log('gatheringStateUpdated event triggered!!');
+    console.log('gatheringStateUpdated event triggered!! REASON:', data.reason);
     console.log(data);
-    soupStore.setGatheringState(data);
+    soupStore.setGatheringState(data.newState);
   });
   peer.on('roomStateUpdated', data => {
-    console.log('roomStateUpdated event triggered!!');
+    console.log('roomStateUpdated event triggered!! REASON: ', data.reason);
     console.log(data);
-    soupStore.setRoomState(data);
+    soupStore.setRoomState(data.newState);
   });
   peer.on('clientStateUpdated', data => {
-    console.log('clientStateUpdated event triggered!!');
+    console.log('clientStateUpdated event triggered!! REASON: ', data.reason);
     console.log(data);
-    soupStore.clientState = data;
+    soupStore.clientState = data.newState;
   });
 
   peer.socketEvents.on('open', () => { soupStore.connected = true; });

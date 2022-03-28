@@ -103,6 +103,7 @@ export default class Client {
     if(msg.type === 'message'){
       //TODO: Handle the message type
       console.log('received normal message (not request)');
+      console.warn('No message handlers implemented!!!');
       return;
     }
     if(!msg.id){
@@ -440,8 +441,19 @@ export default class Client {
         try{
           switch (msg.data.objectType) {
             case 'consumer': {
-              this.closeConsumer(msg.data.objectId);
+              const consumer = this.consumers.get(msg.data.objectId);
+              if(!consumer) throw new Error('no consumer with that is found! cant close it');
+              consumer.close();
+              this.consumers.delete(msg.data.objectId);
               response = createResponse('notifyCloseEvent', msg.id, {wasSuccess: true});
+              break;
+            }
+            case 'producer': {
+              const producer = this.producers.get(msg.data.objectId);
+              if(!producer) throw new Error('no producer with that id found!!cant close it');
+              producer.close();
+              this.producers.delete(msg.data.objectId);
+              response = createResponse('notifyCloseEvent', msg.id, { wasSuccess: true });
               break;
             }
             default:{
@@ -455,6 +467,7 @@ export default class Client {
           });
         }
         this.send(response);
+        this.onClientStateUpdated(`close event notified for a ${msg.data.objectType}`);
         break;
       }
       case 'assignMainProducerToRoom': {
@@ -502,11 +515,13 @@ export default class Client {
               objectType: 'producer',
               objectId: producer.id,
             }));
+            this.onClientStateUpdated('transport for a producer closed');
           });
           this.producers.set(producer.id, producer); 
-          if(this.role === 'admin'){
-            this.gathering?.broadCastGatheringState();
-          }
+          // if(this.role === 'admin'){
+          //   this.gathering?.broadCastGatheringState();
+          // }
+          this.onClientStateUpdated('producer created');
           response = createResponse('createProducer', msg.id, { wasSuccess: true, data: {producerId: producer.id}});
         } catch(e){
           const err = extractMessageFromCatch(e);
@@ -559,6 +574,7 @@ export default class Client {
               objectId: consumer.id,
             }));
             this.consumers.delete(consumer.id);
+            this.onClientStateUpdated('transport for a consumer closed');
           });
 
           consumer.on('producerclose', () => {
@@ -675,11 +691,14 @@ export default class Client {
 
   // Not sure yet if we can rely on always broadcasting to room if inside one and send to self if not.
   // Also, how about gatherings? Do we sometimes want to broadcast clientstate changes on gathering level?
-  onClientStateUpdated() {
+  onClientStateUpdated(reason?: string) {
+    if(!reason) reason = 'reason not specified';
     if(this.room){
-      this.room.broadcastRoomState();
+      this.room.broadcastRoomState(reason);
     } else {
-      this.send(createMessage('clientStateUpdated', this.clientState));
+      this.send(createMessage('clientStateUpdated', {
+        newState: this.clientState, 
+        reason}));
     }
   }
 
@@ -687,7 +706,7 @@ export default class Client {
     for(const [key, prop] of Object.entries(props)) {
       this.customProperties[key] = prop;
     }
-    this.onClientStateUpdated();
+    this.onClientStateUpdated('a client chagned custom properties');
   }
 
   private leaveCurrentRoom(): string;
@@ -700,16 +719,16 @@ export default class Client {
       }
       return;
     }
-    this.closeAllConsumers();
+    this.closeAndNotifyAllConsumers();
     const roomId = this.room.id;
     this.room.removeClient(this);
     this.setRoom(undefined);
     return roomId;
   }
 
-  private closeAllConsumers = () => {
-    const arrayFromConsumerMap = Array.from(this.consumers.entries());
-    for(const [consumerKey, consumer] of arrayFromConsumerMap){
+  private closeAndNotifyAllConsumers = () => {
+    const consumerArray = Array.from(this.consumers.entries());
+    for(const [consumerKey, consumer] of consumerArray){
       consumer.close();
       const closeConsumerMsg = createMessage('notifyCloseEvent', {
         objectType: 'consumer',
@@ -720,7 +739,7 @@ export default class Client {
     }
   };
 
-  private closeConsumer(consumerId: string){
+  private closeAndNotifyConsumer(consumerId: string){
     const consumer = this.consumers.get(consumerId);
     if(!consumer){
       throw Error('no consumer with that id. cant close it');

@@ -179,16 +179,20 @@ export default class Gathering {
     return room;
   }
 
-  sendGatheringStateTo(client: Client){
+  sendGatheringStateTo(client: Client, updateReason?: string){
     const state = this.gatheringState;
-    const msg = createMessage('gatheringStateUpdated', state);
+    let reason = 'update reason not specified';
+    if(updateReason) reason = updateReason;
+    const msg = createMessage('gatheringStateUpdated',{newState: state, reason });
     client.send(msg);
   }
 
   // TODO: We should throttle some or perhaps all of the broadcast functions so we protect from overload
-  broadCastGatheringState(clientsToSkip: string[] = []) {
+  broadCastGatheringState(clientsToSkip: string[] = [], updateReason?: string) {
     // const gatheringState = this.gatheringState;
     console.log(`gonna broadcast to ${this.clients.size} clients`);
+    let reason = 'update reason not specified';
+    if(updateReason) reason = updateReason;
 
     // const receivers = [...this.clients, ...this.senderClients];
 
@@ -197,7 +201,7 @@ export default class Gathering {
         console.log('skipping client:', client.id);
         return;
       }
-      const gatheringStateMsg = createMessage('gatheringStateUpdated', this.gatheringState);
+      const gatheringStateMsg = createMessage('gatheringStateUpdated', {newState: this.gatheringState, reason});
       console.log(`sending gatheringStateUpdated to client ${client.id}`);
       client.send(gatheringStateMsg);
     });

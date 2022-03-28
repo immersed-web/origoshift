@@ -116,16 +116,16 @@ export type AnyRequest =
   }>
 
 export type AnyMessage = 
-  MessageBuilder<'gatheringStateUpdated', GatheringState>
-  | MessageBuilder<'roomStateUpdated', RoomState>
-  | MessageBuilder<'clientStateUpdated', ClientState>
+  MessageBuilder<'gatheringStateUpdated', {newState: GatheringState, reason: string}>
+  | MessageBuilder<'roomStateUpdated', {newState :RoomState, reason: string}>
+  | MessageBuilder<'clientStateUpdated', {newState: ClientState, reason: string }>
   | MessageBuilder<'notifyCloseEvent', {
     objectType: 'router' | 'transport' | 'producer' | 'consumer' | 'dataproducer' | 'dataconsumer'
     objectId: string,
   }>
-  | MessageBuilder<'chatMessage', {
-    textMessage: string
-  }>
+  // | MessageBuilder<'chatMessage', {
+  //   textMessage: string
+  // }>
 
 export type MessageSubjects = AnyMessage['subject'];
 export type Message<Key extends MessageSubjects> = Extract<AnyMessage, {subject: Key}>

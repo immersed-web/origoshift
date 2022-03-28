@@ -14,6 +14,8 @@ const rootState =
    clientState,
  };
 
+ type RoomStateWithScreenProducer = RoomState & {screenProducerId?: string}
+
 function unshallowRoomState (shallowRoomState: ShallowRoomState, allClients: GatheringState['clients']): RoomState {
   const presentClients: RoomState['clients'] = {};
   for (const clientId of shallowRoomState.clients) {
@@ -33,9 +35,26 @@ export const useSoupStore = defineStore('soup', {
     roomId: (state) => {
       return state.clientState?.roomId;
     },
-    roomState (): RoomState | undefined {
+    roomState (): RoomStateWithScreenProducer | undefined {
       if (!this.rooms || !this.roomId) return undefined;
-      return this.rooms[this.roomId];
+
+      const roomState = this.rooms[this.roomId];
+
+      let screenProducerObj = {};
+
+      for (const [clientId, client] of Object.entries(roomState.clients)) {
+        for (const [producerId, producer] of Object.entries(client.producers)) {
+          if (producer.producerInfo) {
+            if (producer.producerInfo.screenShare) {
+              screenProducerObj = {
+                screenProducerId: producer.producerId,
+              };
+            }
+          }
+        }
+      }
+
+      return { ...roomState, ...screenProducerObj };
     },
     rooms: (state): Record<string, RoomState> | undefined => {
       if (!state.gatheringState || !state.gatheringState.rooms) {

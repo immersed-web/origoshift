@@ -42,13 +42,14 @@ export default route(function (/* { store, ssrContext } */) {
 
   Router.beforeEach(async (to) => {
     console.log('changed route to: ', to);
+    const userStore = useUserStore();
     const ignoredRoutes = ['/login', '/logout'];
     if (ignoredRoutes.includes(to.path)) {
+      userStore.$reset();
       console.log('non userdata route');
       return;
     }
     console.log('Running navigation guard');
-    const userStore = useUserStore();
     if (!userStore.jwt) {
       try {
         console.log('trying to get userJwt!');

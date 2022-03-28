@@ -28,6 +28,7 @@ async function loginUser (creds: Creds) {
   let redirect = '/';
   const savedRedirect = window.sessionStorage.getItem('loginRedirect');
   if (savedRedirect) {
+    console.log('using savedRedirect: ', savedRedirect);
     redirect = savedRedirect;
     window.sessionStorage.removeItem('loginRedirect');
   } else {

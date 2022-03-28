@@ -113,11 +113,11 @@ const soupStore = useSoupStore();
 //   }
 // });
 
-soupStore.$subscribe((mutation, state) => {
-  if (!state.connected) {
-    router.replace('/join');
-  }
-});
+// soupStore.$subscribe((mutation, state) => {
+//   if (!state.connected) {
+//     router.replace('/join');
+//   }
+// });
 
 watch(() => soupStore.roomState?.mainProducer, (newMainProducer, oldMainProducer) => {
   if (!newMainProducer) return;

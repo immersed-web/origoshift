@@ -3,16 +3,17 @@ import { useSoupStore } from 'src/stores/soupStore';
 import { usePersistedStore } from 'src/stores/persistedStore';
 import { useUserStore } from 'src/stores/userStore';
 
-let peer: PeerClient | undefined;
-export function destroy () {
-  const soupStore = useSoupStore();
-  soupStore.$reset();
-  peer = undefined;
-}
+const peer: PeerClient = new PeerClient();
+// let peer: PeerClient | undefined;
+// export function destroy () {
+//   const soupStore = useSoupStore();
+//   soupStore.$reset();
+//   peer = undefined;
+// }
 export default function usePeerClient () {
-  if (!peer) {
-    peer = new PeerClient();
-  }
+  // if (!peer) {
+  //   peer = new PeerClient();
+  // }
   const soupStore = useSoupStore();
   const userStore = useUserStore();
   const persistedStore = usePersistedStore();
@@ -34,27 +35,26 @@ export default function usePeerClient () {
     soupStore.clientState = data;
   });
 
-  peer.onRequestCallback = (msg) => {
-    console.log('received request: ', msg);
-  };
+  peer.socketEvents.on('open', () => { soupStore.connected = true; });
+  peer.socketEvents.on('close', () => { soupStore.connected = false; });
+  peer.socketEvents.on('request', (reqMsg) => {
+    console.log('received request: ', reqMsg);
+  });
 
   //* ************************************ */
 
   const connect = async (token: string) => {
-    const response = await peer!.connect(token);
+    const response = await peer.connect(token);
     soupStore.clientState = response.data;
     soupStore.connected = true;
   };
 
   const disconnect = () => {
-    peer!.disconnect();
+    peer.disconnect();
     const soupStore = useSoupStore();
     soupStore.$reset();
-    peer = undefined;
+    // peer = undefined;
   };
-
-  peer.connectionEvents.on('open', () => { soupStore.connected = true; });
-  peer.connectionEvents.on('close', () => { soupStore.connected = false; });
 
   // eslint-disable-next-line @typescript-eslint/ban-types
   // let customExports: Record<string, Function> = { requestMedia };
@@ -99,7 +99,7 @@ export default function usePeerClient () {
     }
     if (!soupStore.connected) {
       console.log('not connected. will automatically try to connect.');
-      const { data: clientState } = await peer!.connect(userStore.jwt);
+      const { data: clientState } = await peer.connect(userStore.jwt);
       soupStore.clientState = clientState;
     }
     let { gathering: gatheringName } = userStore.userData;
@@ -112,10 +112,10 @@ export default function usePeerClient () {
     }
 
     // const gatheringId = await peer.findGathering(gathering);
-    const gatheringState = await peer!.joinOrCreateGathering(gatheringName);
+    const gatheringState = await peer.joinOrCreateGathering(gatheringName);
     soupStore.setGatheringState(gatheringState);
-    await peer!.getRouterCapabilities();
-    await peer!.loadMediasoupDevice();
+    await peer.getRouterCapabilities();
+    await peer.loadMediasoupDevice();
     // await peer.createSendTransport();
   }
 

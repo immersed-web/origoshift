@@ -1,7 +1,8 @@
 import { types as mediasoupTypes } from 'mediasoup-client';
 import * as mediasoupClient from 'mediasoup-client';
-import { createSocket, tearDown, sendRequest, socketEvents } from 'src/modules/webSocket';
-import { AnyMessage, AnyRequest, createRequest, Message } from 'shared-types/MessageTypes';
+// import { createSocket, tearDown, sendRequest, socketEvents } from 'src/modules/webSocket';
+import socketutils from 'src/modules/webSocket';
+import { AnyMessage, createRequest, Message } from 'shared-types/MessageTypes';
 import { TypedEmitter } from 'tiny-typed-emitter';
 
 type MsgEvents<Msg extends AnyMessage> = {
@@ -24,32 +25,40 @@ interface TransportProduceParams {
 // }
 // type PeerEvents<Subject extends RequestSubjects | MessageSubjects> = MsgEvents<Subject> | ReqEvents<Subject>;
 export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
-  id = '';
-  url?: string;
-  mediasoupDevice: mediasoupTypes.Device;
+  // id = '';
+  // url?: string;
+  mediasoupDevice?: mediasoupTypes.Device;
   sendTransport?: mediasoupTypes.Transport;
   receiveTransport?: mediasoupTypes.Transport;
   producers = new Map<string, mediasoupTypes.Producer>();
   consumers = new Map<string, mediasoupTypes.Consumer>();
   routerRtpCapabilities?: mediasoupTypes.RtpCapabilities;
-  connectionEvents = socketEvents;
-
-  onRequestCallback? = undefined as unknown as (msg: AnyRequest) => unknown;
+  socketEvents = socketutils.socketEvents;
 
   connect = async (token: string) => {
-    await createSocket(token);
+    await socketutils.createSocket(token);
     const clientStateReq = createRequest('getClientState');
-    return sendRequest(clientStateReq);
+    return socketutils.sendRequest(clientStateReq);
   }
 
   disconnect = () => {
-    tearDown();
+    socketutils.tearDown();
+    this.clear();
+  }
+
+  private clear = () => {
+    this.mediasoupDevice = undefined;
+    this.sendTransport = undefined;
+    this.receiveTransport = undefined;
+    this.producers.clear();
+    this.consumers.clear();
+    this.routerRtpCapabilities = undefined;
   }
 
   constructor () {
     super();
 
-    socketEvents.on('message', (msg) => {
+    socketutils.socketEvents.on('message', (msg) => {
       // TODO: Find a way to do this! I shouldnt have to type narrow the arguments since I know the possible types of the two parameters map correctly to each other
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
@@ -80,34 +89,39 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
         }
       }
     });
-    socketEvents.on('request', req => {
-      if (this.onRequestCallback) {
-        this.onRequestCallback(req);
-      }
+    socketutils.socketEvents.on('request', reqMsg => {
+      console.log('received request: ', reqMsg);
     });
 
+    // try {
+    //   this.mediasoupDevice = this.createDevice();
+    // } catch (error) {
+    //   if (error instanceof mediasoupTypes.UnsupportedError && error.name === 'UnsupportedError') {
+    //     console.warn('browser not supported');
+    //   } else {
+    //     console.error(error);
+    //   }
+    //   throw error;
+    // }
+  }
+
+  private createDevice () {
     try {
-      this.mediasoupDevice = this.createDevice();
+      return new mediasoupClient.Device();
     } catch (error) {
       if (error instanceof mediasoupTypes.UnsupportedError && error.name === 'UnsupportedError') {
-        console.warn('browser not supported');
-      } else {
-        console.error(error);
+        console.error('browser not supported!. Cant create mediasoupDevice');
       }
       throw error;
     }
   }
 
-  private createDevice () {
-    return new mediasoupClient.Device();
-  }
-
   loadMediasoupDevice = async () => {
-    console.log('this from loadMediasoupDevice: ', this);
     if (!this.routerRtpCapabilities) {
       throw new Error('routerRtpCapabilities needs to be set before loading mediasoup device');
     }
-    // this.createDevice();
+    this.mediasoupDevice = this.createDevice();
+    // console.log('this from loadMediasoupDevice: ', this);
     const routerRtpCapabilities = this.routerRtpCapabilities;
     await this.mediasoupDevice.load({ routerRtpCapabilities });
 
@@ -126,7 +140,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     const deviceCapabilities = this.mediasoupDevice.rtpCapabilities;
     const setRtpCapabilitiesReq = createRequest('setRtpCapabilities', deviceCapabilities);
 
-    await sendRequest(setRtpCapabilitiesReq);
+    await socketutils.sendRequest(setRtpCapabilitiesReq);
   }
 
   setName = async (name: string) => {
@@ -134,15 +148,15 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     // return this.triggerSocketEvent('setName', name);
     // return this.socket.request('setName', { name });
     const setNameReq = createRequest('setName', { name: name });
-    await sendRequest(setNameReq);
+    await socketutils.sendRequest(setNameReq);
   }
 
   setCustomProperties = async (props: Record<string, unknown>) => {
-    await sendRequest(createRequest('setCustomClientProperties', props));
+    await socketutils.sendRequest(createRequest('setCustomClientProperties', props));
   }
 
   findGathering = async (name: string) => {
-    const response = await sendRequest(createRequest('findGatheringByName', {
+    const response = await socketutils.sendRequest(createRequest('findGatheringByName', {
       name: name,
     }));
     return response.data.id;
@@ -152,14 +166,14 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     const createGatheringReq = createRequest('createGathering', {
       gatheringName: gatheringName,
     });
-    // return sendRequest(createGatheringReq);
-    const response = await sendRequest(createGatheringReq);
+    // return socket.sendRequest(createGatheringReq);
+    const response = await socketutils.sendRequest(createGatheringReq);
     return response.data;
   }
 
   joinGathering = async (gatheringId: string) => {
     const joinGatheringReq = createRequest('joinGathering', { gatheringId });
-    const response = await sendRequest(joinGatheringReq);
+    const response = await socketutils.sendRequest(joinGatheringReq);
     return response.data;
   }
 
@@ -176,13 +190,13 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
 
   getGatheringState = async () => {
     const getRoomsReq = createRequest('getGatheringState');
-    const response = await sendRequest(getRoomsReq);
+    const response = await socketutils.sendRequest(getRoomsReq);
     return response.data;
   }
 
   findRoom = async (roomName: string) => {
     const findReq = createRequest('findRoomByName', { roomName });
-    const response = await sendRequest(findReq);
+    const response = await socketutils.sendRequest(findReq);
     return response.data.id;
   }
 
@@ -190,13 +204,13 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     const createRoomReq = createRequest('createRoom', {
       name: roomName,
     });
-    const response = await sendRequest(createRoomReq);
+    const response = await socketutils.sendRequest(createRoomReq);
     return response.data;
   }
 
   joinRoom = async (roomId: string) => {
     const joinRoomReq = createRequest('joinRoom', { roomId: roomId });
-    const response = await sendRequest(joinRoomReq);
+    const response = await socketutils.sendRequest(joinRoomReq);
     return response.data;
     // this.closeAllConsumers();
     // this.roomStore.currentRoomId = roomId;
@@ -215,14 +229,14 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
 
   leaveRoom = async () => {
     const leaveRoomReq = createRequest('leaveRoom');
-    await sendRequest(leaveRoomReq);
+    await socketutils.sendRequest(leaveRoomReq);
     // this.closeAllConsumers();
   }
 
   getRouterCapabilities = async (): Promise<mediasoupTypes.RtpCapabilities> => {
     const getRouterCapsReq = createRequest('getRouterRtpCapabilities');
 
-    const response = await sendRequest(getRouterCapsReq);
+    const response = await socketutils.sendRequest(getRouterCapsReq);
     this.routerRtpCapabilities = response.data;
     return response.data;
   }
@@ -232,7 +246,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
       throw Error('cant create transport if mediasoup device isnt loaded');
     }
     const createSendTransportReq = createRequest('createSendTransport');
-    const response = await sendRequest(createSendTransportReq);
+    const response = await socketutils.sendRequest(createSendTransportReq);
 
     const transportOptions: mediasoupTypes.TransportOptions = response.data;
     this.sendTransport = this.mediasoupDevice.createSendTransport(transportOptions);
@@ -244,7 +258,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
       throw Error('cant create transport if mediasoup device isnt loaded');
     }
     const createReceiveTransportReq = createRequest('createReceiveTransport');
-    const response = await sendRequest(createReceiveTransportReq);
+    const response = await socketutils.sendRequest(createReceiveTransportReq);
 
     const transportOptions: mediasoupTypes.TransportOptions = response.data;
     this.receiveTransport = this.mediasoupDevice.createRecvTransport(transportOptions);
@@ -258,7 +272,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
           transportId: transport.id,
           dtlsParameters,
         });
-        const response = await sendRequest(connectTransportReq);
+        const response = await socketutils.sendRequest(connectTransportReq);
         if (response.wasSuccess) {
           callback();
           return;
@@ -284,7 +298,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
             transportId: transport.id,
             producerInfo,
           });
-          const response = await sendRequest(createProducerReq);
+          const response = await socketutils.sendRequest(createProducerReq);
           if (response.wasSuccess) {
             const cbData = {
               id: response.data.producerId,
@@ -321,7 +335,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     const assignProducerReq = createRequest('assignMainProducerToRoom', {
       clientId, producerId, roomId,
     });
-    await sendRequest(assignProducerReq);
+    await socketutils.sendRequest(assignProducerReq);
   }
 
   produce = async (track: MediaStreamTrack, producerInfo?: Record<string, unknown>): Promise<mediasoupTypes.Producer['id']> => {
@@ -357,7 +371,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
       producerId: producerId,
     });
     try {
-      const response = await sendRequest(createConsumerReq);
+      const response = await socketutils.sendRequest(createConsumerReq);
 
       const consumerOptions = response.data;
       console.log('createConsumerRequest gave these options: ', consumerOptions);
@@ -370,7 +384,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
         objectId: consumer.id,
         wasPaused: false,
       });
-      await sendRequest(setPauseReq);
+      await socketutils.sendRequest(setPauseReq);
 
       return { track: consumer.track, consumerId: consumer.id };
     } catch (e) {
@@ -397,7 +411,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
       objectId: consumer.id,
       wasPaused: wasPaused,
     });
-    await sendRequest(pauseReq);
+    await socketutils.sendRequest(pauseReq);
   }
 
   closeAllConsumers = async () => {
@@ -410,7 +424,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
         objectType: 'consumer',
         objectId: consumer.id,
       });
-      await sendRequest(notifyCloseEventReq);
+      await socketutils.sendRequest(notifyCloseEventReq);
       this.consumers.delete(consumerKey);
     }
   }

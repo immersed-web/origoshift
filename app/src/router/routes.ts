@@ -17,6 +17,7 @@ const routes: RouteRecordRaw[] = [
       { path: '', redirect: '/login' },
       { path: '/login', component: () => import('pages/LoginPage.vue'), meta: { lowestAccessLevel: 'guest' } },
       { path: '/logout', component: () => import('pages/LogoutPage.vue') },
+      { path: '/editor', component: () => import('pages/EditorGateway.vue'), meta: { lowestAccessLevel: 'gatheringEditor' } },
       { path: '/camera', component: () => import('pages/CameraPage.vue'), meta: { lowestAccessLevel: 'sender' } },
       { path: '/teacher', component: () => import('pages/RoomControlPage.vue'), meta: { lowestAccessLevel: 'sender' } },
       { path: '/edit-users', component: () => import('pages/ManageUsersPage.vue'), meta: { lowestAccessLevel: 'gatheringEditor' } },

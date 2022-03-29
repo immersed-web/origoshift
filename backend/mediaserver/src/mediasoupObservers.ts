@@ -6,7 +6,7 @@ import debug from 'debug';
 export default () => {
 
   const observerLog = debug('mediasoup:Observers');
-  console.log('is observerLogger enabled? ', observerLog.enabled);
+  // console.log('is observerLogger enabled? ', observerLog.enabled);
 
   const totalNrOf = {
     workers: 0,
@@ -19,9 +19,9 @@ export default () => {
     consumers: 0,
     dataConsumers: 0,
   };
-  setInterval(() => {
-    observerLog('totalNrOf: ',totalNrOf);
-  }, 8000);
+  // setInterval(() => {
+  //   observerLog('totalNrOf: ',totalNrOf);
+  // }, 8000);
 
   observer.on('newworker', (worker: mediasoupTypes.Worker) =>
   {
@@ -118,4 +118,8 @@ export default () => {
       });
     });
   });
+
+  const print = () => observerLog('totalNrOf:', totalNrOf);
+
+  return print;
 };

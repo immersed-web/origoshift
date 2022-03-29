@@ -2,8 +2,9 @@ process.env.DEBUG = 'Room* mediasoup*';
 
 // import { debug } from 'util';
 // const messageLogger = debug('socketMessage');
-import observerLogger from './observers';
-observerLogger();
+import observerLogger from './mediasoupObservers';
+const printSoupStats = observerLogger();
+import printClassInstances from './classInstanceObservers';
 import uWebSockets from 'uWebSockets.js';
 const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import Client from './classes/Client';
@@ -15,6 +16,36 @@ const clients: Map<uWebSockets.WebSocket, Client> = new Map();
 const disconnectedClients: Map<string, Client> = new Map();
 
 createWorkers();
+
+
+const stdin = process.stdin;
+
+// without this, we would only get streams once enter is pressed
+stdin.setRawMode( true );
+
+// resume stdin in the parent process (node app won't quit all by itself
+// unless an error or process.exit() happens)
+stdin.resume();
+
+// i don't want binary, do you?
+stdin.setEncoding( 'utf8' );
+
+// on any data into stdin
+stdin.on( 'data', function( key ){
+  const asString = key.toString();
+  // ctrl-c ( end of text )
+  if ( asString === '\u0003' ) {
+    process.exit();
+  }
+  if(asString === 'm'){
+    printSoupStats();
+  }
+  if(asString === 'c'){
+    printClassInstances();
+  }
+  // write the key to stdout all normal like
+  // process.stdout.write( 'bajs' );
+});
 
 
 const app = uWebSockets.App();
@@ -82,7 +113,7 @@ app.ws('/*', {
   },
   open: (ws) => {
     const decodedJwt = ws.decoded as DecodedJwt;
-    const wsWrapper = new SocketWrapper(ws);
+    // const wsWrapper = new SocketWrapper(ws);
     const idleClient = disconnectedClients.get(decodedJwt.uuid);
     let client: Client;
     if(false && idleClient){
@@ -93,7 +124,7 @@ app.ws('/*', {
     } else {
       // console.log('socket opened with provided data: ', decodedJwt);
       console.log('socket opened');
-      client = new Client({ws: wsWrapper, userData: decodedJwt });
+      client = new Client({ws: new SocketWrapper(ws), userData: decodedJwt });
     }
     // Check so client is unique!!
 

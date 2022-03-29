@@ -3,7 +3,7 @@ import SocketWrapper from './SocketWrapper';
 import {types as soupTypes} from 'mediasoup';
 import {types as soupClientTypes} from 'mediasoup-client';
 import { ClientState, UserData, UserRole } from 'shared-types/CustomTypes';
-import { AnyRequest, createFailResponse, createMessage, createRequest, createResponse, createSuccessResponse, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
+import { AnyRequest, createMessage, createRequest, createResponse, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 // import { checkPermission } from '../modules/utilFns';
 import { checkPermission } from '../modules/utilFns';
@@ -483,7 +483,7 @@ export default class Client {
             throw new Error('no such producer found!');
           }
           room.mainProducer = producer;
-          this.gathering?.broadCastGatheringState();
+          this.gathering?.broadCastGatheringState(undefined, 'mainProducer assigned to a room');
           response = createResponse('assignMainProducerToRoom', msg.id, { 
             wasSuccess: true,
           });

@@ -131,7 +131,7 @@ export default class Gathering {
   removeClient (client: Client) {
     // TODO: We should also handle if client leaves gathering while in a room. Here or elsewhere
     this.clients.delete(client.id);
-    this.broadCastGatheringState();
+    this.broadCastGatheringState( undefined, 'client removed from gathering');
 
     if(!this.clients.size){
       this.destroy();
@@ -174,7 +174,7 @@ export default class Gathering {
     }
     const room = Room.createRoom({roomId, roomName, gathering: this});
     this.rooms.set(room.id, room);
-    this.broadCastGatheringState();
+    this.broadCastGatheringState(undefined, 'room created');
 
     return room;
   }
@@ -215,7 +215,7 @@ export default class Gathering {
       return;
     }
     this.rooms.delete(roomOrId.id);
-    this.broadCastGatheringState();
+    this.broadCastGatheringState(undefined, 'room deleted');
   }
 
   get gatheringState() {

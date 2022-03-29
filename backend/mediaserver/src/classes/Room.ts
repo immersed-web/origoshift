@@ -63,7 +63,7 @@ export default class Room {
     }
     // TODO; Should we perhaps only broadcast roomstate here?
     this.clients.set(client.id, client);
-    this.gathering?.broadCastGatheringState([client.id]);
+    this.gathering?.broadCastGatheringState([client.id], 'client added to room');
   }
 
   removeClient(client: Client, skipBroadcast = false ){
@@ -89,7 +89,7 @@ export default class Room {
       throw new Error(`failed to remove client ${client.id} from room`);
     }
     if(!skipBroadcast){
-      this.gathering?.broadCastGatheringState([client.id]);
+      this.gathering?.broadCastGatheringState([client.id], 'client removed from room');
     }
   }
 

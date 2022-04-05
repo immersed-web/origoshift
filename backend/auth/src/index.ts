@@ -88,7 +88,7 @@ app.use(session({
     })
 }),
 );
-const userRouter = createUserRouter(process.env);
+const userRouter = createUserRouter();
 app.use('/', userRouter);
 
 const apiRouter = createApiRouter();

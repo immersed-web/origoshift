@@ -137,6 +137,48 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
 
 };
 
+interface DeleteUserRequest extends ExpressReq {
+  body: {
+    uuid: string
+  }
+}
+const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
+  try {
+
+    const userData = req.session.user;
+    if(!userData){
+      throw new Error('not allowed'); 
+    }
+    const payload = req.body;
+    if(!payload || !payload.uuid){
+      throw new Error('no uuid provided. cant delete');
+    }
+    const userToDelete = await users.findUserAsUserData({
+      where: {
+        uuid: payload.uuid
+      }
+    });
+    if(!userToDelete){
+      throw new Error('no user found');
+    }
+    const clientSecurityLevel = securityLevels.indexOf(userData.role);
+    if(clientSecurityLevel < securityLevels.indexOf('admin')){
+      if(!userData.gathering || !userToDelete.gathering || userData.gathering !== userToDelete.gathering){
+        throw new Error('no can do. too low security level!');
+      }
+    }
+    const deletedUser = await users.delete({
+      where: {
+        uuid: payload.uuid
+      }
+    });
+
+    res.send(exclude(deletedUser, 'password'));
+  } catch (e) {
+    const msg = extractMessageFromCatch(e, 'fuck off!');
+    res.status(401).send(msg);
+  }
+};
 interface GetUsersRequest extends ExpressReq {
   body: {
     gathering?: string
@@ -264,7 +306,7 @@ const getJwt: RequestHandler = async (req, res) => {
   res.send(token);
 };
 
-export default function createUserRouter(env: NodeJS.ProcessEnv) {
+export default function createUserRouter() {
   // if (!env.SESSION_KEY) {
   //   console.error('no session key provided!!!');
   //   throw new Error('no session key provided when creating user router');
@@ -304,6 +346,7 @@ export default function createUserRouter(env: NodeJS.ProcessEnv) {
   userRouter.get('/logout', logoutUser);
 
   userRouter.post('/create', validateUserSession, createUser);
+  userRouter.post('/delete-user', validateUserSession, deleteUser);
   userRouter.post('/get-users', validateUserSession, getUsers);
 
   userRouter.get('/me', validateUserSession, getSelf);

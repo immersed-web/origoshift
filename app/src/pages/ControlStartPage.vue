@@ -3,19 +3,19 @@
     <QBtn
       color="primary"
       label="Kamerastation"
-      to="/camera"
+      :to="{name:'camera'}"
       icon-right="navigate_next"
     />
     <QBtn
       color="primary"
       label="Rumskontroll"
-      to="/teacher"
+      :to="{name: 'controlRoom'}"
       icon-right="navigate_next"
     />
     <QBtn
       color="primary"
       label="Hantera elevkonton"
-      to="/edit-users"
+      :to="{ name: 'userManager'}"
       icon-right="navigate_next"
     />
   </div>

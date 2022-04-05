@@ -116,7 +116,7 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
         rooms: true,
       }
     });
-    // We dont wan tto send the password back!!!
+    // We dont wan to send the password back!!!
     const resultWithoutPassword = exclude(result, 'password');
     res.status(201).send(resultWithoutPassword);
     return;

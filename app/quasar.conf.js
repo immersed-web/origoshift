@@ -18,6 +18,7 @@ module.exports = configure(function (ctx) {
   } else {
     envVars = dotenv.config({ path: '../backend/.env' }).parsed;
   }
+  console.log('envVars in quasar config:', envVars);
   return {
     preFetch: true,
     // https://quasar.dev/quasar-cli/supporting-ts

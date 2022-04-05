@@ -14,7 +14,7 @@ import { validateUserSession } from './utils';
 
 
 const index: RequestHandler = (req, res) => {
-  res.send({ message: 'this is the auth room route. Here youcan interact with the rooms' });
+  res.send({ message: 'this is the auth api route. Here youcan interact with the rooms and gatherings' });
 };
 
 // interface CreateUserRequest extends ExpressReq {

@@ -27,12 +27,19 @@ const app = express();
 // We need to trust first proxy. Foremost to get secure cookie to function  properly
 app.set('trust proxy', 1);
 
+let cookieHttpOnly = true;
+let cookieSecure = true;
 if(devMode){
   console.log('allowing cors for frontend');
   app.use(cors({
     origin: ['http://localhost:8080'],
     credentials: true,
   }));
+
+  console.log('allowing cookie despite not https');
+  cookieHttpOnly = false;
+  cookieSecure = false;
+
 }
 
 app.use((req, res, next) => {
@@ -62,32 +69,12 @@ if (!process.env.SESSION_KEY) {
   throw new Error('no session key provided when starting api server');
 }
 
-// const userRouter = Router();
-
-// TODO: Make sure we use nice settings for the cookie!!! These are kind of arbitrary chosen
-// userRouter.use(session({
-//   secret: env.SESSION_KEY,
-//   cookie: {
-//     httpOnly: true,
-//     secure: true,
-//     maxAge: 7 * 24 * 60 * 60 * 1000 // ms
-//   },
-//   name: 'inclubit',
-//   resave: false,
-//   saveUninitialized: false,
-//   store: new PrismaSessionStore(prisma,
-//     {
-//       checkPeriod: 2 * 60 * 1000, // ms
-//       dbRecordIdIsSessionId: true,
-//       dbRecordIdFunction: undefined,
-//     })
-// }));
 
 app.use(session({
   secret: process.env.SESSION_KEY,
   cookie: {
-    httpOnly: true,
-    secure: true,
+    httpOnly: cookieHttpOnly,
+    secure: cookieSecure,
     maxAge: 7 * 24 * 60 * 60 * 1000 // ms
   },
   name: 'inclubit',
@@ -101,7 +88,7 @@ app.use(session({
     })
 }),
 );
-const userRouter = createUserRouter(process.env);
+const userRouter = createUserRouter();
 app.use('/', userRouter);
 
 const apiRouter = createApiRouter();

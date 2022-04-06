@@ -9,7 +9,7 @@
 import LoginBox from 'src/components/LoginBox.vue';
 import { getMe, login, getJwt } from 'src/modules/authClient';
 import { useUserStore } from 'src/stores/userStore';
-import { useRouter } from 'vue-router';
+import { RouteLocationRaw, useRouter } from 'vue-router';
 const userStore = useUserStore();
 
 const router = useRouter();
@@ -25,25 +25,26 @@ async function loginUser (creds: Creds) {
   const me = await getMe();
   console.log('me:', me);
   userStore.jwt = await getJwt();
-  let redirect = '/';
-  const savedRedirect = window.sessionStorage.getItem('loginRedirect');
-  if (savedRedirect) {
+  let redirect: RouteLocationRaw = { name: 'index' };
+  const routeName = window.sessionStorage.getItem('loginRedirect');
+  if (routeName) {
+    const savedRedirect: RouteLocationRaw = { name: routeName };
     console.log('using savedRedirect: ', savedRedirect);
     redirect = savedRedirect;
     window.sessionStorage.removeItem('loginRedirect');
   } else {
     switch (me.role) {
       case 'client':
-        redirect = '/roomlist';
+        redirect = { name: 'lobby' };
         break;
       case 'sender':
-        redirect = '/camera';
+        redirect = { name: 'camera' };
         break;
       case 'gatheringEditor':
-        redirect = '/editor';
+        redirect = { name: 'controlStart' };
         break;
       case 'admin':
-        redirect = '/camera';
+        redirect = { name: 'camera' };
         break;
     }
   }

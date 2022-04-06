@@ -48,15 +48,13 @@ import DevicePicker from 'src/components/DevicePicker.vue';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useUserStore } from 'src/stores/userStore';
 import { usePersistedStore } from 'src/stores/persistedStore';
-import { QDialogOptions, useQuasar } from 'quasar';
+import { useQuasar } from 'quasar';
+import { asyncDialog } from 'src/modules/utilFns';
 import { getAllGatherings, getGathering } from 'src/modules/authClient';
 import ClientList from 'src/components/ClientList.vue';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { useRouter } from 'vue-router';
-import Timeout from 'await-timeout';
 
 const $q = useQuasar();
-const router = useRouter();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
 
@@ -129,18 +127,18 @@ const persistedStore = usePersistedStore();
   }
 })();
 
-async function asyncDialog (options: QDialogOptions): Promise<unknown> {
-  const dialogPromise = new Promise((resolve, reject) => {
-    $q.dialog(options).onOk((payload) => {
-      resolve(payload);
-    }).onCancel(() => {
-      reject();
-    }).onDismiss(() => {
-      reject();
-    });
-  });
-  return dialogPromise;
-}
+// async function asyncDialog (options: QDialogOptions): Promise<unknown> {
+//   const dialogPromise = new Promise((resolve, reject) => {
+//     $q.dialog(options).onOk((payload) => {
+//       resolve(payload);
+//     }).onCancel(() => {
+//       reject();
+//     }).onDismiss(() => {
+//       reject();
+//     });
+//   });
+//   return dialogPromise;
+// }
 
 type PickedGathering = Awaited<ReturnType<(typeof getAllGatherings)>>[number]
 async function pickGathering (gatherings: string[]): Promise<string> {

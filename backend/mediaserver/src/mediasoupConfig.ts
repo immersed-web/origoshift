@@ -2,10 +2,12 @@ import { types as mediasoupTypes } from 'mediasoup';
 // import { WorkerLogTag } from 'mediasoup/lib/Worker';
 
 
-const listenIp = process.env.LISTEN_IP;
+let listenIp = process.env.LISTEN_IP;
 
 if(!listenIp){
-  throw new Error('no listenIp set for mediaserver!');
+  listenIp = '0.0.0.0';
+  console.warn('WARNING! No listenIp provided to mediasoup. Defaulting to 0.0.0.0');
+  // throw new Error('no listenIp set for mediaserver!');
 }
 
 

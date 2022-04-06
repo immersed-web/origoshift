@@ -13,7 +13,7 @@ type GatheringWithRoomsAndUsers = Prisma.GatheringGetPayload<typeof gatheringWit
 
 const handleResponse = async <ReturnType>(apiCall: () => Promise<AxiosResponse<ReturnType>>) => {
   const response = await apiCall();
-  console.log('auth response received:', response);
+  console.log('user/auth Api response received:', response);
   return response.data;
 };
 
@@ -29,7 +29,18 @@ export const login = async (username: string, password: string) => {
   }
 };
 
-export const getUsers = (payload: Record<string, unknown>) => handleResponse<Record<string, number>[]>(() => api.post('get-users', payload));
+const userWithIncludes = Prisma.validator<Prisma.UserArgs>()({
+  include: {
+    gathering: true,
+    role: true,
+    rooms: true,
+  },
+});
+
+// TODO: Dont declare these include types redundantly all over the code base!
+type UserWithIncludes = Prisma.UserGetPayload<typeof userWithIncludes>;
+export const deleteUser = (uuid: string) => api.post('delete-user', { uuid });
+export const getUsers = (payload: Record<string, unknown>) => handleResponse<Omit<UserWithIncludes, 'password'>[]>(() => api.post('get-users', payload));
 export const getGathering = (payload: Record<string, unknown>) => handleResponse<GatheringWithRoomsAndUsers>(() => api.post('gathering', payload));
 export const getAllGatherings = () => handleResponse<GatheringWithRoomsAndUsers[]>(() => api.get('allgatherings'));
 

@@ -2,8 +2,15 @@ import PeerClient from 'src/modules/PeerClient';
 import { useSoupStore } from 'src/stores/soupStore';
 import { usePersistedStore } from 'src/stores/persistedStore';
 import { useUserStore } from 'src/stores/userStore';
+import { AnyMessage, Message } from 'shared-types/MessageTypes';
+import { TypedEmitter } from 'tiny-typed-emitter';
 
 const peer: PeerClient = new PeerClient();
+
+type MsgEvents<Msg extends AnyMessage> = {
+  [event in Msg['subject']]: (data: Message<event>['data']) => void;
+};
+
 // let peer: PeerClient | undefined;
 // export function destroy () {
 //   const soupStore = useSoupStore();
@@ -17,8 +24,10 @@ export default function usePeerClient () {
   const soupStore = useSoupStore();
   const userStore = useUserStore();
   const persistedStore = usePersistedStore();
+  const closeEventEmitter = new TypedEmitter<MsgEvents<Message<'notifyCloseEvent'>>>();
 
   // Attach callbacks! ***************************
+
   peer.on('gatheringStateUpdated', data => {
     console.log('gatheringStateUpdated event triggered!! REASON:', data.reason);
     console.log(data);
@@ -33,6 +42,9 @@ export default function usePeerClient () {
     console.log('clientStateUpdated event triggered!! REASON: ', data.reason);
     console.log(data);
     soupStore.clientState = data.newState;
+  });
+  peer.on('notifyCloseEvent', (payload) => {
+    closeEventEmitter.emit('notifyCloseEvent', payload);
   });
 
   peer.socketEvents.on('open', () => { soupStore.connected = true; });
@@ -126,5 +138,7 @@ export default function usePeerClient () {
   return {
     ...peer, // Order matters here! customExports holds some overrides, so it must come after
     ...customExports,
+    closeEvents: closeEventEmitter,
+
   };
 }

@@ -67,7 +67,6 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
         case 'notifyCloseEvent': {
           switch (msg.data.objectType) {
             case 'consumer': {
-              // this.close;
               const consumer = this.consumers.get(msg.data.objectId);
               if (!consumer) {
                 throw Error(`no consumer with that id found in client: ${msg.data.objectId}`);

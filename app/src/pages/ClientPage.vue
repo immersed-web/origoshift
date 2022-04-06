@@ -59,9 +59,21 @@
       />
       <a-videosphere />
       <a-video
-        width="16"
-        height="9"
-        position="0 0 -20"
+        v-if="screenShareConsumerId"
+        scale="2 2 0"
+        width="1.7777"
+        height="1"
+        position="0 1.5 -1"
+        class="raycastable"
+        @click="videoClicked"
+      />
+      <a-entity
+        laser-controls="hand: left"
+        raycaster="objects: .raycastable"
+      />
+      <a-entity
+        laser-controls="hand: right"
+        raycaster="objects: .raycastable"
       />
     </a-scene>
     <!-- <QBtn
@@ -128,8 +140,14 @@ watch(() => soupStore.roomState?.mainProducer, (newMainProducer, oldMainProducer
   immediate: true,
 });
 
+peer.closeEvents.on('notifyCloseEvent', (payload) => {
+  if (payload.objectType === 'consumer' && payload.objectId === screenShareConsumerId.value) {
+    screenShareConsumerId.value = undefined;
+  }
+});
 // TODO: This will not protect from clients "stealing" the broadcasting of the screenshare
 let consumedScreenProducerId: string;
+const screenShareConsumerId = ref<string>();
 watch(() => soupStore.roomState?.clients, async (newClients, oldCLients) => {
   if (!newClients) return;
   for (const [clientId, client] of Object.entries(newClients)) {
@@ -137,10 +155,26 @@ watch(() => soupStore.roomState?.clients, async (newClients, oldCLients) => {
       if (producer.producerInfo) {
         if (producer.producerInfo.screenShare) {
           if (producer.producerId !== consumedScreenProducerId) {
+            consumedScreenProducerId = producer.producerId;
             console.log('screeeen share!!');
             if (!screenTag.value) return;
-            const { track } = await peer.consume(producer.producerId);
-            screenTag.value.srcObject = new MediaStream([track]);
+            const { track, consumerId } = await peer.consume(producer.producerId);
+            // const trackSettings = track.getSettings();
+            // console.log('screenshare track settings:', trackSettings);
+            // const aspect = trackSettings.aspectRatio;
+            screenShareConsumerId.value = consumerId;
+            const videoShareElement = screenTag.value;
+            videoShareElement.srcObject = new MediaStream([track]);
+            // videoShareElement.onloadeddata((ev) => {
+            //   console.log(screenTag.value);
+            //   const aspect = screenTag.value.videoWidth / screenTag.value.videoHeight;
+            //   console.log('calculated aspect from videoTag dimensions:', aspect);
+            //   if (aspect) {
+            //     console.log('setting width for a-video to:', aspect);
+            //     const vVideo = document.querySelector('a-video');
+            //     vVideo.setAttribute('width', aspect);
+            //   }
+            // });
             await nextTick();
             initVideoSphere();
           }
@@ -202,6 +236,10 @@ async function consume (producerId: string) {
   //   await consume(rooms.value[currentRoomIndex]);
   // }
 })();
+
+function videoClicked (ev) {
+  console.log('video frame clicked!', ev);
+}
 
 async function initVideoSphere () {
   // const sceneEl = document.querySelector('a-scene');

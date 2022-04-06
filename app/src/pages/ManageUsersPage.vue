@@ -7,9 +7,7 @@
       style="max-width: 40rem;"
       class="q-ma-lg q-pa-sm"
     >
-      <QList
-        bordered
-      >
+      <QList>
         <QItemLabel
           header
         >
@@ -31,12 +29,8 @@
             <QItemSection>
               {{ role }}
             </QItemSection>
-            <QItemSection
-              side
-            >
-              <div
-                class="q-gutter-xs"
-              >
+            <QItemSection side>
+              <div class="q-gutter-xs">
                 <QBtn
                   flat
                   round
@@ -54,6 +48,40 @@
           </QItem>
           <QSeparator />
         </template>
+        <QItem>
+          <QItemSection>
+            <QInput
+              outlined
+              dense
+              label="användarnamn"
+              class="q-pr-md"
+            />
+          </QItemSection>
+          <QItemSection class="">
+            <QInput
+              outlined
+              dense
+              label="lösenord"
+              class="q-pr-md"
+            />
+          </QItemSection>
+          <QItemSection
+            side
+          >
+            <div class="two-icon-space" />
+          </QItemSection>
+        </QItem>
+        <QItem class="justify-end">
+          <QBtn
+            class="q-mt-md"
+            round
+            flat
+            icon="add"
+            @click="createUser"
+          >
+            <QTooltip>Skapa ny användare</QTooltip>
+          </QBtn>
+        </QItem>
       </QList>
     </QCard>
   </template>
@@ -74,7 +102,8 @@ const users = ref<Awaited<ReturnType<typeof getUsers>>>();
 
 const groupedUsers = computed(() => {
   if (!users.value) return [];
-  const byGathering = _.groupBy(users.value, (user) => {
+  const withoutSelf = users.value.filter(user => user.uuid !== userStore.userData?.uuid);
+  const byGathering = _.groupBy(withoutSelf, (user) => {
     if (!user.gathering?.name) return 'unassigned';
     return user.gathering.name;
   });
@@ -121,3 +150,9 @@ async function onDeleteUser (user: Exclude<(typeof users.value), undefined>[numb
 }
 
 </script>
+<style scoped lang="scss">
+.two-icon-space {
+  width: $space-base * 5.5;
+  background-color: $red-5;
+}
+</style>

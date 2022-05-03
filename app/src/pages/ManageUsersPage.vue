@@ -38,13 +38,15 @@
       @click="startCreatingGathering"
     />
     <QCard
-      v-for="gathering in allGatherings"
+      v-for="(gathering, idx) in allGatherings"
       :key="gathering.uuid"
       class=""
     >
       <QExpansionItem
         header-class="text-h5"
         :label="gathering.name"
+        :default-opened="idx === 0"
+        :expand-icon-class="{'hidden': !showGatheringPanel}"
       >
         <QList>
           <template

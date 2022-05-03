@@ -1,79 +1,52 @@
 <template>
-  <div class="row q-pa-lg q-col-gutter-lg">
-    <div
-      v-if="showGatheringPanel"
-      class="col-6"
-    >
-      <QCard>
-        <QList>
-          <QItemLabel header>
-            <div class="text-h5">
-              Gatherings
-            </div>
-          </QItemLabel>
-          <QItem
-            v-for="gathering in allGatherings"
-            :key="gathering.uuid"
-          >
-            <QItemSection>
-              {{ gathering.name }}
-            </QItemSection>
-          </QItem>
-          <QItem class="justify-end">
-            <QBtn
-              flat
-              icon="add"
-              round
-              @click="startCreatingGathering"
-            />
-          </QItem>
-        </QList>
-      </QCard>
-      <QDialog v-model="isAddingGathering">
-        <div>
-          <QCard
-            tag="form"
-            @submit.prevent="addGathering"
-          >
-            <QCardSection>
-              <QInput
-                outlined
-                label="gathering name"
-                v-model="gatheringName"
-              />
-            </QCardSection>
-            <QCardActions align="right">
-              <QBtn
-                v-close-popup
-                color="negative"
-                label="avbryt"
-              />
-              <QBtn
-                type="submit"
-                color="primary"
-                label="skapa gathering"
-              />
-            </QCardActions>
-          </QCard>
-        </div>
-      </QDialog>
-    </div>
-    <div
-      class="col-6 q-gutter-y-md"
-    >
+  <QDialog v-model="isAddingGathering">
+    <div>
       <QCard
-        v-for="gathering in allGatherings"
-        :key="gathering.uuid"
-        class=""
+        tag="form"
+        @submit.prevent="addGathering"
+      >
+        <QCardSection>
+          <QInput
+            outlined
+            label="gathering name"
+            v-model="gatheringName"
+          />
+        </QCardSection>
+        <QCardActions align="right">
+          <QBtn
+            v-close-popup
+            color="negative"
+            label="avbryt"
+          />
+          <QBtn
+            type="submit"
+            color="primary"
+            label="skapa gathering"
+          />
+        </QCardActions>
+      </QCard>
+    </div>
+  </QDialog>
+  <div
+    class="q-pa-lg q-gutter-y-md"
+    style="max-width: 70rem;"
+  >
+    <QBtn
+      v-if="showGatheringPanel"
+      label="skapa nytt gathering"
+      color="primary"
+      @click="startCreatingGathering"
+    />
+    <QCard
+      v-for="gathering in allGatherings"
+      :key="gathering.uuid"
+      class=""
+    >
+      <QExpansionItem
+        header-class="text-h5"
+        :label="gathering.name"
       >
         <QList>
-          <QItemLabel
-            header
-          >
-            <div class="text-h5">
-              {{ gathering.name }}
-            </div>
-          </QItemLabel>
           <template
             v-for="(loopedUsers, roleInGroup) in groupedUsers[gathering.name]"
             :key="roleInGroup"
@@ -112,7 +85,6 @@
             class="justify-end"
           >
             <QBtn
-              class="q-mt-md"
               round
               flat
               icon="add"
@@ -121,72 +93,72 @@
               <QTooltip>Skapa ny användare</QTooltip>
             </QBtn>
           </QItem>
-          <QDialog v-model="addingOrEditingUser">
-            <div>
-              <QCard
-                tag="form"
-                @submit.prevent="uuid?editUser():addUser()"
-              >
-                <QCardSection>
-                  <div class="text-h5">
-                    {{ !uuid? `Lägg till användare till ${ usersGatheringName }`:`Redigera användare` }}
-                  </div>
-                </QCardSection>
-                <QCardSection>
-                  <QInput
-                    outlined
-                    dense
-                    v-model="username"
-                    label="användarnamn"
-                  />
-                </QCardSection>
-                <QCardSection class="">
-                  <QInput
-                    outlined
-                    dense
-                    v-model="password"
-                    label="lösenord"
-                  />
-                </QCardSection>
-                <QCardSection>
-                  <QSelect
-                    outlined
-                    v-model="role"
-                    :options="allowedRoles"
-                    label="role"
-                  />
-                </QCardSection>
-                <QCardSection v-if="showGatheringPanel && uuid">
-                  <QSelect
-                    outlined
-                    v-model="usersGatheringName"
-                    :options="gatheringSelectOptions"
-                    label="gathering"
-                  />
-                </QCardSection>
-                <QCardActions
-                  class="q-pa-md"
-                  align="right"
-                >
-                  <QBtn
-                    label="avbryt"
-                    color="negative"
-                    v-close-popup
-                  />
-                  <QBtn
-                    :disable="(!uuid && (!password || !username)) "
-                    type="submit"
-                    :label="uuid?'uppdatera användare':'skapa användare'"
-                    color="primary"
-                  />
-                </QCardActions>
-              </QCard>
-            </div>
-          </QDialog>
         </QList>
+      </QExpansionItem>
+    </QCard>
+  </div>
+  <QDialog v-model="addingOrEditingUser">
+    <div>
+      <QCard
+        tag="form"
+        @submit.prevent="uuid?editUser():addUser()"
+      >
+        <QCardSection>
+          <div class="text-h5">
+            {{ !uuid? `Lägg till användare till ${ usersGatheringName }`:`Redigera användare` }}
+          </div>
+        </QCardSection>
+        <QCardSection>
+          <QInput
+            outlined
+            dense
+            v-model="username"
+            label="användarnamn"
+          />
+        </QCardSection>
+        <QCardSection class="">
+          <QInput
+            outlined
+            dense
+            v-model="password"
+            label="lösenord"
+          />
+        </QCardSection>
+        <QCardSection>
+          <QSelect
+            outlined
+            v-model="role"
+            :options="allowedRoles"
+            label="role"
+          />
+        </QCardSection>
+        <QCardSection v-if="showGatheringPanel && uuid">
+          <QSelect
+            outlined
+            v-model="usersGatheringName"
+            :options="gatheringSelectOptions"
+            label="gathering"
+          />
+        </QCardSection>
+        <QCardActions
+          class="q-pa-md"
+          align="right"
+        >
+          <QBtn
+            label="avbryt"
+            color="negative"
+            v-close-popup
+          />
+          <QBtn
+            :disable="(!uuid && (!password || !username)) "
+            type="submit"
+            :label="uuid?'uppdatera användare':'skapa användare'"
+            color="primary"
+          />
+        </QCardActions>
       </QCard>
     </div>
-  </div>
+  </QDialog>
 </template>
 
 <script setup lang="ts">

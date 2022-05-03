@@ -44,7 +44,7 @@ async function loginUser (creds: Creds) {
         redirect = { name: 'controlStart' };
         break;
       case 'admin':
-        redirect = { name: 'camera' };
+        redirect = { name: 'controlStart' };
         break;
     }
   }

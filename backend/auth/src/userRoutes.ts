@@ -137,6 +137,111 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
 
 };
 
+interface UpdateUserRequest extends ExpressReq {
+  body: {
+    uuid: string,
+    role?: UserRole,
+    gathering?: string,
+    username?: string,
+    password?: string,
+  }
+}
+const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
+  const userData = req.session.user;
+  const payload = req.body;
+  let gathering = undefined;
+  try {
+    if (!userData || !userData.role) {
+      throw new Error('no userdata/session present. You are not authorized / logged in!');
+    }
+  } catch (e) {
+    const msg = extractMessageFromCatch(e, 'provided data is no good!');
+    res.status(400).send(msg);
+    return;
+  }
+  try {
+    // Who is making this request!!! Thats stored in userData
+    if(payload.role){
+      const clientSecurityLevel = securityLevels.indexOf(userData.role);
+      const createdUserSecurityLevel = securityLevels.indexOf(payload.role);
+      if (clientSecurityLevel < createdUserSecurityLevel) {
+        throw new Error('cant assign a higher security level than yourself!! STUPID!!');
+      }
+    }
+    switch (userData.role) {
+      case 'guest':
+      case 'client':
+      case 'sender':
+        res.status(403).send('fuck you. You may not edit users! You are not cool enough!');
+        return;
+      case 'gatheringEditor':
+        if (payload.gathering) {
+          throw new Error('gatheringEditors cant change gathering for existing users');
+        }
+        break;
+      case 'admin': {
+        gathering = payload.gathering;
+        break;
+      }
+      default:
+        throw new Error('no role set for requesting client! We wont allow any such thing from you sir!');
+    }
+  } catch (e) {
+    const msg = extractMessageFromCatch(e, 'failed to create user!');
+    res.status(403).send(msg);
+    return;
+  }
+  let hashedPassword = undefined;
+  if(payload.password){
+    hashedPassword = await bcrypt.hash(payload.password, 10);
+  }
+  const userUpdate: Prisma.UserUpdateArgs['data'] = {
+    username: payload.username,
+    password: hashedPassword,
+    role: {
+      connect: {
+        role: payload.role
+      }
+    },
+    gathering: {
+      connect: {
+        name: gathering,
+      }
+    }
+  };
+
+  try {
+    const result = await prisma.user.update({
+      where: {
+        uuid: payload.uuid
+      },
+      data: userUpdate,
+      include: {
+        role: true,
+        gathering: true,
+        rooms: true,
+      }
+    });
+    // We dont wan to send the password back!!!
+    const resultWithoutPassword = exclude(result, 'password');
+    res.status(201).send(resultWithoutPassword);
+    return;
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      if (e.code === 'P2002') {
+        res.status(409).send({ message: 'username already taken maddafakka!' });
+        return;
+      } else {
+        console.error('prisma client error when creating user');
+        console.error(e);
+        res.status(501).send(e.message);
+        return;
+      }
+    }
+    console.warn(e);
+  }
+};
+
 interface DeleteUserRequest extends ExpressReq {
   body: {
     uuid: string
@@ -346,6 +451,7 @@ export default function createUserRouter() {
   userRouter.get('/logout', logoutUser);
 
   userRouter.post('/create', validateUserSession, createUser);
+  userRouter.post('/update', validateUserSession, updateUser);
   userRouter.post('/delete-user', validateUserSession, deleteUser);
   userRouter.post('/get-users', validateUserSession, getUsers);
 

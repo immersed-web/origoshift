@@ -1,5 +1,5 @@
 // import axios, { AxiosInstance } from 'axios';
-import { UserData } from 'app/../packages/shared-types/CustomTypes';
+import { NonGuestUserRole, UserData, UserRole } from 'shared-types/CustomTypes';
 import { AxiosResponse } from 'axios';
 import { api } from 'boot/axios';
 
@@ -40,6 +40,8 @@ const userWithIncludes = Prisma.validator<Prisma.UserArgs>()({
 // TODO: Dont declare these include types redundantly all over the code base!
 type UserWithIncludes = Prisma.UserGetPayload<typeof userWithIncludes>;
 export const deleteUser = (uuid: string) => api.post('delete-user', { uuid });
+export const createUser = (payload: {username: string, password: string, gathering?: string, role: NonGuestUserRole}) => handleResponse<Omit<UserWithIncludes, 'password'>>(() => api.post('create', payload));
+export const updateUser = (payload: {uuid: string, username?: string, password?: string, gathering?: string, role?: NonGuestUserRole}) => handleResponse<Omit<UserWithIncludes, 'password'>>(() => api.post('update', payload));
 export const getUsers = (payload: Record<string, unknown>) => handleResponse<Omit<UserWithIncludes, 'password'>[]>(() => api.post('get-users', payload));
 export const getGathering = (payload: Record<string, unknown>) => handleResponse<GatheringWithRoomsAndUsers>(() => api.post('gathering', payload));
 export const getAllGatherings = () => handleResponse<GatheringWithRoomsAndUsers[]>(() => api.get('allgatherings'));

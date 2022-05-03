@@ -47,6 +47,7 @@
         :label="gathering.name"
         :default-opened="idx === 0"
         :expand-icon-class="{'hidden': !showGatheringPanel}"
+        :disable="!showGatheringPanel"
       >
         <QList>
           <template

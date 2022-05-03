@@ -39,7 +39,7 @@ const router = useRouter();
   persistedStore.$reset();
   console.log('resetting userStore!');
   userStore.$reset();
-  await Promise.all([logout(), Timeout.set(1000)]);
+  await Promise.all([logout(), Timeout.set(600)]);
   router.replace('login');
 })();
 </script>

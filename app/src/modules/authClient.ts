@@ -43,8 +43,9 @@ export const deleteUser = (uuid: string) => api.post('delete-user', { uuid });
 export const createUser = (payload: {username: string, password: string, gathering?: string, role: NonGuestUserRole}) => handleResponse<Omit<UserWithIncludes, 'password'>>(() => api.post('create', payload));
 export const updateUser = (payload: {uuid: string, username?: string, password?: string, gathering?: string, role?: NonGuestUserRole}) => handleResponse<Omit<UserWithIncludes, 'password'>>(() => api.post('update', payload));
 export const getUsers = (payload: Record<string, unknown>) => handleResponse<Omit<UserWithIncludes, 'password'>[]>(() => api.post('get-users', payload));
-export const getGathering = (payload: Record<string, unknown>) => handleResponse<GatheringWithRoomsAndUsers>(() => api.post('gathering', payload));
+export const getGathering = (payload: {gatheringName?: string}) => handleResponse<GatheringWithRoomsAndUsers>(() => api.post('gathering', payload));
 export const getAllGatherings = () => handleResponse<GatheringWithRoomsAndUsers[]>(() => api.get('allgatherings'));
+export const createGathering = (payload: {gatheringName: string}) => handleResponse<GatheringWithRoomsAndUsers>(() => api.post('create-gathering', payload));
 
 export const getMe = () => handleResponse<UserData>(() => api.get('/me'));
 export const getJwt = () => handleResponse<string>(() => api.get('/jwt'));

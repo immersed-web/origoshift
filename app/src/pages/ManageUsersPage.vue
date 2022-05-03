@@ -1,136 +1,240 @@
 <template>
-  <template
-    v-for="(roles, userGroupGatheringName) in groupedUsers"
-    :key="userGroupGatheringName"
-  >
-    <QCard
-      style="max-width: 40rem;"
-      class="q-ma-lg q-pa-sm"
+  <div class="row q-pa-lg q-col-gutter-lg">
+    <div
+      v-if="showGatheringPanel"
+      class="col-6"
     >
-      <QList>
-        <QItemLabel
-          header
-        >
-          <div class="text-h5">
-            {{ userGroupGatheringName }}
-          </div>
-        </QItemLabel>
-        <template
-          v-for="(loopedUsers, roleInGroup) in roles"
-          :key="roleInGroup"
-        >
+      <QCard>
+        <QList>
+          <QItemLabel header>
+            <div class="text-h5">
+              Gatherings
+            </div>
+          </QItemLabel>
           <QItem
-            v-for="user in loopedUsers"
-            :key="user.username"
+            v-for="gathering in allGatherings"
+            :key="gathering.uuid"
           >
             <QItemSection>
-              {{ user.username }}
-            </QItemSection>
-            <QItemSection>
-              {{ roleInGroup }}
-            </QItemSection>
-            <QItemSection side>
-              <div class="q-gutter-xs">
-                <QBtn
-                  flat
-                  round
-                  icon="edit"
-                  @click="startEditingUser(user)"
-                />
-                <QBtn
-                  flat
-                  round
-                  color="negative"
-                  icon="delete"
-                  @click="onDeleteUser(user)"
-                />
-              </div>
+              {{ gathering.name }}
             </QItemSection>
           </QItem>
-        </template>
-        <QSeparator />
-        <QItem
-          class="justify-end"
-        >
-          <QBtn
-            class="q-mt-md"
-            round
-            flat
-            icon="add"
-            @click="startAddingUser(userGroupGatheringName as string)"
+          <QItem class="justify-end">
+            <QBtn
+              flat
+              icon="add"
+              round
+              @click="startCreatingGathering"
+            />
+          </QItem>
+        </QList>
+      </QCard>
+      <QDialog v-model="isAddingGathering">
+        <div>
+          <QCard
+            tag="form"
+            @submit.prevent="addGathering"
           >
-            <QTooltip>Skapa ny användare</QTooltip>
-          </QBtn>
-        </QItem>
-        <QDialog v-model="addingOrEditingUser">
-          <div>
-            <QCard
-              tag="form"
-              @submit.prevent="uuid?editUser():addUser()"
+            <QCardSection>
+              <QInput
+                outlined
+                label="gathering name"
+                v-model="gatheringName"
+              />
+            </QCardSection>
+            <QCardActions align="right">
+              <QBtn
+                v-close-popup
+                color="negative"
+                label="avbryt"
+              />
+              <QBtn
+                type="submit"
+                color="primary"
+                label="skapa gathering"
+              />
+            </QCardActions>
+          </QCard>
+        </div>
+      </QDialog>
+    </div>
+    <div
+      class="col-6 q-gutter-y-md"
+    >
+      <QCard
+        v-for="gathering in allGatherings"
+        :key="gathering.uuid"
+        class=""
+      >
+        <QList>
+          <QItemLabel
+            header
+          >
+            <div class="text-h5">
+              {{ gathering.name }}
+            </div>
+          </QItemLabel>
+          <template
+            v-for="(loopedUsers, roleInGroup) in groupedUsers[gathering.name]"
+            :key="roleInGroup"
+          >
+            <QItem
+              v-for="user in loopedUsers"
+              :key="user.username"
             >
-              <QCardSection>
-                <div class="text-h5">
-                  {{ !uuid? `Lägg till användare till ${ gatheringName }`:`Redigera användare` }}
+              <QItemSection>
+                {{ user.username }}
+              </QItemSection>
+              <QItemSection>
+                {{ roleInGroup }}
+              </QItemSection>
+              <QItemSection side>
+                <div class="q-gutter-xs">
+                  <QBtn
+                    flat
+                    round
+                    icon="edit"
+                    @click="startEditingUser(user)"
+                  />
+                  <QBtn
+                    flat
+                    round
+                    color="negative"
+                    icon="delete"
+                    @click="onDeleteUser(user)"
+                  />
                 </div>
-              </QCardSection>
-              <QCardSection>
-                <QInput
-                  outlined
-                  dense
-                  v-model="username"
-                  label="användarnamn"
-                />
-              </QCardSection>
-              <QCardSection class="">
-                <QInput
-                  outlined
-                  dense
-                  v-model="password"
-                  label="lösenord"
-                />
-              </QCardSection>
-              <QCardSection>
-                <QSelect
-                  outlined
-                  v-model="role"
-                  :options="allowedRoles"
-                  label="role"
-                />
-              </QCardSection>
-              <QCardActions
-                class="q-pa-md"
-                align="right"
+              </QItemSection>
+            </QItem>
+          </template>
+          <QSeparator />
+          <QItem
+            class="justify-end"
+          >
+            <QBtn
+              class="q-mt-md"
+              round
+              flat
+              icon="add"
+              @click="startAddingUser(userGroupGatheringName as string)"
+            >
+              <QTooltip>Skapa ny användare</QTooltip>
+            </QBtn>
+          </QItem>
+          <QDialog v-model="addingOrEditingUser">
+            <div>
+              <QCard
+                tag="form"
+                @submit.prevent="uuid?editUser():addUser()"
               >
-                <QBtn
-                  label="avbryt"
-                  color="negative"
-                  v-close-popup
-                />
-                <QBtn
-                  type="submit"
-                  :label="uuid?'uppdatera användare':'skapa användare'"
-                  color="primary"
-                />
-              </QCardActions>
-            </QCard>
-          </div>
-        </QDialog>
-      </QList>
-    </QCard>
-  </template>
+                <QCardSection>
+                  <div class="text-h5">
+                    {{ !uuid? `Lägg till användare till ${ usersGatheringName }`:`Redigera användare` }}
+                  </div>
+                </QCardSection>
+                <QCardSection>
+                  <QInput
+                    outlined
+                    dense
+                    v-model="username"
+                    label="användarnamn"
+                  />
+                </QCardSection>
+                <QCardSection class="">
+                  <QInput
+                    outlined
+                    dense
+                    v-model="password"
+                    label="lösenord"
+                  />
+                </QCardSection>
+                <QCardSection>
+                  <QSelect
+                    outlined
+                    v-model="role"
+                    :options="allowedRoles"
+                    label="role"
+                  />
+                </QCardSection>
+                <QCardSection v-if="showGatheringPanel && uuid">
+                  <QSelect
+                    outlined
+                    v-model="usersGatheringName"
+                    :options="gatheringSelectOptions"
+                    label="gathering"
+                  />
+                </QCardSection>
+                <QCardActions
+                  class="q-pa-md"
+                  align="right"
+                >
+                  <QBtn
+                    label="avbryt"
+                    color="negative"
+                    v-close-popup
+                  />
+                  <QBtn
+                    type="submit"
+                    :label="uuid?'uppdatera användare':'skapa användare'"
+                    color="primary"
+                  />
+                </QCardActions>
+              </QCard>
+            </div>
+          </QDialog>
+        </QList>
+      </QCard>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 
 import { computed, ref } from 'vue';
+import { throwIfUnauthorized } from 'shared-modules/authUtils';
 import { securityLevels, NonGuestUserRole } from 'shared-types/CustomTypes';
-import { deleteUser, getUsers, createUser, updateUser } from 'src/modules/authClient';
+import { deleteUser, getUsers, createUser, updateUser, getAllGatherings, createGathering, getGathering } from 'src/modules/authClient';
 import { useUserStore } from 'src/stores/userStore';
 import _ from 'lodash';
 
 import { asyncDialog } from 'src/modules/utilFns';
 
 const userStore = useUserStore();
+
+const showGatheringPanel = computed(() => {
+  try {
+    throwIfUnauthorized(userStore.userData?.role, 'admin');
+    return true;
+  } catch (e) {
+    return false;
+  }
+});
+const allGatherings = ref<Awaited<ReturnType<typeof getAllGatherings>>>();
+const gatheringSelectOptions = computed(() => {
+  return allGatherings.value?.map((gat) => {
+    return gat.name;
+  });
+});
+const gatheringName = ref<string>();
+const isAddingGathering = ref(false);
+
+function startCreatingGathering () {
+  gatheringName.value = undefined;
+  isAddingGathering.value = true;
+}
+
+// TODO: handle validation errors
+async function addGathering () {
+  if (!gatheringName.value) {
+    console.warn('no gatheringName set');
+    return;
+  }
+  const createdGathering = await createGathering({
+    gatheringName: gatheringName.value,
+  });
+  allGatherings.value?.push(createdGathering);
+  isAddingGathering.value = false;
+}
 
 const users = ref<Awaited<ReturnType<typeof getUsers>>>();
 
@@ -165,6 +269,7 @@ const groupedUsers = computed(() => {
   return byGatheringAndRole;
 });
 
+// INIT HERE
 (async () => {
   const payload : Record<string, unknown> = {};
   if (userStore.userData?.gathering) {
@@ -172,6 +277,17 @@ const groupedUsers = computed(() => {
   }
   const response = await getUsers(payload);
   users.value = response;
+
+  if (showGatheringPanel.value) {
+    const gatherings = await getAllGatherings();
+    // console.log(gatherings);
+    allGatherings.value = gatherings;
+  } else {
+    const gathering = await getGathering({
+      gatheringName: userStore.userData?.gathering,
+    });
+    allGatherings.value = [gathering];
+  }
 })();
 
 async function onDeleteUser (user: Exclude<(typeof users.value), undefined>[number]) {
@@ -198,7 +314,7 @@ async function onDeleteUser (user: Exclude<(typeof users.value), undefined>[numb
 const addingOrEditingUser = ref<boolean>();
 
 // const editingUser = ref<boolean>(false);
-const gatheringName = ref<string>();
+const usersGatheringName = ref<string>();
 const username = ref<string>();
 const password = ref<string>();
 const role = ref<NonGuestUserRole>();
@@ -225,7 +341,7 @@ function startAddingUser (_gatheringName: string) {
 }
 function startDialog (_gatheringName: string) {
   addingOrEditingUser.value = true;
-  gatheringName.value = _gatheringName;
+  usersGatheringName.value = _gatheringName;
 }
 
 async function addUser () {
@@ -236,7 +352,7 @@ async function addUser () {
     username: username.value,
     password: password.value,
     role: role.value,
-    gathering: gatheringName.value,
+    gathering: usersGatheringName.value,
   });
   users.value?.push(createdUser);
   addingOrEditingUser.value = false;
@@ -251,7 +367,7 @@ async function editUser () {
     role: role.value,
     username: username.value,
     password: password.value ? password.value : undefined,
-    gathering: gatheringName.value,
+    gathering: usersGatheringName.value,
 
   });
   console.log(updatedUser);

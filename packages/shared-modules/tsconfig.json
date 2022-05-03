@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   // "files": ["augmentedRequest.d.ts"],
+  "exclude": ["./dist"],
   "compilerOptions": {
     "target": "ES5",
     "module": "CommonJS",

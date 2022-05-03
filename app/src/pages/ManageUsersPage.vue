@@ -116,7 +116,7 @@
               round
               flat
               icon="add"
-              @click="startAddingUser(userGroupGatheringName as string)"
+              @click="startAddingUser(gathering.name)"
             >
               <QTooltip>Skapa ny användare</QTooltip>
             </QBtn>
@@ -174,6 +174,7 @@
                     v-close-popup
                   />
                   <QBtn
+                    :disable="(!uuid && (!password || !username)) "
                     type="submit"
                     :label="uuid?'uppdatera användare':'skapa användare'"
                     color="primary"
@@ -362,14 +363,18 @@ async function editUser () {
   if (!uuid.value) {
     return;
   }
-  const updatedUser = await updateUser({
+
+  const payload: Parameters<typeof updateUser>[0] = {
     uuid: uuid.value,
     role: role.value,
     username: username.value,
-    password: password.value ? password.value : undefined,
-    gathering: usersGatheringName.value,
+    password: password.value ? password.value : undefined, // This is to make sure empty string becomes undefined in sent request
+  };
 
-  });
+  if (showGatheringPanel.value) {
+    payload.gathering = usersGatheringName.value;
+  }
+  const updatedUser = await updateUser(payload);
   console.log(updatedUser);
   const idx = _.findIndex(users.value, { uuid: updatedUser.uuid });
   users.value?.splice(idx, 1, updatedUser);

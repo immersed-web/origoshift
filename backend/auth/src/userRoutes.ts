@@ -203,12 +203,20 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
         role: payload.role
       }
     },
-    gathering: {
+    // gathering: {
+    //   connect: {
+    //     name: gathering,
+    //   }
+    // }
+  };
+
+  if(gathering){
+    userUpdate['gathering'] = {
       connect: {
         name: gathering,
       }
-    }
-  };
+    };
+  }
 
   try {
     const result = await prisma.user.update({

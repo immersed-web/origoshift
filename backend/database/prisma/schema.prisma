@@ -17,12 +17,12 @@ model Session {
   expiresAt DateTime
 }
 
-model Profile {
-  id     Int    @id @default(autoincrement())
-  // uuid   String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user   User   @relation(fields: [userId], references: [uuid], onDelete: Cascade)
-  userId String @unique @db.Uuid
-}
+// model Profile {
+//   id     Int    @id @default(autoincrement())
+//   // uuid   String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   user   User   @relation(fields: [userId], references: [uuid], onDelete: Cascade)
+//   userId String @unique @db.Uuid
+// }
 
 model Gathering {
   uuid  String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -54,7 +54,7 @@ model User {
   password    String
   role        Role?      @relation(fields: [roleId], references: [id])
   roleId      Int?
-  profile     Profile?
+  // profile     Profile?
   gathering   Gathering? @relation(fields: [gatheringId], references: [uuid], onDelete: Cascade)
   gatheringId String?    @db.Uuid
 }

@@ -3,9 +3,9 @@ import bcrypt from 'bcrypt';
 // const { PrismaClient } = require('@prisma/client');
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
-import { UserRole } from 'shared-types/CustomTypes'
+import { NonGuestUserRole } from 'shared-types/CustomTypes'
 
-let role: Exclude<UserRole, 'guest'> = 'admin';
+let role: NonGuestUserRole = 'admin';
 
 async function seed() {
   const hashedPassword = await bcrypt.hash('password', 10);
@@ -24,6 +24,11 @@ async function seed() {
     }
   })
 
+  const testSkolan2 = await prisma.gathering.create({
+    data: {
+      name: 'TestSkolan2',
+    }
+  })
 
   await prisma.user.create({
     data:
@@ -79,7 +84,7 @@ async function seed() {
       },
       gathering: {
         connect: {
-          name: 'TestSkolan'
+          name: testSkolan.name
         }
       }
     }
@@ -101,16 +106,16 @@ async function seed() {
       },
       gathering: {
         connect: {
-          name: 'TestSkolan'
+          name: testSkolan.name
         }
       }
     }
   })
 
-
+  role = 'gatheringEditor';
   await prisma.user.create({
     data: {
-      username: 'mrClient 3',
+      username: 'mrEditor2',
       password: hashedPassword,
       role: {
         connectOrCreate: {
@@ -124,19 +129,9 @@ async function seed() {
       },
       gathering: {
         connect: {
-          name: 'TestSkolan'
+          name: testSkolan2.name
         }
       },
-      rooms: {
-        connect: [
-          {
-            name_gatheringId: {
-              gatheringId: testSkolan.uuid,
-              name: 'Klassrum 1'
-            }
-          }
-        ]
-      }
     }
   })
 }

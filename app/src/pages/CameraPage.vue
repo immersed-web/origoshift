@@ -13,7 +13,12 @@
         <DevicePicker
           style="min-width: 15rem;"
           media-type="videoinput"
-          @deviceselected="requestMedia"
+          @deviceselected="onVideoPicked"
+        />
+        <DevicePicker
+          style="min-width: 15rem;"
+          media-type="audioinput"
+          @deviceselected="onAudioPicked"
         />
         <div
           class="relative-position"
@@ -115,6 +120,13 @@ const persistedStore = usePersistedStore();
     }
     await enterGatheringAndRoom(gathering, persistedStore.roomName);
     $q.loading.hide();
+
+    // This is a dirty and filthy hack to force audio and video permissions.
+    // In the future we'll be able to use the much nicer permissions API, but thats not rolled out to browsers yet
+    const throwAwayStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
   } catch (e) {
     const msg = extractMessageFromCatch(e, 'failed to initialize camerapage!');
     $q.notify({
@@ -181,7 +193,7 @@ async function pickRoom (rooms: Rooms): Promise<string> {
 }
 
 let videoStream: MediaStream;
-async function requestMedia (deviceInfo: MediaDeviceInfo) {
+async function onVideoPicked (deviceInfo: MediaDeviceInfo) {
   pickedVideoDevice.value = deviceInfo;
   persistedStore.deviceId = deviceInfo.deviceId;
   // await nextTick();
@@ -199,6 +211,10 @@ async function requestMedia (deviceInfo: MediaDeviceInfo) {
   setCanvasPropsFromVideoInfo();
 
   handleVideoStreamChanged();
+}
+
+function onAudioPicked (deviceInfo: MediaDeviceInfo) {
+  console.log('audio picked: ', deviceInfo);
 }
 
 let producerId: string;

@@ -15,11 +15,10 @@ export function exclude<User, Key extends keyof User>(
 }
 
 type Includes = {
-  [Property in keyof Pick<Required<Prisma.UserInclude>, 'gathering' | 'role' | 'rooms'>]: true
+  [Property in keyof Pick<Required<Prisma.UserInclude>, 'gathering' | 'role'>]: true
 }
 const includes: Includes = {
   gathering: true,
-  rooms: true,
   role: true,
 };
 
@@ -40,18 +39,19 @@ export const users = Object.assign(prisma.user, {
 
     // const allowedActions = user.role?.role == 'admin' ? adminActions : clientActions;
 
-    const rooms = user.rooms.map(room => {
-      return room.name;
-    });
+    // const rooms = user.rooms.map(room => {
+    //   return room.name;
+    // });
 
-    return {
+    const userData: UserData = {
       username: user.username,
       role: user.role?.role as UserRole,
       uuid: user.uuid,
       gathering: user.gathering?.name,
-      allowedRooms: rooms,
+      // allowedRooms: rooms,
       // allowedActions: allowedActions,
     };
+    return userData;
   },
   
   async findUserAsUserData(query: Prisma.UserFindUniqueArgs): Promise<UserData> {

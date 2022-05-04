@@ -59,7 +59,7 @@ export interface UserData {
   username: string,
   role: UserRole,
   gathering?: '*' | string
-  allowedRooms?: '*' | string[]
+  // allowedRooms?: '*' | string[]
   // allowedActions: Array<AllowedAction>
 }
 

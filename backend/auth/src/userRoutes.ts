@@ -1,7 +1,5 @@
 import { RequestHandler, Router, Request as ExpressReq } from 'express';
 import bcrypt from 'bcrypt';
-// import session from 'express-session';
-// import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import prisma, { Prisma, users, exclude } from './prismaClient';
 import { createJwt } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
@@ -113,7 +111,6 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
       data: userCreate, include: {
         role: true,
         gathering: true,
-        rooms: true,
       }
     });
     // We dont wan to send the password back!!!
@@ -227,7 +224,6 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
       include: {
         role: true,
         gathering: true,
-        rooms: true,
       }
     });
     // We dont wan to send the password back!!!
@@ -341,16 +337,12 @@ const getUsers: RequestHandler = async (req: GetUsersRequest, res) => {
     where: {},
     include: {
       gathering: true,
-      rooms: true,
       role: true,
     }
   };
 
   if(payload.gathering){
     userSelect.where['gathering'] = {name: payload.gathering};
-  }
-  if(payload.room){
-    userSelect.where['rooms'] = {some: {name: payload.room }};
   }
 
   const response = await users.findMany(userSelect);
@@ -363,7 +355,7 @@ const loginUser: RequestHandler = async (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   try {
-    const foundUser = await prisma.user.findUnique({ where: { username: username }, include: { role: true, rooms: true, gathering: true } });
+    const foundUser = await prisma.user.findUnique({ where: { username: username }, include: { role: true, gathering: true } });
     if (!foundUser) {
       throw new Error('no user with that username found!');
     }

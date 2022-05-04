@@ -20,7 +20,7 @@ model Session {
 model Profile {
   id     Int    @id @default(autoincrement())
   // uuid   String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user   User   @relation(fields: [userId], references: [uuid])
+  user   User   @relation(fields: [userId], references: [uuid], onDelete: Cascade)
   userId String @unique @db.Uuid
 }
 
@@ -34,9 +34,8 @@ model Gathering {
 model Room {
   uuid        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
-  gathering   Gathering @relation(fields: [gatheringId], references: [uuid])
+  gathering   Gathering @relation(fields: [gatheringId], references: [uuid], onDelete: Cascade)
   gatheringId String    @db.Uuid
-  users       User[]
 
   @@unique([name, gatheringId])
 }
@@ -56,7 +55,6 @@ model User {
   role        Role?      @relation(fields: [roleId], references: [id])
   roleId      Int?
   profile     Profile?
-  gathering   Gathering? @relation(fields: [gatheringId], references: [uuid])
+  gathering   Gathering? @relation(fields: [gatheringId], references: [uuid], onDelete: Cascade)
   gatheringId String?    @db.Uuid
-  rooms       Room[]
 }

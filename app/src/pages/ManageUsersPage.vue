@@ -43,11 +43,11 @@
       class=""
     >
       <QExpansionItem
-        header-class="text-h5"
-        :label="gathering.name"
         :default-opened="idx === 0"
         :expand-icon-class="{'hidden': !showGatheringPanel}"
         :disable="!showGatheringPanel"
+        header-class="text-h5"
+        :label="gathering.name"
       >
         <QList>
           <template
@@ -84,17 +84,26 @@
             </QItem>
           </template>
           <QSeparator />
-          <QItem
-            class="justify-end"
-          >
-            <QBtn
-              round
-              flat
-              icon="add"
-              @click="startAddingUser(gathering.name)"
-            >
-              <QTooltip>Skapa ny användare</QTooltip>
-            </QBtn>
+          <QItem>
+            <QItemSection>
+              <div>
+                <QBtn
+                  label="ta bort gathering"
+                  color="negative"
+                  @click="removeGathering(gathering.name)"
+                />
+              </div>
+            </QItemSection>
+            <QItemSection side>
+              <QBtn
+                round
+                flat
+                icon="add"
+                @click="startAddingUser(gathering.name)"
+              >
+                <QTooltip>Skapa ny användare</QTooltip>
+              </QBtn>
+            </QItemSection>
           </QItem>
         </QList>
       </QExpansionItem>
@@ -169,7 +178,7 @@
 import { computed, ref } from 'vue';
 import { throwIfUnauthorized } from 'shared-modules/authUtils';
 import { securityLevels, NonGuestUserRole } from 'shared-types/CustomTypes';
-import { deleteUser, getUsers, createUser, updateUser, getAllGatherings, createGathering, getGathering } from 'src/modules/authClient';
+import { deleteUser, getUsers, createUser, updateUser, getAllGatherings, createGathering, getGathering, deleteGathering } from 'src/modules/authClient';
 import { useUserStore } from 'src/stores/userStore';
 import _ from 'lodash';
 
@@ -210,6 +219,24 @@ async function addGathering () {
   });
   allGatherings.value?.push(createdGathering);
   isAddingGathering.value = false;
+}
+
+async function removeGathering (gatheringName: string) {
+  const result = await asyncDialog({
+    message: 'Säker på att du vill ta bort detta gathering? Alla associerade användare kommer också bli borttagna.',
+    title: `Bekräfta borttagning av ${gatheringName}`,
+    cancel: { label: 'Avbryt', color: 'negative' },
+    ok: { label: 'Ta bort', color: 'primary' },
+  });
+  const deletedGathering = await deleteGathering({ gatheringName });
+  const idxOfDeletedGathering = allGatherings.value?.findIndex((gath) => {
+    return gath.uuid === deletedGathering.uuid;
+  });
+  if (idxOfDeletedGathering === undefined) {
+    console.warn('didnt find the deleted gathering in clientside list... Weird!');
+    return;
+  }
+  allGatherings.value?.splice(idxOfDeletedGathering, 1);
 }
 
 const users = ref<Awaited<ReturnType<typeof getUsers>>>();
@@ -287,7 +314,7 @@ async function onDeleteUser (user: Exclude<(typeof users.value), undefined>[numb
   }
 }
 
-const addingOrEditingUser = ref<boolean>();
+const addingOrEditingUser = ref<boolean>(false);
 
 // const editingUser = ref<boolean>(false);
 const usersGatheringName = ref<string>();

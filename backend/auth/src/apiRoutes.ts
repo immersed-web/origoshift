@@ -99,12 +99,33 @@ const createGathering: RequestHandler = async (req, res) => {
   }
 };
 
+const deleteGathering : RequestHandler = async (req, res) => {
+  const userData = req.session.user;
+  const payload = req.body;
+  try {
+    throwIfUnauthorized(userData?.role, 'admin');
+    if(!payload.gatheringName) {
+      throw new Error('no gatheringName provided!');
+    }
+    const deleteResult = await prisma.gathering.delete({
+      where: {
+        name: payload.gatheringName
+      }
+    });
+    res.send(deleteResult);
+  } catch (e) {
+    const msg = extractMessageFromCatch(e, 'failed to delete!');
+    res.status(400).send(msg);
+  }
+};
+
 export default function createApiRouter() {
   const apiRouter = Router();
 
 
   apiRouter.get('', index);
   apiRouter.post('/gathering', validateUserSession, getGathering);
+  apiRouter.post('/delete-gathering', validateUserSession, deleteGathering);
   apiRouter.get('/allgatherings', validateUserSession, allGatherings);
   apiRouter.post('/create-gathering', validateUserSession, createGathering);
   return apiRouter;

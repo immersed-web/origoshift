@@ -47,7 +47,7 @@
 
 <script setup lang="ts">
 import CensorControl from 'src/components/CensorControl.vue';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import DevicePicker from 'src/components/DevicePicker.vue';
 import usePeerClient from 'src/composables/usePeerClient';
@@ -196,12 +196,16 @@ let videoStream: MediaStream;
 async function onVideoPicked (deviceInfo: MediaDeviceInfo) {
   pickedVideoDevice.value = deviceInfo;
   persistedStore.deviceId = deviceInfo.deviceId;
-  // await nextTick();
   if (!videoTag.value) {
     console.log('template ref not available');
     return;
   }
-  videoStream = await peer.requestMedia(deviceInfo.deviceId);
+  // videoStream = await peer.requestMedia(deviceInfo.deviceId);
+  videoStream = await navigator.mediaDevices.getUserMedia({
+    video: {
+      deviceId: deviceInfo.deviceId,
+    },
+  });
   const videoSettings = videoStream.getVideoTracks()[0].getSettings();
   if (!videoSettings) throw new Error('couldnt get settings from videotrack!!!');
   const { width, height, frameRate, aspectRatio } = videoSettings;
@@ -213,11 +217,40 @@ async function onVideoPicked (deviceInfo: MediaDeviceInfo) {
   handleVideoStreamChanged();
 }
 
-function onAudioPicked (deviceInfo: MediaDeviceInfo) {
+const audioTrack = ref<MediaStreamTrack>();
+let audioStream: MediaStream;
+async function onAudioPicked (deviceInfo: MediaDeviceInfo) {
   console.log('audio picked: ', deviceInfo);
+  audioStream = await navigator.mediaDevices.getUserMedia({
+    audio: {
+      deviceId: deviceInfo.deviceId,
+    },
+  });
+  const audioTracks = audioStream.getAudioTracks();
+  console.log('got usermedia audiotracks:', audioTracks);
+  audioTrack.value = audioTracks[0];
 }
 
-let producerId: string;
+let audioProducerId: string;
+watch(audioTrack, async (newAudioTrack, prevAudioTrack) => {
+  console.log('audioTrack watch triggered:', newAudioTrack, prevAudioTrack);
+  // Was first track?
+  if (!prevAudioTrack && newAudioTrack) {
+    audioProducerId = await peer.produce(newAudioTrack);
+    if (!soupStore.clientState?.roomId || !soupStore.clientId) {
+      throw new Error('no roomid. cant assign producer to room');
+    }
+    peer.assignMainProducerToRoom(soupStore.clientId, audioProducerId, soupStore.clientState.roomId, 'audio');
+  } else if (prevAudioTrack && newAudioTrack) {
+    prevAudioTrack.stop();
+    if (!audioProducerId) {
+      throw new Error('no previous audio producer when expected one');
+    }
+    peer.replaceProducerTrack(audioProducerId, newAudioTrack);
+  }
+});
+
+let videoProducerId: string;
 let originalVideoTrack: MediaStreamTrack;
 async function handleVideoStreamChanged () {
   // Ok. The videoStream was changed. we must update the producer and/or the canvas accordingly
@@ -225,12 +258,12 @@ async function handleVideoStreamChanged () {
   if (!censorSettings.value) {
     throw new Error('censorSettings is undefined');
   }
-  // We have a producer created.
-  if (producerId) {
+  // We already have a producer created.
+  if (videoProducerId) {
     originalVideoTrack.stop();
     originalVideoTrack = videoStream.getVideoTracks()[0];
     if (!censorshieldEnabled.value) {
-      peer.replaceProducerTrack(producerId, originalVideoTrack.clone());
+      peer.replaceProducerTrack(videoProducerId, originalVideoTrack.clone());
     }
   } else {
     originalVideoTrack = videoStream.getVideoTracks()[0];
@@ -243,12 +276,12 @@ async function handleVideoStreamChanged () {
       clonedTrack = canvasStream.getVideoTracks()[0];
     }
 
-    producerId = await peer.produce(clonedTrack);
-    console.log('produce returned: ', producerId);
+    videoProducerId = await peer.produce(clonedTrack);
+    console.log('produce returned: ', videoProducerId);
     if (!soupStore.clientState?.roomId || !soupStore.clientId) {
       throw new Error('no roomid. cant assign producer to room');
     }
-    peer.assignMainProducerToRoom(soupStore.clientId, producerId, soupStore.clientState.roomId);
+    peer.assignMainProducerToRoom(soupStore.clientId, videoProducerId, soupStore.clientState.roomId, 'video');
     // startProducing();
   }
 }
@@ -274,13 +307,13 @@ const censorshieldToggled = (enabled: boolean) => {
   censorshieldEnabled.value = enabled;
   if (censorshieldEnabled.value) {
     attachVideoToCanvas();
-    if (producerId && canvasStream) {
-      peer.replaceProducerTrack(producerId, canvasStream.getVideoTracks()[0]);
+    if (videoProducerId && canvasStream) {
+      peer.replaceProducerTrack(videoProducerId, canvasStream.getVideoTracks()[0]);
     }
   } else {
-    if (producerId) {
+    if (videoProducerId) {
       const clonedVideoTrack = originalVideoTrack.clone();
-      peer.replaceProducerTrack(producerId, clonedVideoTrack);
+      peer.replaceProducerTrack(videoProducerId, clonedVideoTrack);
     }
     detachVideoFromCanvas();
   }

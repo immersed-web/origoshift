@@ -32,13 +32,6 @@
     id="main-container"
     class="row justify-between no-wrap items-center content-center"
   >
-    <!-- <QBtn
-      class="q-ma-md"
-      icon="keyboard_arrow_left"
-      round
-      color="primary"
-      @click="prevRoom()"
-    /> -->
     <video
       v-show="false"
       id="main-video"
@@ -76,29 +69,11 @@
         raycaster="objects: .raycastable"
       />
     </a-scene>
-    <!-- <QBtn
-      class="q-ma-md"
-      round
-      icon="keyboard_arrow_right"
-      color="primary"
-      @click="nextRoom()"
-    /> -->
   </div>
-  <!-- <QList>
-      <QItem
-        v-for="producerInfo in producers"
-        :key="producerInfo.producerId"
-      >
-        <QBtn
-          :label="producerInfo.producerId"
-          @click="consume(producerInfo)"
-        />
-      </QItem>
-    </QList> -->
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, watch } from 'vue';
+import { ref, nextTick, watch, onMounted } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 // import { useUserStore } from 'src/stores/userStore';
 import usePeerClient from 'src/composables/usePeerClient';
@@ -131,10 +106,13 @@ const soupStore = useSoupStore();
 //   }
 // });
 
-watch(() => soupStore.roomState?.mainProducer, (newMainProducer, oldMainProducer) => {
-  if (!newMainProducer) return;
-  if (oldMainProducer !== newMainProducer) {
-    consume(newMainProducer);
+watch(() => soupStore.roomState?.mainProducers, (newMainProducers, oldMainProducers) => {
+  if (!newMainProducers) return;
+  if (newMainProducers.video && oldMainProducers?.video !== newMainProducers.video) {
+    consumeVideo(newMainProducers.video);
+  }
+  if (newMainProducers.audio && oldMainProducers?.audio !== newMainProducers.audio) {
+    consumeAudio(newMainProducers.audio);
   }
 }, {
   immediate: true,
@@ -195,13 +173,27 @@ async function toggleRaiseHand () {
   });
 }
 
-async function consume (producerId: string) {
+const receiveStream = new MediaStream();
+
+async function consumeVideo (producerId: string) {
   if (!videoTag.value) return;
   const { track } = await peer.consume(producerId);
-  videoTag.value.srcObject = new MediaStream([track]);
+  // videoTag.value.srcObject = new MediaStream([track]);
+  receiveStream.addTrack(track);
   await nextTick();
   initVideoSphere();
 }
+
+async function consumeAudio (producerId: string) {
+  const { track } = await peer.consume(producerId);
+  receiveStream.addTrack(track);
+}
+
+onMounted(() => {
+  if (videoTag.value) {
+    videoTag.value.srcObject = receiveStream;
+  }
+});
 
 //
 // ***************

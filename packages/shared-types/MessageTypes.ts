@@ -1,6 +1,7 @@
 import {types as mediasoupClientTypes} from 'mediasoup-client';
 import {types as mediasoupTypes} from 'mediasoup';
-import { GatheringState, RoomState, ClientState } from './CustomTypes';
+import { GatheringState, RoomState, ClientState, ProducerInfo } from './CustomTypes';
+import { soupTypes } from './mediasoupTypes';
 
 interface IPacket {
   id: number,
@@ -65,7 +66,7 @@ export type AnyRequest =
     transportId: string,
     kind: mediasoupClientTypes.MediaKind,
     rtpParameters: mediasoupClientTypes.RtpParameters,
-    producerInfo: Record<string, unknown>,
+    producerInfo: ProducerInfo,
   }>
   | RequestBuilder<'createConsumer', {
     producerId: string,
@@ -108,6 +109,7 @@ export type AnyRequest =
     producerId: string,
     clientId: string,
     roomId: string,
+    mediaKind: soupTypes.MediaKind,
   }>
   | RequestBuilder<'setCustomClientProperties', Record<string, unknown>>
   | RequestBuilder<'customRequest', {

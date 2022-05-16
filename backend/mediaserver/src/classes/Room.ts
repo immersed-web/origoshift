@@ -12,7 +12,13 @@ export default class Room {
   // router: soup.Router;
   id: string;
   roomName: string | undefined;
-  mainProducer?: soupTypes.Producer;
+  mainProducers: {
+    audio?: soupTypes.Producer,
+    video?: soupTypes.Producer
+  } = {
+      video: undefined,
+      audio: undefined,
+    };
   clients: Map<string, Client> = new Map();
 
   private gatheringId: string | undefined = undefined;
@@ -34,8 +40,11 @@ export default class Room {
         producers.set(producer.id, producer);
       });
     });
-    if(this.mainProducer){
-      producers.set(this.mainProducer.id, this.mainProducer);
+    if(this.mainProducers.video){
+      producers.set(this.mainProducers.video.id, this.mainProducers.video);
+    }
+    if(this.mainProducers.audio){
+      producers.set(this.mainProducers.audio.id, this.mainProducers.audio);
     }
     return producers;
   }
@@ -77,11 +86,19 @@ export default class Room {
       roomWarn('client is NOT in the room, Cant remove client from the room');
       return;
     }
-    if(this.mainProducer){
+    if(this.mainProducers.audio || this.mainProducers.video){
       roomLog('HAS MAINPRODUCER!!!!');
-      if(client.producers.has(this.mainProducer.id)){
-        roomLog('removed client was also mainProducer. Will remove it as well from the room');
-        this.mainProducer = undefined;
+      if(this.mainProducers.video){
+        if(client.producers.has(this.mainProducers.video.id)){
+          roomLog('removed client was also video mainProducer. Will remove it as well from the room');
+          this.mainProducers.video = undefined;
+        }
+      }
+      if(this.mainProducers.audio){
+        if(client.producers.has(this.mainProducers.audio.id)){
+          roomLog('removed client was also audio mainProducer. Will remove it as well from the room');
+          this.mainProducers.audio = undefined;
+        }
       }
     }
     const ok = this.clients.delete(client.id);
@@ -103,7 +120,10 @@ export default class Room {
     const roomInfo: RoomState = {
       roomId: this.id,
       roomName: this.roomName,
-      mainProducer: this.mainProducer?.id,
+      mainProducers: {
+        video: this.mainProducers.video?.id,
+        audio: this.mainProducers.audio?.id,
+      },
       clients,
     };
     return roomInfo;

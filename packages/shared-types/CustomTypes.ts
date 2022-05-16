@@ -6,6 +6,11 @@
 import {types as soup} from 'mediasoup';
 import { RequestSubjects } from './MessageTypes';
 
+export interface ProducerInfo {
+  screenShare: boolean,
+  [key: string]: unknown
+}
+
 export interface ClientState {
   clientId: string;
   username?: string;
@@ -18,7 +23,8 @@ export interface ClientState {
     [producerId: string]: {
       producerId: string;
       kind: soup.MediaKind;
-      producerInfo?: Record<string, unknown>
+      // producerInfo?: Record<string, unknown>
+      producerInfo?: ProducerInfo
     }
   }
 }
@@ -26,7 +32,10 @@ export interface ClientState {
 export interface RoomState {
   roomId: string;
   roomName?: string;
-  mainProducer?: string
+  mainProducers: {
+    video?:string,
+    audio?: string,
+  },
   // clients: string[]
   clients: {
       [clientId: string]: ClientState;

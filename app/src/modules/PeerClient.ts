@@ -3,6 +3,7 @@ import * as mediasoupClient from 'mediasoup-client';
 // import { createSocket, tearDown, sendRequest, socketEvents } from 'src/modules/webSocket';
 import socketutils from 'src/modules/webSocket';
 import { AnyMessage, createMessage, createRequest, Message } from 'shared-types/MessageTypes';
+import { ProducerInfo } from 'shared-types/CustomTypes';
 import { TypedEmitter } from 'tiny-typed-emitter';
 
 type MsgEvents<Msg extends AnyMessage> = {
@@ -13,7 +14,7 @@ interface TransportProduceParams {
   kind: mediasoupTypes.MediaKind;
   rtpParameters: mediasoupTypes.RtpParameters;
   appData: {
-    producerInfo: Record<string, unknown>
+    producerInfo: ProducerInfo
   }
 }
 // } | {
@@ -330,14 +331,14 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     });
   }
 
-  assignMainProducerToRoom = async (clientId: string, producerId: string, roomId: string) => {
+  assignMainProducerToRoom = async (clientId: string, producerId: string, roomId: string, mediaKind: mediasoupTypes.MediaKind) => {
     const assignProducerReq = createRequest('assignMainProducerToRoom', {
-      clientId, producerId, roomId,
+      clientId, producerId, roomId, mediaKind,
     });
     await socketutils.sendRequest(assignProducerReq);
   }
 
-  produce = async (track: MediaStreamTrack, producerInfo?: Record<string, unknown>): Promise<mediasoupTypes.Producer['id']> => {
+  produce = async (track: MediaStreamTrack, producerInfo?: ProducerInfo): Promise<mediasoupTypes.Producer['id']> => {
     if (!this.sendTransport) {
       return Promise.reject('Need a transport to be able to produce. No transport present');
     }

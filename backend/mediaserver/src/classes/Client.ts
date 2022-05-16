@@ -482,7 +482,11 @@ export default class Client {
           if(!producer){
             throw new Error('no such producer found!');
           }
-          room.mainProducer = producer;
+          if(reqParams.mediaKind === 'video'){
+            room.mainProducers.video = producer;
+          } else if(reqParams.mediaKind === 'audio'){
+            room.mainProducers.audio = producer;
+          }
           this.gathering?.broadCastGatheringState(undefined, 'mainProducer assigned to a room');
           response = createResponse('assignMainProducerToRoom', msg.id, { 
             wasSuccess: true,

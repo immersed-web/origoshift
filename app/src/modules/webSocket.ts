@@ -95,10 +95,11 @@ export default {
         const { resolve, reject } = callback;
         if (!msg.wasSuccess) {
           reject(msg.message);
-          return;
+          console.log(`request '${msg.subject}' rejected!`, msg);
+        } else {
+          resolve(msg);
+          console.log(`request '${msg.subject}' resolved`, msg);
         }
-        console.log(`request '${msg.subject}' resolved`, msg);
-        resolve(msg);
         pendingRequests.delete(msg.id);
       } catch (e) {
         console.error(e);
@@ -120,7 +121,7 @@ export default {
     socket?.send(string);
     console.log('sending message:', msg);
   },
-  sendRequest: async <T extends RequestSubjects>(msg: SocketMessage<Request<T>>): Promise<SuccessResponseTo<T>> => {
+  sendRequest: async <T extends RequestSubjects>(msg: SocketMessage<Request<T>>, timeoutMillis?: number): Promise<SuccessResponseTo<T>> => {
     msg.id = Date.now(); // Questionable if we should set the id here...
     const id = msg.id;
     const msgString = JSON.stringify(msg);
@@ -131,7 +132,7 @@ export default {
       setTimeout(() => {
         pendingRequests.delete(id);
         reject(`request timed out: ${id}`);
-      }, requestTimeout);
+      }, timeoutMillis ?? requestTimeout);
     });
 
     return promise as Promise<SuccessResponseTo<T>>;

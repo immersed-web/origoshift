@@ -1,9 +1,10 @@
 import { randomUUID } from 'crypto';
 import Client from './Client';
-import { RoomState, ShallowRoomState } from 'shared-types/CustomTypes';
+import { RoomState, ShallowRoomState, UserRole } from 'shared-types/CustomTypes';
 import Gathering from './Gathering';
 import {types as soupTypes } from 'mediasoup';
-import { createMessage } from 'shared-types/MessageTypes';
+import { Request, createMessage, RequestSubjects, ResponseTo, SuccessResponseTo } from 'shared-types/MessageTypes';
+import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
 import debug from 'debug';
 const roomLog = debug('Room');
 const roomError = debug('Room:ERROR');
@@ -131,6 +132,17 @@ export default class Room {
 
   get shallowRoomState (): ShallowRoomState {
     return {...this.roomState, clients: Array.from(this.clients.keys())};
+  }
+
+  async broadcastRequest<T extends RequestSubjects>(request: Request<T>, minimumRoleForReceivers?: UserRole, timeoutMillis?: number) {
+    const promises: Promise<SuccessResponseTo<T>>[] = [];
+    this.clients.forEach(client => {
+      if(!minimumRoleForReceivers || hasAtLeastSecurityLevel(client.role, minimumRoleForReceivers)){
+        const promise = client.sendRequest(request, timeoutMillis);
+        promises.push(promise);
+      }
+    });
+    return Promise.race(promises);
   }
 
   // broadcastRoomState(clientToSkip?: Client){

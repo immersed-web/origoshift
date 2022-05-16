@@ -3,7 +3,7 @@ import SocketWrapper from './SocketWrapper';
 import {types as soupTypes} from 'mediasoup';
 import {types as soupClientTypes} from 'mediasoup-client';
 import { ClientState, UserData, UserRole } from 'shared-types/CustomTypes';
-import { AnyRequest, createMessage, createRequest, createResponse, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
+import { AnyRequest, createMessage, createRequest, createResponse, Request, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 // import { checkPermission } from '../modules/utilFns';
 import { checkPermission } from '../modules/utilFns';
@@ -345,9 +345,6 @@ export default class Client {
           }
           const roomId = msg.data.roomId;
           const foundRoom = this.gathering.getRoom({id: roomId});
-          if(!foundRoom){
-            throw Error('no such room in gathering');
-          }
           this.setRoom(foundRoom.id);
           foundRoom.addClient(this);
           response = createResponse('joinRoom', msg.id, {
@@ -363,6 +360,34 @@ export default class Client {
         }
         this.send(response);
         break;
+      }
+      case 'requestToJoinRoom': {
+        let response: ResponseTo<'requestToJoinRoom'>;
+        const roomId = msg.data.roomId;
+        try {
+          if(!this.gathering){
+            throw Error('Not in a gathering, Cant request to join if not in a gathering');
+          }
+          const foundRoom = this.gathering.getRoom({id: roomId});
+          const req = createRequest('requestToJoinRoomFromServer', {
+            roomId: msg.data.roomId,
+            clientId: this.id,
+          });
+          await foundRoom.broadcastRequest(req, 'gatheringEditor', 30000);
+          this.setRoom(foundRoom.id);
+          foundRoom.addClient(this);
+          response = createResponse('requestToJoinRoom', msg.id, {
+            data: foundRoom.roomState,
+            wasSuccess: true,
+          });
+        }catch( e) {
+          response = createResponse('requestToJoinRoom', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, `failed to joinRoom: ${msg.data.roomId}`)
+          });
+        }
+        this.send(response);
+        break; 
       }
       case 'leaveRoom': {
         let response: ResponseTo<'leaveRoom'>;
@@ -786,13 +811,13 @@ export default class Client {
     this.ws.send(msg);
   }
 
-  sendRequest(msg: SocketMessage<AnyRequest>) {
+  sendRequest<T extends RequestSubjects>(msg: SocketMessage<Request<T>>, timeoutMillis?:number) {
     console.log(`gonna send request to client ${this.id}:`, msg);
     if(!this.connected){
       console.error('tried to send request to a closed socket. NOOO GOOD!');
-      return;
+      return Promise.reject();
     }
-    return this.ws.sendRequest(msg);
+    return this.ws.sendRequest(msg, timeoutMillis);
   }
 
   async createWebRtcTransport(direction: 'send' | 'receive'){

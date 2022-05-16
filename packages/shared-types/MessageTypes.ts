@@ -103,6 +103,13 @@ export type AnyRequest =
   | RequestBuilder<'joinRoom', {
     roomId: string,
   }>
+  | RequestBuilder<'requestToJoinRoom', {
+    roomId: string,
+  }>
+  | RequestBuilder<'requestToJoinRoomFromServer', {
+    roomId: string,
+    clientId: string,
+  }>
   | RequestBuilder<'leaveRoom'>
   // | RequestBuilder<'roomStateUpdated', RoomState>
   | RequestBuilder<'assignMainProducerToRoom',{
@@ -187,6 +194,8 @@ export type AnyResponse =
   }>
   | ResponseBuilder<'createRoom', RoomState>
   | ResponseBuilder<'joinRoom', RoomState>
+  | ResponseBuilder<'requestToJoinRoom', RoomState>
+  | ResponseBuilder<'requestToJoinRoomFromServer'>
   | ResponseBuilder<'leaveRoom', {roomId: string}>
   // | ResponseBuilder<'roomStateUpdated'>
   | ResponseBuilder<'assignMainProducerToRoom'>
@@ -244,10 +253,6 @@ export const createRequest = <Key extends RequestSubjects>(subject: Key, data?: 
   msgWithData.data = data;
   return msgWithData;
 }
-
-// createRequest<'setName'>('setName', {
-//   name: 'coolName'
-// });
 
 
 // type ResponseParams<Subject extends RequestSubjects> = Pick<ResponseTo<Subject>, 'wasSuccess' | 'data' | 'message'>

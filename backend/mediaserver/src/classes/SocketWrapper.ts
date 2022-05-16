@@ -1,7 +1,7 @@
 // import EventEmitter from 'events';
 import uWebsocket from 'uWebSockets.js';
 // import { TypedEmitter } from 'tiny-typed-emitter';
-import { AnyRequest, AnyResponse, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
+import { Request, AnyResponse, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType, AnySuccessResponse, SuccessResponseTo } from 'shared-types/MessageTypes';
 
 export type InternalSocketType = uWebsocket.WebSocket;
 // type InternalMessageType = uWebsocket.RecognizedString;
@@ -16,7 +16,8 @@ export type InternalMessageType = ArrayBuffer;
 // }
 
 const requestTimeout = 10000;
-type RequestResolver = (msg:AnyResponse) => void;
+type RequestResolver = (msg:AnySuccessResponse) => void;
+type RequestRejecter = (msg: unknown) => void;
 
 // /**
 //  * This class is an abstraction layer on top of the websocket implementation.
@@ -32,8 +33,9 @@ export default class SocketWrapper{
     this.socket = socket;
   }
 
-
-  private pendingRequests = new Map<number, RequestResolver>();
+  
+  // private pendingRequests = new Map<number, RequestResolver>();
+  private pendingRequests = new Map<number, {resolve: RequestResolver, reject: RequestRejecter}>();
   private receivedMessageCallback?: (msg: SocketMessage<UnknownMessageType>) => void;
   registerReceivedMessageCallback(cb: typeof this.receivedMessageCallback){
     this.receivedMessageCallback = cb;
@@ -54,8 +56,18 @@ export default class SocketWrapper{
       }
       if(socketMsg.type === 'response'){
         try {
-          const resolve = this.pendingRequests.get(socketMsg.id);
-          if(resolve){resolve(socketMsg);}
+          const callbacks = this.pendingRequests.get(socketMsg.id);
+          if(!callbacks) throw Error('no callbacks saved for that pending promise');
+
+          const { resolve, reject} = callbacks;
+          if (!socketMsg.wasSuccess) {
+            reject(socketMsg.message);
+            console.log(`request '${socketMsg.subject}' rejected!`, socketMsg);
+          } else {
+            resolve(socketMsg);
+            console.log(`request '${socketMsg.subject}' resolved`, socketMsg);
+          }
+          this.pendingRequests.delete(socketMsg.id);
 
         }catch(e){
           console.error(e);
@@ -75,24 +87,24 @@ export default class SocketWrapper{
 
   }
 
-  sendRequest = async <T extends RequestSubjects>(msg: SocketMessage<AnyRequest>): Promise<ResponseTo<T>> => {
+  sendRequest = async <T extends RequestSubjects>(msg: SocketMessage<Request<T>>, timeoutMillis?: number): Promise<SuccessResponseTo<T>> => {
     msg.id = Date.now(); // Questionable if we should set the id here...
     const id = msg.id;
     const msgString = JSON.stringify(msg);
     this.socket.send(msgString);
     const promise: Promise<AnyResponse> = new Promise((resolve, reject) => {
-      this.pendingRequests.set(id, resolve);
+      this.pendingRequests.set(id, {resolve, reject});
       setTimeout(() => {
         this.pendingRequests.delete(id);
         reject(`request timed out: ${id}`);
-      }, requestTimeout);
+      }, timeoutMillis ?? requestTimeout);
     });
     console.log(msg);
     // type TheResponseType = ResponseTo<>
     // type asdasd = Pick<AnyRequest, 'subject'>['subject']
     // type Resp = ResponseTo<'joinRoom'>
 
-    return promise as Promise<ResponseTo<T>>;
+    return promise as Promise<SuccessResponseTo<T>>;
   };
   
   send(msg: SocketMessage<UnknownMessageType>){

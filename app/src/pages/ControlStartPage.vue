@@ -14,7 +14,7 @@
     />
     <QBtn
       color="primary"
-      label="Hantera elevkonton"
+      :label="manageBtnLabel"
       :to="{ name: 'userManager'}"
       icon-right="navigate_next"
     />
@@ -22,5 +22,15 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useUserStore } from 'src/stores/userStore';
+
+const userStore = useUserStore();
+
+const manageBtnLabel = computed(() => {
+  const isAdmin = userStore.userData?.role === 'admin';
+  if (isAdmin) { return 'Hantera konton'; }
+  return 'Hantera elevkonton';
+});
 
 </script>

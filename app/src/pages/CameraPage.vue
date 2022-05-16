@@ -47,7 +47,7 @@
 
 <script setup lang="ts">
 import CensorControl from 'src/components/CensorControl.vue';
-import { ref, watch } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import DevicePicker from 'src/components/DevicePicker.vue';
 import usePeerClient from 'src/composables/usePeerClient';
@@ -77,6 +77,10 @@ const videoInfo = ref<VideoInfo>();
 const userStore = useUserStore();
 const persistedStore = usePersistedStore();
 
+onUnmounted(() => {
+  $q.loading.hide();
+});
+
 // INITIALIZE;
 (async () => {
   try {
@@ -85,7 +89,6 @@ const persistedStore = usePersistedStore();
       throw new Error('no userstate! needed to run camerapage');
     }
     let { gathering } = userStore.userData;
-    let rooms;
     if (!gathering) {
       if (!persistedStore.gatheringName) {
         console.log('no gathering defined. Must pick one!');
@@ -98,7 +101,6 @@ const persistedStore = usePersistedStore();
         $q.loading.show();
         const pickedGathering = gatherings.find(gathering => gathering.name === pickedGatheringName);
         if (!pickedGathering) throw new Error('pickedGatheringName not found in gathering array. THis should not happen. Bug');
-        rooms = pickedGathering.rooms;
         persistedStore.gatheringName = pickedGatheringName;
       }
       gathering = persistedStore.gatheringName;
@@ -106,16 +108,9 @@ const persistedStore = usePersistedStore();
 
     await peer.connect(userStore.jwt);
     if (!persistedStore.roomName) {
-      console.log('no room defined. Must pick one!');
-      if (!rooms) {
-        const gatheringResponse = await getGathering({ gathering });
-        if (!gatheringResponse.rooms) {
-          throw new Error('no rooms in api response!');
-        }
-        rooms = gatheringResponse.rooms;
-      }
+      console.log('no room in storage. Must choose roomName manually!');
       $q.loading.hide();
-      persistedStore.roomName = await pickRoom(rooms);
+      persistedStore.roomName = await chooseRoomName();
       $q.loading.show();
     }
     await enterGatheringAndRoom(gathering, persistedStore.roomName);
@@ -171,11 +166,8 @@ async function pickGathering (gatherings: string[]): Promise<string> {
   return dialogPromise as Promise<string>;
 }
 
-type Rooms = PickedGathering['rooms'];
-async function pickRoom (rooms: Rooms): Promise<string> {
-  const radioOptions = rooms.map(room => {
-    return { label: room.name, value: room.name };
-  });
+// type Rooms = PickedGathering['rooms'];
+async function chooseRoomName (): Promise<string> {
   // console.log(gatheringResponse);
   const dialogPromise = asyncDialog({
     title: 'Rum',
@@ -184,10 +176,15 @@ async function pickRoom (rooms: Rooms): Promise<string> {
     noBackdropDismiss: true,
     noEscDismiss: true,
     noRouteDismiss: false,
-    options: {
+    prompt: {
+      outlined: true,
       model: '',
-      items: radioOptions,
+      isValid: val => !!val,
     },
+    // options: {
+    //   model: '',
+    //   items: radioOptions,
+    // },
   });
   return dialogPromise as Promise<string>;
 }

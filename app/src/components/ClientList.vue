@@ -17,6 +17,23 @@
               (du)
             </template>
           </QItemSection>
+          <QItemSection v-if="Object.keys(client.producers).length">
+            <div>
+              <template
+                v-for="(producer, key) in client.producers"
+                :key="key"
+              >
+                <span
+                  class="emoji"
+                  v-if="producer.kind === 'video'"
+                >🎥</span>
+                <span
+                  class="emoji"
+                  v-else
+                >🔊</span>
+              </template>
+            </div>
+          </QItemSection>
           <QItemSection side>
             <QIcon
               id="hand-icon"
@@ -56,5 +73,9 @@ defineProps<{
 #hand-icon {
   transform-origin: bottom left;
   animation: wave 0.5s linear 0s infinite alternate;
+}
+
+.emoji {
+  font-size: large;
 }
     </style>

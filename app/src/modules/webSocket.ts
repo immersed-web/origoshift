@@ -1,7 +1,7 @@
 // import { useConnectionStore } from '../stores/connectionStore';
 // import { pinia } from '../boot/pinia';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { Request, AnyResponse, SocketMessage, RequestSubjects, UnknownMessageType, SuccessResponseTo, AnySuccessResponse, AnyRequest, AnyMessage } from 'shared-types/MessageTypes';
+import { Request, AnyResponse, SocketMessage, RequestSubjects, UnknownMessageType, SuccessResponseTo, AnySuccessResponse, AnyRequest, AnyMessage, ResponseTo } from 'shared-types/MessageTypes';
 
 const requestTimeout = 3000;
 type RequestResolver = (msg: AnySuccessResponse) => void;
@@ -136,5 +136,10 @@ export default {
     });
 
     return promise as Promise<SuccessResponseTo<T>>;
+  },
+  sendResponse: async <T extends RequestSubjects>(response: ResponseTo<T>) => {
+    const string = JSON.stringify(response);
+    socket?.send(string);
+    console.log('sending response: ', response);
   },
 };

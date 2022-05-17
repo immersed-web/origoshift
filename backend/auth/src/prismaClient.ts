@@ -32,17 +32,6 @@ type UserQueryWithIncludes = Prisma.UserFindUniqueArgs & {include: typeof includ
 export const users = Object.assign(prisma.user, {
 
   userResponseToUserData(user: UserWithIncludes){
-
-    // TODO: Probably should define allowedactions for different models elsewhere!
-    // const clientActions: AllowedAction[] = ['setRtpCapabilities', 'setName', 'getRouterRtpCapabilities', 'joinGathering', 'joinRoom', 'leaveGathering', 'leaveRoom', 'notifyCloseEvent', 'notifyPauseResume', 'createReceiveTransport', 'connectTransport', 'createConsumer', 'findGatheringByName'];
-    // const adminActions: AllowedAction[] = ['*', ...clientActions];
-
-    // const allowedActions = user.role?.role == 'admin' ? adminActions : clientActions;
-
-    // const rooms = user.rooms.map(room => {
-    //   return room.name;
-    // });
-
     const userData: UserData = {
       username: user.username,
       role: user.role?.role as UserRole,

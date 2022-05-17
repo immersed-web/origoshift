@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, watch, onMounted } from 'vue';
+import { ref, nextTick, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 // import { useUserStore } from 'src/stores/userStore';
 import usePeerClient from 'src/composables/usePeerClient';
@@ -83,28 +83,6 @@ import 'aframe';
 const router = useRouter();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
-
-// soupStore.$onAction(({ name, after, onError, store }) => {
-//   if (name === 'setRoomState') {
-//     after(() => {
-//       console.log('roomStateUpdated!!!');
-
-//       // if (!store.roomState?.mainProducer) return;
-//       // consume(store.roomState.mainProducer);
-//     });
-
-//     onError(error => {
-//       console.error(error);
-//       router.back();
-//     });
-//   }
-// });
-
-// soupStore.$subscribe((mutation, state) => {
-//   if (!state.connected) {
-//     router.replace('/join');
-//   }
-// });
 
 watch(() => soupStore.roomState?.mainProducers, (newMainProducers, oldMainProducers) => {
   if (!newMainProducers) return;
@@ -118,7 +96,7 @@ watch(() => soupStore.roomState?.mainProducers, (newMainProducers, oldMainProduc
   immediate: true,
 });
 
-peer.closeEvents.on('notifyCloseEvent', (payload) => {
+peer.on('notifyCloseEvent', (payload) => {
   if (payload.objectType === 'consumer' && payload.objectId === screenShareConsumerId.value) {
     screenShareConsumerId.value = undefined;
   }
@@ -193,6 +171,10 @@ onMounted(() => {
   if (videoTag.value) {
     videoTag.value.srcObject = receiveStream;
   }
+});
+
+onBeforeUnmount(() => {
+  peer.leaveRoom();
 });
 
 //

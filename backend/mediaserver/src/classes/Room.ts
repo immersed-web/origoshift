@@ -106,6 +106,10 @@ export default class Room {
     if(!ok){
       throw new Error(`failed to remove client ${client.id} from room`);
     }
+    if(this.clients.size == 0) {
+      roomLog('last client left the room. will also remove the room itself');
+      this.gathering?.deleteRoom(this);
+    }
     if(!skipBroadcast){
       this.gathering?.broadCastGatheringState([client.id], 'client removed from room');
     }

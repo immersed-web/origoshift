@@ -369,7 +369,7 @@ export default class Client {
             throw Error('Not in a gathering, Cant request to join if not in a gathering');
           }
           const foundRoom = this.gathering.getRoom({id: roomId});
-          const req = createRequest('requestToJoinRoomFromServer', {
+          const req = createRequest('forwardedRequestToJoinRoom', {
             roomId: msg.data.roomId,
             clientId: this.id,
           });
@@ -464,8 +464,8 @@ export default class Client {
         }
         break;
       }
-      case 'notifyCloseEvent': {
-        let response: ResponseTo<'notifyCloseEvent'>;
+      case 'notifyCloseEventRequest': {
+        let response: ResponseTo<'notifyCloseEventRequest'>;
 
         try{
           switch (msg.data.objectType) {
@@ -474,7 +474,7 @@ export default class Client {
               if(!consumer) throw new Error('no consumer with that is found! cant close it');
               consumer.close();
               this.consumers.delete(msg.data.objectId);
-              response = createResponse('notifyCloseEvent', msg.id, {wasSuccess: true});
+              response = createResponse('notifyCloseEventRequest', msg.id, {wasSuccess: true});
               break;
             }
             case 'producer': {
@@ -482,7 +482,7 @@ export default class Client {
               if(!producer) throw new Error('no producer with that id found!!cant close it');
               producer.close();
               this.producers.delete(msg.data.objectId);
-              response = createResponse('notifyCloseEvent', msg.id, { wasSuccess: true });
+              response = createResponse('notifyCloseEventRequest', msg.id, { wasSuccess: true });
               break;
             }
             default:{
@@ -490,7 +490,7 @@ export default class Client {
             }
           }
         } catch(e){
-          response = createResponse('notifyCloseEvent', msg.id, {
+          response = createResponse('notifyCloseEventRequest', msg.id, {
             wasSuccess: false,
             message: extractMessageFromCatch(e, 'failed to close the corresponding server side object'),
           });
@@ -643,9 +643,9 @@ export default class Client {
         this.send(response);
         break; 
       }
-      case 'notifyPauseResume': {
+      case 'notifyPauseResumeRequest': {
         console.log('received notify Pause resume:', msg.data);
-        let response: ResponseTo<'notifyPauseResume'>;
+        let response: ResponseTo<'notifyPauseResumeRequest'>;
         try {
           let prodcon: soupTypes.Producer | soupTypes.Consumer | undefined;
           if(msg.data.objectType == 'consumer') {
@@ -661,11 +661,11 @@ export default class Client {
           } else {
             await prodcon.resume();
           }
-          response = createResponse('notifyPauseResume', msg.id, {
+          response = createResponse('notifyPauseResumeRequest', msg.id, {
             wasSuccess: true,
           });
         } catch (e) {
-          response = createResponse('notifyPauseResume', msg.id, {
+          response = createResponse('notifyPauseResumeRequest', msg.id, {
             wasSuccess: false,
             message: extractMessageFromCatch(e, 'failed to change playing state of producer/consumer')
           });
@@ -829,7 +829,7 @@ export default class Client {
       throw new Error('failed to create transport!!');
     }
     transport.addListener('routerclose', () => {
-      this.sendRequest(createRequest('notifyCloseEvent', {
+      this.send(createMessage('notifyCloseEvent', {
         objectType: 'transport',
         objectId: transport.id,
       }));

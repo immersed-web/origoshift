@@ -2,14 +2,17 @@ import { types as mediasoupTypes } from 'mediasoup-client';
 import * as mediasoupClient from 'mediasoup-client';
 // import { createSocket, tearDown, sendRequest, socketEvents } from 'src/modules/webSocket';
 import socketutils from 'src/modules/webSocket';
-import { AnyMessage, createMessage, createRequest, Message } from 'shared-types/MessageTypes';
+import { createRequest, Message, RequestSubjects, Request, MessageSubjects, AnyResponse } from 'shared-types/MessageTypes';
 import { ProducerInfo } from 'shared-types/CustomTypes';
 import { TypedEmitter } from 'tiny-typed-emitter';
 
-type MsgEvents<Msg extends AnyMessage> = {
-  [event in Msg['subject']]: (data: Message<event>['data']) => void;
+type MsgEvents = {
+  [event in MessageSubjects]: (data: Message<event>['data']) => void;
 };
-
+type ReqEvents = {
+  [event in RequestSubjects]: (msgId: number, data: Request<event> extends {data: unknown}? Request<event>['data']: undefined) => void;
+}
+type PeerEvents = MsgEvents & ReqEvents;
 interface TransportProduceParams {
   kind: mediasoupTypes.MediaKind;
   rtpParameters: mediasoupTypes.RtpParameters;
@@ -17,15 +20,7 @@ interface TransportProduceParams {
     producerInfo: ProducerInfo
   }
 }
-// } | {
-//   [reqEvent in Extract<Subject, RequestSubjects>]: (data?: Request<reqEvent> extends {data: unknown}? Request<reqEvent>['data']: undefined) => void;
-// }
-
-// type ReqEvents<ReqSubjects extends RequestSubjects> = {
-//   [event in ReqSubjects]: (data?: Request<event> extends {data: unknown}? Request<event>['data']: undefined) => void;
-// }
-// type PeerEvents<Subject extends RequestSubjects | MessageSubjects> = MsgEvents<Subject> | ReqEvents<Subject>;
-export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
+export default class PeerClient extends TypedEmitter<PeerEvents> {
   // id = '';
   // url?: string;
   mediasoupDevice?: mediasoupTypes.Device;
@@ -90,6 +85,9 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
       }
     });
     socketutils.socketEvents.on('request', reqMsg => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      this.emit(reqMsg.subject, reqMsg.id, reqMsg.data);
       console.log('received request: ', reqMsg);
     });
 
@@ -114,6 +112,10 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
       }
       throw error;
     }
+  }
+
+  sendResponse = (msg: AnyResponse) => {
+    return socketutils.sendResponse(msg);
   }
 
   loadMediasoupDevice = async () => {
@@ -209,11 +211,17 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
   }
 
   joinRoom = async (roomId: string) => {
-    const joinRoomReq = createRequest('joinRoom', { roomId: roomId });
+    const joinRoomReq = createRequest('joinRoom', { roomId });
     const response = await socketutils.sendRequest(joinRoomReq);
     return response.data;
     // this.closeAllConsumers();
     // this.roomStore.currentRoomId = roomId;
+  }
+
+  requestToJoinRoom = async (roomId: string) => {
+    const req = createRequest('requestToJoinRoom', { roomId });
+    const response = await socketutils.sendRequest(req, 30000);
+    return response.data;
   }
 
   joinOrCreateRoom = async (roomName: string) => {
@@ -379,7 +387,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
       this.consumers.set(consumer.id, consumer);
       console.log('conmsumers map is: ', this.consumers);
 
-      const setPauseReq = createRequest('notifyPauseResume', {
+      const setPauseReq = createRequest('notifyPauseResumeRequest', {
         objectType: 'consumer',
         objectId: consumer.id,
         wasPaused: false,
@@ -406,7 +414,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     if (!consumer) {
       throw new Error('no such consumer found (client-side)');
     }
-    const pauseReq = createRequest('notifyPauseResume', {
+    const pauseReq = createRequest('notifyPauseResumeRequest', {
       objectType: 'consumer',
       objectId: consumer.id,
       wasPaused: wasPaused,
@@ -420,7 +428,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
       throw new Error('no producer with that id! cant close it');
     }
     producer.close();
-    const closeReq = createRequest('notifyCloseEvent', {
+    const closeReq = createRequest('notifyCloseEventRequest', {
       objectType: 'producer',
       objectId: producerId,
     });
@@ -434,7 +442,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
       throw new Error('no consumer with that id! cant close it');
     }
     consumer.close();
-    const closeReq = createRequest('notifyCloseEvent', {
+    const closeReq = createRequest('notifyCloseEventRequest', {
       objectType: 'consumer',
       objectId: consumerId,
     });
@@ -448,7 +456,7 @@ export default class PeerClient extends TypedEmitter<MsgEvents<AnyMessage>> {
     for (const [consumerKey, consumer] of this.consumers.entries()) {
       console.log('gonna close consumer: ', consumer.id);
       consumer.close();
-      const notifyCloseEventReq = createRequest('notifyCloseEvent', {
+      const notifyCloseEventReq = createRequest('notifyCloseEventRequest', {
         objectType: 'consumer',
         objectId: consumer.id,
       });

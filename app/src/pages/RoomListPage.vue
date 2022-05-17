@@ -60,8 +60,10 @@ const soupStore = useSoupStore();
   }
 })();
 
-function knockOnRoom (roomId: string) {
+async function knockOnRoom (roomId: string) {
   console.log('knock on Room not implemented yet!!!!!', roomId);
+  const response = await peer.requestToJoinRoom(roomId);
+  console.log('knock response:', response);
 }
 
 function enterRoom (roomId: string) {

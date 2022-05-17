@@ -47,7 +47,7 @@
 
 <script setup lang="ts">
 import CensorControl from 'src/components/CensorControl.vue';
-import { ref, watch, onUnmounted } from 'vue';
+import { ref, watch, onUnmounted, onBeforeUnmount } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import DevicePicker from 'src/components/DevicePicker.vue';
 import usePeerClient from 'src/composables/usePeerClient';
@@ -58,6 +58,7 @@ import { asyncDialog } from 'src/modules/utilFns';
 import { getAllGatherings, getGathering } from 'src/modules/authClient';
 import ClientList from 'src/components/ClientList.vue';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
+import { createResponse } from 'shared-types/MessageTypes';
 
 const $q = useQuasar();
 const peer = usePeerClient();
@@ -76,6 +77,31 @@ const videoInfo = ref<VideoInfo>();
 
 const userStore = useUserStore();
 const persistedStore = usePersistedStore();
+
+peer.on('forwardedRequestToJoinRoom', async (msgId, data) => {
+  try {
+    const dialogResult = await asyncDialog({
+      cancel: true,
+      message: `Allow user ${data.clientId} into room?`,
+      title: 'knock on wood!',
+    });
+    const response = createResponse('forwardedRequestToJoinRoom', msgId, {
+      wasSuccess: true,
+    });
+    await peer.sendResponse(response);
+  } catch (e) {
+    console.error('not letting in!!!');
+    const failResponse = createResponse('forwardedRequestToJoinRoom', msgId, {
+      wasSuccess: false,
+      message: 'we wont allow your kind around here!!',
+    });
+    await peer.sendResponse(failResponse);
+  }
+});
+
+onBeforeUnmount(() => {
+  peer.leaveRoom();
+});
 
 onUnmounted(() => {
   $q.loading.hide();

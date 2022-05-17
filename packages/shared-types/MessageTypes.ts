@@ -53,11 +53,11 @@ export type AnyRequest =
     transportId: string,
     dtlsParameters: import('mediasoup').types.DtlsParameters,
   }>
-  | RequestBuilder<'notifyCloseEvent', {
+  | RequestBuilder<'notifyCloseEventRequest', {
     objectType: 'router' | 'transport' | 'producer' | 'consumer' | 'dataproducer' | 'dataconsumer'
     objectId: string
   }>
-  | RequestBuilder<'notifyPauseResume', {
+  | RequestBuilder<'notifyPauseResumeRequest', {
     objectType: 'producer' | 'consumer'
     objectId: string
     wasPaused: boolean
@@ -106,7 +106,7 @@ export type AnyRequest =
   | RequestBuilder<'requestToJoinRoom', {
     roomId: string,
   }>
-  | RequestBuilder<'requestToJoinRoomFromServer', {
+  | RequestBuilder<'forwardedRequestToJoinRoom', {
     roomId: string,
     clientId: string,
   }>
@@ -141,6 +141,9 @@ export type Message<Key extends MessageSubjects> = Extract<AnyMessage, {subject:
 
 export type RequestSubjects = AnyRequest['subject'];
 export type Request<Key extends RequestSubjects> = Extract<AnyRequest, {subject: Key}>
+
+export type AnyMessageOrRequest = AnyMessage | AnyRequest;
+export type MessageOrRequest<Key extends AnyMessageOrRequest> = Extract<AnyMessageOrRequest, {subject: Key}>;
 
 //Interfaces for return Messages
 interface IResponse extends IPacket {
@@ -177,8 +180,8 @@ export type AnyResponse =
   | ResponseBuilder<'setPauseStateForConsumer'>
   | ResponseBuilder<'createProducer', {producerId: string}>
   | ResponseBuilder<'connectTransport'>
-  | ResponseBuilder<'notifyCloseEvent'>
-  | ResponseBuilder<'notifyPauseResume'>
+  | ResponseBuilder<'notifyCloseEventRequest'>
+  | ResponseBuilder<'notifyPauseResumeRequest'>
   | ResponseBuilder<'setName'>
   | ResponseBuilder<'getClientState', ClientState>
   | ResponseBuilder<'findGatheringByName', {
@@ -195,7 +198,7 @@ export type AnyResponse =
   | ResponseBuilder<'createRoom', RoomState>
   | ResponseBuilder<'joinRoom', RoomState>
   | ResponseBuilder<'requestToJoinRoom', RoomState>
-  | ResponseBuilder<'requestToJoinRoomFromServer'>
+  | ResponseBuilder<'forwardedRequestToJoinRoom'>
   | ResponseBuilder<'leaveRoom', {roomId: string}>
   // | ResponseBuilder<'roomStateUpdated'>
   | ResponseBuilder<'assignMainProducerToRoom'>
@@ -210,7 +213,7 @@ export type ResponseTo<Key extends RequestSubjects> = Extract<AnyResponse, {subj
 
 export type UnfinishedResponse<T extends AnyResponse> = Omit<T, 'wasSuccess' | 'data'> & {wasSuccess?: undefined} | T
 
-export type UnknownMessageType = AnyMessage | AnyRequest | AnyResponse
+export type UnknownMessageType = AnyMessageOrRequest | AnyResponse
 
 type MessageTypes = UnknownMessageType['type'];
 export type MessageOfType<Key extends MessageTypes> = Extract<UnknownMessageType, {type: Key}>

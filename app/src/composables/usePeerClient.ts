@@ -2,15 +2,18 @@ import PeerClient from 'src/modules/PeerClient';
 import { useSoupStore } from 'src/stores/soupStore';
 import { usePersistedStore } from 'src/stores/persistedStore';
 import { useUserStore } from 'src/stores/userStore';
-import { AnyMessage, Message } from 'shared-types/MessageTypes';
+import { Message, MessageSubjects, RequestSubjects, Request } from 'shared-types/MessageTypes';
 import { TypedEmitter } from 'tiny-typed-emitter';
 
 const peer: PeerClient = new PeerClient();
 
-type MsgEvents<Msg extends AnyMessage> = {
-  [event in Msg['subject']]: (data: Message<event>['data']) => void;
+type MsgEvents<Subjects extends MessageSubjects> = {
+  [event in Subjects]: (data: Message<event>['data']) => void;
 };
 
+type ReqEvents = {
+  [event in RequestSubjects]: (data: Request<event> extends {data: unknown}? Request<event>['data']: undefined) => void;
+}
 // let peer: PeerClient | undefined;
 // export function destroy () {
 //   const soupStore = useSoupStore();
@@ -24,7 +27,8 @@ export default function usePeerClient () {
   const soupStore = useSoupStore();
   const userStore = useUserStore();
   const persistedStore = usePersistedStore();
-  const closeEventEmitter = new TypedEmitter<MsgEvents<Message<'notifyCloseEvent'>>>();
+  // const closeEventEmitter = new TypedEmitter<MsgEvents<'notifyCloseEvent'>>();
+  // const requestEventEmitter = new TypedEmitter<ReqEvents>();
 
   // Attach callbacks! ***************************
 
@@ -43,15 +47,17 @@ export default function usePeerClient () {
     console.log(data);
     soupStore.clientState = data.newState;
   });
-  peer.on('notifyCloseEvent', (payload) => {
-    closeEventEmitter.emit('notifyCloseEvent', payload);
-  });
+  // peer.on('notifyCloseEvent', (payload) => {
+  //   closeEventEmitter.emit('notifyCloseEvent', payload);
+  // });
 
   peer.socketEvents.on('open', () => { soupStore.connected = true; });
   peer.socketEvents.on('close', () => { soupStore.connected = false; });
-  peer.socketEvents.on('request', (reqMsg) => {
-    console.log('received request: ', reqMsg);
-  });
+  // peer.socketEvents.on('request', (reqMsg) => {
+  //   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //   // @ts-ignore
+  //   requestEventEmitter.emit(reqMsg.subject, reqMsg.data);
+  // });
 
   //* ************************************ */
 
@@ -138,7 +144,9 @@ export default function usePeerClient () {
   return {
     ...peer, // Order matters here! customExports holds some overrides, so it must come after
     ...customExports,
-    closeEvents: closeEventEmitter,
+    // closeEvents: closeEventEmitter,
+    // requestEvents: requestEventEmitter,
+    on: peer.on,
 
   };
 }

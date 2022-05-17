@@ -59,9 +59,9 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
       case 'sender':
         res.status(403).send('fuck you. You may not create other users! You are not cool enough!');
         return;
-      case 'gatheringEditor':
+      case 'host':
         if (!userData.gathering) {
-          throw new Error('gatheringEditors must assign created users to same gathering as themselves. No gathering set for requesting client');
+          throw new Error('hosts must assign created users to same gathering as themselves. No gathering set for requesting client');
         }
         gathering = userData.gathering;
         break;
@@ -171,9 +171,9 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
       case 'sender':
         res.status(403).send('fuck you. You may not edit users! You are not cool enough!');
         return;
-      case 'gatheringEditor':
+      case 'host':
         if (payload.gathering) {
-          throw new Error('gatheringEditors cant change gathering for existing users');
+          throw new Error('hosts cant change gathering for existing users');
         }
         break;
       case 'admin': {
@@ -314,9 +314,9 @@ const getUsers: RequestHandler = async (req: GetUsersRequest, res) => {
   const clientSecurityLevel = securityLevels.indexOf(userData.role);
 
   try {
-    if(clientSecurityLevel < securityLevels.indexOf('gatheringEditor')){
+    if(clientSecurityLevel < securityLevels.indexOf('host')){
       throw new Error('Too low security clearance! You fucking loooser!');
-    }
+    hosts
     if(clientSecurityLevel < securityLevels.indexOf('admin')){
       // Below admin in level
       if(!userData.gathering){

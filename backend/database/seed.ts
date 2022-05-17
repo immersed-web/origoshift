@@ -43,7 +43,7 @@ async function seed() {
     },
   })
 
-  role = 'gatheringEditor'
+  role = 'host'
   await prisma.user.create({
     data: {
       username: 'mrEditor',
@@ -112,7 +112,7 @@ async function seed() {
     }
   })
 
-  role = 'gatheringEditor';
+  role = 'host';
   await prisma.user.create({
     data: {
       username: 'mrEditor2',

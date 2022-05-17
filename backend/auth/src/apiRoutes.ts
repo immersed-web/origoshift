@@ -17,7 +17,7 @@ interface GetGatheringRequest extends ExpressReq {
   }
 }
 
-//TODO: should this perhaps only be allowed at all for gatheringEditors or above?
+//TODO: should this perhaps only be allowed at all for hosts or above?
 const getGathering:RequestHandler = async (req: GetGatheringRequest, res) => {
   const payload = req.body;
   const userData = req.session.user;
@@ -28,7 +28,7 @@ const getGathering:RequestHandler = async (req: GetGatheringRequest, res) => {
     if(!userData || !userData.role) {
       throw new Error('no role!');
     }
-    throwIfUnauthorized(userData.role, 'gatheringEditor');
+    throwIfUnauthorized(userData.role, 'host');
     if(!hasAtLeastSecurityLevel(userData.role, 'admin')){
       gatheringName = userData.gathering;
     }

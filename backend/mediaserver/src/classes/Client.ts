@@ -373,7 +373,7 @@ export default class Client {
             roomId: msg.data.roomId,
             clientId: this.id,
           });
-          await foundRoom.broadcastRequest(req, 'gatheringEditor', 30000);
+          await foundRoom.broadcastRequest(req, 'host', 30000);
           this.setRoom(foundRoom.id);
           foundRoom.addClient(this);
           response = createResponse('requestToJoinRoom', msg.id, {

@@ -72,19 +72,11 @@ export interface UserData {
   // allowedActions: Array<AllowedAction>
 }
 
-// export type UserRole = 
-// 'guest' |
-// 'client' |
-// 'sender' |
-// 'gatheringEditor' |
-// 'admin' |
-// 'gunnar' 
-
 export const securityLevels = [
 'guest',
 'client',
 'sender',
-'gatheringEditor',
+'host',
 'admin',
 'gunnar' 
 ] as const;
@@ -121,14 +113,14 @@ const defaultActions = [
 
 type DefaultAction = (typeof defaultActions)[number];
 type NonDefaultAction = Exclude<AllowedAction, DefaultAction>
-const gatheringEditorActions: NonDefaultAction[] = [
+const hostActions: NonDefaultAction[] = [
 'assignMainProducerToRoom', 'createRoom',  'customRequest', 'getGatheringState',
 ]
 
 export const allowedActions: Record<UserRole, AllowedAction[]> = {
   gunnar: ['*'],
   admin: ['*'],
-  gatheringEditor: [...defaultActions, ...gatheringEditorActions],
+  host: [...defaultActions, ...hostActions],
   sender: [...defaultActions],
   client: [...defaultActions],
   guest: [...defaultActions],

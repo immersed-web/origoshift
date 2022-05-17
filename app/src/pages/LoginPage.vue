@@ -40,7 +40,7 @@ async function loginUser (creds: Creds) {
       case 'sender':
         redirect = { name: 'camera' };
         break;
-      case 'gatheringEditor':
+      case 'host':
         redirect = { name: 'controlStart' };
         break;
       case 'admin':

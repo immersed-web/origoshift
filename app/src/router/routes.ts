@@ -14,7 +14,7 @@ const routes: RouteRecordRaw[] = [
     path: '',
     component: () => import('layouts/NoScrollLayout.vue'),
     children: [
-      { path: '', redirect: '/login' },
+      { name: 'index', path: '', redirect: '/login' },
       { path: '/login', component: () => import('pages/LoginPage.vue'), meta: { lowestAccessLevel: 'guest' } },
       { path: '/logout', component: () => import('pages/LogoutPage.vue') },
       { name: 'controlStart', path: '/teacher/start', component: () => import('pages/ControlStartPage.vue'), meta: { lowestAccessLevel: 'host' } },

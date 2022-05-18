@@ -316,7 +316,7 @@ const getUsers: RequestHandler = async (req: GetUsersRequest, res) => {
   try {
     if(clientSecurityLevel < securityLevels.indexOf('host')){
       throw new Error('Too low security clearance! You fucking loooser!');
-    hosts
+    }
     if(clientSecurityLevel < securityLevels.indexOf('admin')){
       // Below admin in level
       if(!userData.gathering){

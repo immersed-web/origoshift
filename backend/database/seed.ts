@@ -10,26 +10,6 @@ let role: NonGuestUserRole = 'admin';
 async function seed() {
   const hashedPassword = await bcrypt.hash('password', 10);
 
-  const testSkolan = await prisma.gathering.create({
-    data: {
-      name: 'TestSkolan',
-      rooms: {
-        createMany: {
-          data: [
-            { name: 'Klassrum 1' },
-            { name: 'Klassrum 2' },
-          ]
-        }
-      },
-    }
-  })
-
-  const testSkolan2 = await prisma.gathering.create({
-    data: {
-      name: 'TestSkolan2',
-    }
-  })
-
   await prisma.user.create({
     data:
     {
@@ -43,10 +23,31 @@ async function seed() {
     },
   })
 
+  const testSkolan = await prisma.gathering.create({
+    data: {
+      name: 'TestSkolan',
+      // rooms: {
+      //   createMany: {
+      //     data: [
+      //       { name: 'Klassrum 1' },
+      //       { name: 'Klassrum 2' },
+      //     ]
+      //   }
+      // },
+    }
+  })
+
+  const testSkolan2 = await prisma.gathering.create({
+    data: {
+      name: 'TestSkolan2',
+    }
+  })
+
+
   role = 'host'
   await prisma.user.create({
     data: {
-      username: 'mrEditor',
+      username: 'host1',
       password: hashedPassword,
       role: {
         connectOrCreate: {
@@ -60,7 +61,7 @@ async function seed() {
       },
       gathering: {
         connect: {
-          name: 'TestSkolan'
+          name: testSkolan.name
         }
       }
     }
@@ -70,7 +71,7 @@ async function seed() {
   role = 'client';
   await prisma.user.create({
     data: {
-      username: 'mrClient 1',
+      username: 'elev1',
       password: hashedPassword,
       role: {
         connectOrCreate: {
@@ -92,7 +93,7 @@ async function seed() {
 
   await prisma.user.create({
     data: {
-      username: 'mrClient 2',
+      username: 'elev2',
       password: hashedPassword,
       role: {
         connectOrCreate: {
@@ -115,7 +116,7 @@ async function seed() {
   role = 'host';
   await prisma.user.create({
     data: {
-      username: 'mrEditor2',
+      username: 'host2',
       password: hashedPassword,
       role: {
         connectOrCreate: {
@@ -132,6 +133,48 @@ async function seed() {
           name: testSkolan2.name
         }
       },
+    }
+  })
+  await prisma.user.create({
+    data: {
+      username: 'elev3',
+      password: hashedPassword,
+      role: {
+        connectOrCreate: {
+          create: {
+            role: role
+          },
+          where: {
+            role: role
+          }
+        }
+      },
+      gathering: {
+        connect: {
+          name: testSkolan2.name
+        }
+      }
+    }
+  })
+  await prisma.user.create({
+    data: {
+      username: 'elev4',
+      password: hashedPassword,
+      role: {
+        connectOrCreate: {
+          create: {
+            role: role
+          },
+          where: {
+            role: role
+          }
+        }
+      },
+      gathering: {
+        connect: {
+          name: testSkolan2.name
+        }
+      }
     }
   })
 }

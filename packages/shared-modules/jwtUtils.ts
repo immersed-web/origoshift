@@ -16,10 +16,6 @@ declare module 'express' {
   }
 }
 
-
-export const ADMIN_USERNAME = 'admin';
-export const ADMIN_PASSWORD = 'bajskorv';
-
 // TODO: We must environmentify these variables!!!!!
 export const JWT_SECRET = 'lkajsdhflkjasdjf';
 export const JWT_ISSUER = 'Inclubit auth server';

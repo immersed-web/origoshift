@@ -222,7 +222,7 @@ async function addGathering () {
 }
 
 async function removeGathering (gatheringName: string) {
-  const result = await asyncDialog({
+  const _result = await asyncDialog({
     message: 'Säker på att du vill ta bort detta gathering? Alla associerade användare kommer också bli borttagna.',
     title: `Bekräfta borttagning av ${gatheringName}`,
     cancel: { label: 'Avbryt', color: 'negative' },
@@ -294,7 +294,7 @@ const groupedUsers = computed(() => {
 })();
 
 async function onDeleteUser (user: Exclude<(typeof users.value), undefined>[number]) {
-  const payload = await asyncDialog({
+  const _payload = await asyncDialog({
     title: 'Verifiera',
     ok: {
       color: 'negative',

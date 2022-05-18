@@ -104,10 +104,10 @@ peer.on('notifyCloseEvent', (payload) => {
 // TODO: This will not protect from clients "stealing" the broadcasting of the screenshare
 let consumedScreenProducerId: string;
 const screenShareConsumerId = ref<string>();
-watch(() => soupStore.roomState?.clients, async (newClients, oldCLients) => {
+watch(() => soupStore.roomState?.clients, async (newClients, _oldCLients) => {
   if (!newClients) return;
-  for (const [clientId, client] of Object.entries(newClients)) {
-    for (const [producerId, producer] of Object.entries(client.producers)) {
+  for (const [_clientId, client] of Object.entries(newClients)) {
+    for (const [_producerId, producer] of Object.entries(client.producers)) {
       if (producer.producerInfo) {
         if (producer.producerInfo.screenShare) {
           if (producer.producerId !== consumedScreenProducerId) {
@@ -174,6 +174,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  peer.closeAndNotifyAllConsumers();
   peer.leaveRoom();
 });
 
@@ -194,7 +195,7 @@ onBeforeUnmount(() => {
     if (!route.params.roomId || Array.isArray(route.params.roomId)) {
       throw new Error('no or incorrectly formatted roomId specified in route!');
     }
-    await peer.sendRtpCapabilities();
+    // await peer.sendRtpCapabilities();
     await peer.createReceiveTransport();
 
     const roomState = await peer.joinRoom(route.params.roomId);

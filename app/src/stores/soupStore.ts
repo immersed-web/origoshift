@@ -42,8 +42,8 @@ export const useSoupStore = defineStore('soup', {
 
       let screenProducerObj = {};
 
-      for (const [clientId, client] of Object.entries(roomState.clients)) {
-        for (const [producerId, producer] of Object.entries(client.producers)) {
+      for (const [_clientId, client] of Object.entries(roomState.clients)) {
+        for (const [_producerId, producer] of Object.entries(client.producers)) {
           if (producer.producerInfo) {
             if (producer.producerInfo.screenShare) {
               screenProducerObj = {

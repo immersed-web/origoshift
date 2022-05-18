@@ -75,6 +75,9 @@ export default {
   },
   tearDown: () => {
     // retryIsActive = false;
+    if (createSocketTimeout) {
+      window.clearTimeout(createSocketTimeout);
+    }
     if (!socket) return;
     socket.close(1000, 'closed by user');
     socket = null;

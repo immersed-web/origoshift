@@ -55,7 +55,7 @@ import { useUserStore } from 'src/stores/userStore';
 import { usePersistedStore } from 'src/stores/persistedStore';
 import { useQuasar } from 'quasar';
 import { asyncDialog } from 'src/modules/utilFns';
-import { getAllGatherings, getGathering } from 'src/modules/authClient';
+import { getAllGatherings } from 'src/modules/authClient';
 import ClientList from 'src/components/ClientList.vue';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import { createResponse } from 'shared-types/MessageTypes';
@@ -80,7 +80,7 @@ const persistedStore = usePersistedStore();
 
 peer.on('forwardedRequestToJoinRoom', async (msgId, data) => {
   try {
-    const dialogResult = await asyncDialog({
+    const _dialogResult = await asyncDialog({
       cancel: true,
       message: `Allow user ${data.clientId} into room?`,
       title: 'knock on wood!',
@@ -144,7 +144,7 @@ onUnmounted(() => {
 
     // This is a dirty and filthy hack to force audio and video permissions.
     // In the future we'll be able to use the much nicer permissions API, but thats not rolled out to browsers yet
-    const throwAwayStream = await navigator.mediaDevices.getUserMedia({
+    const _throwAwayStream = await navigator.mediaDevices.getUserMedia({
       video: true,
       audio: true,
     });
@@ -160,20 +160,6 @@ onUnmounted(() => {
   }
 })();
 
-// async function asyncDialog (options: QDialogOptions): Promise<unknown> {
-//   const dialogPromise = new Promise((resolve, reject) => {
-//     $q.dialog(options).onOk((payload) => {
-//       resolve(payload);
-//     }).onCancel(() => {
-//       reject();
-//     }).onDismiss(() => {
-//       reject();
-//     });
-//   });
-//   return dialogPromise;
-// }
-
-type PickedGathering = Awaited<ReturnType<(typeof getAllGatherings)>>[number]
 async function pickGathering (gatherings: string[]): Promise<string> {
   const radioOptions = gatherings.map(gatheringName => {
     return { label: gatheringName, value: gatheringName };
@@ -192,7 +178,6 @@ async function pickGathering (gatherings: string[]): Promise<string> {
   return dialogPromise as Promise<string>;
 }
 
-// type Rooms = PickedGathering['rooms'];
 async function chooseRoomName (): Promise<string> {
   // console.log(gatheringResponse);
   const dialogPromise = asyncDialog({
@@ -207,10 +192,6 @@ async function chooseRoomName (): Promise<string> {
       model: '',
       isValid: val => !!val,
     },
-    // options: {
-    //   model: '',
-    //   items: radioOptions,
-    // },
   });
   return dialogPromise as Promise<string>;
 }
@@ -407,10 +388,6 @@ async function enterGatheringAndRoom (gatheringName: string, roomName: string) {
 
   const roomState = await peer.joinOrCreateRoom(roomName);
   soupStore.setRoomState(roomState);
-}
-
-async function stopProducing () {
-  peer.producers.forEach(producer => { producer.close(); });
 }
 </script>
 

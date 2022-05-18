@@ -90,7 +90,7 @@ module.exports = {
     'prefer-promise-reject-errors': 'off',
 
     'comma-dangle': ['error', 'always-multiline'],
-    "no-unused-vars": "off",
+    'no-unused-vars': 'off',
     semi: ['error', 'always'],
     quotes: ['error', 'single', { avoidEscape: true }],
     'array-callback-return': ['warn', {
@@ -106,8 +106,14 @@ module.exports = {
     '@typescript-eslint/indent': ['error', 2],
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    "@typescript-eslint/no-unused-vars": "warn",
-    
+    '@typescript-eslint/no-unused-vars': [
+      'warn', 
+      { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+      },
+    ],
 
     // allow debugger during development only
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'

@@ -95,17 +95,19 @@ app.ws('/*', {
         throw Error('jwtVerify returned a string. No good!');
       }
 
-      if(decoded){
-        console.log('decoded jwt:', decoded);
-        res.upgrade(
-          {decoded},
-          /* Spell these correctly */
-          req.getHeader('sec-websocket-key'),
-          req.getHeader('sec-websocket-protocol'),
-          req.getHeader('sec-websocket-extensions'),
-          context
-        );
+      if(!decoded){
+        console.error('failed to decode jwt token');
+        throw Error('failed to decode token!');
       }
+      console.log('decoded jwt:', decoded);
+      res.upgrade(
+        {decoded},
+        /* Spell these correctly */
+        req.getHeader('sec-websocket-key'),
+        req.getHeader('sec-websocket-protocol'),
+        req.getHeader('sec-websocket-extensions'),
+        context
+      );
     } catch(e){
       res.writeStatus('403 Forbidden').end('YOU SHALL NOT PASS!!!');
       return;

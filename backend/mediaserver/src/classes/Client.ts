@@ -89,6 +89,7 @@ export default class Client {
       console.log('client received message:', msg);
       this.handleReceivedMsg(msg);
     });
+    this.onClientStateUpdated('server side client instance created');
   }
 
   assignSocketWrapper(ws: SocketWrapper){
@@ -739,7 +740,7 @@ export default class Client {
     for(const [key, prop] of Object.entries(props)) {
       this.customProperties[key] = prop;
     }
-    this.onClientStateUpdated('a client chagned custom properties');
+    this.onClientStateUpdated('a client changed custom properties');
   }
 
   private leaveCurrentRoom(): string;
@@ -793,6 +794,8 @@ export default class Client {
     this.connected = false;
     this.room?.removeClient(this, true);
     this.gathering?.removeClient(this);
+   
+    // mediasoup should handle closing and notifying producers and consumers when their respective transports are closed. So we wont close producers or consumers ourselves
     this.sendTransport?.close();
     this.receiveTransport?.close();
     // this.ws = undefined;

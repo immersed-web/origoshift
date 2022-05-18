@@ -70,7 +70,6 @@ export default route(function (/* { store, ssrContext } */) {
       throw new Error('role is undefined. That should never happen with a loaded userStore');
     }
     console.log('role is: ', role);
-    const guestLevel = securityLevels.indexOf('guest');
     const routeLevel = securityLevels.indexOf(to.meta.lowestAccessLevel);
     const clientLevel = securityLevels.indexOf(role);
     if (!to.meta.lowestAccessLevel || to.meta.lowestAccessLevel === 'guest') {

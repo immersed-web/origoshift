@@ -32,9 +32,11 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
   socketEvents = socketutils.socketEvents;
 
   connect = async (token: string) => {
+    console.log('Connecting peerClient!');
+    socketutils.tearDown();
     await socketutils.createSocket(token);
-    const clientStateReq = createRequest('getClientState');
-    return socketutils.sendRequest(clientStateReq);
+    // const clientStateReq = createRequest('getClientState');
+    // return socketutils.sendRequest(clientStateReq);
   }
 
   disconnect = () => {
@@ -265,6 +267,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     if (!this.mediasoupDevice) {
       throw Error('cant create transport if mediasoup device isnt loaded');
     }
+    this.receiveTransport?.close();
     const createReceiveTransportReq = createRequest('createReceiveTransport');
     const response = await socketutils.sendRequest(createReceiveTransportReq);
 

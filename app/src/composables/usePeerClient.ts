@@ -112,6 +112,7 @@ export default function usePeerClient () {
   // }
 
   async function restoreOrInitializeGathering () {
+    console.log('restoreOrInitializeGathering triggered!!');
     if (!userStore.userData || !userStore.jwt) {
       throw new Error('no userstate! is needed to recover gathering');
     }
@@ -136,7 +137,6 @@ export default function usePeerClient () {
     await peer.getRouterCapabilities();
     await peer.loadMediasoupDevice();
     await peer.sendRtpCapabilities();
-    // await peer.createSendTransport();
   }
 
   const customExports = { disconnect, requestMedia, restoreOrInitializeGathering };

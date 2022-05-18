@@ -1,4 +1,4 @@
-process.env.DEBUG = 'Room* mediasoup*';
+process.env.DEBUG = 'Gathering* Room* mediasoup*';
 
 // import { debug } from 'util';
 // const messageLogger = debug('socketMessage');

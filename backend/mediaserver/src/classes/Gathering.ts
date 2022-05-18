@@ -3,6 +3,10 @@ import { GatheringState } from 'shared-types/CustomTypes';
 import { createMessage } from 'shared-types/MessageTypes';
 import mediasoupConfig from '../mediasoupConfig';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
+import debug from 'debug';
+const gatheringLog = debug('Gathering');
+const gatheringError = debug('Gathering:ERROR');
+const gatheringWarn = debug('Gathering:WARNING');
 // import Client from './Client';
 import {types as soup} from 'mediasoup';
 
@@ -49,8 +53,8 @@ export default class Gathering {
   }
 
   static getGathering(params:{id?: string, name?:string}) {
-    // console.log('trying to get a gathering with params: ', params);
-    // console.log('gatherings map:', Gathering.gatherings);
+    // gatheringLog('trying to get a gathering with params: ', params);
+    // gatheringLog('gatherings map:', Gathering.gatherings);
     if(params.id){
 
       const gathering = Gathering.gatherings.get(params.id);
@@ -66,9 +70,9 @@ export default class Gathering {
   }
 
   private static getGatheringFromName(name:string): Gathering {
-    console.log('searching gathering with name:',name);
+    gatheringLog('searching gathering with name:',name);
     for (const [ _ , gathering] of Gathering.gatherings) {
-      console.log('checking gathering:', gathering);
+      gatheringLog('checking gathering:', gathering);
       if(gathering.name === name){
         return gathering;
       }
@@ -123,6 +127,7 @@ export default class Gathering {
 
   addClient ( client : Client){
     this.clients.set(client.id, client);
+    client.setGathering(this.id);
     // We dont broadcast when a client joins. Broadcast is only relevant when they actually join a room
     // At this stage we send the state back to the joining client so they are up to date with the others.
     // this.sendGatheringStateTo(client);
@@ -132,6 +137,7 @@ export default class Gathering {
     // TODO: We should also handle if client leaves gathering while in a room. Here or elsewhere
     this.clients.delete(client.id);
     this.broadCastGatheringState( undefined, 'client removed from gathering');
+    client.setGathering(undefined);
 
     if(!this.clients.size){
       this.destroy();
@@ -139,6 +145,7 @@ export default class Gathering {
   }
   
   destroy() {
+    gatheringLog(`destroying gathering ${this.id} `);
     this.router.close();
     this.rooms.forEach(room => room.destroy());    
     Gathering.gatherings.delete(this.id);
@@ -189,23 +196,19 @@ export default class Gathering {
 
   // TODO: We should throttle some or perhaps all of the broadcast functions so we protect from overload
   broadCastGatheringState(clientsToSkip: string[] = [], updateReason?: string) {
-    // const gatheringState = this.gatheringState;
-    console.log(`gonna broadcast to ${this.clients.size} clients`);
+    gatheringLog(`gonna broadcast to ${this.clients.size} clients`);
     let reason = 'update reason not specified';
     if(updateReason) reason = updateReason;
 
-    // const receivers = [...this.clients, ...this.senderClients];
-
     this.clients.forEach(client => {
       if(client.id in clientsToSkip){
-        console.log('skipping client:', client.id);
+        gatheringLog('skipping client:', client.id);
         return;
       }
       const gatheringStateMsg = createMessage('gatheringStateUpdated', {newState: this.gatheringState, reason});
-      console.log(`sending gatheringStateUpdated to client ${client.id}`);
+      gatheringLog(`sending gatheringStateUpdated to client ${client.id}`);
       client.send(gatheringStateMsg);
     });
-    // });
   }
 
   // TODO: will this truly suffice for deleting the room? Or will it float around as a deserted little vessel in the memory ocean?
@@ -269,18 +272,18 @@ export default class Gathering {
       try{
         await transport.setMaxIncomingBitrate(mediasoupConfig.maxIncomingBitrate);
       } catch (e){
-        console.log('failed to set maximum incoming bitrate');
+        gatheringLog('failed to set maximum incoming bitrate');
       }
     }
 
     transport.on('dtlsstatechange', (dtlsState: soup.DtlsState) => {
       if(dtlsState === 'closed'){
-        console.log('---transport close--- transport with id ' + transport.id + ' closed');
+        gatheringLog('---transport close--- transport with id ' + transport.id + ' closed');
         transport.close();
       }
     });
 
-    transport.on('close', () => console.log('---transport close--- transport with id ' + transport.id + ' closed'));
+    transport.on('close', () => gatheringLog('---transport close--- transport with id ' + transport.id + ' closed'));
 
     return transport;
   }

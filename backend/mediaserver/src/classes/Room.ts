@@ -71,8 +71,9 @@ export default class Room {
       // roomWarn('This client is already in the room!!');
       // return false;
     }
-    // TODO; Should we perhaps only broadcast roomstate here?
     this.clients.set(client.id, client);
+    client.setRoom(this.id);
+    // TODO; Should we perhaps only broadcast roomstate here?
     this.gathering?.broadCastGatheringState([client.id], 'client added to room');
   }
 
@@ -106,6 +107,7 @@ export default class Room {
     if(!ok){
       throw new Error(`failed to remove client ${client.id} from room`);
     }
+    client.setRoom(undefined); // Be aware. I've decided to let the room be responsible for clearing the clients room-field.
     if(this.clients.size == 0) {
       roomLog('last client left the room. will also remove the room itself');
       this.gathering?.deleteRoom(this);

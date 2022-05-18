@@ -174,7 +174,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  peer.closeAndNotifyAllConsumers();
+  // peer.closeAndNotifyAllConsumers();
+  // peer.receiveTransport?.close();
   peer.leaveRoom();
 });
 
@@ -182,6 +183,7 @@ onBeforeUnmount(() => {
 // ***************
 // INITIALIZE
 (async () => {
+  console.log('CLIENTPAGE INITIALIZE TRIGGERED!!!');
   const route = router.currentRoute.value;
 
   try {
@@ -196,7 +198,9 @@ onBeforeUnmount(() => {
       throw new Error('no or incorrectly formatted roomId specified in route!');
     }
     // await peer.sendRtpCapabilities();
-    await peer.createReceiveTransport();
+    if (!peer.receiveTransport) {
+      await peer.createReceiveTransport();
+    }
 
     const roomState = await peer.joinRoom(route.params.roomId);
     soupStore.setRoomState(roomState);

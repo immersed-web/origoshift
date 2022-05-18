@@ -234,9 +234,6 @@ export default class Client {
           if(!gathering){
             throw new Error('Cant join that gathering. Does not exist');
           }
-          // ORDER MATTERS HERE! the gathering will read the client's gathering field when broadcasting,
-          // so we need to set it before calling 'addClient'.
-          this.setGathering(gathering.id);
           gathering.addClient(this);
           response = createResponse('joinGathering', msg.id, {
             data: gathering.gatheringState,
@@ -261,7 +258,7 @@ export default class Client {
             throw Error('not in a gathering. Thus cant leave one');
           }
           this.gathering.removeClient(this);
-          this.setGathering(undefined);
+          // this.setGathering(undefined);
         } catch(e){
           response.wasSuccess = false;
           const msg = extractMessageFromCatch(e, 'failed to leave gathering');
@@ -346,7 +343,6 @@ export default class Client {
           }
           const roomId = msg.data.roomId;
           const foundRoom = this.gathering.getRoom({id: roomId});
-          this.setRoom(foundRoom.id);
           foundRoom.addClient(this);
           response = createResponse('joinRoom', msg.id, {
             data: foundRoom.roomState,
@@ -756,7 +752,6 @@ export default class Client {
     this.closeAndNotifyAllConsumers();
     const roomId = this.room.id;
     this.room.removeClient(this);
-    this.setRoom(undefined);
     return roomId;
   }
 

@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import SocketWrapper from './SocketWrapper';
 import {types as soupTypes} from 'mediasoup';
 import {types as soupClientTypes} from 'mediasoup-client';
-import { ClientState, UserData, UserRole } from 'shared-types/CustomTypes';
+import { ClientProperties, ClientState, UserData, UserRole } from 'shared-types/CustomTypes';
 import { AnyRequest, createMessage, createRequest, createResponse, Request, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 // import { checkPermission } from '../modules/utilFns';
@@ -47,7 +47,7 @@ export default class Client {
   consumers: Map<string, soupTypes.Consumer> = new Map();
   producers: Map<string, soupTypes.Producer> = new Map();
 
-  customProperties: Record<string, unknown> = {};
+  customProperties: ClientProperties = {};
 
   private gatheringId?: string;
   setGathering(gatheringId: string | undefined){
@@ -716,6 +716,27 @@ export default class Client {
         this.send(response);
         break;
       }
+      case 'setCustomRoomProperties': {
+        let response: ResponseTo<'setCustomRoomProperties'>;
+        try {
+          if(!this.gathering) {
+            throw Error('must be in a gathering to set properties for a room');
+          }
+
+          const room = this.gathering.getRoom({id: msg.data.roomId});
+          room.setCustomProperties(msg.data.properties);
+          response = createResponse('setCustomRoomProperties', msg.id, {
+            wasSuccess: true,
+          });
+        } catch(e) {
+          response = createResponse('setCustomRoomProperties', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to set custom properties'),
+          });
+        }
+        this.send(response);
+        break;
+      }
       default:
         break;
     }
@@ -763,7 +784,7 @@ export default class Client {
     }
   }
 
-  setCustomProperties (props : Record<string, unknown>)  {
+  setCustomProperties (props: ClientProperties)  {
     for(const [key, prop] of Object.entries(props)) {
       this.customProperties[key] = prop;
     }

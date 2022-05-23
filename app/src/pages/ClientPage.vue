@@ -152,7 +152,7 @@ const screenTag = ref<HTMLVideoElement>();
 const handRaised = ref<boolean>(false);
 async function toggleRaiseHand () {
   handRaised.value = !handRaised.value;
-  await peer.setCustomProperties({
+  await peer.setCustomClientProperties({
     handRaised: handRaised.value,
   });
 }

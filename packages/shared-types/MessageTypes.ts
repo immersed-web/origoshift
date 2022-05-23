@@ -1,6 +1,6 @@
 import {types as mediasoupClientTypes} from 'mediasoup-client';
 import {types as mediasoupTypes} from 'mediasoup';
-import { GatheringState, RoomState, ClientState, ProducerInfo } from './CustomTypes';
+import { GatheringState, RoomState, ClientState, ProducerInfo, RoomProperties, ClientProperties } from './CustomTypes';
 import { soupTypes } from './mediasoupTypes';
 
 interface IPacket {
@@ -122,7 +122,10 @@ export type AnyRequest =
     roomId: string,
     mediaKind: soupTypes.MediaKind,
   }>
-  | RequestBuilder<'setCustomClientProperties', Record<string, unknown>>
+  | RequestBuilder<'setCustomClientProperties', ClientProperties>
+  | RequestBuilder<'setCustomRoomProperties', {
+    roomId: string,
+    properties: RoomProperties}>
   | RequestBuilder<'customRequest', {
     customRequestType: string,
     requestData: string | Record<string, unknown>,
@@ -208,6 +211,7 @@ export type AnyResponse =
   // | ResponseBuilder<'roomStateUpdated'>
   | ResponseBuilder<'assignMainProducerToRoom'>
   | ResponseBuilder<'setCustomClientProperties'>
+  | ResponseBuilder<'setCustomRoomProperties'>
   | ResponseBuilder<'customRequest', string | Record<string, unknown>>
 
 export type AnySuccessResponse = Extract<AnyResponse, { wasSuccess: true }>;

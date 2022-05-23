@@ -3,7 +3,7 @@ import * as mediasoupClient from 'mediasoup-client';
 // import { createSocket, tearDown, sendRequest, socketEvents } from 'src/modules/webSocket';
 import socketutils from 'src/modules/webSocket';
 import { createRequest, Message, RequestSubjects, Request, MessageSubjects, AnyResponse } from 'shared-types/MessageTypes';
-import { ProducerInfo } from 'shared-types/CustomTypes';
+import { ClientProperties, ProducerInfo, RoomProperties } from 'shared-types/CustomTypes';
 import { TypedEmitter } from 'tiny-typed-emitter';
 
 type MsgEvents = {
@@ -164,8 +164,12 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     await socketutils.sendRequest(setNameReq);
   }
 
-  setCustomProperties = async (props: Record<string, unknown>) => {
+  setCustomClientProperties = async (props: ClientProperties) => {
     await socketutils.sendRequest(createRequest('setCustomClientProperties', props));
+  }
+
+  setCustomRoomProperties = async (roomId: string, props: RoomProperties) => {
+    await socketutils.sendRequest(createRequest('setCustomRoomProperties', { roomId, properties: props }));
   }
 
   findGathering = async (name: string) => {

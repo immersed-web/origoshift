@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import Client from './Client';
-import { RoomState, ShallowRoomState, UserRole } from 'shared-types/CustomTypes';
+import { RoomProperties, RoomState, ShallowRoomState, UserRole } from 'shared-types/CustomTypes';
 import Gathering from './Gathering';
 import {types as soupTypes } from 'mediasoup';
 import { Request, createMessage, RequestSubjects, ResponseTo, SuccessResponseTo } from 'shared-types/MessageTypes';
@@ -21,6 +21,7 @@ export default class Room {
       audio: undefined,
     };
   clients: Map<string, Client> = new Map();
+  customProperties: RoomProperties = {};
 
   private gatheringId: string | undefined = undefined;
   setGathering(gatheringId: string | undefined){
@@ -128,6 +129,13 @@ export default class Room {
     }
   }
 
+  setCustomProperties(props: RoomProperties){
+
+    for(const [key, prop] of Object.entries(props)) {
+      this.customProperties[key] = prop;
+    }
+  }
+
   get roomState(): RoomState {
     const clients: RoomState['clients'] = {};
     this.clients.forEach(client => {
@@ -138,6 +146,7 @@ export default class Room {
     const roomInfo: RoomState = {
       roomId: this.id,
       roomName: this.roomName,
+      customProperties: this.customProperties,
       mainProducers: {
         video: this.mainProducers.video?.id,
         audio: this.mainProducers.audio?.id,

@@ -11,6 +11,16 @@ export interface ProducerInfo {
   [key: string]: unknown
 }
 
+export interface ClientProperties {
+  isWavingHand?: boolean,
+  [key: string]: unknown,
+}
+
+export interface RoomProperties {
+  requiresInlet?: boolean,
+  [key:string]:unknown,
+}
+
 export interface ClientState {
   clientId: string;
   username?: string;
@@ -32,6 +42,7 @@ export interface ClientState {
 export interface RoomState {
   roomId: string;
   roomName?: string;
+  customProperties: RoomProperties,
   mainProducers: {
     video?:string,
     audio?: string,

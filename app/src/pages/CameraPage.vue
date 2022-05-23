@@ -41,6 +41,10 @@
             style="max-width: 100%; background-color: darkcyan;"
           />
         </div>
+        <QBtn
+          label="open room"
+          @click="toggleOpenRoom"
+        />
       </QCardSection>
     </QCard>
   </div>
@@ -78,6 +82,13 @@ const videoInfo = ref<VideoInfo>();
 
 const userStore = useUserStore();
 const persistedStore = usePersistedStore();
+
+function toggleOpenRoom () {
+  if (!soupStore.roomId) {
+    throw Error('no good');
+  }
+  peer.setCustomRoomProperties(soupStore.roomId, { requiresInlet: true });
+}
 
 function kickClient (clientId: string) {
   if (!soupStore.roomId) {

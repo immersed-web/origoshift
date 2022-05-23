@@ -1,64 +1,39 @@
 import PeerClient from 'src/modules/PeerClient';
+import { pinia } from 'src/boot/pinia';
 import { useSoupStore } from 'src/stores/soupStore';
 import { usePersistedStore } from 'src/stores/persistedStore';
 import { useUserStore } from 'src/stores/userStore';
 
 const peer: PeerClient = new PeerClient();
 
-// type MsgEvents<Subjects extends MessageSubjects> = {
-//   [event in Subjects]: (data: Message<event>['data']) => void;
-// };
+const soupStore = useSoupStore(pinia);
+const userStore = useUserStore(pinia);
+const persistedStore = usePersistedStore(pinia);
 
-// type ReqEvents = {
-//   [event in RequestSubjects]: (data: Request<event> extends {data: unknown}? Request<event>['data']: undefined) => void;
-// }
-// let peer: PeerClient | undefined;
-// export function destroy () {
-//   const soupStore = useSoupStore();
-//   soupStore.$reset();
-//   peer = undefined;
-// }
+// Attach callbacks! ***************************
+
+peer.on('gatheringStateUpdated', data => {
+  console.log('gatheringStateUpdated event triggered!! REASON:', data.reason);
+  console.log(data);
+  soupStore.setGatheringState(data.newState);
+});
+peer.on('roomStateUpdated', data => {
+  console.log('roomStateUpdated event triggered!! REASON: ', data.reason);
+  console.log(data);
+  soupStore.setRoomState(data.newState);
+});
+peer.on('clientStateUpdated', data => {
+  console.log('clientStateUpdated event triggered!! REASON: ', data.reason);
+  console.log(data);
+  soupStore.clientState = data.newState;
+});
+
+peer.socketEvents.on('open', () => { soupStore.connected = true; });
+peer.socketEvents.on('close', () => { soupStore.connected = false; });
+
+//* ************************************ */
+
 export default function usePeerClient () {
-  // if (!peer) {
-  //   peer = new PeerClient();
-  // }
-  const soupStore = useSoupStore();
-  const userStore = useUserStore();
-  const persistedStore = usePersistedStore();
-  // const closeEventEmitter = new TypedEmitter<MsgEvents<'notifyCloseEvent'>>();
-  // const requestEventEmitter = new TypedEmitter<ReqEvents>();
-
-  // Attach callbacks! ***************************
-
-  peer.on('gatheringStateUpdated', data => {
-    console.log('gatheringStateUpdated event triggered!! REASON:', data.reason);
-    console.log(data);
-    soupStore.setGatheringState(data.newState);
-  });
-  peer.on('roomStateUpdated', data => {
-    console.log('roomStateUpdated event triggered!! REASON: ', data.reason);
-    console.log(data);
-    soupStore.setRoomState(data.newState);
-  });
-  peer.on('clientStateUpdated', data => {
-    console.log('clientStateUpdated event triggered!! REASON: ', data.reason);
-    console.log(data);
-    soupStore.clientState = data.newState;
-  });
-  // peer.on('notifyCloseEvent', (payload) => {
-  //   closeEventEmitter.emit('notifyCloseEvent', payload);
-  // });
-
-  peer.socketEvents.on('open', () => { soupStore.connected = true; });
-  peer.socketEvents.on('close', () => { soupStore.connected = false; });
-  // peer.socketEvents.on('request', (reqMsg) => {
-  //   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //   // @ts-ignore
-  //   requestEventEmitter.emit(reqMsg.subject, reqMsg.data);
-  // });
-
-  //* ************************************ */
-
   // const connect = async (token: string) => {
   //   console.log('Connecting peerClient!');
   //   const response = await peer.connect(token);

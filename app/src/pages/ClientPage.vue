@@ -96,6 +96,12 @@ watch(() => soupStore.roomState?.mainProducers, (newMainProducers, oldMainProduc
   immediate: true,
 });
 
+watch(() => soupStore.roomId, (newRoomId) => {
+  if (!newRoomId) {
+    router.replace({ name: 'lobby' });
+  }
+});
+
 peer.on('notifyCloseEvent', (payload) => {
   if (payload.objectType === 'consumer' && payload.objectId === screenShareConsumerId.value) {
     screenShareConsumerId.value = undefined;
@@ -176,7 +182,9 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // peer.closeAndNotifyAllConsumers();
   // peer.receiveTransport?.close();
-  peer.leaveRoom();
+  if (soupStore.roomId) {
+    peer.leaveRoom();
+  }
 });
 
 //

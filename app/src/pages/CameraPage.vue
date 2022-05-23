@@ -4,6 +4,7 @@
   >
     <ClientList
       v-if="soupStore.roomState && soupStore.roomState.clients && soupStore.clientId"
+      @client-removed="kickClient"
       class="col-4 q-mr-md"
       :clients="soupStore.roomState?.clients"
       :client-id="soupStore.clientId"
@@ -77,6 +78,13 @@ const videoInfo = ref<VideoInfo>();
 
 const userStore = useUserStore();
 const persistedStore = usePersistedStore();
+
+function kickClient (clientId: string) {
+  if (!soupStore.roomId) {
+    throw Error('tried to kick client when not in a room');
+  }
+  peer.removeClientFromRoom(clientId, soupStore.roomId);
+}
 
 peer.on('forwardedRequestToJoinRoom', async (msgId, data) => {
   try {

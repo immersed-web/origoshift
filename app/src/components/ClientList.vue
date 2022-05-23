@@ -35,6 +35,13 @@
             </div>
           </QItemSection>
           <QItemSection side>
+            <QBtn
+              round
+              icon="delete"
+              @click="$emit('clientRemoved', client.clientId)"
+            />
+          </QItemSection>
+          <QItemSection side>
             <QIcon
               id="hand-icon"
               color="yellow"
@@ -53,6 +60,16 @@
 
 <script setup lang="ts">
 import { RoomState } from 'shared-types/CustomTypes';
+import { defineEmits } from 'vue';
+
+defineEmits<{(event: 'clientRemoved', clientId: string): void}>();
+
+// import usePeerClient from 'src/composables/usePeerClient';
+
+// const peer = usePeerClient();
+// function kickClientFromRoom(clientId: string) {
+//   peer.removeClientFromRoom(clientId, )
+// }
 
 defineProps<{
   clients: RoomState['clients'],

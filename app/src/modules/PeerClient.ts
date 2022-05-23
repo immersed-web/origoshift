@@ -64,6 +64,15 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       switch (msg.subject) {
         case 'notifyCloseEvent': {
           switch (msg.data.objectType) {
+            case 'producer': {
+              const producer = this.producers.get(msg.data.objectId);
+              if (!producer) {
+                throw Error(`no producer with that id found in client: ${msg.data.objectId}`);
+              }
+              this.producers.delete(producer.id);
+              producer.close();
+              break;
+            }
             case 'consumer': {
               const consumer = this.consumers.get(msg.data.objectId);
               if (!consumer) {
@@ -74,7 +83,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
               break;
             }
             default: {
-              console.error('NotifyCloseEvent with no handler implemented!!!:', msg);
+              console.error('NotifyCloseEvent with no implemented handler was triggered:', msg);
               break;
             }
           }
@@ -241,6 +250,14 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     const leaveRoomReq = createRequest('leaveRoom');
     await socketutils.sendRequest(leaveRoomReq);
     // this.closeAllConsumers();
+  }
+
+  removeClientFromRoom = async (clientId: string, roomId: string) => {
+    const kickClientReq = createRequest('removeClientFromRoom', {
+      clientId,
+      roomId,
+    });
+    await socketutils.sendRequest(kickClientReq);
   }
 
   getRouterCapabilities = async (): Promise<mediasoupTypes.RtpCapabilities> => {

@@ -77,7 +77,18 @@ export default class Room {
     this.gathering?.broadCastGatheringState([client.id], 'client added to room');
   }
 
-  removeClient(client: Client, skipBroadcast = false ){
+  removeClient(clientOrId: Client | string, skipBroadcast = false ){
+    let client: Client;
+    if(!(clientOrId instanceof Client)){
+      const foundClient = this.clients.get(clientOrId);
+      if(!foundClient){
+        throw Error('no client with that id in room!');
+      }
+      client = foundClient;
+      
+    } else {
+      client = clientOrId;
+    }
     if(!client.id){
       // roomWarn('invalid client object provided when trying to remove client from room. id missing!');
       // return false;
@@ -107,7 +118,7 @@ export default class Room {
     if(!ok){
       throw new Error(`failed to remove client ${client.id} from room`);
     }
-    client.setRoom(undefined); // Be aware. I've decided to let the room be responsible for clearing the clients room-field.
+    client.setRoom(undefined); // Be aware. I've now decided to let the room be responsible for clearing the clients room-field.
     if(this.clients.size == 0) {
       roomLog('last client left the room. will also remove the room itself');
       this.gathering?.deleteRoom(this);

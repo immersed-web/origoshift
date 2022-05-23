@@ -107,7 +107,7 @@ const mediasoupConfig: MediasoupConfig = {
   // run anywhere but on localhost
   webRtcTransport,
   
-  maxIncomingBitrate: 1500000,
+  maxIncomingBitrate: 20000000,
   // numWorkers: 1,
 };
 

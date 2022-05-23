@@ -110,6 +110,10 @@ export type AnyRequest =
     roomId: string,
     clientId: string,
   }>
+  | RequestBuilder<'removeClientFromRoom', {
+    clientId: string,
+    roomId: string,
+  }>
   | RequestBuilder<'leaveRoom'>
   // | RequestBuilder<'roomStateUpdated', RoomState>
   | RequestBuilder<'assignMainProducerToRoom',{
@@ -199,6 +203,7 @@ export type AnyResponse =
   | ResponseBuilder<'joinRoom', RoomState>
   | ResponseBuilder<'requestToJoinRoom', RoomState>
   | ResponseBuilder<'forwardedRequestToJoinRoom'>
+  | ResponseBuilder<'removeClientFromRoom'>
   | ResponseBuilder<'leaveRoom', {roomId: string}>
   // | ResponseBuilder<'roomStateUpdated'>
   | ResponseBuilder<'assignMainProducerToRoom'>

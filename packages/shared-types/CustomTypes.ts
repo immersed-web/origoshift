@@ -113,8 +113,9 @@ const defaultActions = [
 
 type DefaultAction = (typeof defaultActions)[number];
 type NonDefaultAction = Exclude<AllowedAction, DefaultAction>
+
 const hostActions: NonDefaultAction[] = [
-'assignMainProducerToRoom', 'createRoom',  'customRequest', 'getGatheringState',
+'assignMainProducerToRoom', 'createRoom',  'customRequest', 'getGatheringState', 'removeClientFromRoom'
 ]
 
 export const allowedActions: Record<UserRole, AllowedAction[]> = {

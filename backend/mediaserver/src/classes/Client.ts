@@ -334,7 +334,6 @@ export default class Client {
 
       case 'joinRoom': {
         this.leaveCurrentRoom(false);
-        //default to fail message
         let response: ResponseTo<'joinRoom'>;
         try{
 
@@ -386,6 +385,39 @@ export default class Client {
         this.send(response);
         break; 
       }
+      case 'removeClientFromRoom': {
+        let response: ResponseTo<'removeClientFromRoom'>;
+        try {
+
+          const roomId = msg.data.roomId;
+          const clientId = msg.data.clientId;
+          
+          if(this.id === clientId){
+            throw Error('cant remove oneself from a room. Use the leaveRoom request instead.');
+          }
+          if(!this.gathering) {
+            throw Error('not in a gathering. must be in one to remove a client from room');
+          }
+          const room = this.gathering.getRoom({id: roomId});
+
+          const client = room.clients.get(clientId);
+          if(!client){
+            throw Error('no client with that id was fonud in room');
+          }
+          client.closeAndNotifyAllConsumers();
+          room.removeClient(client);
+          response = createResponse('removeClientFromRoom', msg.id, {
+            wasSuccess: true,
+          });
+        } catch(e) {
+          response = createResponse('removeClientFromRoom', msg.id, {
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to remove client from room'),
+          });
+        }
+        this.send(response);
+        break;
+      }
       case 'leaveRoom': {
         let response: ResponseTo<'leaveRoom'>;
         try {
@@ -416,7 +448,6 @@ export default class Client {
         break;
       }
       case 'createReceiveTransport': {
-
         let response:ResponseTo<'createReceiveTransport'>;
         try {
 
@@ -750,12 +781,26 @@ export default class Client {
       return;
     }
     this.closeAndNotifyAllConsumers();
+    this.closeAndNotifyAllProducers();
     const roomId = this.room.id;
     this.room.removeClient(this);
     return roomId;
   }
 
-  private closeAndNotifyAllConsumers = () => {
+  closeAndNotifyAllProducers = () => {
+    const producerArray = Array.from(this.producers.entries());
+    for(const [producerKey, producer] of producerArray){
+      producer.close();
+      const closeConsumerMsg = createMessage('notifyCloseEvent', {
+        objectType: 'producer',
+        objectId: producerKey,
+      });
+      this.send(closeConsumerMsg);
+      this.consumers.delete(producerKey);      
+    }
+  };
+
+  closeAndNotifyAllConsumers = () => {
     const consumerArray = Array.from(this.consumers.entries());
     for(const [consumerKey, consumer] of consumerArray){
       consumer.close();
@@ -768,7 +813,7 @@ export default class Client {
     }
   };
 
-  private closeAndNotifyConsumer(consumerId: string){
+  closeAndNotifyConsumer(consumerId: string){
     const consumer = this.consumers.get(consumerId);
     if(!consumer){
       throw Error('no consumer with that id. cant close it');

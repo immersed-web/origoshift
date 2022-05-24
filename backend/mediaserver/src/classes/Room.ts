@@ -12,7 +12,7 @@ const roomWarn = debug('Room:WARNING');
 export default class Room {
   // router: soup.Router;
   id: string;
-  roomName: string | undefined;
+  roomName: string;
   mainProducers: {
     audio?: soupTypes.Producer,
     video?: soupTypes.Producer
@@ -51,7 +51,7 @@ export default class Room {
     return producers;
   }
 
-  static createRoom(params: {roomId?: string, roomName?: string, gathering: Gathering}): Room {
+  static createRoom(params: {roomId?: string, roomName: string, gathering: Gathering}): Room {
     return new Room(params);
   }
 
@@ -59,7 +59,7 @@ export default class Room {
     this.clients.forEach(client => this.removeClient(client));
   }
 
-  private constructor({roomId = randomUUID(), roomName, gathering}: {roomId?: string, roomName?: string, gathering: Gathering}) {
+  private constructor({roomId = randomUUID(), roomName, gathering}: {roomId?: string, roomName: string, gathering: Gathering}) {
     this.id = roomId;
     this.setGathering(gathering.id);
     this.roomName = roomName;
@@ -134,7 +134,7 @@ export default class Room {
     for(const [key, prop] of Object.entries(props)) {
       this.customProperties[key] = prop;
     }
-    this.gathering?.broadCastGatheringState([], 'added/set custom properties for room');
+    this.gathering?.broadCastGatheringState(undefined, 'added/set custom properties for room');
   }
 
   get roomState(): RoomState {

@@ -162,7 +162,7 @@ export default class Gathering {
     return this.router.rtpCapabilities;
   }
 
-  createRoom({roomId, roomName}: {roomId?: string, roomName?: string}){
+  createRoom({roomId, roomName}: {roomId?: string, roomName: string}){
     if(roomId){
       this.rooms.forEach(room => {
         if(room.id === roomId){

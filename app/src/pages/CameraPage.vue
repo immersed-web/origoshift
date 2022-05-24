@@ -11,6 +11,9 @@
     />
     <QCard class="col">
       <QCardSection class="q-gutter-lg">
+        <div class="text-h5">
+          rumsnamn: {{ soupStore.roomState?.roomName }}
+        </div>
         <QToggle
           v-model="roomIsOpen"
           :label="roomIsOpen?'rummet är öppet':'rummet är stängd'"

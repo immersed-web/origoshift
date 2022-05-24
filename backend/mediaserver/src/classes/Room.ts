@@ -172,7 +172,6 @@ export default class Room {
     return Promise.race(promises);
   }
 
-  // broadcastRoomState(clientToSkip?: Client){
   broadcastRoomState(reason?: string){
     let updateReason = 'reason not specified';
     if(reason) updateReason = reason;

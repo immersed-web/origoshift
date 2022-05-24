@@ -358,6 +358,8 @@ export default class Client {
         break;
       }
       case 'requestToJoinRoom': {
+        // TODO: PRIORITY! I realised it would be much smoother if room allowance was implemented as a waiting list as part of the roomstate.
+        // Then the host can freely "tick off" waiting clients and let them in. Also we could skip the dialog.
         let response: ResponseTo<'requestToJoinRoom'>;
         const roomId = msg.data.roomId;
         try {

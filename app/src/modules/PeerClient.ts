@@ -96,10 +96,10 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       }
     });
     socketutils.socketEvents.on('request', reqMsg => {
+      console.log('received request: ', reqMsg);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this.emit(reqMsg.subject, reqMsg.id, reqMsg.data);
-      console.log('received request: ', reqMsg);
     });
 
     // try {
@@ -235,7 +235,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
 
   requestToJoinRoom = async (roomId: string) => {
     const req = createRequest('requestToJoinRoom', { roomId });
-    const response = await socketutils.sendRequest(req, 30000);
+    const response = await socketutils.sendRequest(req, 32000);
     return response.data;
   }
 

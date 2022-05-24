@@ -59,7 +59,7 @@ import DevicePicker from 'src/components/DevicePicker.vue';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useUserStore } from 'src/stores/userStore';
 import { usePersistedStore } from 'src/stores/persistedStore';
-import { useQuasar } from 'quasar';
+import { Dialog, useQuasar } from 'quasar';
 import { asyncDialog } from 'src/modules/utilFns';
 import { getAllGatherings } from 'src/modules/authClient';
 import ClientList from 'src/components/ClientList.vue';
@@ -104,13 +104,16 @@ peer.on('forwardedRequestToJoinRoom', async (msgId, data) => {
   try {
     let username = soupStore.gatheringState?.clients[data.clientId].username;
     if (!username) {
+      console.warn('no username found!');
       username = data.clientId;
     }
-    const _dialogResult = await asyncDialog({
+    const dialogOptions = {
       cancel: true,
       message: `Vill du släppa in ${username}?`,
       title: 'Knock on wood!',
-    });
+    };
+    const _dialogResult = await asyncDialog(dialogOptions, 29000);
+
     const response = createResponse('forwardedRequestToJoinRoom', msgId, {
       wasSuccess: true,
     });

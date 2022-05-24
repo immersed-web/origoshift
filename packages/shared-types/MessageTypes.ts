@@ -100,6 +100,10 @@ export type AnyRequest =
   | RequestBuilder<'createRoom', {
     name: string,
   }>
+  | RequestBuilder<'setRoomName', {
+    roomId: string,
+    roomName: string
+  }>
   | RequestBuilder<'joinRoom', {
     roomId: string,
   }>
@@ -203,6 +207,7 @@ export type AnyResponse =
     id: string
   }>
   | ResponseBuilder<'createRoom', RoomState>
+  | ResponseBuilder<'setRoomName'>
   | ResponseBuilder<'joinRoom', RoomState>
   | ResponseBuilder<'requestToJoinRoom', RoomState>
   | ResponseBuilder<'forwardedRequestToJoinRoom'>

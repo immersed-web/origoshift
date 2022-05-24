@@ -233,6 +233,14 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     // this.roomStore.currentRoomId = roomId;
   }
 
+  setRoomName = async (roomId: string, roomName: string) => {
+    const req = createRequest('setRoomName', {
+      roomId,
+      roomName,
+    });
+    await socketutils.sendRequest(req);
+  }
+
   requestToJoinRoom = async (roomId: string) => {
     const req = createRequest('requestToJoinRoom', { roomId });
     const response = await socketutils.sendRequest(req, 32000);

@@ -14,6 +14,10 @@
         <div class="text-h5">
           rumsnamn: {{ soupStore.roomState?.roomName }}
         </div>
+        <QBtn
+          label="new name"
+          @click="peer.setRoomName(soupStore.roomId, 'bajskorv')"
+        />
         <QToggle
           v-model="roomIsOpen"
           :label="roomIsOpen?'rummet är öppet':'rummet är stängd'"

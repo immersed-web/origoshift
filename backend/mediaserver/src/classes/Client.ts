@@ -331,7 +331,30 @@ export default class Client {
         this.send(response);
         break;
       }
-
+      case 'setRoomName': {
+        let response: ResponseTo<'setRoomName'>;
+        try{
+          if(!this.gathering){
+            throw Error('must be in a gathering to set room name');
+          }
+          const room = this.gathering.getRoom({id: msg.data.roomId });
+          if(!room){
+            throw Error('no room with that id found');
+          }
+          room.roomName = msg.data.roomName;
+          this.gathering.broadCastGatheringState(undefined, 'a room changed name');
+          response = createResponse('setRoomName', msg.id, {
+            wasSuccess: true,
+          });
+        } catch(e) {
+          response = createResponse('setRoomName', msg.id, { 
+            wasSuccess: false,
+            message: extractMessageFromCatch(e, 'failed to set name for room'),
+          });
+        }
+        this.send(response);
+        break;
+      }
       case 'joinRoom': {
         this.leaveCurrentRoom(false);
         let response: ResponseTo<'joinRoom'>;

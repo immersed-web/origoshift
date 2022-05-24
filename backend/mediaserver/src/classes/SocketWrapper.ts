@@ -88,7 +88,7 @@ export default class SocketWrapper{
   }
 
   sendRequest = async <T extends RequestSubjects>(msg: SocketMessage<Request<T>>, timeoutMillis?: number): Promise<SuccessResponseTo<T>> => {
-    msg.id = Date.now(); // Questionable if we should set the id here...
+    msg.id = Date.now();
     const id = msg.id;
     const msgString = JSON.stringify(msg);
     this.socket.send(msgString);

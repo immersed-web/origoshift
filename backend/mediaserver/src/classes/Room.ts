@@ -134,6 +134,7 @@ export default class Room {
     for(const [key, prop] of Object.entries(props)) {
       this.customProperties[key] = prop;
     }
+    this.gathering?.broadCastGatheringState([], 'added/set custom properties for room');
   }
 
   get roomState(): RoomState {

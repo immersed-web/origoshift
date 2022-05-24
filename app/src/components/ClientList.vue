@@ -34,7 +34,10 @@
               </template>
             </div>
           </QItemSection>
-          <QItemSection side>
+          <QItemSection
+            v-if="client.clientId !== clientId"
+            side
+          >
             <QBtn
               round
               icon="delete"

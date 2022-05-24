@@ -11,6 +11,11 @@
     />
     <QCard class="col">
       <QCardSection class="q-gutter-lg">
+        <QToggle
+          v-model="roomIsOpen"
+          :label="roomIsOpen?'rummet är öppet':'rummet är stängd'"
+          @click="toggleOpenRoom"
+        />
         <DevicePicker
           style="min-width: 15rem;"
           media-type="videoinput"
@@ -41,10 +46,6 @@
             style="max-width: 100%; background-color: darkcyan;"
           />
         </div>
-        <QBtn
-          label="open room"
-          @click="toggleOpenRoom"
-        />
       </QCardSection>
     </QCard>
   </div>
@@ -83,11 +84,13 @@ const videoInfo = ref<VideoInfo>();
 const userStore = useUserStore();
 const persistedStore = usePersistedStore();
 
+const roomIsOpen = ref<boolean>(false);
+
 function toggleOpenRoom () {
   if (!soupStore.roomId) {
     throw Error('no good');
   }
-  peer.setCustomRoomProperties(soupStore.roomId, { requiresInlet: true });
+  peer.setCustomRoomProperties(soupStore.roomId, { doorIsOpen: roomIsOpen.value });
 }
 
 function kickClient (clientId: string) {

@@ -24,12 +24,7 @@
               <div class="q-gutter-md">
                 <QBtn
                   color="primary"
-                  label="Knacka på!"
-                  @click="knockOnRoom(room.roomId)"
-                />
-                <QBtn
-                  color="primary"
-                  label="Stig in"
+                  :label="room.customProperties.doorIsOpen?'Stig in':'Knacka på!'"
                   @click="enterRoom(room.roomId)"
                 />
               </div>
@@ -60,11 +55,11 @@ const soupStore = useSoupStore();
   }
 })();
 
-async function knockOnRoom (roomId: string) {
-  console.log('knock on Room not implemented yet!!!!!', roomId);
-  const response = await peer.requestToJoinRoom(roomId);
-  console.log('knock response:', response);
-}
+// async function knockOnRoom (roomId: string) {
+//   console.log('knock on Room not implemented yet!!!!!', roomId);
+//   const response = await peer.requestToJoinRoom(roomId);
+//   console.log('knock response:', response);
+// }
 
 function enterRoom (roomId: string) {
   router.push(`/room/${roomId}`);

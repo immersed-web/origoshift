@@ -18,6 +18,7 @@ interface SocketEvents {
 
 const eventEmitter = new TypedEmitter<SocketEvents>();
 
+let msgCounter = 0;
 let createSocketTimeout: number;
 let socket: WebSocket | null = null;
 // TODO wrap socket creation so we can toggle retryIsActive properly
@@ -124,8 +125,13 @@ export default {
     socket?.send(string);
     console.log('sending message:', msg);
   },
+  // Basically this should be safe as long as the client dont have more than 10 pending messages simultanesously.
   sendRequest: async <T extends RequestSubjects>(msg: SocketMessage<Request<T>>, timeoutMillis?: number): Promise<SuccessResponseTo<T>> => {
-    msg.id = Date.now(); // Questionable if we should set the id here...
+    const now = Date.now();
+    msg.id = Math.trunc(now * 10) * 0.1;
+    msgCounter++;
+    msgCounter %= 9;
+    msg.id += msgCounter;
     const id = msg.id;
     const msgString = JSON.stringify(msg);
     socket?.send(msgString);

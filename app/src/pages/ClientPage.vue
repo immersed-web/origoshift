@@ -79,6 +79,7 @@ import { useSoupStore } from 'src/stores/soupStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
 import 'aframe';
+import { RoomState } from 'shared-types/CustomTypes';
 
 const router = useRouter();
 const peer = usePeerClient();
@@ -205,12 +206,18 @@ onBeforeUnmount(() => {
     if (!route.params.roomId || Array.isArray(route.params.roomId)) {
       throw new Error('no or incorrectly formatted roomId specified in route!');
     }
-    // await peer.sendRtpCapabilities();
     if (!peer.receiveTransport) {
       await peer.createReceiveTransport();
     }
 
-    const roomState = await peer.joinRoom(route.params.roomId);
+    const roomStateFromGathering = soupStore.gatheringState?.rooms[route.params.roomId];
+    let roomState: RoomState;
+    if (roomStateFromGathering?.customProperties.doorIsOpen) {
+      roomState = await peer.joinRoom(route.params.roomId);
+    } else {
+      roomState = await peer.requestToJoinRoom(route.params.roomId);
+    }
+
     soupStore.setRoomState(roomState);
   } catch (e) {
     console.error(e);
@@ -224,7 +231,7 @@ onBeforeUnmount(() => {
   // }
 })();
 
-function videoClicked (ev) {
+function videoClicked (ev: MouseEvent) {
   console.log('video frame clicked!', ev);
 }
 

@@ -75,11 +75,13 @@
 <script setup lang="ts">
 import { ref, nextTick, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
-// import { useUserStore } from 'src/stores/userStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
 import 'aframe';
 import { RoomState } from 'shared-types/CustomTypes';
+import { useQuasar } from 'quasar';
+
+const $q = useQuasar();
 
 const router = useRouter();
 const peer = usePeerClient();
@@ -183,6 +185,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // peer.closeAndNotifyAllConsumers();
   // peer.receiveTransport?.close();
+  $q.loading.hide();
   peer.setCustomClientProperties({
     handRaised: false,
   });
@@ -218,7 +221,11 @@ onBeforeUnmount(() => {
     if (roomStateFromGathering?.customProperties.doorIsOpen) {
       roomState = await peer.joinRoom(route.params.roomId);
     } else {
+      $q.loading.show({
+        message: 'väntar på att bli insläppt',
+      });
       roomState = await peer.requestToJoinRoom(route.params.roomId);
+      $q.loading.hide();
     }
 
     soupStore.setRoomState(roomState);

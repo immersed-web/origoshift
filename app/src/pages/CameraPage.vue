@@ -102,10 +102,14 @@ function kickClient (clientId: string) {
 
 peer.on('forwardedRequestToJoinRoom', async (msgId, data) => {
   try {
+    let username = soupStore.gatheringState?.clients[data.clientId].username;
+    if (!username) {
+      username = data.clientId;
+    }
     const _dialogResult = await asyncDialog({
       cancel: true,
-      message: `Allow user ${data.clientId} into room?`,
-      title: 'knock on wood!',
+      message: `Vill du släppa in ${username}?`,
+      title: 'Knock on wood!',
     });
     const response = createResponse('forwardedRequestToJoinRoom', msgId, {
       wasSuccess: true,

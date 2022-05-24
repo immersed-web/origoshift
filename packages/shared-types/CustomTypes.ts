@@ -97,8 +97,11 @@ export type NonGuestUserRole = Exclude<(typeof securityLevels)[number], 'guest'>
 
 
 // TODO: This securitylevel array shit is reaaal hacky. No fun!!! You cry
+function makeDefaultAction<T extends AllowedAction[]>(t: T): T {
+    return t;
+}
 
-const defaultActions = [
+const defaultActions = makeDefaultAction([
   'connectTransport',
   'createReceiveTransport',
   'createConsumer',
@@ -119,7 +122,7 @@ const defaultActions = [
   'createGathering',
   'createProducer',
   'createSendTransport',
-] as const;
+]);
 
 
 type DefaultAction = (typeof defaultActions)[number];

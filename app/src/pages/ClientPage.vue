@@ -183,6 +183,9 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // peer.closeAndNotifyAllConsumers();
   // peer.receiveTransport?.close();
+  peer.setCustomClientProperties({
+    handRaised: false,
+  });
   if (soupStore.roomId) {
     peer.leaveRoom();
   }

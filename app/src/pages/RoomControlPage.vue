@@ -16,13 +16,14 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import usePeerClient from 'src/composables/usePeerClient';
 import { usePersistedStore } from 'src/stores/persistedStore';
 import { useSoupStore } from 'src/stores/soupStore';
 import ClientList from 'src/components/ClientList.vue';
 
 const router = useRouter();
+const route = useRoute();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
 const persistedStore = usePersistedStore();
@@ -44,7 +45,12 @@ function kickClient (clientId: string) {
     if (!persistedStore.roomName) {
       throw new Error('no persisted roomName to join. Bailing out maddafakka!');
     }
-    const roomState = await peer.joinOrCreateRoom(persistedStore.roomName);
+    // const roomState = await peer.joinOrCreateRoom(persistedStore.roomName);
+    if (!route.params.roomId || Array.isArray(route.params.roomId)) {
+      throw new Error('no or incorrectly formatted roomId specified in route!');
+    }
+    const roomId = route.params.roomId;
+    const roomState = await peer.joinRoom(roomId);
     soupStore.setRoomState(roomState);
 
     await peer.sendRtpCapabilities();

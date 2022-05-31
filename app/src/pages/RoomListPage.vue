@@ -71,7 +71,7 @@ const soupStore = useSoupStore();
 
 function enterRoom (roomId: string) {
   if (props.sendToRoomOverview) {
-    router.push({ name: 'controlRoom', params: { roomid: roomId } });
+    router.push({ name: 'controlRoom', params: { roomId } });
   } else {
     router.push(`/room/${roomId}`);
   }

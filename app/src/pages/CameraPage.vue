@@ -10,14 +10,45 @@
       :client-id="soupStore.clientId"
     />
     <QCard class="col">
-      <QCardSection class="q-gutter-lg">
+      <QCardSection
+        v-if="!editingRoomName"
+        class="row items-center q-gutter-sm"
+      >
         <div class="text-h5">
-          rumsnamn: {{ soupStore.roomState?.roomName }}
+          Rumsnamn: {{ soupStore.roomState?.roomName }}
         </div>
         <QBtn
-          label="new name"
-          @click="peer.setRoomName(soupStore.roomId, 'bajskorv')"
+          round
+          color="primary"
+          icon="edit"
+          @click="editingRoomName = true"
         />
+      </QCardSection>
+      <QCardSection
+        v-else
+        tag="form"
+        class="row q-gutter-sm"
+        @submit.prevent="saveRoomName"
+      >
+        <QInput
+          v-model="inputRoomName"
+          outlined
+          dense
+        />
+        <QBtn
+          icon="save"
+          round
+          color="primary"
+          type="submit"
+        />
+        <QBtn
+          round
+          icon="cancel"
+          color="negative"
+          @click="editingRoomName = false"
+        />
+      </QCardSection>
+      <QCardSection class="q-gutter-lg">
         <QToggle
           v-model="roomIsOpen"
           :label="roomIsOpen?'rummet är öppet':'rummet är stängd'"
@@ -134,6 +165,23 @@ peer.on('forwardedRequestToJoinRoom', async (msgId, data) => {
     await peer.sendResponse(failResponse);
   }
 });
+
+const editingRoomName = ref(false);
+const inputRoomName = ref(soupStore.roomState?.roomName);
+
+async function saveRoomName () {
+  if (!soupStore.roomId) {
+    console.warn('roomId empty! cant save room name');
+    return;
+  }
+  if (inputRoomName.value === undefined) {
+    console.warn('roomname was undefined. cant save it');
+    return;
+  }
+  await peer.setRoomName(soupStore.roomId, inputRoomName.value);
+  persistedStore.roomName = inputRoomName.value;
+  editingRoomName.value = false;
+}
 
 onBeforeUnmount(() => {
   peer.leaveRoom();

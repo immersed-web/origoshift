@@ -44,7 +44,16 @@
       autoplay
       ref="screenTag"
     />
-    <a-scene embedded>
+    <a-scene
+      embedded
+      cursor="rayOrigin: mouse; fuse: false;"
+      raycaster="objects: .raycastable"
+    >
+      <a-mixin
+        id="rayResize"
+        animation__scale="property: scale; to: 1.2 1.2 1.2; dur: 200; startEvents: mouseenter"
+        animation__scale_reverse="property: scale; to: 1 1 1; dur: 200; startEvents: mouseleave"
+      />
       <a-camera
         look-controls-enabled
         reverse-mouse-drag="true"
@@ -52,6 +61,7 @@
       />
       <a-videosphere />
       <a-video
+        mixin="rayResize"
         v-if="screenShareConsumerId"
         scale="2 2 0"
         width="1.7777"

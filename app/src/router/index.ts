@@ -70,11 +70,14 @@ export default route(function (/* { store, ssrContext } */) {
       throw new Error('role is undefined. That should never happen with a loaded userStore');
     }
     console.log('role is: ', role);
-    const routeLevel = securityLevels.indexOf(to.meta.lowestAccessLevel);
-    const clientLevel = securityLevels.indexOf(role);
     if (!to.meta.lowestAccessLevel || to.meta.lowestAccessLevel === 'guest') {
       console.log('route not protected. Letting through');
-    } else if (clientLevel < routeLevel) {
+      return;
+    }
+    const routeLevel = securityLevels.indexOf(to.meta.lowestAccessLevel);
+    const clientLevel = securityLevels.indexOf(role);
+
+    if (clientLevel < routeLevel) {
       Notify.create({
         type: 'negative',
         message: 'saknar behörighet till den sidan. omdirigerad till inloggning',

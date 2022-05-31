@@ -9,7 +9,7 @@
     <QBtn
       color="primary"
       label="Rumskontroll"
-      :to="{name: 'controlRoom'}"
+      :to="{name: 'controlLobby'}"
       icon-right="navigate_next"
     />
     <QBtn

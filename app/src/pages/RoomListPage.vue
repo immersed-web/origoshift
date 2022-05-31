@@ -24,7 +24,7 @@
               <div class="q-gutter-md">
                 <QBtn
                   color="primary"
-                  :label="room.customProperties.doorIsOpen?'Stig in':'Knacka på!'"
+                  :label="(room.customProperties.doorIsOpen || sendToRoomOverview ) ?'Stig in':'Knacka på!'"
                   @click="enterRoom(room.roomId)"
                 />
               </div>
@@ -45,6 +45,14 @@ import { useRouter } from 'vue-router';
 const peer = usePeerClient();
 const router = useRouter();
 
+interface Props {
+  sendToRoomOverview?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  sendToRoomOverview: false,
+});
+
 const soupStore = useSoupStore();
 
 // TODO: UNify functionality for "recovering" gathering connection primarily from userdata and secondary from persistedStore.
@@ -62,7 +70,11 @@ const soupStore = useSoupStore();
 // }
 
 function enterRoom (roomId: string) {
-  router.push(`/room/${roomId}`);
+  if (props.sendToRoomOverview) {
+    router.push({ name: 'controlRoom', params: { roomid: roomId } });
+  } else {
+    router.push(`/room/${roomId}`);
+  }
 }
 
 </script>

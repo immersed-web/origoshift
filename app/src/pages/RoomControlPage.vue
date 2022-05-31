@@ -5,6 +5,7 @@
     v-if="soupStore.roomState && soupStore.roomState.clients && soupStore.clientId"
     :client-id="soupStore.clientId"
     :clients="soupStore.roomState.clients"
+    @client-removed="kickClient"
   />
   <QBtn
     @click="shareScreen"
@@ -25,6 +26,13 @@ const router = useRouter();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
 const persistedStore = usePersistedStore();
+
+function kickClient (clientId: string) {
+  if (!soupStore.roomId) {
+    throw Error('tried to kick client when not in a room');
+  }
+  peer.removeClientFromRoom(clientId, soupStore.roomId);
+}
 // INITIALIZE!!!
 (async () => {
   try {

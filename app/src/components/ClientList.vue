@@ -35,7 +35,7 @@
             </div>
           </QItemSection>
           <QItemSection
-            v-if="client.clientId !== clientId"
+            v-if="client.clientId !== clientId && !hasAtLeastSecurityLevel(client.role, 'sender')"
             side
           >
             <QBtn
@@ -63,6 +63,7 @@
 
 <script setup lang="ts">
 import { RoomState } from 'shared-types/CustomTypes';
+import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
 import { defineEmits } from 'vue';
 
 defineEmits<{(event: 'clientRemoved', clientId: string): void}>();

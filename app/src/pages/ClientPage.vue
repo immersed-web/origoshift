@@ -47,7 +47,7 @@
     <a-scene
       embedded
       cursor="rayOrigin: mouse; fuse: false;"
-      raycaster="objects: .raycastable"
+      raycaster="objects: .clickable"
     >
       <a-mixin
         id="rayResize"
@@ -55,21 +55,27 @@
         animation__scale_reverse="property: scale; to: 1 1 1; dur: 200; startEvents: mouseleave"
       />
       <a-camera
-        look-controls-enabled
+        ref="cameraTag"
+        :look-controls-enabled="!videoIsGrabbed"
         reverse-mouse-drag="true"
         wasd-controls-enabled="false"
       />
       <a-videosphere />
-      <a-video
-        mixin="rayResize"
-        v-if="screenShareConsumerId"
-        scale="2 2 0"
-        width="1.7777"
-        height="1"
-        position="0 1.5 -1"
-        class="raycastable"
-        @click="videoClicked"
-      />
+      <a-entity ref="videoRotaterTag">
+        <a-video
+          mixin="rayResize"
+          v-if="screenShareConsumerId"
+          scale="2 2 0"
+          width="1.7777"
+          height="1"
+          position="0 1.5 -1"
+          id="screenshare-frame"
+          class="raycastable clickable"
+          @mousedown="videoGrabbed"
+          @click="videoClicked"
+          @mouseup="videoReleased"
+        />
+      </a-entity>
       <a-entity
         laser-controls="hand: left"
         raycaster="objects: .raycastable"
@@ -87,9 +93,10 @@ import { ref, nextTick, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
-import 'aframe';
+import { AEntity, Entity } from 'aframe';
 import { RoomState } from 'shared-types/CustomTypes';
 import { useQuasar } from 'quasar';
+import * as THREE from 'three';
 
 const $q = useQuasar();
 
@@ -251,8 +258,37 @@ onBeforeUnmount(() => {
   // }
 })();
 
+const cameraTag = ref<HTMLElement>();
+const videoRotaterTag = ref<Entity>();
+document.addEventListener('pointermove', (ev) => {
+  if (!videoIsGrabbed.value) return;
+  if (videoRotaterTag.value) {
+    console.log(ev);
+    // videoRotaterTag.value.object3D.rotation.y += THREE.Math.degToRad(ev.movementX);
+    videoRotaterTag.value.object3D.rotation.y += ev.movementX * 0.01;
+  }
+});
+
+const videoIsGrabbed = ref(false);
+
+function videoGrabbed (ev: MouseEvent) {
+  console.log('video frame grabbed!', ev);
+  videoIsGrabbed.value = true;
+  // if (cameraTag.value) {
+  //   cameraTag.value.setAttribute('look-controls-enabled', 'false');
+  // }
+}
+
 function videoClicked (ev: MouseEvent) {
   console.log('video frame clicked!', ev);
+}
+
+function videoReleased (ev: MouseEvent) {
+  console.log('video frame released!', ev);
+  videoIsGrabbed.value = false;
+  // if (cameraTag.value) {
+  //   cameraTag.value.setAttribute('look-controls-enabled', 'true');
+  // }
 }
 
 async function initVideoSphere () {

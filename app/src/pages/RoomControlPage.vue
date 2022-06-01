@@ -42,9 +42,9 @@ function kickClient (clientId: string) {
       // if not, try to connect using stores to choose gatheringName
       await peer.restoreOrInitializeGathering();
     }
-    if (!persistedStore.roomName) {
-      throw new Error('no persisted roomName to join. Bailing out maddafakka!');
-    }
+    // if (!persistedStore.roomName) {
+    //   throw new Error('no persisted roomName to join. Bailing out maddafakka!');
+    // }
     // const roomState = await peer.joinOrCreateRoom(persistedStore.roomName);
     if (!route.params.roomId || Array.isArray(route.params.roomId)) {
       throw new Error('no or incorrectly formatted roomId specified in route!');

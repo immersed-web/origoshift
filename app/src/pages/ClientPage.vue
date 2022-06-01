@@ -4,7 +4,7 @@
     id="overlay"
     class="q-pa-md"
   >
-    <QList>
+    <QList class="no-pointer-events">
       <QItemLabel header>
         I detta rum:
       </QItemLabel>
@@ -18,6 +18,14 @@
         </template>
       </QItem>
     </QList>
+    <QToggle
+      label="skärm i VR"
+      v-model="shareInVR"
+    />
+    <QToggle
+      label="stor video"
+      v-model="shareFillsScreen"
+    />
   </QCard>
   <QBtn
     id="raise-hand-button"
@@ -39,8 +47,9 @@
       ref="videoTag"
     />
     <video
-      v-show="false"
+      v-show="!shareInVR"
       id="screen-video"
+      :class="{'fill-screen': shareFillsScreen }"
       autoplay
       ref="screenTag"
     />
@@ -51,7 +60,7 @@
     >
       <a-mixin
         id="rayResize"
-        animation__scale="property: scale; to: 1.2 1.2 1.2; dur: 200; startEvents: mouseenter"
+        animation__scale="property: scale; to: 1.1 1.1 1.1; dur: 200; startEvents: mouseenter"
         animation__scale_reverse="property: scale; to: 1 1 1; dur: 200; startEvents: mouseleave"
       />
       <a-camera
@@ -61,26 +70,42 @@
         wasd-controls-enabled="false"
       />
       <a-videosphere />
-      <a-entity ref="videoRotaterTag">
-        <a-video
+      <a-entity
+        ref="videoRotaterTag"
+        position="0 1.6 0"
+        rotation="0 0 0"
+      >
+        <!-- <a-video
+          :visible="shareInVR"
           mixin="rayResize"
-          v-if="screenShareConsumerId"
-          scale="2 2 0"
+          v-show="screenShareConsumerId"
+          scale="1 1 0"
           width="1.7777"
           height="1"
-          position="0 1.5 -1"
+          position="1 0 0"
+          rotation="0 -90 0"
           id="screenshare-frame"
-          class="raycastable clickable"
-          @mousedown="videoGrabbed"
-          @click="videoClicked"
-          @mouseup="videoReleased"
+          class="rotation-target rotation-trigger"
+          :class="{raycastable: shareInVR, clickable: shareInVR}"
+        /> -->
+        <a-box
+          mixin="rayResize"
+          color="pink"
+          position="0 0 -1"
+          width="0.25"
+          depth="0.25"
+          height="0.25"
+          class="rotation-target rotation-trigger raycastable clickable"
         />
       </a-entity>
       <a-entity
+        class="controller"
         laser-controls="hand: left"
         raycaster="objects: .raycastable"
       />
       <a-entity
+        rotation-control
+        class="controller"
         laser-controls="hand: right"
         raycaster="objects: .raycastable"
       />
@@ -93,16 +118,70 @@ import { ref, nextTick, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
-import { AEntity, Entity } from 'aframe';
+import AFRAME, { DetailEvent, Entity } from 'aframe';
 import { RoomState } from 'shared-types/CustomTypes';
 import { useQuasar } from 'quasar';
-import * as THREE from 'three';
 
 const $q = useQuasar();
 
 const router = useRouter();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
+
+AFRAME.registerComponent<{
+  target?: Entity,
+  trigger?: Entity,
+  rotating?: boolean,
+  targetStartRotation?: InstanceType<typeof AFRAME.THREE.Quaternion>,
+  startRotation?: InstanceType<typeof AFRAME.THREE.Quaternion>,
+  currentRotation?: InstanceType<typeof AFRAME.THREE.Quaternion>,
+  deltaRotation?: InstanceType<typeof AFRAME.THREE.Quaternion>,
+}>('rotation-control', {
+  schema: {
+    rotationTrigger: { default: '.rotation-trigger' },
+    rotationTarget: { default: '.rotation-target' },
+  },
+  init: function () {
+    this.tick = AFRAME.utils.throttleTick(this.tick!, 10, this);
+    this.currentRotation = new AFRAME.THREE.Quaternion();
+    this.deltaRotation = new AFRAME.THREE.Quaternion();
+    // console.log('AFRAME COMPONENT INITIALIZED!!!!!!!');
+    this.target = document.querySelector(this.data.rotationTarget as string);
+    // console.log('target is:', this.target);
+    this.trigger = document.querySelector(this.data.rotationTrigger as string);
+    // console.log('trigger is:', this.trigger);
+    this.trigger.addEventListener('mousedown', (ev) => {
+      const evt = ev as DetailEvent<{cursorEl: Entity}>;
+      if (evt.detail.cursorEl !== this.el) return;
+      console.log('triggerdown from within component!', ev);
+      if (!this.target) return;
+      this.startRotation = new AFRAME.THREE.Quaternion().setFromEuler(this.el.object3D.rotation).conjugate();
+      this.targetStartRotation = new AFRAME.THREE.Quaternion().setFromEuler(this.target.object3D.rotation).conjugate();
+      this.rotating = true;
+    });
+    this.trigger.addEventListener('mouseup', (ev) => {
+      const evt = ev as DetailEvent<{cursorEl: Entity}>;
+      if (evt.detail.cursorEl !== this.el) return;
+      console.log('triggerup from within component!', ev);
+      this.rotating = false;
+    });
+  },
+  tick: function (time, dt) {
+    if (!this.targetStartRotation || !this.deltaRotation || !this.currentRotation || !this.startRotation || !this.rotating || !this.target) return;
+    // console.log('updating rotation!', this.el.object3D.rotation.y);
+    // this.target.object3D.rotation
+    // this.currentRotation.setFromEuler(this.el.object3D.rotation);
+    // this.deltaRotation.multiplyQuaternions(this.currentRotation, this.startRotation);
+    // const deltaEuler = new AFRAME.THREE.Euler().setFromQuaternion(this.deltaRotation);
+    // console.log('delta euler:', deltaEuler);
+    // // const startEuler = new AFRAME.THREE.Euler().setFromQuaternion(this.startRotation);
+    // const newRotation = new AFRAME.THREE.Quaternion().multiplyQuaternions(this.deltaRotation, this.targetStartRotation);
+    // console.log(this.target.object3D.rotation.y);
+    // this.target.object3D.rotation.y = new AFRAME.THREE.Euler().setFromQuaternion(this.currentRotation).y;
+
+    this.target.object3D.rotation.setFromVector3(this.el.object3D.rotation.toVector3());
+  },
+});
 
 watch(() => soupStore.roomState?.mainProducers, (newMainProducers, oldMainProducers) => {
   if (!newMainProducers) return;
@@ -264,11 +343,14 @@ document.addEventListener('pointermove', (ev) => {
   if (!videoIsGrabbed.value) return;
   if (videoRotaterTag.value) {
     console.log(ev);
-    // videoRotaterTag.value.object3D.rotation.y += THREE.Math.degToRad(ev.movementX);
-    videoRotaterTag.value.object3D.rotation.y += ev.movementX * 0.01;
+    videoRotaterTag.value.object3D.rotation.y -= AFRAME.THREE.MathUtils.degToRad(ev.movementX * 0.1);
+    const newZ = videoRotaterTag.value.object3D.rotation.z - AFRAME.THREE.MathUtils.degToRad(ev.movementY * 0.1);
+    videoRotaterTag.value.object3D.rotation.z = AFRAME.THREE.MathUtils.clamp(newZ, -Math.PI / 4, Math.PI / 4);
   }
 });
 
+const shareInVR = ref(true);
+const shareFillsScreen = ref(false);
 const videoIsGrabbed = ref(false);
 
 function videoGrabbed (ev: MouseEvent) {
@@ -277,6 +359,7 @@ function videoGrabbed (ev: MouseEvent) {
   // if (cameraTag.value) {
   //   cameraTag.value.setAttribute('look-controls-enabled', 'false');
   // }
+  document.addEventListener('mouseup', videoReleased, { once: true });
 }
 
 function videoClicked (ev: MouseEvent) {
@@ -290,6 +373,10 @@ function videoReleased (ev: MouseEvent) {
   //   cameraTag.value.setAttribute('look-controls-enabled', 'true');
   // }
 }
+
+// function printEvent (ev: Event) {
+//   console.log(ev);
+// }
 
 async function initVideoSphere () {
   // const sceneEl = document.querySelector('a-scene');
@@ -318,25 +405,32 @@ async function initVideoSphere () {
   right: 0;
   width: 100vw;
   height: 100vh;
+  user-select: none;
 }
 #main-video {
   z-index: 50;
   position: fixed;
-  left: 0;
+  left: 30rem;
   bottom: 0;
-  max-width: 20rem;
-  max-height: 20rem;
+  max-width: 30rem;
+  max-height: 30rem;
   background-color: aqua;
 }
 
 #screen-video {
   z-index: 50;
   position: fixed;
-  left: 20rem;
+  left: 0;
   bottom: 0;
-  max-width: 20rem;
-  max-height: 20rem;
+  max-width: 30rem;
+  max-height: 30rem;
   background-color: aqua;
+  transition: all 300ms;
+}
+
+.fill-screen {
+  max-height: 100vh !important;
+  max-width: 100vw !important;
 }
 
 #overlay {
@@ -346,7 +440,7 @@ async function initVideoSphere () {
   font-weight: bold;
   left: 2rem;
   top: 2rem;
-  pointer-events: none;
+  // pointer-events: none;
 }
 
 @keyframes wave {

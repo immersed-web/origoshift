@@ -77,9 +77,8 @@
         class="rotation-target"
       >
         <a-video
-          :visible="shareInVR"
+          :visible="showVRVideoFrame"
           mixin="rayResize"
-          v-show="screenShareConsumerId"
           scale="1 1 0"
           width="1.7777"
           height="1"
@@ -87,7 +86,7 @@
           rotation="0 0 0"
           id="screenshare-frame"
           class="rotation-trigger"
-          :class="{raycastable: shareInVR, clickable: shareInVR}"
+          :class="{raycastable: showVRVideoFrame, clickable: showVRVideoFrame}"
           @mousedown="videoGrabbed"
           @mouseup="videoReleased"
         />
@@ -108,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, nextTick, watch, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
@@ -145,6 +144,11 @@ peer.on('notifyCloseEvent', (payload) => {
     screenShareConsumerId.value = undefined;
   }
 });
+
+const showVRVideoFrame = computed(() => {
+  return shareInVR.value && screenShareConsumerId.value !== undefined;
+});
+
 // TODO: This will not protect from clients "stealing" the broadcasting of the screenshare
 let consumedScreenProducerId: string;
 const screenShareConsumerId = ref<string>();

@@ -74,28 +74,22 @@
         ref="videoRotaterTag"
         position="0 1.6 0"
         rotation="0 0 0"
+        class="rotation-target"
       >
-        <!-- <a-video
+        <a-video
           :visible="shareInVR"
           mixin="rayResize"
           v-show="screenShareConsumerId"
           scale="1 1 0"
           width="1.7777"
           height="1"
-          position="1 0 0"
-          rotation="0 -90 0"
-          id="screenshare-frame"
-          class="rotation-target rotation-trigger"
-          :class="{raycastable: shareInVR, clickable: shareInVR}"
-        /> -->
-        <a-box
-          mixin="rayResize"
-          color="pink"
           position="0 0 -1"
-          width="0.25"
-          depth="0.25"
-          height="0.25"
-          class="rotation-target rotation-trigger raycastable clickable"
+          rotation="0 0 0"
+          id="screenshare-frame"
+          class="rotation-trigger"
+          :class="{raycastable: shareInVR, clickable: shareInVR}"
+          @mousedown="videoGrabbed"
+          @mouseup="videoReleased"
         />
       </a-entity>
       <a-entity
@@ -118,7 +112,7 @@ import { ref, nextTick, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
-import AFRAME, { DetailEvent, Entity } from 'aframe';
+import { THREE, Entity } from 'aframe';
 import { RoomState } from 'shared-types/CustomTypes';
 import { useQuasar } from 'quasar';
 
@@ -127,61 +121,6 @@ const $q = useQuasar();
 const router = useRouter();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
-
-AFRAME.registerComponent<{
-  target?: Entity,
-  trigger?: Entity,
-  rotating?: boolean,
-  targetStartRotation?: InstanceType<typeof AFRAME.THREE.Quaternion>,
-  startRotation?: InstanceType<typeof AFRAME.THREE.Quaternion>,
-  currentRotation?: InstanceType<typeof AFRAME.THREE.Quaternion>,
-  deltaRotation?: InstanceType<typeof AFRAME.THREE.Quaternion>,
-}>('rotation-control', {
-  schema: {
-    rotationTrigger: { default: '.rotation-trigger' },
-    rotationTarget: { default: '.rotation-target' },
-  },
-  init: function () {
-    this.tick = AFRAME.utils.throttleTick(this.tick!, 10, this);
-    this.currentRotation = new AFRAME.THREE.Quaternion();
-    this.deltaRotation = new AFRAME.THREE.Quaternion();
-    // console.log('AFRAME COMPONENT INITIALIZED!!!!!!!');
-    this.target = document.querySelector(this.data.rotationTarget as string);
-    // console.log('target is:', this.target);
-    this.trigger = document.querySelector(this.data.rotationTrigger as string);
-    // console.log('trigger is:', this.trigger);
-    this.trigger.addEventListener('mousedown', (ev) => {
-      const evt = ev as DetailEvent<{cursorEl: Entity}>;
-      if (evt.detail.cursorEl !== this.el) return;
-      console.log('triggerdown from within component!', ev);
-      if (!this.target) return;
-      this.startRotation = new AFRAME.THREE.Quaternion().setFromEuler(this.el.object3D.rotation).conjugate();
-      this.targetStartRotation = new AFRAME.THREE.Quaternion().setFromEuler(this.target.object3D.rotation).conjugate();
-      this.rotating = true;
-    });
-    this.trigger.addEventListener('mouseup', (ev) => {
-      const evt = ev as DetailEvent<{cursorEl: Entity}>;
-      if (evt.detail.cursorEl !== this.el) return;
-      console.log('triggerup from within component!', ev);
-      this.rotating = false;
-    });
-  },
-  tick: function (time, dt) {
-    if (!this.targetStartRotation || !this.deltaRotation || !this.currentRotation || !this.startRotation || !this.rotating || !this.target) return;
-    // console.log('updating rotation!', this.el.object3D.rotation.y);
-    // this.target.object3D.rotation
-    // this.currentRotation.setFromEuler(this.el.object3D.rotation);
-    // this.deltaRotation.multiplyQuaternions(this.currentRotation, this.startRotation);
-    // const deltaEuler = new AFRAME.THREE.Euler().setFromQuaternion(this.deltaRotation);
-    // console.log('delta euler:', deltaEuler);
-    // // const startEuler = new AFRAME.THREE.Euler().setFromQuaternion(this.startRotation);
-    // const newRotation = new AFRAME.THREE.Quaternion().multiplyQuaternions(this.deltaRotation, this.targetStartRotation);
-    // console.log(this.target.object3D.rotation.y);
-    // this.target.object3D.rotation.y = new AFRAME.THREE.Euler().setFromQuaternion(this.currentRotation).y;
-
-    this.target.object3D.rotation.setFromVector3(this.el.object3D.rotation.toVector3());
-  },
-});
 
 watch(() => soupStore.roomState?.mainProducers, (newMainProducers, oldMainProducers) => {
   if (!newMainProducers) return;
@@ -343,9 +282,9 @@ document.addEventListener('pointermove', (ev) => {
   if (!videoIsGrabbed.value) return;
   if (videoRotaterTag.value) {
     console.log(ev);
-    videoRotaterTag.value.object3D.rotation.y -= AFRAME.THREE.MathUtils.degToRad(ev.movementX * 0.1);
-    const newZ = videoRotaterTag.value.object3D.rotation.z - AFRAME.THREE.MathUtils.degToRad(ev.movementY * 0.1);
-    videoRotaterTag.value.object3D.rotation.z = AFRAME.THREE.MathUtils.clamp(newZ, -Math.PI / 4, Math.PI / 4);
+    videoRotaterTag.value.object3D.rotation.y -= THREE.MathUtils.degToRad(ev.movementX * 0.1);
+    const newZ = videoRotaterTag.value.object3D.rotation.x - THREE.MathUtils.degToRad(ev.movementY * 0.1);
+    videoRotaterTag.value.object3D.rotation.x = THREE.MathUtils.clamp(newZ, -Math.PI / 4, Math.PI / 4);
   }
 });
 

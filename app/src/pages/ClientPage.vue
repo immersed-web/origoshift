@@ -18,6 +18,9 @@
         </template>
       </QItem>
     </QList>
+  </QCard>
+  <BottomPanel>
+    <QToolbarTitle> Rumsnamn: <span class="text-info">{{ soupStore.roomState?.roomName }}</span></QToolbarTitle>
     <QToggle
       label="skärm i VR"
       v-model="shareInVR"
@@ -26,16 +29,22 @@
       label="stor video"
       v-model="shareFillsScreen"
     />
-  </QCard>
-  <QBtn
-    id="raise-hand-button"
-    :class="{waving: handRaised}"
-    icon="waving_hand"
-    color="primary"
-    text-color="yellow"
-    round
-    @click="toggleRaiseHand"
-  />
+    <QBtn
+      id="raise-hand-button"
+      :class="{waving: handRaised}"
+      icon="waving_hand"
+      color="primary"
+      text-color="yellow"
+      round
+      @click="toggleRaiseHand"
+    />
+    <QBtn
+      label="Enter VR"
+      id="vr-button"
+      color="accent"
+      rounded
+    />
+  </BottomPanel>
   <div
     id="main-container"
     class="row justify-between no-wrap items-center content-center"
@@ -57,6 +66,7 @@
       embedded
       cursor="rayOrigin: mouse; fuse: false;"
       raycaster="objects: .clickable"
+      vr-mode-ui="enterVRButton: #vr-button;"
     >
       <a-mixin
         id="rayResize"
@@ -105,8 +115,10 @@
     </a-scene>
   </div>
 </template>
-
-<script setup lang="ts">
+<script
+    setup
+    lang="ts"
+  >
 import { ref, nextTick, watch, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import usePeerClient from 'src/composables/usePeerClient';
@@ -114,6 +126,7 @@ import { useRouter } from 'vue-router';
 import { THREE, Entity } from 'aframe';
 import { RoomState } from 'shared-types/CustomTypes';
 import { useQuasar } from 'quasar';
+import BottomPanel from 'src/components/BottomPanel.vue';
 
 const $q = useQuasar();
 
@@ -243,7 +256,7 @@ onBeforeUnmount(() => {
   try {
     // First check if not yet connected to a gathering
     if (!soupStore.gatheringState) {
-      // if not, try to connect using stores to choose gatheringName
+    // if not, try to connect using stores to choose gatheringName
       await peer.restoreOrInitializeGathering();
     }
 
@@ -338,70 +351,69 @@ async function initVideoSphere () {
   vVideo.setAttribute('src', '#screen-video');
   // sceneEl.appendChild(vSphere);
 }
-
 </script>
 
-<style lang="scss">
-#main-container {
-  position: absolute;
-  left: 0;
-  right: 0;
-  width: 100vw;
-  height: 100vh;
-  user-select: none;
-}
-#main-video {
-  z-index: 50;
-  position: fixed;
-  left: 30rem;
-  bottom: 0;
-  max-width: 30rem;
-  max-height: 30rem;
-  background-color: aqua;
-}
+  <style lang="scss">
+    #main-container {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    height: 100vh;
+    user-select: none;
+    }
+    #main-video {
+    z-index: 50;
+    position: fixed;
+    left: 30rem;
+    bottom: 0;
+    max-width: 30rem;
+    max-height: 30rem;
+    background-color: aqua;
+    }
 
-#screen-video {
-  z-index: 50;
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  max-width: 30rem;
-  max-height: 30rem;
-  background-color: aqua;
-  transition: all 300ms;
-}
+    #screen-video {
+    z-index: 50;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    max-width: 30rem;
+    max-height: 30rem;
+    background-color: aqua;
+    transition: all 300ms;
+    }
 
-.fill-screen {
-  max-height: 100vh !important;
-  max-width: 100vw !important;
-}
+    .fill-screen {
+    max-height: 100vh !important;
+    max-width: 100vw !important;
+    }
 
-#overlay {
-  z-index: 100;
-  position: absolute;
-  background-color: rgba(100, 100, 150, 0.5);
-  font-weight: bold;
-  left: 2rem;
-  top: 2rem;
-  // pointer-events: none;
-}
+    #overlay {
+    z-index: 100;
+    position: absolute;
+    background-color: rgba(100, 100, 150, 0.5);
+    font-weight: bold;
+    left: 2rem;
+    top: 2rem;
+    // pointer-events: none;
+    }
 
-@keyframes wave {
-  0% {
+    @keyframes wave {
+    0% {
     transform: rotate(0deg);
-  }
-  100% {
+    }
+    100% {
     transform: rotate(-90deg);
-  }
-}
+    }
+    }
 
-#raise-hand-button {
-  position: fixed;
-  z-index: 1000;
-  top: 2rem;
-  right: 2rem;
-  &.waving {
+    #raise-hand-button {
+    // position: fixed;
+    // z-index: 1000;
+    // top: 2rem;
+    // right: 2rem;
+    &.waving {
     animation: wave 0.5s linear 0s infinite alternate;
-  }
-}
-</style>
+    }
+    }
+  </style>

@@ -328,8 +328,6 @@ document.addEventListener('pointermove', (ev) => {
 });
 
 const screenshareWindowMode = ref('vr');
-const shareInVR = ref(true);
-const shareFillsScreen = ref(false);
 const videoIsGrabbed = ref(false);
 
 function videoGrabbed (ev: MouseEvent) {

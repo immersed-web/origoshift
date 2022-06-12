@@ -1,24 +1,34 @@
 <template>
-  <QCard
-    tag="div"
+  <div
     id="overlay"
-    class="q-pa-md"
+    class="q-gutter-md"
   >
-    <QList class="no-pointer-events">
-      <QItemLabel header>
-        I detta rum:
-      </QItemLabel>
-      <QItem
-        v-for="client in soupStore.roomState?.clients"
-        :key="client.clientId"
-      >
-        {{ client.username }}
-        <template v-if="client.clientId === soupStore.clientState?.clientId">
-          (du)
-        </template>
-      </QItem>
-    </QList>
-  </QCard>
+    <QBtn
+      round
+      icon="arrow_back"
+      color="primary"
+      @click="router.replace({name: 'lobby'})"
+    />
+    <QCard
+      tag="div"
+      class="q-pa-md text-weight-bold"
+    >
+      <QList class="no-pointer-events">
+        <QItemLabel header>
+          I detta rum:
+        </QItemLabel>
+        <QItem
+          v-for="client in soupStore.roomState?.clients"
+          :key="client.clientId"
+        >
+          {{ client.username }}
+          <template v-if="client.clientId === soupStore.clientState?.clientId">
+            (du)
+          </template>
+        </QItem>
+      </QList>
+    </QCard>
+  </div>
   <BottomPanel>
     <QToolbarTitle> Rumsnamn: <span class="text-info">{{ soupStore.roomState?.roomName }}</span></QToolbarTitle>
     <QToggle
@@ -391,8 +401,8 @@ async function initVideoSphere () {
     #overlay {
     z-index: 100;
     position: absolute;
-    background-color: rgba(100, 100, 150, 0.5);
-    font-weight: bold;
+    // background-color: rgba(100, 100, 150, 0.5);
+    // font-weight: bold;
     left: 2rem;
     top: 2rem;
     // pointer-events: none;

@@ -29,100 +29,111 @@
       </QList>
     </QCard>
   </div>
-  <BottomPanel>
-    <QToolbarTitle> Rumsnamn: <span class="text-info">{{ soupStore.roomState?.roomName }}</span></QToolbarTitle>
-    <QToggle
-      label="skärm i VR"
-      v-model="shareInVR"
-    />
-    <QToggle
-      label="stor video"
-      v-model="shareFillsScreen"
-    />
-    <QBtn
-      id="raise-hand-button"
-      :class="{waving: handRaised}"
-      icon="waving_hand"
-      color="primary"
-      text-color="yellow"
-      round
-      @click="toggleRaiseHand"
-    />
-    <QBtn
-      label="Enter VR"
-      id="vr-button"
-      color="accent"
-      rounded
-    />
-  </BottomPanel>
   <div
     id="main-container"
-    class="row justify-between no-wrap items-center content-center"
+    class="column no-wrap"
   >
-    <video
-      v-show="false"
-      id="main-video"
-      autoplay
-      ref="videoTag"
-    />
-    <video
-      v-show="!shareInVR"
-      id="screen-video"
-      :class="{'fill-screen': shareFillsScreen }"
-      autoplay
-      ref="screenTag"
-    />
-    <a-scene
-      embedded
-      cursor="rayOrigin: mouse; fuse: false;"
-      raycaster="objects: .clickable"
-      vr-mode-ui="enterVRButton: #vr-button;"
+    <div
+      id="vr-container"
+      class="col-grow bg-pink relative-position"
     >
-      <a-mixin
-        id="rayResize"
-        animation__scale="property: scale; to: 1.1 1.1 1.1; dur: 200; startEvents: mouseenter"
-        animation__scale_reverse="property: scale; to: 1 1 1; dur: 200; startEvents: mouseleave"
+      <video
+        v-show="false"
+        id="main-video"
+        autoplay
+        ref="videoTag"
       />
-      <a-camera
-        ref="cameraTag"
-        :look-controls-enabled="!videoIsGrabbed"
-        reverse-mouse-drag="true"
-        wasd-controls-enabled="false"
+      <video
+        v-show="screenshareWindowMode !== 'vr'"
+        id="screen-video"
+        :class="{'fill-screen': screenshareWindowMode === 'big' }"
+        autoplay
+        ref="screenTag"
       />
-      <a-videosphere />
-      <a-entity
-        ref="videoRotaterTag"
-        position="0 1.6 0"
-        rotation="0 0 0"
-        class="rotation-target"
+      <a-scene
+        embedded
+        cursor="rayOrigin: mouse; fuse: false;"
+        raycaster="objects: .clickable"
+        vr-mode-ui="enterVRButton: #vr-button;"
       >
-        <a-video
-          :visible="showVRVideoFrame"
-          mixin="rayResize"
-          scale="1 1 0"
-          width="1.7777"
-          height="1"
-          position="0 0 -1"
-          rotation="0 0 0"
-          id="screenshare-frame"
-          class="rotation-trigger"
-          :class="{raycastable: showVRVideoFrame, clickable: showVRVideoFrame}"
-          @mousedown="videoGrabbed"
-          @mouseup="videoReleased"
+        <a-mixin
+          id="rayResize"
+          animation__scale="property: scale; to: 1.1 1.1 1.1; dur: 200; startEvents: mouseenter"
+          animation__scale_reverse="property: scale; to: 1 1 1; dur: 200; startEvents: mouseleave"
         />
-      </a-entity>
-      <a-entity
-        class="controller"
-        laser-controls="hand: left"
-        raycaster="objects: .raycastable"
+        <a-camera
+          ref="cameraTag"
+          :look-controls-enabled="!videoIsGrabbed"
+          reverse-mouse-drag="true"
+          wasd-controls-enabled="false"
+        />
+        <a-videosphere />
+        <a-entity
+          ref="videoRotaterTag"
+          position="0 1.6 0"
+          rotation="0 0 0"
+          class="rotation-target"
+        >
+          <a-video
+            :visible="showVRVideoFrame"
+            mixin="rayResize"
+            scale="1 1 0"
+            width="1.7777"
+            height="1"
+            position="0 0 -1"
+            rotation="0 0 0"
+            id="screenshare-frame"
+            class="rotation-trigger"
+            :class="{raycastable: showVRVideoFrame, clickable: showVRVideoFrame}"
+            @mousedown="videoGrabbed"
+            @mouseup="videoReleased"
+          />
+        </a-entity>
+        <a-entity
+          class="controller"
+          laser-controls="hand: left"
+          raycaster="objects: .raycastable"
+        />
+        <a-entity
+          rotation-control
+          class="controller"
+          laser-controls="hand: right"
+          raycaster="objects: .raycastable"
+        />
+      </a-scene>
+    </div>
+    <BottomPanel>
+      <QToolbarTitle> Rumsnamn: <span class="text-info">{{ soupStore.roomState?.roomName }}</span></QToolbarTitle>
+      <QToggle
+        label="presentationsläge"
+        v-model="screenshareWindowMode"
+        toggle-indeterminate
+        indeterminate-value="big"
+        true-value="vr"
+        false-value="small"
+        indeterminate-icon="fullscreen"
+        checked-icon="3d_rotation"
+        unchecked-icon="fullscreen_exit"
       />
-      <a-entity
-        rotation-control
-        class="controller"
-        laser-controls="hand: right"
-        raycaster="objects: .raycastable"
+      <div class="overflow-hidden">
+        <QBtn
+          id="raise-hand-button"
+          :class="{waving: handRaised}"
+          icon="waving_hand"
+          color="primary"
+          text-color="yellow"
+          round
+          @click="toggleRaiseHand"
+        />
+      </div>
+      <QBtn
+        label="Enter VR"
+        id="vr-button"
+        color="accent"
+        class="q-mr-none"
+        rounded
       />
-    </a-scene>
+    </BottomPanel>
   </div>
 </template>
 <script
@@ -169,7 +180,8 @@ peer.on('notifyCloseEvent', (payload) => {
 });
 
 const showVRVideoFrame = computed(() => {
-  return shareInVR.value && screenShareConsumerId.value !== undefined;
+  // return shareInVR.value && screenShareConsumerId.value !== undefined;
+  return screenshareWindowMode.value === 'vr' && screenShareConsumerId.value !== undefined;
 });
 
 // TODO: This will not protect from clients "stealing" the broadcasting of the screenshare
@@ -315,6 +327,7 @@ document.addEventListener('pointermove', (ev) => {
   }
 });
 
+const screenshareWindowMode = ref('vr');
 const shareInVR = ref(true);
 const shareFillsScreen = ref(false);
 const videoIsGrabbed = ref(false);
@@ -372,6 +385,7 @@ async function initVideoSphere () {
     height: 100vh;
     user-select: none;
     }
+
     #main-video {
     z-index: 50;
     position: fixed;
@@ -384,7 +398,7 @@ async function initVideoSphere () {
 
     #screen-video {
     z-index: 50;
-    position: fixed;
+    position: absolute;
     left: 0;
     bottom: 0;
     max-width: 30rem;
@@ -394,8 +408,8 @@ async function initVideoSphere () {
     }
 
     .fill-screen {
-    max-height: 100vh !important;
-    max-width: 100vw !important;
+    max-height: 100% !important;
+    max-width: 100% !important;
     }
 
     #overlay {
@@ -422,6 +436,7 @@ async function initVideoSphere () {
     // z-index: 1000;
     // top: 2rem;
     // right: 2rem;
+    overflow: hidden;
     &.waving {
     animation: wave 0.5s linear 0s infinite alternate;
     }

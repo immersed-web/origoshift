@@ -104,6 +104,13 @@
     </div>
     <BottomPanel>
       <QToolbarTitle> Rumsnamn: <span class="text-info">{{ soupStore.roomState?.roomName }}</span></QToolbarTitle>
+      <QBtn
+        :icon="currentMuteIcon"
+        round
+        @click="toggleMute"
+      >
+        <QTooltip>Stäng av eller sätt på mikrofonen</QTooltip>
+      </QBtn>
       <QToggle
         label="presentationsläge"
         v-model="screenshareWindowMode"
@@ -178,6 +185,30 @@ peer.on('notifyCloseEvent', (payload) => {
     screenShareConsumerId.value = undefined;
   }
 });
+
+const muteState = ref<'muted' | 'unmuted' | 'forcedMute'>('muted');
+const currentMuteIcon = computed(() => {
+  if (muteState.value === 'unmuted') { return 'mic'; } else if (muteState.value === 'forcedMute') { return 'do_not_disturb_on'; }
+  return 'mic_off';
+});
+async function toggleMute () {
+  const prevMuteState = muteState.value;
+  if (prevMuteState === 'forcedMute') {
+    return;
+  }
+  if (prevMuteState === 'muted') {
+    muteState.value = 'unmuted';
+    const microphoneStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: false,
+    });
+    const producerId = await peer.produce(microphoneStream.getAudioTracks()[0]);
+    return;
+  }
+  if (prevMuteState === 'unmuted') {
+    muteState.value = 'muted';
+  }
+}
 
 const showVRVideoFrame = computed(() => {
   // return shareInVR.value && screenShareConsumerId.value !== undefined;
@@ -288,6 +319,9 @@ onBeforeUnmount(() => {
     }
     if (!peer.receiveTransport) {
       await peer.createReceiveTransport();
+    }
+    if (!peer.sendTransport) {
+      await peer.createSendTransport();
     }
 
     const roomStateFromGathering = soupStore.gatheringState?.rooms[route.params.roomId];

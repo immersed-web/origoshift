@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
 import usePeerClient from 'src/composables/usePeerClient';
-import { usePersistedStore } from 'src/stores/persistedStore';
+// import { usePersistedStore } from 'src/stores/persistedStore';
 import { useSoupStore } from 'src/stores/soupStore';
 import ClientList from 'src/components/ClientList.vue';
 
@@ -26,7 +26,7 @@ const router = useRouter();
 const route = useRoute();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
-const persistedStore = usePersistedStore();
+// const persistedStore = usePersistedStore();
 
 function kickClient (clientId: string) {
   if (!soupStore.roomId) {

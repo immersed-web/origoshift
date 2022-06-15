@@ -15,38 +15,22 @@ const userStore = useUserStore();
 const router = useRouter();
 type Creds = Parameters<InstanceType<typeof LoginBox>['$emit']>[1]
 async function loginUser (creds: Creds) {
-  // await login(username, password);
-  // const me = await getMe();
-  // console.log('got me: ', me);
-  // const jwt = await getJwt();
-  // await peer.connect(jwt);
-
   await login(creds.username, creds.password);
   const me = await getMe();
   console.log('me:', me);
   userStore.jwt = await getJwt();
   let redirect: RouteLocationRaw = { name: 'index' };
-  const routeName = window.sessionStorage.getItem('loginRedirect');
-  if (routeName) {
-    const savedRedirect: RouteLocationRaw = { name: routeName };
-    console.log('using savedRedirect: ', savedRedirect);
-    redirect = savedRedirect;
-    window.sessionStorage.removeItem('loginRedirect');
-  } else {
-    switch (me.role) {
-      case 'client':
-        redirect = { name: 'lobby' };
-        break;
-      case 'sender':
-        redirect = { name: 'camera' };
-        break;
-      case 'host':
-        redirect = { name: 'controlStart' };
-        break;
-      case 'admin':
-        redirect = { name: 'controlStart' };
-        break;
-    }
+  switch (me.role) {
+    case 'client':
+      redirect = { name: 'lobby' };
+      break;
+    case 'sender':
+      redirect = { name: 'camera' };
+      break;
+    case 'host':
+    case 'admin':
+      redirect = { name: 'controlStart' };
+      break;
   }
   router.replace(redirect);
 }

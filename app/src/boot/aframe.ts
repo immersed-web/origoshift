@@ -4,7 +4,7 @@ import AFRAME, { Entity, THREE, DetailEvent } from 'aframe';
 // Vue.
 // "async" is optional;
 // more info on params: https://v2.quasar.dev/quasar-cli/boot-files
-export default boot(async ({ app }) => {
+export default boot(async () => {
   // I did the a-tag exception in quasar config instead cause that worked...
   // app.config.compilerOptions.isCustomElement = tag => {
   //   return tag.startsWith('a-');

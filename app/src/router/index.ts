@@ -8,7 +8,6 @@ import {
 // import { StateInterface } from '../store';
 import routes from './routes';
 
-import { getJwt, guestJwt } from 'src/modules/authClient';
 import { useUserStore } from 'src/stores/userStore';
 import { securityLevels } from 'app/../packages/shared-types/CustomTypes';
 
@@ -45,29 +44,14 @@ export default route(function (/* { store, ssrContext } */) {
     const userStore = useUserStore();
     const ignoredRoutes = ['/login', '/logout'];
     if (ignoredRoutes.includes(to.path)) {
-      userStore.$reset();
+      // userStore.$reset();
       console.log('non userdata route');
       return;
     }
     console.log('Running navigation guard');
-    if (!userStore.jwt) {
-      try {
-        console.log('trying to get userJwt!');
-        userStore.jwt = await getJwt();
-        // return;
-      } catch {
-        try {
-          console.log('failed to get userJwt. Trying to get guestJwt instead!');
-          userStore.jwt = await guestJwt();
-        } catch (e) {
-          console.error('couldnt get any jwt (user or guest). Something is wroong');
-          console.error(e);
-        }
-      }
-    }
     const role = userStore.userData?.role;
     if (!role) {
-      throw new Error('role is undefined. That should never happen with a loaded userStore');
+      return { name: 'index' };
     }
     console.log('role is: ', role);
     if (!to.meta.lowestAccessLevel || to.meta.lowestAccessLevel === 'guest') {
@@ -80,16 +64,13 @@ export default route(function (/* { store, ssrContext } */) {
     if (clientLevel < routeLevel) {
       Notify.create({
         type: 'negative',
-        message: 'saknar behörighet till den sidan. omdirigerad till inloggning',
+        message: 'saknar behörighet till den sidan. Du har blivit omdirigerad!',
       });
-      console.error('route not allowed. Redirecting to login');
+      console.error('route not allowed. Redirecting to index');
       // hack to unset guest from userStore if directed to login:
-      userStore.$reset();
+      // userStore.$reset();
 
-      // TODO: fix bug where user is caught in eternal cycle when logging in to a valid role but role is below loginRedirect
-      // for now we just skip auto redirect!!
-      // window.sessionStorage.setItem('loginRedirect', to.fullPath);
-      return '/login';
+      return { name: 'index' };
     }
   });
 

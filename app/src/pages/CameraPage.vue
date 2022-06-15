@@ -97,7 +97,7 @@ import DevicePicker from 'src/components/DevicePicker.vue';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useUserStore } from 'src/stores/userStore';
 import { usePersistedStore } from 'src/stores/persistedStore';
-import { Dialog, useQuasar } from 'quasar';
+import { useQuasar } from 'quasar';
 import { asyncDialog } from 'src/modules/utilFns';
 import { getAllGatherings } from 'src/modules/authClient';
 import ClientList from 'src/components/ClientList.vue';

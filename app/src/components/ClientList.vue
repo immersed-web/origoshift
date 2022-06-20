@@ -17,7 +17,9 @@
               (du)
             </template>
           </QItemSection>
-          <QItemSection v-if="Object.keys(client.producers).length">
+          <QItemSection
+            v-if="Object.keys(client.producers).length"
+          >
             <div>
               <template
                 v-for="(producer, key) in client.producers"
@@ -27,10 +29,12 @@
                   class="emoji"
                   v-if="producer.kind === 'video'"
                 >🎥</span>
-                <span
-                  class="emoji"
+                <QBtn
                   v-else
-                >🔊</span>
+                  :icon="consumedProducers[producer.producerId]? 'volume_up': 'volume_off'"
+                  round
+                  @click="toggleConsume(producer.producerId)"
+                />
               </template>
             </div>
           </QItemSection>
@@ -58,19 +62,22 @@
           {{ soupStore.roomState }}
         </pre> -->
     </QCardSection>
+    <audio
+      ref="audioTag"
+      autoplay
+    />
   </QCard>
 </template>
 
 <script setup lang="ts">
 import { RoomState } from 'shared-types/CustomTypes';
 import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
-import { defineEmits } from 'vue';
+import { defineEmits, ref } from 'vue';
+import usePeerClient from 'src/composables/usePeerClient';
 
 defineEmits<{(event: 'clientRemoved', clientId: string): void}>();
 
-// import usePeerClient from 'src/composables/usePeerClient';
-
-// const peer = usePeerClient();
+const peer = usePeerClient();
 // function kickClientFromRoom(clientId: string) {
 //   peer.removeClientFromRoom(clientId, )
 // }
@@ -79,6 +86,25 @@ defineProps<{
   clients: RoomState['clients'],
   clientId: string
 }>();
+
+const audioTag = ref<HTMLAudioElement>();
+const consumedProducers = ref<Record<string, string>>({});
+async function toggleConsume (producerId: string) {
+  const consumerIdForProducer = consumedProducers.value[producerId];
+  if (consumerIdForProducer) {
+    await peer.closeAndNotifyConsumer(consumerIdForProducer);
+    delete consumedProducers.value[producerId];
+  } else {
+    if (!peer.receiveTransport) {
+      peer.sendRtpCapabilities();
+      await peer.createReceiveTransport();
+    }
+    const { consumerId, track } = await peer.consume(producerId);
+    consumedProducers.value[producerId] = consumerId;
+    const audioStream = new MediaStream([track]);
+    if (audioTag.value) audioTag.value.srcObject = audioStream;
+  }
+}
 
 </script>
 <style lang="scss">

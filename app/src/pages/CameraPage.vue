@@ -233,6 +233,7 @@ onUnmounted(() => {
       audio: true,
     });
   } catch (e) {
+    // TODO: find a nice way to ignore rejected dialog if navigating away from page.
     const msg = extractMessageFromCatch(e, 'failed to initialize camerapage!');
     $q.notify({
       type: 'negative',
@@ -265,8 +266,8 @@ async function pickGathering (gatherings: string[]): Promise<string> {
 async function chooseRoomName (): Promise<string> {
   // console.log(gatheringResponse);
   const dialogPromise = asyncDialog({
-    title: 'Rum',
-    message: 'Vilket rum vill du gå med i?',
+    title: 'Rumsnamn',
+    message: 'Välj ett namn för rummet:',
     // persistent: true,
     noBackdropDismiss: true,
     noEscDismiss: true,

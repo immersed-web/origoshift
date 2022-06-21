@@ -79,7 +79,7 @@
             mixin="rayResize"
             scale="1 1 0"
             width="1.7777"
-            height="1"
+            :height="screenShareHeight"
             position="0 0 -1"
             rotation="0 0 0"
             id="screenshare-frame"
@@ -229,6 +229,7 @@ const showVRVideoFrame = computed(() => {
 // TODO: This will not protect from clients "stealing" the broadcasting of the screenshare
 let consumedScreenProducerId: string;
 const screenShareConsumerId = ref<string>();
+const screenShareHeight = ref<number>(1);
 watch(() => soupStore.roomState?.clients, async (newClients, _oldCLients) => {
   if (!newClients) return;
   for (const [_clientId, client] of Object.entries(newClients)) {
@@ -237,11 +238,17 @@ watch(() => soupStore.roomState?.clients, async (newClients, _oldCLients) => {
         if (producer.producerInfo.screenShare) {
           if (producer.producerId !== consumedScreenProducerId) {
             consumedScreenProducerId = producer.producerId;
+            if (producer.producerInfo?.dimensions) {
+              const { w, h } = producer.producerInfo.dimensions;
+              const ratio = w / h;
+              const fixedWidth = 1.7777;
+              screenShareHeight.value = fixedWidth / ratio;
+            }
             console.log('screeeen share!!');
             if (!screenTag.value) return;
             const { track, consumerId } = await peer.consume(producer.producerId);
-            // const trackSettings = track.getSettings();
-            // console.log('screenshare track settings:', trackSettings);
+            const trackSettings = track.getSettings();
+            console.log('screenshare track settings:', trackSettings);
             // const aspect = trackSettings.aspectRatio;
             screenShareConsumerId.value = consumerId;
             const videoShareElement = screenTag.value;
@@ -351,6 +358,17 @@ onBeforeUnmount(() => {
   } catch (e) {
     console.error(e);
     router.back();
+  }
+
+  if (screenTag.value) {
+    console.log('adding resize event to video!');
+    screenTag.value.onresize = (ev) => {
+      console.log('video resized!', ev);
+      if (!screenTag.value) return;
+      const ratio = screenTag.value.videoWidth / screenTag.value.videoHeight;
+      const fixedWidth = 1.7777;
+      screenShareHeight.value = fixedWidth / ratio;
+    };
   }
 
   // Now we should be ready to start consuming media!!!

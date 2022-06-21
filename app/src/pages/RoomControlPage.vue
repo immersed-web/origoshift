@@ -21,6 +21,7 @@ import usePeerClient from 'src/composables/usePeerClient';
 // import { usePersistedStore } from 'src/stores/persistedStore';
 import { useSoupStore } from 'src/stores/soupStore';
 import ClientList from 'src/components/ClientList.vue';
+import { ProducerInfo } from 'shared-types/CustomTypes';
 
 const router = useRouter();
 const route = useRoute();
@@ -67,7 +68,15 @@ async function shareScreen () {
   screenStream = stream;
 
   const videoTrack = screenStream.getVideoTracks()[0];
-  const producerId = await peer.produce(videoTrack, { screenShare: true });
+  const producerInfo: ProducerInfo = { screenShare: true };
+
+  // NOTE: This doesnt work since browser always reports screen size regardless of the tracks actual dimensions :-(
+  // const settings = videoTrack.getSettings();
+  // const { width, height } = settings;
+  // if (width && height) {
+  //   producerInfo.dimensions = { w: width, h: height };
+  // }
+  const producerId = await peer.produce(videoTrack, producerInfo);
   console.log('produce returned: ', producerId);
 
   videoTrack.onended = () => {

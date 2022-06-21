@@ -9,6 +9,7 @@ import { RequestSubjects } from './MessageTypes';
 export interface ProducerInfo {
   screenShare?: boolean,
   forceMuted?: boolean,
+  dimensions?: {w: number, h: number},
   [key: string]: unknown
 }
 

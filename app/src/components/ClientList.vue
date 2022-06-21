@@ -8,8 +8,8 @@
           I detta rum:
         </QItemLabel>
         <QItem
-          v-for="(client, clientKey) in clients"
-          :key="clientKey"
+          v-for="client in clientsWithMuteState"
+          :key="client.clientId"
         >
           <QItemSection>
             {{ client.username }}
@@ -29,24 +29,8 @@
                   class="emoji"
                   v-if="producer.kind === 'video'"
                 >🎥</span>
-                <QBtn
-                  v-else
-                  :icon="consumedProducers[producer.producerId]? 'volume_up': 'volume_off'"
-                  round
-                  @click="toggleConsume(producer.producerId)"
-                />
               </template>
             </div>
-          </QItemSection>
-          <QItemSection
-            v-if="client.clientId !== clientId && !hasAtLeastSecurityLevel(client.role, 'sender')"
-            side
-          >
-            <QBtn
-              round
-              icon="delete"
-              @click="$emit('clientRemoved', client.clientId)"
-            />
           </QItemSection>
           <QItemSection side>
             <QIcon
@@ -54,6 +38,21 @@
               color="yellow"
               v-if="client.customProperties.handRaised"
               name="waving_hand"
+            />
+          </QItemSection>
+          <QItemSection
+            v-if="client.clientId !== clientId && !hasAtLeastSecurityLevel(client.role, 'sender')"
+            side
+          >
+            <QBtn
+              :icon="client.muteIcon"
+              round
+              @click="toggleConsume(client)"
+            />
+            <QBtn
+              round
+              icon="delete"
+              @click="$emit('clientRemoved', client.clientId)"
             />
           </QItemSection>
         </QItem>
@@ -70,9 +69,9 @@
 </template>
 
 <script setup lang="ts">
-import { RoomState } from 'shared-types/CustomTypes';
+import { ClientState, RoomState } from 'shared-types/CustomTypes';
 import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
-import { defineEmits, ref } from 'vue';
+import { defineEmits, ref, computed } from 'vue';
 import usePeerClient from 'src/composables/usePeerClient';
 
 defineEmits<{(event: 'clientRemoved', clientId: string): void}>();
@@ -82,29 +81,71 @@ const peer = usePeerClient();
 //   peer.removeClientFromRoom(clientId, )
 // }
 
-defineProps<{
+const props = defineProps<{
   clients: RoomState['clients'],
   clientId: string
 }>();
 
-const audioTag = ref<HTMLAudioElement>();
-const consumedProducers = ref<Record<string, string>>({});
-async function toggleConsume (producerId: string) {
-  const consumerIdForProducer = consumedProducers.value[producerId];
-  if (consumerIdForProducer) {
-    await peer.closeAndNotifyConsumer(consumerIdForProducer);
-    delete consumedProducers.value[producerId];
-  } else {
-    if (!peer.receiveTransport) {
-      peer.sendRtpCapabilities();
-      await peer.createReceiveTransport();
+const muteStateToIcon = {
+  unmuted: 'volume_up',
+  muted: 'volume_off',
+  forceMuted: 'do_not_disturb',
+};
+
+const clientsWithMuteState = computed(() => {
+  const getMuteState = (client: ClientState) => {
+    if (client.customProperties.forceMuted) {
+      return 'forceMuted';
     }
-    const { consumerId, track } = await peer.consume(producerId);
-    consumedProducers.value[producerId] = consumerId;
-    const audioStream = new MediaStream([track]);
-    if (audioTag.value) audioTag.value.srcObject = audioStream;
+    if (Object.keys(client.producers).length === 0) {
+      return 'muted';
+    } else {
+      return 'unmuted';
+    }
+  };
+  return Object.values(props.clients).map(client => {
+    const muteState = getMuteState(client);
+    return { ...client, muteState: muteState, muteIcon: muteStateToIcon[muteState] };
+  });
+});
+
+const audioTag = ref<HTMLAudioElement>();
+// const consumedProducers = ref<Record<string, string>>({});
+// TODO: make this depend on producerstate in some way instead of local bool
+// let muted = true;
+async function toggleConsume (client: (typeof clientsWithMuteState.value)[number]) {
+  if (client.muteState === 'unmuted') {
+    await peer.closeAllProducersForClient(client.clientId);
+    return;
   }
+  const newState = client.muteState === 'muted';
+  await peer.setForcedMuteStateForClient(client.clientId, newState);
+
+  // const consumerIdForProducer = consumedProducers.value[producerId];
+  // if (consumerIdForProducer) {
+  //   await peer.closeAndNotifyConsumer(consumerIdForProducer);
+  //   delete consumedProducers.value[producerId];
+  // } else {
+  //   if (!peer.receiveTransport) {
+  //     peer.sendRtpCapabilities();
+  //     await peer.createReceiveTransport();
+  //   }
+  //   const { consumerId, track } = await peer.consume(producerId);
+  //   consumedProducers.value[producerId] = consumerId;
+  //   const audioStream = new MediaStream([track]);
+  //   if (audioTag.value) audioTag.value.srcObject = audioStream;
+  // }
 }
+
+// function computedMuteIcon (client: ClientState) {
+//   if (Object.keys(client.producers).length === 0) {
+//     return 'volume_off';
+//   }
+//   if (client.customProperties.forceMuted) {
+//     return 'lock';
+//   }
+//   return 'volume_up';
+// }
 
 </script>
 <style lang="scss">

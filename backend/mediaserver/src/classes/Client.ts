@@ -3,14 +3,12 @@ import SocketWrapper from './SocketWrapper';
 import {types as soupTypes} from 'mediasoup';
 import {types as soupClientTypes} from 'mediasoup-client';
 import { ClientProperties, ClientState, UserData, UserRole } from 'shared-types/CustomTypes';
-import { AnyRequest, createMessage, createRequest, createResponse, Request, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
+import { createMessage, createRequest, createResponse, Request, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 // import { checkPermission } from '../modules/utilFns';
 import { checkPermission } from '../modules/utilFns';
 
 import Gathering from './Gathering';
-
-
 
 interface constructionParams {
   id?: string,
@@ -427,7 +425,7 @@ export default class Client {
 
           const client = room.clients.get(clientId);
           if(!client){
-            throw Error('no client with that id was fonud in room');
+            throw Error('no client with that id was found in room');
           }
           client.closeAndNotifyAllConsumers();
           room.removeClient(client);
@@ -439,6 +437,92 @@ export default class Client {
             wasSuccess: false,
             message: extractMessageFromCatch(e, 'failed to remove client from room'),
           });
+        }
+        this.send(response);
+        break;
+      }
+      case 'closeAllProducersForClient': {
+
+        let response: ResponseTo<'closeAllProducersForClient'>;
+        try {
+          const clientId = msg.data.clientId;
+          if(!this.gathering) {
+            throw Error('not in a gathering. Must be in one when closing a clients all producers');
+          }
+          if(!this.room) {
+            throw Error('not in a room. Must be in same room as client you want to close!');
+          }
+          const client = this.room.clients.get(clientId);
+          if(!client) {
+            throw Error('no client with that id found in current room!');
+          }
+          // client.producers.forEach(producer => producer.pause());
+          client.closeAndNotifyAllProducers();
+          response = createResponse('closeAllProducersForClient', msg.id, {wasSuccess: true});
+        } catch(e){
+          response = createResponse('closeAllProducersForClient', msg.id, { wasSuccess: false, message: extractMessageFromCatch(e, 'failed to close all producers for client')});
+        }
+        this.send(response);
+        break;
+      }
+      case 'setForceMuteStateForClient': {
+        let response: ResponseTo<'setForceMuteStateForClient'>;
+        try {
+          const clientId = msg.data.clientId;
+          const muteState = msg.data.forceMuted;
+          if(!this.gathering) {
+            throw Error('not in a gathering. Must be in one when muting a client');
+
+          }
+          if(!this.room) {
+            throw Error('not in a room. Must be in same room as client you want to mute!');
+          }
+          const client = this.room.clients.get(clientId);
+          if(!client) {
+            throw Error('no client with that id found in current room!');
+          }
+          // client.producers.forEach(producer => producer.pause());
+          client.closeAndNotifyAllProducers();
+          client.setCustomProperties({forceMuted: muteState});
+          response = createResponse('setForceMuteStateForClient', msg.id, {wasSuccess: true});
+        } catch(e){
+          response = createResponse('setForceMuteStateForClient', msg.id, { wasSuccess: false, message: extractMessageFromCatch(e, 'failed to set force mute state')});
+        }
+        this.send(response);
+        break;
+      }
+      case 'setForceMuteStateForProducer': {
+        let response: ResponseTo<'setForceMuteStateForProducer'>;
+        try {
+          const clientId = msg.data.clientId;
+          const producerId = msg.data.producerId;
+          const muteState = msg.data.forceMuted;
+          if(!this.gathering) {
+            throw Error('not in a gathering. Must be in one when muting a client');
+
+          }
+          if(!this.room) {
+            throw Error('not in a room. Must be in same room as client you want to mute!');
+          }
+          const client = this.room.clients.get(clientId);
+          if(!client) {
+            throw Error('no client with that id found in current room!');
+          }
+
+          const producer = client.producers.get(producerId);
+          if(!producer) {
+            throw Error('client has no producer with that id');
+          }
+          if(!producer.appData.producerInfo)
+            producer.appData.producerInfo = {};
+          producer.appData.producerInfo.forceMuted = muteState;
+          if(muteState){
+            producer.pause();
+          }
+          response = createResponse('setForceMuteStateForProducer', msg.id, {wasSuccess: true});
+          this.room.broadcastRoomState('forceMuteState changed for a client');
+        } catch(e) {
+          response = createResponse('setForceMuteStateForProducer', msg.id, { wasSuccess: false, message: extractMessageFromCatch(e, 'failed to set force mute state')});
         }
         this.send(response);
         break;
@@ -837,13 +921,15 @@ export default class Client {
     const producerArray = Array.from(this.producers.entries());
     for(const [producerKey, producer] of producerArray){
       producer.close();
-      const closeConsumerMsg = createMessage('notifyCloseEvent', {
+      const closeProducersMsg = createMessage('notifyCloseEvent', {
         objectType: 'producer',
         objectId: producerKey,
       });
-      this.send(closeConsumerMsg);
-      this.consumers.delete(producerKey);      
+      this.send(closeProducersMsg);
+      this.producers.delete(producerKey);      
     }
+    // TODO: Not sure we need to prpagate this. But lets keep for now...
+    this.room?.broadcastRoomState('a client closed all their producers');
   };
 
   closeAndNotifyAllConsumers = () => {

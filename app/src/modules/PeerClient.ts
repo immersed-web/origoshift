@@ -272,6 +272,21 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     await socketutils.sendRequest(kickClientReq);
   }
 
+  closeAllProducersForClient = async (clientId: string) => {
+    const closeReq = createRequest('closeAllProducersForClient', {
+      clientId,
+    });
+    await socketutils.sendRequest(closeReq);
+  }
+
+  setForcedMuteStateForClient = async (clientId: string, forceMuted: boolean) => {
+    const req = createRequest('setForceMuteStateForClient', {
+      clientId,
+      forceMuted,
+    });
+    await socketutils.sendRequest(req);
+  }
+
   getRouterCapabilities = async (): Promise<mediasoupTypes.RtpCapabilities> => {
     const getRouterCapsReq = createRequest('getRouterRtpCapabilities');
 

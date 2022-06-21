@@ -7,12 +7,14 @@ import {types as soup} from 'mediasoup';
 import { RequestSubjects } from './MessageTypes';
 
 export interface ProducerInfo {
-  screenShare: boolean,
+  screenShare?: boolean,
+  forceMuted?: boolean,
   [key: string]: unknown
 }
 
 export interface ClientProperties {
   handRaised?: boolean,
+  forceMuted?: boolean,
   [key: string]: unknown,
 }
 
@@ -24,7 +26,7 @@ export interface RoomProperties {
 export interface ClientState {
   clientId: string;
   username?: string;
-  customProperties: Record<string, unknown>
+  customProperties: ClientProperties
   gatheringId?: string;
   roomId?: string;
   connected: boolean;
@@ -129,7 +131,7 @@ type DefaultAction = (typeof defaultActions)[number];
 type NonDefaultAction = Exclude<AllowedAction, DefaultAction>
 
 const hostActions: NonDefaultAction[] = [
-'assignMainProducerToRoom', 'createRoom', 'setRoomName', 'customRequest', 'getGatheringState', 'removeClientFromRoom', 'setCustomRoomProperties'
+'assignMainProducerToRoom', 'createRoom', 'setRoomName', 'customRequest', 'getGatheringState', 'removeClientFromRoom', 'closeAllProducersForClient', 'setForceMuteStateForProducer', 'setForceMuteStateForClient', 'setCustomRoomProperties',
 ]
 
 export const allowedActions: Record<UserRole, AllowedAction[]> = {

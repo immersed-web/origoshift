@@ -115,6 +115,7 @@ export default class Room {
         }
       }
     }
+    delete client.customProperties.forceMuted;
     const ok = this.clients.delete(client.id);
     if(!ok){
       throw new Error(`failed to remove client ${client.id} from room`);

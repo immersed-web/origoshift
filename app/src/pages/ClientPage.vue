@@ -105,7 +105,7 @@
     <BottomPanel>
       <QToolbarTitle> Rumsnamn: <span class="text-info">{{ soupStore.roomState?.roomName }}</span></QToolbarTitle>
       <QBtn
-        :icon="currentMuteIcon"
+        :icon="muteStateIcons[currentMuteState]"
         round
         @click="toggleMute"
       >
@@ -186,27 +186,38 @@ peer.on('notifyCloseEvent', (payload) => {
   }
 });
 
-const muteState = ref<'muted' | 'unmuted' | 'forcedMute'>('muted');
-const currentMuteIcon = computed(() => {
-  if (muteState.value === 'unmuted') { return 'mic'; } else if (muteState.value === 'forcedMute') { return 'do_not_disturb_on'; }
-  return 'mic_off';
+const muteStateIcons = {
+  unmuted: 'volume_up',
+  muted: 'volume_off',
+  forceMuted: 'do_not_disturb',
+};
+const currentMuteState = computed(() => {
+  if (!soupStore.clientState) return 'muted';
+  if (soupStore.clientState.customProperties.forceMuted) {
+    return 'forceMuted';
+  }
+  if (Object.keys(soupStore.clientState.producers).length === 0) {
+    return 'muted';
+  }
+  return 'unmuted';
 });
+let audioProducerId: string;
 async function toggleMute () {
-  const prevMuteState = muteState.value;
-  if (prevMuteState === 'forcedMute') {
-    return;
-  }
-  if (prevMuteState === 'muted') {
-    muteState.value = 'unmuted';
-    const microphoneStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: false,
-    });
-    const producerId = await peer.produce(microphoneStream.getAudioTracks()[0]);
-    return;
-  }
-  if (prevMuteState === 'unmuted') {
-    muteState.value = 'muted';
+  switch (currentMuteState.value) {
+    case 'forceMuted': {
+      return;
+    }
+    case 'muted': {
+      const microphoneStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+      });
+      audioProducerId = await peer.produce(microphoneStream.getAudioTracks()[0]);
+      break;
+    }
+    case 'unmuted': {
+      peer.closeAndNotifyProducer(audioProducerId);
+    }
   }
 }
 

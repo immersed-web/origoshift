@@ -118,6 +118,22 @@ export type AnyRequest =
     clientId: string,
     roomId: string,
   }>
+  | RequestBuilder<'closeAllProducersForClient', {
+    clientId: string,
+  }>
+  | RequestBuilder<'setForceMuteStateForProducer', {
+    clientId: string,
+    producerId: string,
+    forceMuted: boolean,
+  }>
+  | RequestBuilder<'setForceMuteStateForClient', {
+    clientId: string,
+    forceMuted: boolean,
+  }>
+  // | RequestBuilder<'releaseForceMute', {
+  //   clientId: string,
+  //   producerId: string
+  // }>
   | RequestBuilder<'leaveRoom'>
   // | RequestBuilder<'roomStateUpdated', RoomState>
   | RequestBuilder<'assignMainProducerToRoom',{
@@ -212,8 +228,10 @@ export type AnyResponse =
   | ResponseBuilder<'requestToJoinRoom', RoomState>
   | ResponseBuilder<'forwardedRequestToJoinRoom'>
   | ResponseBuilder<'removeClientFromRoom'>
+  | ResponseBuilder<'closeAllProducersForClient'>
+  | ResponseBuilder<'setForceMuteStateForProducer'>
+  | ResponseBuilder<'setForceMuteStateForClient'>
   | ResponseBuilder<'leaveRoom', {roomId: string}>
-  // | ResponseBuilder<'roomStateUpdated'>
   | ResponseBuilder<'assignMainProducerToRoom'>
   | ResponseBuilder<'setCustomClientProperties'>
   | ResponseBuilder<'setCustomRoomProperties'>

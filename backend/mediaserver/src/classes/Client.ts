@@ -428,6 +428,7 @@ export default class Client {
             throw Error('no client with that id was found in room');
           }
           client.closeAndNotifyAllConsumers();
+          client.closeAndNotifyAllProducers();
           room.removeClient(client);
           response = createResponse('removeClientFromRoom', msg.id, {
             wasSuccess: true,

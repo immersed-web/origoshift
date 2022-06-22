@@ -227,6 +227,7 @@ const showVRVideoFrame = computed(() => {
 });
 
 // TODO: This will not protect from clients "stealing" the broadcasting of the screenshare
+// We should change our produce code to assign the screenshare as a "mainproducer" instead. This will give better protection against script kiddies :-D
 let consumedScreenProducerId: string;
 const screenShareConsumerId = ref<string>();
 const screenShareHeight = ref<number>(1);

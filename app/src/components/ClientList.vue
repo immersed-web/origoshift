@@ -71,15 +71,12 @@
 <script setup lang="ts">
 import { ClientState, RoomState } from 'shared-types/CustomTypes';
 import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
-import { defineEmits, ref, computed } from 'vue';
+import { defineEmits, ref, computed, watch } from 'vue';
 import usePeerClient from 'src/composables/usePeerClient';
 
 defineEmits<{(event: 'clientRemoved', clientId: string): void}>();
 
 const peer = usePeerClient();
-// function kickClientFromRoom(clientId: string) {
-//   peer.removeClientFromRoom(clientId, )
-// }
 
 const props = defineProps<{
   clients: RoomState['clients'],
@@ -109,8 +106,36 @@ const clientsWithMuteState = computed(() => {
   });
 });
 
+const clientProducers = computed(() => {
+  let producers: ClientState['producers'] = {};
+  Object.values(props.clients).forEach(client => {
+    if (client.role === 'client') {
+      producers = { ...producers, ...client.producers };
+    }
+  });
+  return producers;
+});
+
+let consumedProducers: Record<string, string> = {};
+watch(clientProducers, (producers) => {
+  const newConsumedProducers: Record<string, string> = {};
+  Object.values(producers).forEach(async producer => {
+    if (consumedProducers[producer.producerId]) return;
+
+    if (!peer.receiveTransport) {
+      await peer.sendRtpCapabilities();
+      await peer.createReceiveTransport();
+    }
+    const { consumerId, track } = await peer.consume(producer.producerId);
+    newConsumedProducers[producer.producerId] = consumerId;
+    const audioStream = new MediaStream([track]);
+    if (audioTag.value) audioTag.value.srcObject = audioStream;
+  });
+
+  consumedProducers = newConsumedProducers;
+}, { deep: true, immediate: true });
+
 const audioTag = ref<HTMLAudioElement>();
-// const consumedProducers = ref<Record<string, string>>({});
 // TODO: make this depend on producerstate in some way instead of local bool
 // let muted = true;
 async function toggleConsume (client: (typeof clientsWithMuteState.value)[number]) {

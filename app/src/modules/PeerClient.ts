@@ -511,4 +511,19 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       this.consumers.delete(consumerKey);
     }
   }
+
+  closeAndNotifyAllProducers = async () => {
+    console.log('closeAllProducers called');
+    console.log('number of producers:', this.producers.size);
+    for (const [producerKey, producer] of this.producers.entries()) {
+      console.log('gonna close producer: ', producer.id);
+      producer.close();
+      const notifyCloseEventReq = createRequest('notifyCloseEventRequest', {
+        objectType: 'producer',
+        objectId: producer.id,
+      });
+      await socketutils.sendRequest(notifyCloseEventReq);
+      this.producers.delete(producerKey);
+    }
+  }
 }

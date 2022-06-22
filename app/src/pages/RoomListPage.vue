@@ -1,4 +1,12 @@
 <template>
+  <QBtn
+    v-if="sendToRoomOverview"
+    :to="{name: 'controlStart'}"
+    round
+    icon="arrow_back"
+    color="primary"
+    class="q-ml-md q-mt-md"
+  />
   <div class="fixed-center">
     <h4
       v-if="!soupStore.rooms"

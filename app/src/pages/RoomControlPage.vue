@@ -1,18 +1,27 @@
 <template>
-  <h5>LärarKontroll</h5>
-  <ClientList
-    class="q-ma-md"
-    v-if="soupStore.roomState && soupStore.roomState.clients && soupStore.clientId"
-    :client-id="soupStore.clientId"
-    :clients="soupStore.roomState.clients"
-    @client-removed="kickClient"
-  />
   <QBtn
-    @click="shareScreen"
+    :to="{name: 'controlLobby', }"
+    round
+    icon="arrow_back"
     color="primary"
-    no-caps
-    label="Dela skärm"
+    class="q-ml-md q-mt-md"
   />
+  <div class="q-ma-md">
+    <h5>LärarKontroll</h5>
+    <ClientList
+      class="q-ma-md"
+      v-if="soupStore.roomState && soupStore.roomState.clients && soupStore.clientId"
+      :client-id="soupStore.clientId"
+      :clients="soupStore.roomState.clients"
+      @client-removed="kickClient"
+    />
+    <QBtn
+      @click="shareScreen"
+      color="primary"
+      no-caps
+      label="Dela skärm"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">

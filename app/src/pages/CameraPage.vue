@@ -1,4 +1,11 @@
 <template>
+  <QBtn
+    :to="{name: 'controlStart'}"
+    icon="arrow_back"
+    round
+    class="q-mt-md q-ml-md"
+    color="primary"
+  />
   <div
     class="row q-ma-md"
   >
@@ -185,6 +192,8 @@ async function saveRoomName () {
 
 onBeforeUnmount(() => {
   peer.leaveRoom();
+  peer.closeAndNotifyAllConsumers();
+  peer.closeAndNotifyAllProducers();
 });
 
 onUnmounted(() => {

@@ -187,8 +187,8 @@ peer.on('notifyCloseEvent', (payload) => {
 });
 
 const muteStateIcons = {
-  unmuted: 'volume_up',
-  muted: 'volume_off',
+  unmuted: 'mic',
+  muted: 'mic_off',
   forceMuted: 'do_not_disturb',
 };
 const currentMuteState = computed(() => {

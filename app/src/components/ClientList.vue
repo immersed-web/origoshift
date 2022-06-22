@@ -4,9 +4,20 @@
       <QList
         separator
       >
-        <QItemLabel header>
-          I detta rum:
-        </QItemLabel>
+        <QItem>
+          <QItemSection>
+            <div class="text-h6">
+              I detta rum:
+            </div>
+          </QItemSection>
+          <QItemSection side>
+            <QBtn
+              round
+              :icon="soundOn?'volume_up':'volume_off'"
+              @click="toggleSound"
+            />
+          </QItemSection>
+        </QItem>
         <QItem
           v-for="client in clientsWithMuteState"
           :key="client.clientId"
@@ -29,6 +40,10 @@
                   class="emoji"
                   v-if="producer.kind === 'video'"
                 >🎥</span>
+                <audio
+                  :ref="(el) => { producerAudioTags[producer.producerId] = el as HTMLAudioElement }"
+                  autoplay
+                />
               </template>
             </div>
           </QItemSection>
@@ -44,27 +59,23 @@
             v-if="client.clientId !== clientId && !hasAtLeastSecurityLevel(client.role, 'sender')"
             side
           >
-            <QBtn
-              :icon="client.muteIcon"
-              round
-              @click="toggleConsume(client)"
-            />
-            <QBtn
-              round
-              icon="delete"
-              @click="$emit('clientRemoved', client.clientId)"
-            />
+            <div class="q-gutter-sm">
+              <QBtn
+                :icon="client.muteIcon"
+                round
+                @click="toggleConsume(client)"
+              />
+              <QBtn
+                round
+                icon="person_remove"
+                text-color="negative"
+                @click="$emit('clientRemoved', client.clientId)"
+              />
+            </div>
           </QItemSection>
         </QItem>
       </QList>
-      <!-- <pre>
-          {{ soupStore.roomState }}
-        </pre> -->
     </QCardSection>
-    <audio
-      ref="audioTag"
-      autoplay
-    />
   </QCard>
 </template>
 
@@ -84,8 +95,8 @@ const props = defineProps<{
 }>();
 
 const muteStateToIcon = {
-  unmuted: 'volume_up',
-  muted: 'volume_off',
+  unmuted: 'mic',
+  muted: 'mic_off',
   forceMuted: 'do_not_disturb',
 };
 
@@ -100,9 +111,13 @@ const clientsWithMuteState = computed(() => {
       return 'unmuted';
     }
   };
-  return Object.values(props.clients).map(client => {
+  const clients = Object.values(props.clients).map(client => {
     const muteState = getMuteState(client);
     return { ...client, muteState: muteState, muteIcon: muteStateToIcon[muteState] };
+  });
+  return clients.sort((clientA, clientB) => {
+    if (clientA.role === 'client') return 1;
+    return -1;
   });
 });
 
@@ -116,8 +131,17 @@ const clientProducers = computed(() => {
   return producers;
 });
 
+const soundOn = ref<boolean>(false);
+// NOTE: This is a bit hacky since well be left with dangling keys when the audioelements are removed from the dom.
+const producerAudioTags = ref<Record<string, HTMLAudioElement>>({});
 let consumedProducers: Record<string, string> = {};
 watch(clientProducers, (producers) => {
+  if (!soundOn.value) return;
+  updateProducelistAndConsumeThem(producers);
+}, { deep: true, immediate: true });
+
+function updateProducelistAndConsumeThem (producers: (typeof props.clients)[string]['producers']) {
+  console.log('LOOPING PRODUCERS AND CONSUMING TTHEM');
   const newConsumedProducers: Record<string, string> = {};
   Object.values(producers).forEach(async producer => {
     if (consumedProducers[producer.producerId]) return;
@@ -129,15 +153,22 @@ watch(clientProducers, (producers) => {
     const { consumerId, track } = await peer.consume(producer.producerId);
     newConsumedProducers[producer.producerId] = consumerId;
     const audioStream = new MediaStream([track]);
-    if (audioTag.value) audioTag.value.srcObject = audioStream;
+    if (producerAudioTags.value[producer.producerId]) producerAudioTags.value[producer.producerId].srcObject = audioStream;
   });
 
   consumedProducers = newConsumedProducers;
-}, { deep: true, immediate: true });
+}
 
-const audioTag = ref<HTMLAudioElement>();
-// TODO: make this depend on producerstate in some way instead of local bool
-// let muted = true;
+async function toggleSound () {
+  soundOn.value = !soundOn.value;
+  if (!soundOn.value) {
+    peer.closeAndNotifyAllConsumers();
+    consumedProducers = {};
+  } else {
+    updateProducelistAndConsumeThem(clientProducers.value);
+  }
+}
+
 async function toggleConsume (client: (typeof clientsWithMuteState.value)[number]) {
   if (client.muteState === 'unmuted') {
     await peer.closeAllProducersForClient(client.clientId);
@@ -145,32 +176,7 @@ async function toggleConsume (client: (typeof clientsWithMuteState.value)[number
   }
   const newState = client.muteState === 'muted';
   await peer.setForcedMuteStateForClient(client.clientId, newState);
-
-  // const consumerIdForProducer = consumedProducers.value[producerId];
-  // if (consumerIdForProducer) {
-  //   await peer.closeAndNotifyConsumer(consumerIdForProducer);
-  //   delete consumedProducers.value[producerId];
-  // } else {
-  //   if (!peer.receiveTransport) {
-  //     peer.sendRtpCapabilities();
-  //     await peer.createReceiveTransport();
-  //   }
-  //   const { consumerId, track } = await peer.consume(producerId);
-  //   consumedProducers.value[producerId] = consumerId;
-  //   const audioStream = new MediaStream([track]);
-  //   if (audioTag.value) audioTag.value.srcObject = audioStream;
-  // }
 }
-
-// function computedMuteIcon (client: ClientState) {
-//   if (Object.keys(client.producers).length === 0) {
-//     return 'volume_off';
-//   }
-//   if (client.customProperties.forceMuted) {
-//     return 'lock';
-//   }
-//   return 'volume_up';
-// }
 
 </script>
 <style lang="scss">

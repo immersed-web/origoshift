@@ -469,7 +469,6 @@ function detachVideoFromCanvas () {
   canvasStream = undefined;
 }
 
-// TODO: How to handle roles without assigned gathering (admin)
 async function enterGatheringAndRoom (gatheringName: string, roomName: string) {
   // if (!userStore.userData) throw new Error('no userstate! needed to run camerapage');
   // if (!gatheringName) {

@@ -27,13 +27,20 @@
       </QCard>
     </div>
   </QDialog>
+  <QBtn
+    :to="{name: 'controlStart'}"
+    icon="arrow_back"
+    round
+    class="q-mt-md q-ml-md"
+    color="primary"
+  />
   <div
-    class="q-pa-lg q-gutter-y-md"
+    class="q-pa-md q-gutter-y-md"
     style="max-width: 70rem;"
   >
     <QBtn
       v-if="showGatheringPanel"
-      label="skapa nytt gathering"
+      label="skapa ny skola"
       color="primary"
       @click="startCreatingGathering"
     />

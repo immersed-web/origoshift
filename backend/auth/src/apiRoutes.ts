@@ -17,7 +17,6 @@ interface GetGatheringRequest extends ExpressReq {
   }
 }
 
-//TODO: should this perhaps only be allowed at all for hosts or above?
 const getGathering:RequestHandler = async (req: GetGatheringRequest, res) => {
   const payload = req.body;
   const userData = req.session.user;

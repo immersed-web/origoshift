@@ -9,6 +9,7 @@ import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import { checkPermission } from '../modules/utilFns';
 
 import Gathering from './Gathering';
+import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
 
 interface constructionParams {
   id?: string,
@@ -22,7 +23,6 @@ export default class Client {
   id: string;
   private ws: SocketWrapper;
 
-  // TODO userdata should probably be required field in this class?!
   userData: UserData;
   get userName(): string{
     // if(this.userData?.username){
@@ -226,11 +226,14 @@ export default class Client {
               this.setGathering(undefined);
             } 
           }
-          // IMPORTANT
-          // TODO: Implement logic here (or elsewhere?) that checks whether the user is authorized to join that gathering or not
           const gathering = Gathering.getGathering({id: msg.data.gatheringId});
           if(!gathering){
             throw new Error('Cant join that gathering. Does not exist');
+          }
+          const clientRole = this.userData.role;
+          const isPriviliged = hasAtLeastSecurityLevel(clientRole, 'admin');
+          if(!isPriviliged && this.userData.gathering !== gathering.name){
+            throw Error('not authorized to join gathering!');
           }
           gathering.addClient(this);
           response = createResponse('joinGathering', msg.id, {
@@ -929,7 +932,6 @@ export default class Client {
       this.send(closeProducersMsg);
       this.producers.delete(producerKey);      
     }
-    // TODO: Not sure we need to prpagate this. But lets keep for now...
     this.room?.broadcastRoomState('a client closed all their producers');
   };
 

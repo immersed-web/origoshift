@@ -21,8 +21,6 @@ const eventEmitter = new TypedEmitter<SocketEvents>();
 let msgCounter = 0;
 let createSocketTimeout: number;
 let socket: WebSocket | null = null;
-// TODO wrap socket creation so we can toggle retryIsActive properly
-// let retryIsActive = true;
 export default {
 
   socketEvents: eventEmitter,

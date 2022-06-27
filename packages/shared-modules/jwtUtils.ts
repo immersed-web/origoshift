@@ -4,7 +4,7 @@
 import Express from 'express';
 import jwt, { JwtPayload} from 'jsonwebtoken';
 import { UserData } from 'shared-types/CustomTypes';
-import 'shared-types/augmentedRequest';
+// import 'shared-types/augmentedRequest';
 
 // passport.unuse('session');
 
@@ -16,15 +16,15 @@ declare module 'express' {
   }
 }
 
-// TODO: We must environmentify these variables!!!!!
-export const JWT_SECRET = 'lkajsdhflkjasdjf';
-export const JWT_ISSUER = 'Inclubit auth server';
-export const JWT_AUDIENCE = 'inclubit application';
+if(!process.env.JWT_ISSUER || !process.env.JWT_AUDIENCE || !process.env.JWT_SECRET){
+  throw Error('missing Environment variables for jwt settings!!!');
+}
+const envJwtSecret = process.env.JWT_SECRET;
 
 const jwtSignOptions: jwt.SignOptions = {
   // jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  issuer: JWT_ISSUER,
-  audience: JWT_AUDIENCE,
+  issuer: process.env.JWT_ISSUER,
+  audience: process.env.JWT_AUDIENCE,
   // secretOrKey: JWT_SECRET,
   algorithm: 'HS256',
 };
@@ -40,8 +40,8 @@ const jwtSignOptions: jwt.SignOptions = {
 
 export function createJwt(userObj: object | string | Buffer, expiresInSeconds: number | undefined = undefined, jwtId?: string, secret?: string){
   const signOptions: jwt.SignOptions = {
-    issuer: JWT_ISSUER,
-    audience: JWT_AUDIENCE,
+    issuer: process.env.JWT_ISSUER,
+    audience: process.env.JWT_AUDIENCE,
   };
   if(expiresInSeconds){
     signOptions.expiresIn = expiresInSeconds;
@@ -50,7 +50,7 @@ export function createJwt(userObj: object | string | Buffer, expiresInSeconds: n
     signOptions.jwtid = jwtId;
   }
   if(!secret){
-    secret = JWT_SECRET;
+    secret = envJwtSecret;
   }
   const token = jwt.sign(userObj, secret, signOptions);
 
@@ -62,7 +62,7 @@ export type DecodedJwt = UserData & JwtPayload;
 
 export function verifyJwtToken(token: string, secret?: string){
   if(!secret){
-    secret = JWT_SECRET;
+    secret = envJwtSecret;
   }
   const decoded = jwt.verify(token, secret, jwtSignOptions);
   return decoded as DecodedJwt;

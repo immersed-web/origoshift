@@ -51,24 +51,24 @@ export default function usePeerClient () {
 
   // eslint-disable-next-line @typescript-eslint/ban-types
   // let customExports: Record<string, Function> = { requestMedia };
-  async function requestMedia (deviceId?: string): Promise<MediaStream> {
-    // TODO: we should be able to customize the constraints for specific stuff
-    let constraints: MediaStreamConstraints = {
-      video: true,
-    };
-    if (deviceId) {
-      constraints = {
-        video: {
-          deviceId: deviceId,
-          // frameRate: 10,
-        },
-      };
-    } else {
-      console.log('no deviceId provided. Calling with video: true');
-    }
-    const localStream = await navigator.mediaDevices.getUserMedia(constraints);
-    return localStream;
-  }
+  // async function requestMedia (deviceId?: string): Promise<MediaStream> {
+  //   // TODO: we should be able to customize the constraints for specific stuff
+  //   let constraints: MediaStreamConstraints = {
+  //     video: true,
+  //   };
+  //   if (deviceId) {
+  //     constraints = {
+  //       video: {
+  //         deviceId: deviceId,
+  //         // frameRate: 10,
+  //       },
+  //     };
+  //   } else {
+  //     console.log('no deviceId provided. Calling with video: true');
+  //   }
+  //   const localStream = await navigator.mediaDevices.getUserMedia(constraints);
+  //   return localStream;
+  // }
 
   // async function createAndJoinRoom (roomName: string) {
   //   const roomState = await peer.createRoom(roomName);
@@ -114,7 +114,7 @@ export default function usePeerClient () {
     await peer.sendRtpCapabilities();
   }
 
-  const customExports = { disconnect, requestMedia, restoreOrInitializeGathering };
+  const customExports = { disconnect, restoreOrInitializeGathering };
 
   return {
     ...peer, // Order matters here! customExports holds some overrides, so it must come after

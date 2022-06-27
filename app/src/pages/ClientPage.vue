@@ -420,13 +420,6 @@ function videoReleased (ev: MouseEvent) {
 // }
 
 async function initVideoSphere () {
-  // const sceneEl = document.querySelector('a-scene');
-  // TODO: Check whether we need to remove and insert new sphere, or if it's enough to update src of existing one.
-  // const prevVSphere = sceneEl.querySelector('a-videosphere');
-  // if (prevVSphere) {
-  //   prevVSphere.remove();
-  // }
-  // const vSphere = document.createElement('a-videosphere');
   const vSphere = document.querySelector('a-videosphere');
   if (!vSphere) throw new Error('no videosphere found in DOM!!! What have you done Gunnar??');
   // vSphere.setAttribute('srcObject', 'https://bitmovin.com/player-content/playhouse-vr/progressive.mp4');

@@ -419,25 +419,6 @@ export default function createUserRouter() {
 
   const userRouter = Router();
 
-  // TODO: Make sure we use nice settings for the cookie!!! These are kind of arbitrary chosen
-  // userRouter.use(session({
-  //   secret: env.SESSION_KEY,
-  //   cookie: {
-  //     httpOnly: true,
-  //     secure: true,
-  //     maxAge: 7 * 24 * 60 * 60 * 1000 // ms
-  //   },
-  //   name: 'inclubit',
-  //   resave: false,
-  //   saveUninitialized: false,
-  //   store: new PrismaSessionStore(prisma,
-  //     {
-  //       checkPeriod: 2 * 60 * 1000, // ms
-  //       dbRecordIdIsSessionId: true,
-  //       dbRecordIdFunction: undefined,
-  //     })
-  // }));
-
   userRouter.get('', index);
 
 

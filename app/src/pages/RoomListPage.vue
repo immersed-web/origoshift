@@ -63,8 +63,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const soupStore = useSoupStore();
 
-// TODO: UNify functionality for "recovering" gathering connection primarily from userdata and secondary from persistedStore.
-// Failing triggers either redirect to login or perhaps pickGathering modal?
 (async () => {
   if (!soupStore.gatheringState) {
     await peer.restoreOrInitializeGathering();

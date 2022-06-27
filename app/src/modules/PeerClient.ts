@@ -455,7 +455,6 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     this.pauseResumeConsumer(consumerId, false);
   }
 
-  // TODO: eventually we might also need pause/resume for client-side producers
   private pauseResumeConsumer = async (consumerId: string, wasPaused: boolean) => {
     const consumer = this.consumers.get(consumerId);
     if (!consumer) {

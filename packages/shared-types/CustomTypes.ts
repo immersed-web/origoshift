@@ -99,7 +99,6 @@ export type UserRole = (typeof securityLevels)[number];
 export type NonGuestUserRole = Exclude<(typeof securityLevels)[number], 'guest'>;
 
 
-// TODO: This securitylevel array shit is reaaal hacky. No fun!!! You cry
 function makeDefaultAction<T extends AllowedAction[]>(t: T): T {
     return t;
 }

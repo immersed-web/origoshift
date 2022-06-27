@@ -82,7 +82,6 @@ app.ws('/*', {
   },
   upgrade: (res, req, context) => {
     console.log('upgrade request received:', req);
-    //TODO: authenticate received JWT token here. If nice, only then should we upgrade to websocket!
     try{
       const receivedToken = req.getQuery();
 

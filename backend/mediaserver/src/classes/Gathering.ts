@@ -149,7 +149,6 @@ export default class Gathering {
     Gathering.gatherings.delete(this.id);
   }
 
-  // TODO: Somewhere in the server we probably need to protect access to this function 
   getClient (clientId: string){
     const client = this.clients.get(clientId);
     if(!client){
@@ -209,7 +208,6 @@ export default class Gathering {
     });
   }
 
-  // TODO: will this truly suffice for deleting the room? Or will it float around as a deserted little vessel in the memory ocean?
   deleteRoom(roomOrId: Room | string){
     if(typeof roomOrId === 'string'){
       this.rooms.delete(roomOrId);

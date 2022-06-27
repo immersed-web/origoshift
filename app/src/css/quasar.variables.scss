@@ -12,13 +12,40 @@
 // to match your app's branding.
 // Tip: Use the "Theme Builder" on Quasar's documentation website.
 
-$primary   : #1976D2;
-$secondary : #26A69A;
-$accent    : #9C27B0;
+$body-font-size   : 16px !default;
+$button-font-size: $body-font-size;
+$input-font-size: $body-font-size;
+html {
+  font-size: $body-font-size;
+}
 
-$dark      : #1D1D1D;
+$primary   : rgb(255, 102, 0);
+
+$secondary : #008bc2;
+
+$dark      : #393e46;
+
+$background: #222831;
+
+body.body--dark {
+  background: $background;
+}
 
 $positive  : #21BA45;
-$negative  : #C10015;
+$negative  : #ff001e;
 $info      : #31CCEC;
 $warning   : #F2C037;
+
+// @font-face {
+//   font-family: 'Caaairo';
+//   src: url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;700;900&display=swap&size-adjust=50%');
+//   size-adjust: 50%;
+
+// }
+// // Cairo
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;700;900&display=swap&size-adjust=50%');
+$typography-font-family: 'Cairo', sans-serif;
+
+// Comfortaa
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
+// $typography-font-family: 'Comfortaa', sans-serif;

@@ -42,6 +42,7 @@ module.exports = configure(function (ctx) {
       'aframe',
       'pinia',
       'axios',
+      'setDefaults',
     ],
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-css

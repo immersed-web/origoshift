@@ -42,7 +42,7 @@ export default route(function (/* { store, ssrContext } */) {
   Router.beforeEach(async (to) => {
     console.log('changed route to: ', to);
     const userStore = useUserStore();
-    const ignoredRoutes = ['/login', '/logout'];
+    const ignoredRoutes = ['/login', '/logout', '/theme'];
     if (ignoredRoutes.includes(to.path)) {
       // userStore.$reset();
       console.log('non userdata route');

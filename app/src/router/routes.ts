@@ -54,6 +54,7 @@ const routes: RouteRecordRaw[] = [
         },
       },
       { path: '/room/:roomId', component: () => import('pages/ClientPage.vue') },
+      { name: 'themeTest', path: '/theme', component: () => import('pages/ThemeTest.vue') },
     ],
   },
   {

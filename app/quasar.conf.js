@@ -14,9 +14,9 @@ const dotenv = require('dotenv');
 module.exports = configure(function (ctx) {
   let envVars;
   if (ctx.dev) {
-    envVars = dotenv.config({ path: '../backend/.env.dev' }).parsed;
+    envVars = dotenv.config({ path: '../.env.dev' }).parsed;
   } else {
-    envVars = dotenv.config({ path: '../backend/.env' }).parsed;
+    envVars = dotenv.config({ path: '../.env' }).parsed;
   }
   console.log('envVars in quasar config:', envVars);
   return {

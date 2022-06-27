@@ -4,7 +4,7 @@
 import Express from 'express';
 import jwt, { JwtPayload} from 'jsonwebtoken';
 import { UserData } from 'shared-types/CustomTypes';
-// import 'shared-types/augmentedRequest';
+import 'shared-types/augmentedRequest';
 
 // passport.unuse('session');
 

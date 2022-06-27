@@ -82,7 +82,7 @@
 <script setup lang="ts">
 import { ClientState, RoomState } from 'shared-types/CustomTypes';
 import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
-import { defineEmits, ref, computed, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import usePeerClient from 'src/composables/usePeerClient';
 
 defineEmits<{(event: 'clientRemoved', clientId: string): void}>();

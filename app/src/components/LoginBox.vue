@@ -57,7 +57,7 @@ const submit = () => {
 
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 #login-container {
   max-width: 25rem;
 }

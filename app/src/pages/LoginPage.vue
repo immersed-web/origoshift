@@ -1,8 +1,19 @@
 <template>
-  <LoginBox
-    class="fixed-center"
-    @submit="loginUser"
-  />
+  <div
+    id="login-page-container"
+    class="column justify-center items-center no-wrap"
+  >
+    <div
+      id="main-title"
+      class="column no-wrap items-end"
+    >
+      <h1>Inclubit36<span>0</span></h1>
+      <h2>Logga in</h2>
+    </div>
+    <LoginBox
+      @submit="loginUser"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -35,3 +46,35 @@ async function loginUser (creds: Creds) {
   router.replace(redirect);
 }
 </script>
+<style lang="scss" scoped>
+#login-page-container {
+  height: 100vh;
+  width: 100vw;
+}
+
+#main-title {
+  margin-bottom: 4rem;
+  h1 {
+    font-size: 3.5rem;
+    letter-spacing: 1rem;
+    text-align: end;
+    // direction: rtl;
+    span {
+      letter-spacing: 0;
+    }
+  }
+
+  h2 {
+    color: $secondary;
+    font-family: 'Dosis', sans-serif;
+    margin-top: -0.8em;
+    text-transform: lowercase;
+    text-align: end;
+    // font-style: italic;
+    // display: inline;
+    white-space: nowrap;
+    font-weight: 200;
+  }
+}
+
+</style>

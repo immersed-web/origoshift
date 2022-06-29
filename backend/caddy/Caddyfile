@@ -2,21 +2,18 @@
   # Important to use the route directive so that the reverse_proxy is matched first
   # (default is try_files before reverse_proxy)
   route { 
-    route /auth/* {
-      uri strip_prefix /auth 
-      reverse_proxy auth:6060
+    handle_path /auth* {
+      reverse_proxy localhost:3333
     }
-    reverse_proxy /socket/* mediaserver:9001
-    root * /dist/spa
-    try_files {path} /index.html
-    file_server {
-      root /dist/spa
+    handle_path /socket* {
+      reverse_proxy localhost:9001
     }
+    reverse_proxy /* localhost:8080
+    # root * /dist/spa
+    # try_files {path} /index.html
+    # file_server {
+    #   root /dist/spa
+    # }
   }
-  
   log
 }
-
-# inclubit2.testyta.se {
-#   respond "fuck off" 200
-# }

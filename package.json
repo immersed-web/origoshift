@@ -1,11 +1,17 @@
 {
   "private": true,
-  "workspaces":{
+  "workspaces": {
     "packages": [
       "packages/*",
       "app",
       "backend/*"
     ],
-    "nohoist": ["**/mediasoup","**/mediasoup/**"]
-  } 
+    "nohoist": [
+      "**/mediasoup",
+      "**/mediasoup/**"
+    ]
+  },
+  "dependencies": {
+    "yarn": "^1.22.19"
+  }
 }

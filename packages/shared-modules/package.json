@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc --build",
+    "clean": "tsc --build --clean",
     "dev": "echo 'dummy script'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

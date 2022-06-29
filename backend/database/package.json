@@ -8,6 +8,7 @@
     "seed": "ts-node ./seed.ts"
   },
   "scripts": {
+    "build": "dotenv -e ../../.env.dev prisma generate",
     "migrate": "dotenv -e ../../.env.dev yarn prisma migrate dev",
     "migrate:reset": "dotenv -e ../../.env.dev yarn prisma migrate reset",
     "seed": "dotenv -e ../../.env.dev yarn prisma db seed",

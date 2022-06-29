@@ -412,10 +412,6 @@ const getJwt: RequestHandler = async (req, res) => {
 };
 
 export default function createUserRouter() {
-  // if (!env.SESSION_KEY) {
-  //   console.error('no session key provided!!!');
-  //   throw new Error('no session key provided when creating user router');
-  // }
 
   const userRouter = Router();
 

@@ -53,16 +53,6 @@ app.use((req, res, next) => {
     }
   });
 });
-// const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
-//   console.log(error);
-//   if(error){
-//     console.error('Mega error of doom!!½½½½½', error);
-//     const msg = extractMessageFromCatch(error, 'failed reeeaaal HARD!');
-//     res.status(500).send(`Noooo good: ${msg}`);
-//   }
-//   next();
-// };
-// app.use(errorHandler);
 
 if (!process.env.SESSION_KEY) {
   console.error('no session key provided!!!');

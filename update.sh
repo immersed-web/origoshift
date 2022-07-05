@@ -13,3 +13,12 @@ exe yarn
 
 say 'build all the npm projects'
 exe yarn workspaces run build
+
+say 'build the prisma client'
+exe yarn workspace database run generate
+
+say 'spin up the postgres database (if not already running)'
+exe docker compose up -d
+
+say 'deploy database migrations'
+exe yarn workspace database run migrate:deploy

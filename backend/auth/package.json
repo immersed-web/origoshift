@@ -9,12 +9,13 @@
     "schema": "../database/prisma/schema.prisma"
   },
   "scripts": {
-    "start": "dotenv -e ../../.env node ./dist/index.js",
+    "start": "node ./dist/index.js",
     "dev": "tsc-watch --build --onSuccess 'dotenv -e ../../.env.dev node ./dist/index.js'",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "test": "yarn jest --watch",
-    "test:once": "jest"
+    "test:once": "jest",
+    "generate": "yarn prisma generate"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",

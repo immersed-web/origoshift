@@ -5,15 +5,17 @@
   "author": "Gunnar Oledal",
   "license": "MIT",
   "prisma": {
-    "seed": "ts-node ./seed.ts"
+    "seed": "ts-node ./seed.ts",
+    "schema": "../database/prisma/schema.prisma"
   },
   "scripts": {
-    "build": "dotenv -e ../../.env yarn prisma migrate deploy",
+    "migrate:deploy": "dotenv -e ../../.env yarn prisma migrate deploy",
+    "generate": "yarn prisma generate",
     "migrate": "dotenv -e ../../.env.dev yarn prisma migrate dev",
-    "migrate:reset": "dotenv -e ../../.env.dev yarn prisma migrate reset",
-    "seed": "dotenv -e ../../.env.dev yarn prisma db seed",
-    "studio": "dotenv -e ../../.env.dev yarn prisma studio",
-    "dbpush": "dotenv -e ../../.env.dev yarn prisma db push"
+    "migrate:reset": "dotenv -e ../../.env -- yarn prisma migrate reset",
+    "seed": "dotenv -e ../../.env yarn prisma db seed",
+    "studio": "dotenv -e ../../.env yarn prisma studio",
+    "dbpush": "dotenv -e ../../.env yarn prisma db push"
   },
   "devDependencies": {
     "prisma": "^3.5.0",

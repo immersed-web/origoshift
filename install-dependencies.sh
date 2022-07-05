@@ -47,6 +47,9 @@ exe yarn global add pm2
 say 'Verify pm2 is installed'
 exe pm2 --version
 
+# say 'Activate autostart for pm2'
+# exe pm2 startup
+
 say 'Install quasar cli'
 exe yarn global add @quasar/cli
 

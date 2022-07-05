@@ -5,9 +5,31 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 import { NonGuestUserRole } from 'shared-types/CustomTypes'
 
-let role: NonGuestUserRole = 'admin';
+// console.log('env vars:', process.env);
 
-async function seed() {
+let role: NonGuestUserRole = 'admin';
+async function seedProd () {
+  if(!process.env.ADMIN_PASSWORD){
+    throw Error('no admin password provided for seed script. set ADMIN_PASSWORD var in the file .env');
+  }
+  const password = process.env.ADMIN_PASSWORD;
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  await prisma.user.create({
+    data:
+    {
+      username: 'admin',
+      password: hashedPassword,
+      role: {
+        create: {
+          role: role
+        }
+      },
+    },
+  })
+}
+
+async function seedDev () {
   const hashedPassword = await bcrypt.hash('password', 10);
 
   await prisma.user.create({
@@ -179,4 +201,10 @@ async function seed() {
   })
 }
 
-seed();
+if(process.env.DEVELOPMENT){
+  console.log('seeding db with development dummy data');
+  seedDev();
+}else {
+  console.log('seeding db with prod data');
+  seedProd();
+}

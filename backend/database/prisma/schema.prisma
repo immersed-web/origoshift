@@ -7,6 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // The env var will be replaced when the prismaclient is used. That is, the env var needs to be available when USING the client, not when generating the client.
   url      = env("DATABASE_URL")
 }
 

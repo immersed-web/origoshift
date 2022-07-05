@@ -20,6 +20,7 @@ createWorkers();
 
 const stdin = process.stdin;
 
+// console.log('environment: ', process.env);
 
 if(stdin && stdin.isTTY){
   // without this, we would only get streams once enter is pressed

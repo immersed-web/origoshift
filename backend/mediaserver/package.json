@@ -1,5 +1,5 @@
 {
-  "name": "mediasoup",
+  "name": "mediaserver",
   "version": "1.0.0",
   "description": "mediasoup server for inclubit 2",
   "main": "dist/index.js",

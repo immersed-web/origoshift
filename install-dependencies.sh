@@ -32,15 +32,26 @@ say 'Source nvm so we can call it from within this shell script'
 say 'Install node LTS'
 exe nvm install --lts
 
+say 'Verify node is installed'
+exe node --version
+
 say 'Install yarn'
 exe npm install -G yarn
+
+say 'Verify yarn is installed'
+exe yarn --version
 
 say 'Install pm2'
 exe yarn global add pm2
 
+say 'Verify pm2 is installed'
+exe pm2 --version
+
 say 'Install quasar cli'
 exe yarn global add @quasar/cli
 
+say 'Verify quasar cli is installed'
+exe quasar --version
 
 ######### Mediasoup dependencies
 stage 'Mediasoup dependencies'

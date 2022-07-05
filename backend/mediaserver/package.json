@@ -6,7 +6,7 @@
   "author": "Gunnar Oledal",
   "license": "ISC",
   "scripts": {
-    "start": "node ./dist/index.js",
+    "start": "dotenv -e ../../.env node ./dist/index.js",
     "dev": "tsc-watch --build --onSuccess 'dotenv -e ../../.env.dev node ./dist/index.js'",
     "build:watch": "tsc --build --watch",
     "build": "tsc --build",

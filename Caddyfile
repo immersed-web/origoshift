@@ -1,4 +1,4 @@
-{env.SERVER_URL} {
+{$SERVER_URL} {
   # Important to use the route directive so that the reverse_proxy is matched first
   # (default is try_files before reverse_proxy)
   route { 

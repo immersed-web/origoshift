@@ -88,7 +88,7 @@ say 'Set up docker repository to be installed with apt'
 exe apt-get install \
     ca-certificates \
     gnupg \
-    lsb-release
+    lsb-release -y
 
 exe mkdir -p /etc/apt/keyrings
 exe curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg

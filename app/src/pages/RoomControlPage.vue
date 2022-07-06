@@ -1,24 +1,29 @@
 <template>
-  <QBtn
-    :to="{name: 'controlLobby', }"
-    round
-    icon="arrow_back"
-    color="primary"
-    class="q-ml-md q-mt-md"
-  />
+  <div class="q-ml-md q-mt-md row no-wrap items-center">
+    <QBtn
+      :to="{name: 'controlLobby', }"
+      round
+      icon="arrow_back"
+      color="primary"
+      class=""
+    />
+    <div class="text-h3 q-ml-md">
+      Rumskontroll
+    </div>
+  </div>
   <div class="q-ma-md">
-    <h5>LärarKontroll</h5>
+    <h5>rumsnamn: {{ soupStore.roomState?.roomName }}</h5>
     <ClientList
-      class="q-ma-md"
+      id="client-list"
       v-if="soupStore.roomState && soupStore.roomState.clients && soupStore.clientId"
       :client-id="soupStore.clientId"
       :clients="soupStore.roomState.clients"
       @client-removed="kickClient"
     />
     <QBtn
+      class="q-mt-md"
       @click="shareScreen"
       color="primary"
-      no-caps
       label="Dela skärm"
     />
   </div>
@@ -95,3 +100,10 @@ async function shareScreen () {
 }
 
 </script>
+
+<style scoped lang="scss">
+
+#client-list {
+  max-width: 40rem;
+}
+</style>

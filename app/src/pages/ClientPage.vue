@@ -112,6 +112,7 @@
         <QTooltip>Stäng av eller sätt på mikrofonen</QTooltip>
       </QBtn>
       <QToggle
+        size="lg"
         label="presentationsläge"
         v-model="screenshareWindowMode"
         toggle-indeterminate
@@ -127,7 +128,6 @@
           id="raise-hand-button"
           :class="{waving: handRaised}"
           icon="waving_hand"
-          color="primary"
           text-color="yellow"
           round
           @click="toggleRaiseHand"

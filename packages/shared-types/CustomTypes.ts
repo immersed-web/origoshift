@@ -89,7 +89,7 @@ export interface UserData {
 export const securityLevels = [
 'guest',
 'client',
-'sender',
+// 'sender',
 'host',
 'admin',
 'gunnar' 
@@ -138,7 +138,7 @@ export const allowedActions: Record<UserRole, AllowedAction[]> = {
   gunnar: ['*'],
   admin: ['*'],
   host: [...defaultActions, ...hostActions],
-  sender: [...defaultActions],
+  // sender: [...defaultActions],
   client: [...defaultActions],
   guest: [...defaultActions],
 }

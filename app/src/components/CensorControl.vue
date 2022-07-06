@@ -2,14 +2,17 @@
   <div>
     <QToggle
       v-model="enabled"
-      :label="`censorshield ${enabled?'enabled':'disabled'}`"
+      :label="`avskärmning ${enabled?'aktiv':'inaktiv'}`"
     />
     <QBtn
       :disable="!enabled"
       icon="filter_b_and_w"
       round
+      class="q-ml-md"
       @click="invert"
-    />
+    >
+      <QTooltip>Invertera avskärmat område</QTooltip>
+    </QBtn>
     <QRange
       :disable="!enabled"
       v-model="localState.range"

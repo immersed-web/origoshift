@@ -15,7 +15,11 @@
               round
               :icon="soundOn?'volume_up':'volume_off'"
               @click="toggleSound"
-            />
+            >
+              <QTooltip>
+                Slå av / sätt på allt ljud
+              </QTooltip>
+            </QBtn>
           </QItemSection>
         </QItem>
         <QItem
@@ -64,13 +68,17 @@
                 :icon="client.muteIcon"
                 round
                 @click="toggleConsume(client)"
-              />
+              >
+                <QTooltip>Sätt på / stäng av användarens mikrofon</QTooltip>
+              </QBtn>
               <QBtn
                 round
                 icon="person_remove"
                 text-color="negative"
                 @click="$emit('clientRemoved', client.clientId)"
-              />
+              >
+                <QTooltip>Ta bort användaren från rummet</QTooltip>
+              </QBtn>
             </div>
           </QItemSection>
         </QItem>

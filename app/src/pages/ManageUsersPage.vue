@@ -27,13 +27,17 @@
       </QCard>
     </div>
   </QDialog>
-  <QBtn
-    :to="{name: 'controlStart'}"
-    icon="arrow_back"
-    round
-    class="q-mt-md q-ml-md"
-    color="primary"
-  />
+  <div class="q-ml-md q-mt-md row no-wrap items-center">
+    <QBtn
+      :to="{name: 'controlStart'}"
+      icon="arrow_back"
+      round
+      color="primary"
+    />
+    <div class="text-h3 q-ml-md">
+      Hantera {{ userStore.userData?.role==='host'?'elev':'' }}konton
+    </div>
+  </div>
   <div
     class="q-pa-md q-gutter-y-md"
     style="max-width: 70rem;"

@@ -1,11 +1,15 @@
 <template>
-  <QBtn
-    :to="{name: 'controlStart'}"
-    icon="arrow_back"
-    round
-    class="q-mt-md q-ml-md"
-    color="primary"
-  />
+  <div class="q-ml-md q-mt-md row no-wrap items-center">
+    <QBtn
+      :to="{name: 'controlStart'}"
+      icon="arrow_back"
+      round
+      color="primary"
+    />
+    <div class="text-h3 q-ml-md">
+      Kamerastation
+    </div>
+  </div>
   <div
     class="row q-ma-md"
   >
@@ -29,7 +33,9 @@
           color="primary"
           icon="edit"
           @click="editingRoomName = true"
-        />
+        >
+          <QTooltip>Ändra rummets namn</QTooltip>
+        </QBtn>
       </QCardSection>
       <QCardSection
         v-else

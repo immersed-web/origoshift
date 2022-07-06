@@ -2,20 +2,26 @@
   <div class="fixed-center column q-gutter-xl items-end">
     <QBtn
       color="primary"
+      outline
       label="Kamerastation"
       :to="{name:'camera'}"
+      icon="linked_camera"
       icon-right="navigate_next"
     />
     <QBtn
       color="primary"
+      outline
       label="Rumskontroll"
       :to="{name: 'controlLobby'}"
+      icon="room_preferences"
       icon-right="navigate_next"
     />
     <QBtn
       color="primary"
+      outline
       :label="manageBtnLabel"
       :to="{ name: 'userManager'}"
+      icon="manage_accounts"
       icon-right="navigate_next"
     />
   </div>

@@ -24,8 +24,8 @@ export const login = async (username: string, password: string) => {
       password,
     });
     return response.data;
-  } catch (e) {
-    Promise.reject(e);
+  } catch (e: any) {
+    return Promise.reject(e.response);
   }
 };
 

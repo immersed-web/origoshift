@@ -56,7 +56,6 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
     switch (userData.role) {
       case 'guest':
       case 'client':
-      case 'sender':
         res.status(403).send('fuck you. You may not create other users! You are not cool enough!');
         return;
       case 'host':
@@ -168,7 +167,6 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
     switch (userData.role) {
       case 'guest':
       case 'client':
-      case 'sender':
         res.status(403).send('fuck you. You may not edit users! You are not cool enough!');
         return;
       case 'host':
@@ -370,8 +368,8 @@ const loginUser: RequestHandler = async (req, res) => {
     }
   } catch (e) {
     console.error(e);
-    res.status(501).send('failed when querying db for user');
-    return;
+    // res.status(501).send('failed when trying to login');
+    // return;
   }
   res.status(403).send('fuck you');
 

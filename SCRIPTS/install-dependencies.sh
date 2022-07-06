@@ -10,11 +10,20 @@ if [[ $(id -u) -ne 0 ]] ; then
 fi
 
 # Function to display commands
-stage() { echo ' '; echo ' '; echo '========================================='; echo "\$ $@" ; echo '========================================='; echo '  ';}
+stage() { echo ' '; echo ' '; echo '========================================='; printf "| $@ \n" ; echo '========================================='; echo '  ';}
 say() { echo ' '; echo '#############'; echo "\$ $@" ; echo '';}
 exe() { echo "\$ $@" ; "$@" ; }
 
+cd ..
+
 stage 'Gunnar är bäst!'
+
+stage 'Welcome to the install script!
+| This script will attempt to install EVERYTHING needed to run inclubit 2 on the server.
+| Tested on ubuntu only. 
+| The script prints out what it is doing so you can have fun and follow along :-)'
+
+read -p "Press ENTER to continue. Press ctrl-c to cancel."
 # set -x
 say 'Updating package register'
 exe apt-get update

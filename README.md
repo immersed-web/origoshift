@@ -53,7 +53,14 @@ The project uses [Prisma 2](https://www.prisma.io/), a typescript compatible [OR
 
 ### .env
 This project relies on an .env file to configure relevant aspects of the system.
-There is an example called `example.env` in the root folder of the project. This is just an example file. You need to create an .env file (the filename should be **.env**, only), and in this file provide the relevant settings. One way would be to duplicate the example file, rename it to .env and set the correct environment variables in the file. I stronlgy advice against using dollarsigns (\$) anywhere in the .env file as that might fuck up everything (\$ is used for variables in linux). Should probably be careful with backslash (\\) too. The example file looks like this:
+There is an example called `example.env` in the root folder of the project. This is just an example file. You need to create an .env file (the filename should be **.env**, only), and in this file provide the relevant settings. One way would be to make a copy of the example file with the name .env and change the settings in the new file:
+```
+cp example.env .env
+```
+- I strongly advice against using dollarsigns (\$) anywhere in the .env file as that might fuck up everything (\$ is used for variables in linux).
+- Should probably be careful with backslash (\\) too.
+
+The example file looks like this:
 ```
 PRODUCTION=true
 SERVER_URL='example.com'
@@ -97,7 +104,7 @@ A normal setup would require setting new values for:
 
 The rest could be left as is.
 
-### Instructions
+### Installation steps
 To install inclubit 2 and run it on your own server, you first need to retrieve the repository from github.
 Using the terminal, go to your home folder on the server:
 ```
@@ -107,6 +114,8 @@ Clone the repository from github:
 ```
 git clone https://github.com/Dealerpriest/inclubit-2.git
 ```
+- Create a .env file according to the instructions in the [.env section](#.env) above.
+
 Now let's install and setup everything.
 cd into SCRIPT folder:
 ```
@@ -180,4 +189,43 @@ pm2 logs mediaserver
 To get a terminal based overview dashboard, run:
 ```
 pm2 monit
+```
+
+## Ports
+The following ports are required to be opened on the server:
+
+| Ports | Protocol  | Description |
+| -------: | -------: | :----- |
+| 22    | TCP       | If you need to SSH in to the server (you will) |
+| 80    | TCP       | Serve standard http requests |
+| 443   | TCP       | Serve standard https requests |
+| 40000-49999 | UDP | ports for the SFU mediaserver |
+
+## Credit
+The project to develop and create this software was initiated by Lèv Grunberg and Ranald Macdonald.
+The development was a collaboration between the following organisations:
+- Reasearch Institutes of Sweden (RISE)
+- Kungsbacka Kommun
+- Eskilstuna Kommun
+
+## Copyright & License
+This codebase (excluding external dependencies, such as libraries and/or software frameworks) is written by me, Gunnar Oledal.
+External dependencies, such as libraries and/or software frameworks in this repository, holds up to their own respective licenses.
+
+```
+Inclubit 360. Web application for realtime streaming of 360 video to Virtual Reality
+Copyright (c) 2022-present Gunnar Oledal gunnar.oledal@gmail.com
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ```

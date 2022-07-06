@@ -18,5 +18,8 @@ exe docker compose up -d
 say 'waiting for postgresql to be ready for connections'
 while !</dev/tcp/localhost/5432; do sleep 1; done;
 
+say 'install dependencies in database package'
+exe yarn workspace database run yarn
+
 say 'reset database'
 exe yarn workspace database run migrate:reset --force

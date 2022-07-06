@@ -60,7 +60,7 @@
             />
           </QItemSection>
           <QItemSection
-            v-if="client.clientId !== clientId && !hasAtLeastSecurityLevel(client.role, 'sender')"
+            v-if="client.clientId !== clientId && !hasAtLeastSecurityLevel(client.role, 'host')"
             side
           >
             <div class="q-gutter-sm">

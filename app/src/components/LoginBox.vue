@@ -50,7 +50,7 @@ const emit = defineEmits<LoginBoxEmits>();
 const username = ref<string>('');
 const password = ref<string>('');
 
-if (process.env.DEVELOPMENT) {
+if (process.env.DEV) {
   username.value = 'elev1';
   password.value = 'password';
 }

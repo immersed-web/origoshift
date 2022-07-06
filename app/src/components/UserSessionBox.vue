@@ -39,7 +39,7 @@ const router = useRouter();
 #user-info-box {
   border-radius: 0;
   border-bottom-left-radius: 1rem;
-  z-index: 9000;
+  z-index: 500;
   position: fixed;
   top: 0;
   right: 0;

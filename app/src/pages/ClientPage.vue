@@ -102,7 +102,10 @@
         />
       </a-scene>
     </div>
-    <BottomPanel>
+    <BottomPanel
+      class="bg-dark"
+      id="bottom-panel"
+    >
       <QToolbarTitle> Rumsnamn: <span class="text-info">{{ soupStore.roomState?.roomName }}</span></QToolbarTitle>
       <QBtn
         :icon="muteStateIcons[currentMuteState]"
@@ -441,6 +444,10 @@ async function initVideoSphere () {
     user-select: none;
     }
 
+    #bottom-panel {
+      z-index: 2000;
+    }
+
     #main-video {
     z-index: 50;
     position: fixed;
@@ -452,9 +459,9 @@ async function initVideoSphere () {
     }
 
     #screen-video {
-    z-index: 50;
+    z-index: 10000;
     position: absolute;
-    left: 0;
+    right: 0;
     bottom: 0;
     max-width: 30rem;
     max-height: 30rem;
@@ -463,8 +470,12 @@ async function initVideoSphere () {
     }
 
     .fill-screen {
-    max-height: 100% !important;
-    max-width: 100% !important;
+      // left: auto !important;
+      right: 50% !important;
+      transform: translateX(50%);
+      max-height: 100% !important;
+      max-width: 100% !important;
+      box-shadow: 0 0 10rem 7rem black;
     }
 
     #overlay {

@@ -53,10 +53,36 @@ The project uses [Prisma 2](https://www.prisma.io/), a typescript compatible [OR
 
 ### .env
 This project relies on an .env file to configure relevant aspects of the system.
-There is an example called `example.env` in the root folder of the project. This is just an example file. You need to create an .env file (the filename should be **.env**, only), and in this file provide the relevant settings. One way would be to duplicate the example file, rename it to .env and set the correct environment variables in the file. The example file looks like this:
+There is an example called `example.env` in the root folder of the project. This is just an example file. You need to create an .env file (the filename should be **.env**, only), and in this file provide the relevant settings. One way would be to duplicate the example file, rename it to .env and set the correct environment variables in the file. I stronlgy advice against using dollarsigns (\$) anywhere in the .env file as that might fuck up everything (\$ is used for variables in linux). Should probably be careful with backslash (\\) too. The example file looks like this:
 ```
+PRODUCTION=true
+SERVER_URL='example.com'
 
+# The public IP of the server 
+LISTEN_IP='123.123.123.123'
 
+AUTH_URL='https://example.com'
+AUTH_PORT=''
+AUTH_PATH='/auth'
+
+MEDIASOUP_URL='wss://example.com'
+MEDIASOUP_PORT=''
+MEDIASOUP_PATH='/socket'
+
+# Be aware! The database variables are used on INITIAL STARTUP of the database container only. So change these to appropriate values BEFORE creating the database container.
+DATABASE_PASSWORD='megasecretdatabasepassword'
+DATABASE_NAME="inclubit"
+# Prisma cli supports expanding env vars. dotenv-cli apparently also does. So we should be fine!
+DATABASE_URL="postgresql://postgres:${DATABASE_PASSWORD}@localhost:5432/${DATABASE_NAME}?schema=public"
+
+# changing this (and restarting) should logout everyone by invalidating their sessions. Haven't tried though...
+SESSION_KEY='secretKeyUsedByTheUserSessions'
+
+ADMIN_PASSWORD='PLEASEchangeMEorIwillCRYtrueTEARSofSADNESS'
+
+JWT_SECRET='SOOOOOSECRETPLEASEPUTGOODPASSWORDHERE'
+JWT_ISSUER='Inclubit auth server'
+JWT_AUDIENCE='inclubit application'
 ```
 A normal setup would require setting new values for:
 - SERVER_URL
@@ -86,15 +112,15 @@ cd into SCRIPT folder:
 ```
 cd inclubit-2/SCRIPT`
 ```
-Make all the bash scripts in the folder executable.
+Make all the bash scripts in the folder executable (in case they're not).
 ```
 chmod +x *.sh
 ```
-install EVERYTHING:
+Install all the stuffz 📡
 ```
 ./install-dependencies.sh
 ```
-Reboot the system so the user group changes take effect:
+Reboot the system so the user group changes take effect
 ```
 sudo reboot
 ```
@@ -102,13 +128,13 @@ You will probably get kicked out (if you're connected with SSH). Reconnect when 
 
 Now let's initialize the database:
 ```
-./init_database.sh
+./init-database.sh
 ```
 Update and build all the applications:
 ```
 ./update.sh
 ```
-Now let's run the project:
+Now let's run the project 🚀:
 ```
 ./start.sh
 ```
@@ -121,3 +147,37 @@ Steps:
 - run `./stop.sh`
 - run `./update.sh`  (if you have made local changes you might have to discard those before being able to pull)
 - run `./start.sh`
+
+
+### Bash Utility Scripts
+There are some shell scripts provided to help with installing, updating and running the applications:
+* `install-dependencies.sh` - This script will attempt to download and install everything needed for inclubit 2 to run properly.
+* `init-database.sh` - This script will initialize/reset the database with the default data. Default data is one admin user with the password defined in the **.env** file.
+* `update.sh` - This script will try to pull the latest changes from github, then update and build the applications as well as apply any new database migrations.
+* `start.sh` - This script will run all the applications. The script uses [pm2](https://pm2.keymetrics.io/), a process manager, to run all the applications in the project.
+* `stop.sh` - This script will stop all the processes started by pm2 and delete them from the process list.
+
+>**Tip:** If you can't seem to run the scripts it can be that they aren't marked as executables and thus the `./file.sh` syntax won't work. You could then either use `chmod +x file.sh` to make a file executable, or perhaps easier, run them like so `/bin/bash file.sh`
+
+## Monitoring
+The applications are run with a tool called pm2 that gets installed by the `install-dependencies.sh`-script. You can interact directly with pm2 using the command line. Here's a few examples:
+
+To list the processes managed by pm2 and their status:
+```
+pm2 ls
+```
+
+To have a real-time look at what the applications are printing to the console while running, run:
+```
+pm2 logs
+```
+
+To do the same for only one running process, append the name. For example:
+```
+pm2 logs mediaserver
+```
+
+To get a terminal based overview dashboard, run:
+```
+pm2 monit
+```

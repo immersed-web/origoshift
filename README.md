@@ -28,11 +28,11 @@ The backend consists of a few different server programs that are needed to host 
 The different server applications are:
 - **Caddy** - Reverse proxy and static file server with automatic HTTPS
 - **Media Server** - A custom nodejs server using the [mediasoup](mediasoup.org) SFU and websockets ([uWebSockets](https://github.com/uNetworking/uWebSockets)) to handle all media streaming and communication between the clients.
-- **Auth Server** - a nodejs server handling user authentication as well as CRUD-operations for the users. It provides JWT access tokens to validated users that will be used by the clients when interacting with the mediaserver.
+- **Auth Server** - a nodejs server handling user authentication as well as [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) operations for the users. It provides [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token) access tokens to validated users that will be used by the clients when interacting with the mediaserver.
 - **PostgreSQL** - a docker container running PostgreSQL.
-- **Database** - A node project responsible for handling the interactions with the PostgreSQL database using [Prisma 2](https://www.prisma.io/).
+- **Database** - A node project responsible for handling interactions with the PostgreSQL database using [Prisma 2](https://www.prisma.io/).
 
-### Caddy - /backend/caddy/
+### Caddy
 The reverse proxy (and static file) server is an instance of [Caddy v2](https://caddyserver.com/). Caddy is a server software written in the language Go. It has built in functionality for retrieving and setting up https certificates using the free, open and automated certificate authority, [Let's Encrypt](https://letsencrypt.org/). In this project, Caddy is set up to act as both a static file server as well as a reverse proxy to the other running server applications. The configuration of how Caddy handles incoming requests is defined in the file named Caddyfile.
 
 ### Media Server - /backend/mediaserver/
@@ -113,3 +113,12 @@ Now let's run the project:
 ```
 ./start.sh
 ```
+
+
+### Update to new version
+If you want to update to a new version available on github, you need to stop the applications, pull the new changes from github, update the applications, and start the applications again. Luckily, the provided shell scripts can aid you in this venture!
+Steps:
+- go to the scripts folder `cd ~/inclubit-2/SCRIPTS`
+- run `./stop.sh`
+- run `./update.sh`  (if you have made local changes you might have to discard those before being able to pull)
+- run `./start.sh`

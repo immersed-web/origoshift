@@ -108,6 +108,7 @@
     >
       <QToolbarTitle> Rumsnamn: <span class="text-info">{{ soupStore.roomState?.roomName }}</span></QToolbarTitle>
       <QBtn
+        :disable="currentMuteState === 'forceMuted'"
         :icon="muteStateIcons[currentMuteState]"
         round
         @click="toggleMute"

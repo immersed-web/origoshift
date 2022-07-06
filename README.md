@@ -71,7 +71,6 @@ A normal setup would require setting new values for:
 
 The rest could be left as is.
 
-
 ### Instructions
 To install inclubit 2 and run it on your own server, you first need to retrieve the repository from github.
 Using the terminal, go to your home folder on the server:

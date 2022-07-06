@@ -5,20 +5,20 @@
       id="login-container"
       class="q-pa-lg"
     >
-      <QCardSection>
+      <!-- <QCardSection>
         <div class="text-h4 text-center">
           Log In
         </div>
-      </QCardSection>
+      </QCardSection> -->
       <QCardSection class="q-gutter-md">
         <QInput
           outlined
-          label="username"
+          label="Användarnamn"
           v-model="username"
         />
         <QInput
           outlined
-          label="password"
+          label="Lösenord"
           type="password"
           v-model="password"
         />
@@ -30,7 +30,7 @@
         <QBtn
           type="submit"
           color="primary"
-          label="Login"
+          label="Logga in"
           q-card-actions
         />
       </QCardActions>

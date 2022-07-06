@@ -67,7 +67,7 @@ async function loginUser (creds: Creds) {
   h2 {
     color: $secondary;
     font-family: 'Dosis', sans-serif;
-    margin-top: -0.8em;
+    margin-top: -0.6em;
     text-transform: lowercase;
     text-align: end;
     // font-style: italic;

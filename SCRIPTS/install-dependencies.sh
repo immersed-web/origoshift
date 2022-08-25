@@ -51,10 +51,10 @@ say 'Verify yarn is installed'
 exe yarn --version
 
 say "Install dotenv-cli so we can inject env files when running npm scripts"
-exe yarn global add dotenv-cli
+exe npm install dotenv-cli -g
 
 say 'Install pm2'
-exe yarn global add pm2
+exe npm install pm2 -g
 
 say 'Verify pm2 is installed'
 exe pm2 --version
@@ -63,7 +63,7 @@ exe pm2 --version
 # exe pm2 startup
 
 say 'Install quasar cli'
-exe yarn global add @quasar/cli
+exe npm install @quasar/cli -g
 
 say 'Verify quasar cli is installed'
 exe quasar --version
@@ -114,7 +114,7 @@ exe sudo apt-get update
 exe sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
 
 say 'Make sure docker runs'
-exe systemctl start docker
+exe sudo systemctl start docker
 
 say 'Verifying docker is installed'
 exe docker --version

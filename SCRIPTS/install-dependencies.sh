@@ -88,7 +88,7 @@ curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo 
 say 'update index after fetching pack'
 exe sudo apt-get update
 say 'actually install caddy'
-exe apt install caddy
+exe sudo apt install caddy
 
 ######### DOCKER
 stage 'DOCKER STUFF'
@@ -97,12 +97,12 @@ stage 'DOCKER STUFF'
 # exe apt-get remove docker docker-engine docker.io -y
 
 say 'Set up docker repository to be installed with apt'
-exe apt-get install \
+exe sudo apt-get install \
     ca-certificates \
     gnupg \
     lsb-release -y
 
-exe mkdir -p /etc/apt/keyrings
+exe sudo mkdir -p /etc/apt/keyrings
 exe curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
 
 echo \
@@ -110,8 +110,8 @@ echo \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 say 'Install DOCKER!!!'
-exe apt-get update
-exe apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
+exe sudo apt-get update
+exe sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
 
 say 'Make sure docker runs'
 exe systemctl start docker

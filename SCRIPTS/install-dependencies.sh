@@ -120,8 +120,9 @@ say 'Verifying docker is installed'
 exe docker --version
 
 say 'Adding current user to the docker user group'
-exe groupadd docker
-exe usermod -aG docker $USER
+exe sudo groupadd docker
+exe $username = $USER
+exe sudo usermod -aG docker $username
 
 # say 'Installing docker compose'
 # exe curl -L "https://github.com/docker/compose/releases/download/1.26.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose

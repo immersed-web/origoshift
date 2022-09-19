@@ -121,7 +121,7 @@ exe docker --version
 
 say 'Adding current user to the docker user group'
 exe sudo groupadd docker
-username = $USER
+username=$USER
 exe sudo usermod -aG docker $username
 
 # say 'Installing docker compose'

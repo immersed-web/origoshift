@@ -20,5 +20,5 @@ exe pm2 delete ecosystem.config.js
 say 'starting pm2 and attach to log output'
 exe pm2 start ecosystem.config.js
 
-# say 'saving the started processes to autostart script'
-# exe pm2 save
+say 'saving the started processes to autostart script'
+exe pm2 save

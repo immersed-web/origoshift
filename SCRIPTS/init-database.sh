@@ -21,7 +21,7 @@ while !</dev/tcp/localhost/5432; do sleep 1; done;
 # say 'install dependencies in database package'
 # exe yarn workspace database install
 
-npm install --workspace=database
+exe npm install --workspace=database
 
 say 'reset database'
 exe npm run migrate:reset --workspace=database -- --force

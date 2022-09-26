@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import SocketWrapper from './SocketWrapper';
 import {types as soupTypes} from 'mediasoup';
 import {types as soupClientTypes} from 'mediasoup-client';
-import { ClientProperties, ClientState, UserData, UserRole } from 'shared-types/CustomTypes';
+import { ClientProperties, ClientState, ProducerInfo, UserData, UserRole } from 'shared-types/CustomTypes';
 import { createMessage, createRequest, createResponse, Request, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 // import { checkPermission } from '../modules/utilFns';
@@ -10,6 +10,11 @@ import { checkPermission } from '../modules/utilFns';
 
 import Gathering from './Gathering';
 import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
+// namespace MediaSoup {
+//   interface AppData {
+//     producerInfo?: Record<string, unknown>
+//   }
+// }
 
 interface constructionParams {
   id?: string,
@@ -519,7 +524,8 @@ export default class Client {
           }
           if(!producer.appData.producerInfo)
             producer.appData.producerInfo = {};
-          producer.appData.producerInfo.forceMuted = muteState;
+          // TODO: Actually fix this!
+          (producer.appData.producerInfo as Record<string, unknown>).forceMuted = muteState;
           if(muteState){
             producer.pause();
           }
@@ -864,7 +870,8 @@ export default class Client {
         kind: producer.kind,
       };
       if(producer.appData.producerInfo){
-        producers[producer.id].producerInfo = producer.appData.producerInfo;
+        //TODO: Can we avoid type casting please!
+        producers[producer.id].producerInfo = producer.appData.producerInfo as ProducerInfo;
       }
     }
     const state: ClientState = {

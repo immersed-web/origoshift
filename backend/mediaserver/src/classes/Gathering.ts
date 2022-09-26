@@ -255,14 +255,16 @@ export default class Gathering {
   }
 
   async createWebRtcTransport() {
-    const { listenIps, enableUdp, enableTcp, preferUdp, initialAvailableOutgoingBitrate } = mediasoupConfig.webRtcTransport;
-    const transport = await this.router.createWebRtcTransport({
-      listenIps,
-      enableUdp,
-      preferUdp,
-      enableTcp,
-      initialAvailableOutgoingBitrate,
-    });
+    const transport = await this.router.createWebRtcTransport(mediasoupConfig.webRtcTransport);
+
+    // const { listenIps, enableUdp, enableTcp, preferUdp, initialAvailableOutgoingBitrate } = mediasoupConfig.webRtcTransport;
+    // const transport = await this.router.createWebRtcTransport({
+    //   listenIps,
+    //   enableUdp,
+    //   preferUdp,
+    //   enableTcp,
+    //   initialAvailableOutgoingBitrate,
+    // });
 
     if(mediasoupConfig.maxIncomingBitrate){
       try{
@@ -278,8 +280,9 @@ export default class Gathering {
         transport.close();
       }
     });
-
-    transport.on('close', () => gatheringLog('---transport close--- transport with id ' + transport.id + ' closed'));
+    
+    // TODO: Why not work anymore????
+    // transport.on('close', () => gatheringLog('---transport close--- transport with id ' + transport.id + ' closed'));
 
     return transport;
   }

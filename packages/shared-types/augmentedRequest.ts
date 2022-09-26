@@ -3,11 +3,21 @@ import {Express} from 'express-serve-static-core'
 // import { Express } from 'express'
 import { UserData } from 'shared-types/CustomTypes';
 
-
 // import 'mediasoup';
 // namespace MediaSoup {
 //   interface AppData {
 //     producerInfo?: Record<string, unknown>
+//   }
+// }
+// 
+
+// declare module 'mediasoup' {
+//   export interface types{
+//     Producer: {
+//       appData: {
+//         producerInfo?: Record<string, unknown>
+//       }
+//     }
 //   }
 // }
 

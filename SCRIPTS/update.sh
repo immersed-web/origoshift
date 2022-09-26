@@ -16,14 +16,15 @@ read -p "Press ENTER to continue. Press ctrl-c to cancel."
 
 say 'Pull latest git changes'
 exe git pull
-# say 'install/update all npm projects with yarn'
-exe yarn
+
+say 'install/update all npm projects'
+exe npm install
 
 say 'build all the npm projects'
-exe yarn workspaces run build
+exe npm run build --workspaces --if-present
 
 say 'build the prisma client'
-exe yarn workspace database run generate
+exe npm run generate --workspace=database
 
 say 'spin up the postgres database (if not already running)'
 exe docker compose up -d
@@ -32,4 +33,4 @@ say 'waiting for postgresql to be ready for connections'
 while !</dev/tcp/localhost/5432; do sleep 1; done;
 
 say 'deploy database migrations'
-exe yarn workspace database run migrate:deploy
+exe npm run migrate:deploy --workspace=database

@@ -9,13 +9,13 @@
     "schema": "../database/prisma/schema.prisma"
   },
   "scripts": {
-    "migrate:deploy": "dotenv -e ../../.env yarn prisma migrate deploy",
+    "migrate:deploy": "dotenv -e ../../.env npx prisma migrate deploy",
     "generate": "yarn prisma generate",
-    "migrate": "dotenv -e ../../.env.dev yarn prisma migrate dev",
+    "migrate": "dotenv -e ../../.env.dev npx prisma migrate dev",
     "migrate:reset": "dotenv -e ../../.env -- npx prisma migrate reset",
-    "seed": "dotenv -e ../../.env yarn prisma db seed",
-    "studio": "dotenv -e ../../.env yarn prisma studio",
-    "dbpush": "dotenv -e ../../.env yarn prisma db push"
+    "seed": "dotenv -e ../../.env npx prisma db seed",
+    "studio": "dotenv -e ../../.env npx prisma studio",
+    "dbpush": "dotenv -e ../../.env npx prisma db push"
   },
   "devDependencies": {
     "prisma": "^3.15.2",

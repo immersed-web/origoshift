@@ -21,7 +21,7 @@ const scripts = {
   frontend: 'quasar serve ./dist/spa --history --port=8080',
   auth: "yarn start",
   mediaserver: 'yarn start',
-  caddy: 'caddy run'
+  caddy: 'caddy stop; caddy run'
 }
 
 if(envVars.DEVELOPMENT){

@@ -12,6 +12,6 @@
     ]
   },
   "dependencies": {
-    "yarn": "^1.22.19"
+    "three-bmfont-text": "^3.0.1"
   }
 }

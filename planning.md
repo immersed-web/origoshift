@@ -1,4 +1,4 @@
-# Inclubit 360 version 2
+# Origoshift
 
 ## Glossary / phrasing explanations
 **"Camera Station"**: This refers to a computer or laptop physically (with e.g. usb-cable) connected to a 360 camera.

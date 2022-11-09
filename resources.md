@@ -17,3 +17,4 @@ Comparison video: https://www.youtube.com/watch?v=WJy8VU1mV08&ab_channel=TyrielW
 ## Tools & stuff
 - https://trpci.io
 - turbopack
+- pnpm

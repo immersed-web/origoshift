@@ -5,6 +5,7 @@ const path = require('path');
 
 let envString = fs.readFileSync(path.join(__dirname, '.env'));
 if(process.env.DEVELOPMENT){
+  console.log('RUNNING IN DEV MODE');
   envString = fs.readFileSync(path.join(__dirname, '.env.dev'));
 }
 const envVars = dotenv.parse(envString);

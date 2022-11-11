@@ -50,8 +50,13 @@ import usePeerClient from 'src/composables/usePeerClient';
 import { useSoupStore } from 'src/stores/soupStore';
 import { useRouter } from 'vue-router';
 
-const peer = usePeerClient();
 const router = useRouter();
+const peer = usePeerClient();
+
+peer.on('abort', (reason) => {
+  console.error('connection aborted!', reason);
+  router.replace({ name: 'login' });
+});
 
 interface Props {
   sendToRoomOverview?: boolean

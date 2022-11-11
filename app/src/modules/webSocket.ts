@@ -10,7 +10,7 @@ const pendingRequests = new Map<number, {resolve: RequestResolver, reject: Reque
 
 interface SocketEvents {
   'open': () => void;
-  'close': () => void;
+  'close': (ev: CloseEvent) => void;
   'error': (error: Event) => void;
   'request': (req: AnyRequest) => void;
   'message': (msg: AnyMessage) => void;
@@ -51,16 +51,23 @@ export default {
           resolve(ev);
         };
         socket.onerror = (err) => {
+          // console.error('There was a websocket error!!!!');
+          console.error(err);
           eventEmitter.emit('error', err);
           reject(err);
         };
         socket.onclose = (ev) => {
-          eventEmitter.emit('close');
+          eventEmitter.emit('close', ev);
           if (ev.code === 1000) {
             console.log('socket closed. Reason:', ev.reason);
             return;
           }
+          if (ev.code === 1006) {
+            console.error('Not allowed to upgrade!!!');
+            return;
+          }
           console.error('socket closed unexpectedly. will try to reconnect!');
+          console.error(ev);
           retryIn(4);
         };
         socket.onmessage = this.handleMessage;

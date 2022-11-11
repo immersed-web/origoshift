@@ -11,7 +11,7 @@ export const validateUserSession: RequestHandler = async (req, res, next) => {
   //   }
   // }
   if(!req.session.userId){
-    res.status(403).send({ message: 'fuck you!!!!' });
+    res.status(403).send({ message: 'You shall not pass!!!' });
     return;
   }
   next();

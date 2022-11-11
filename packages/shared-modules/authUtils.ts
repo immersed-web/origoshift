@@ -4,14 +4,14 @@ export function throwIfUnauthorized(role: UserRole | undefined, minimumUserRole:
   // const userIndex = securityLevels.indexOf(role);
   // const minimumRoleIndex = securityLevels.indexOf(minimumUserRole);
   if(!role){
-    throw new Error('not authorized! Go fuck yourself!');
+    throw new Error('not authorized!');
   }
   if(!minimumUserRole) {
     throw new Error('no minimum userRole provided for auth check!');
   }
   const clientSecurityLevel = securityLevels.indexOf(role);
   if(clientSecurityLevel < securityLevels.indexOf(minimumUserRole)){
-    throw new Error('not authorized! Go fuck yourself!');
+    throw new Error('not authorized!');
   }
 }
 

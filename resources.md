@@ -13,3 +13,11 @@ Comparison video: https://www.youtube.com/watch?v=WJy8VU1mV08&ab_channel=TyrielW
 - DPVR. https://dpvr.eu/
 - Vive focus. https://www.vive.com/eu/product/vive-focus3/overview/
 - Vive focus plus. https://business.vive.com/eu/product/focus-plus/
+
+## Tools & stuff
+- https://trpci.io
+- turbopack
+- pnpm
+
+## Random stuff
+- Gunnar är bäst

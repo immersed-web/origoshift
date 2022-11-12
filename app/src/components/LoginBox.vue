@@ -51,8 +51,8 @@ const username = ref<string>('');
 const password = ref<string>('');
 
 if (process.env.DEV) {
-  username.value = 'elev1';
-  password.value = 'password';
+  username.value = '';
+  password.value = '';
 }
 
 const submit = () => {

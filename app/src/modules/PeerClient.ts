@@ -12,7 +12,10 @@ type MsgEvents = {
 type ReqEvents = {
   [event in RequestSubjects]: (msgId: number, data: Request<event> extends {data: unknown}? Request<event>['data']: undefined) => void;
 }
-type PeerEvents = MsgEvents & ReqEvents;
+
+type AbortEvent = (reason: string) => void;
+
+type PeerEvents = MsgEvents & ReqEvents & {abort: AbortEvent};
 interface TransportProduceParams {
   kind: mediasoupTypes.MediaKind;
   rtpParameters: mediasoupTypes.RtpParameters;
@@ -34,7 +37,11 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
   connect = async (token: string) => {
     console.log('Connecting peerClient!');
     socketutils.tearDown();
-    await socketutils.createSocket(token);
+    try {
+      await socketutils.createSocket(token);
+    } catch (e) {
+      console.error('create socket promise threw:', e);
+    }
     // const clientStateReq = createRequest('getClientState');
     // return socketutils.sendRequest(clientStateReq);
   }
@@ -100,6 +107,12 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this.emit(reqMsg.subject, reqMsg.id, reqMsg.data);
+    });
+
+    socketutils.socketEvents.on('close', (ev) => {
+      if (ev.code === 1006) {
+        this.emit('abort', 'not allowed');
+      }
     });
 
     // try {

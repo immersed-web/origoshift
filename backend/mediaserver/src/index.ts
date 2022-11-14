@@ -11,6 +11,7 @@ import Client from './classes/Client';
 import SocketWrapper from './classes/SocketWrapper';
 import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken, DecodedJwt } from 'shared-modules/jwtUtils';
+import { extractMessageFromCatch } from 'shared-modules/utilFns';
 
 const clients: Map<uWebSockets.WebSocket, Client> = new Map();
 const disconnectedClients: Map<string, Client> = new Map();
@@ -103,6 +104,17 @@ app.ws('/*', {
         throw Error('failed to decode token!');
       }
       console.log('decoded jwt:', decoded);
+      
+      //TODO: This doesnt scale... Perhaps we can use uuid for the clients map instead of ws instance. Then we can check directly against the keys active clients.
+      // let alreadyLoggedIn = false;
+      clients.forEach(value => {
+        if(value.userData.uuid === decoded.uuid){
+          // alreadyLoggedIn = true;
+          throw Error('already logged in!!!');
+          
+        }
+      });
+
       res.upgrade(
         {decoded},
         /* Spell these correctly */
@@ -112,7 +124,9 @@ app.ws('/*', {
         context
       );
     } catch(e){
-      res.writeStatus('403 Forbidden').end('YOU SHALL NOT PASS!!!');
+      const msg = extractMessageFromCatch(e, 'YOU SHALL NOT PASS');
+      console.log('websocket upgrade was canceled / failed:', msg);
+      res.writeStatus('403 Forbidden').end(msg, true);
       return;
     }
   },

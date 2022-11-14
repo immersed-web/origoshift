@@ -29,7 +29,13 @@ peer.on('clientStateUpdated', data => {
 });
 
 peer.socketEvents.on('open', () => { soupStore.connected = true; });
-peer.socketEvents.on('close', () => { soupStore.connected = false; });
+peer.socketEvents.on('close', (ev) => {
+  if (ev.code === 1006) {
+    console.error('not allowed to establish websocket');
+    // const router = useRouter();
+  }
+  soupStore.connected = false;
+});
 
 //* ************************************ */
 

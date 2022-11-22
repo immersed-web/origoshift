@@ -1709,6 +1709,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/ip@^1.1.0":
+  "integrity" "sha512-dwNe8gOoF70VdL6WJBwVHtQmAX4RMd62M+mAB9HQFjG1/qiCLM/meRy95Pd14FYBbEDwCq7jgJs89cHpLBu4HQ=="
+  "resolved" "https://registry.npmjs.org/@types/ip/-/ip-1.1.0.tgz"
+  "version" "1.1.0"
+  dependencies:
+    "@types/node" "*"
+
 "@types/istanbul-lib-coverage@*", "@types/istanbul-lib-coverage@^2.0.0", "@types/istanbul-lib-coverage@^2.0.1":
   "integrity" "sha512-sz7iLqvVUg1gIedBOvlkxPlc8/uVzyS5OwGz1cKjXzkl3FpL3al0crU8YGU1WoHkxn0Wxbw5tyi6hvzJKNzFsw=="
   "resolved" "https://registry.npmjs.org/@types/istanbul-lib-coverage/-/istanbul-lib-coverage-2.0.3.tgz"
@@ -5825,10 +5832,10 @@
   "resolved" "https://registry.npmjs.org/invert-kv/-/invert-kv-2.0.0.tgz"
   "version" "2.0.0"
 
-"ip@^1.1.0":
-  "integrity" "sha1-vd7XARQpCCjAoDnnLvJfWq7ENUo="
-  "resolved" "https://registry.npmjs.org/ip/-/ip-1.1.5.tgz"
-  "version" "1.1.5"
+"ip@^1.1.0", "ip@^1.1.8":
+  "integrity" "sha512-PuExPYUiu6qMBQb4l06ecm6T6ujzhmh+MeJcW9wa89PoAz5pvd4zPgN5WJV104mb6S2T1AwNIAaB70JNrLQWhg=="
+  "resolved" "https://registry.npmjs.org/ip/-/ip-1.1.8.tgz"
+  "version" "1.1.8"
 
 "ipaddr.js@^2.0.1":
   "integrity" "sha512-1qTgH9NG+IIJ4yfKs2e6Pp1bZg8wbDbKHT21HrLIeYBTRLgMYKnMTPAuI3Lcs61nfx5h1xlXnbJtH1kX5/d/ng=="
@@ -7276,6 +7283,7 @@
   "version" "1.0.0"
   dependencies:
     "@types/uuid" "^8.3.1"
+    "ip" "^1.1.8"
     "mediasoup" "3.10.5"
     "shared-modules" "1.0.0"
     "shared-types" "1.0.0"

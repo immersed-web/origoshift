@@ -108,7 +108,7 @@ app.ws('/*', {
       //TODO: This doesnt scale... Perhaps we can use uuid for the clients map instead of ws instance. Then we can check directly against the keys active clients.
       // let alreadyLoggedIn = false;
       clients.forEach(value => {
-        if(value.userData.uuid === decoded.uuid){
+        if(value.userData.role === 'client' && value.userData.uuid === decoded.uuid){
           // alreadyLoggedIn = true;
           throw Error('already logged in!!!');
           

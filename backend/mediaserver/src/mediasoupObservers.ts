@@ -3,7 +3,7 @@ import {observer, types as mediasoupTypes} from 'mediasoup';
 // import { debuglog } from 'util';
 import debug from 'debug';
 
-export default () => {
+export default function () {
 
   const observerLog = debug('mediasoup:Observers');
   // console.log('is observerLogger enabled? ', observerLog.enabled);
@@ -122,4 +122,4 @@ export default () => {
   const print = () => observerLog('totalNrOf:', totalNrOf);
 
   return print;
-};
+}

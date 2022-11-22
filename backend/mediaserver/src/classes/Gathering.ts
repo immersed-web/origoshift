@@ -1,8 +1,8 @@
 import { randomUUID } from 'crypto';
 import { GatheringState } from 'shared-types/CustomTypes';
 import { createMessage } from 'shared-types/MessageTypes';
-import mediasoupConfig from '../mediasoupConfig';
-import { getMediasoupWorker } from '../modules/mediasoupWorkers';
+import mediasoupConfig from '../mediasoupConfig.js';
+import { getMediasoupWorker } from '../modules/mediasoupWorkers.js';
 import debug from 'debug';
 const gatheringLog = debug('Gathering');
 const gatheringError = debug('Gathering:ERROR');
@@ -10,9 +10,9 @@ const gatheringWarn = debug('Gathering:WARNING');
 // import Client from './Client';
 import {types as soup} from 'mediasoup';
 
-import Room from './Room';
-import Client from './Client';
-import { valueIsAlreadyTaken } from '../modules/utilFns';
+import Room from './Room.js';
+import Client from './Client.js';
+import { valueIsAlreadyTaken } from '../modules/utilFns.js';
 
 
 export default class Gathering {

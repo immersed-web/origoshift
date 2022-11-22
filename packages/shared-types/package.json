@@ -4,6 +4,7 @@
   "description": "shared types for front & back",
   "main": "dist",
   "types": "dist",
+  "type": "module",
   "exports": {
     "./*": "./dist/*.js"
   },

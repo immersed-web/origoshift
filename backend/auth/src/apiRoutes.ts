@@ -1,10 +1,10 @@
 
 import { RequestHandler, Router, Request as ExpressReq } from 'express';
-import prisma from './prismaClient';
+import prisma from './prismaClient.js';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import { throwIfUnauthorized, hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
 import { securityLevels } from 'shared-types/CustomTypes';
-import { validateUserSession } from './utils';
+import { validateUserSession } from './utils.js';
 
 
 const index: RequestHandler = (req, res) => {

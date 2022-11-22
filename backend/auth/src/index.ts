@@ -3,14 +3,14 @@ import cors from 'cors';
 import { randomUUID } from 'crypto';
 import { createJwt } from 'shared-modules/jwtUtils';
 import { UserData } from 'shared-types/CustomTypes';
-import createUserRouter from './userRoutes';
+import createUserRouter from './userRoutes.js';
 import Haikunator from 'haikunator';
-import wordlist from './haikunator-wordlist';
+import wordlist from './haikunator-wordlist.js';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import session from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
-import prisma from './prismaClient';
-import createApiRouter from './apiRoutes';
+import prisma from './prismaClient.js';
+import createApiRouter from './apiRoutes.js';
 
 const haikunator = new Haikunator({
   adjectives: wordlist.adjectives,

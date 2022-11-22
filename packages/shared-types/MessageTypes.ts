@@ -173,7 +173,7 @@ export type AnyMessageOrRequest = AnyMessage | AnyRequest;
 export type MessageOrRequest<Key extends AnyMessageOrRequest> = Extract<AnyMessageOrRequest, {subject: Key}>;
 
 //Interfaces for return Messages
-interface IResponse extends IPacket {
+export interface IResponse extends IPacket {
   // isResponse: true,
   type: 'response',
   wasSuccess: boolean,

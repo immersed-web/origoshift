@@ -2,14 +2,14 @@ process.env.DEBUG = 'Gathering* Room* mediasoup*';
 
 // import { debug } from 'util';
 // const messageLogger = debug('socketMessage');
-import observerLogger from './mediasoupObservers';
+import observerLogger from './mediasoupObservers.js';
 const printSoupStats = observerLogger();
-import printClassInstances from './classInstanceObservers';
+import printClassInstances from './classInstanceObservers.js';
+import Client from './classes/Client.js';
 import uWebSockets from 'uWebSockets.js';
 const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
-import Client from './classes/Client';
-import SocketWrapper from './classes/SocketWrapper';
-import { createWorkers } from './modules/mediasoupWorkers';
+import SocketWrapper from './classes/SocketWrapper.js';
+import { createWorkers } from './modules/mediasoupWorkers.js';
 import { verifyJwtToken, DecodedJwt } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 

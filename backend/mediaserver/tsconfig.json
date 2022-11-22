@@ -10,9 +10,14 @@
   // "include": ["./**/*.ts","../../types/*.ts"],
   "exclude": ["**/*.test.ts"],
   "compilerOptions": {
+    // "module": "ES2022",
+    // "moduleResolution": "node",
+    // "allowSyntheticDefaultImports": true,
+    // "target": "ES2021",
+    // "lib": ["ES2021"],
     "downlevelIteration": true,
     "outDir": "./dist",                              /* Redirect output structure to the directory. */
-    "rootDir": "./src",                             /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
+    "rootDir": "./src"                             /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
     // "baseUrl": "./src/",                             /* Base directory to resolve non-absolute module names. */
     // "paths": {},                                 /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
   }

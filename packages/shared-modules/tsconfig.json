@@ -3,11 +3,11 @@
   // "files": ["augmentedRequest.d.ts"],
   "exclude": ["./dist"],
   "compilerOptions": {
-    "target": "ES5",
-    "module": "CommonJS",
+    // "target": "ES6",
+    // "module": "node16",
     "composite": true,
-    "declaration": true,
-    "declarationMap": true,
+    // "declaration": true,
+    // "declarationMap": true,
     "outDir": "./dist",                              /* Redirect output structure to the directory. */
     "rootDir": "./",                             /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
     "baseUrl": "./",                             /* Base directory to resolve non-absolute module names. */

@@ -24,6 +24,8 @@ stage 'Welcome to the install script!
 | The script prints out what it is doing so you can have fun and follow along :-)'
 
 read -p "Press ENTER to continue. Press ctrl-c to cancel."
+
+export NEEDRESTART_MODE=a
 # set -x
 say 'Updating package register'
 exe sudo apt-get update

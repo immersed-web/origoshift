@@ -1,6 +1,7 @@
 {
 	"folders": [
 		{"path": "./app"},
+		// {"path": "./app_webpack"},
 		{"path": "./backend"},
 		{"path": "./packages"},
 		{

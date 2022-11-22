@@ -26,6 +26,6 @@
     "@prisma/client": "^3.13.0",
     "@types/bcrypt": "^5.0.0",
     "bcrypt": "^5.0.1",
-    "shared-types": "1.0.0"
+    "shared-types": "workspace:*"
   }
 }

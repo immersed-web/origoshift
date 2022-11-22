@@ -2537,7 +2537,7 @@
     "normalize-path" "^3.0.0"
     "picomatch" "^2.0.4"
 
-"app@file:/root/inclubit-2/app":
+"app@file:/home/ubuntu/inclubit-2/app":
   "resolved" "file:app"
   "version" "0.0.1"
   dependencies:
@@ -2736,7 +2736,7 @@
   "resolved" "https://registry.npmjs.org/atob/-/atob-2.1.2.tgz"
   "version" "2.1.2"
 
-"auth@file:/root/inclubit-2/backend/auth":
+"auth@file:/home/ubuntu/inclubit-2/backend/auth":
   "resolved" "file:backend/auth"
   "version" "1.0.0"
   dependencies:
@@ -3834,7 +3834,7 @@
     "whatwg-mimetype" "^2.3.0"
     "whatwg-url" "^8.0.0"
 
-"database@file:/root/inclubit-2/backend/database":
+"database@file:/home/ubuntu/inclubit-2/backend/database":
   "resolved" "file:backend/database"
   "version" "1.0.0"
   dependencies:
@@ -7278,7 +7278,7 @@
   "resolved" "https://registry.npmjs.org/media-typer/-/media-typer-0.3.0.tgz"
   "version" "0.3.0"
 
-"mediaserver@file:/root/inclubit-2/backend/mediaserver":
+"mediaserver@file:/home/ubuntu/inclubit-2/backend/mediaserver":
   "resolved" "file:backend/mediaserver"
   "version" "1.0.0"
   dependencies:
@@ -7289,7 +7289,7 @@
     "shared-types" "1.0.0"
     "tiny-typed-emitter" "^2.1.0"
     "uuid" "^8.3.2"
-    "uWebSockets.js" "https://git@github.com/uNetworking/uWebSockets.js#v20.0.0"
+    "uWebSockets.js" "github:uNetworking/uWebSockets.js#v20.15.0"
 
 "mediasoup-client@^3", "mediasoup-client@^3.6.43", "mediasoup-client@3":
   "integrity" "sha512-OL2IS2XbbMtgiWm8JzNEHWo74XL+yMzGM4XSj37sUvze4DyXfmOwVVCSNXGo45+UjXd1fvyMkkycMeZ6+k432Q=="
@@ -9278,13 +9278,13 @@
   dependencies:
     "kind-of" "^6.0.2"
 
-"shared-modules@^1.0.0", "shared-modules@1.0.0", "shared-modules@file:/root/inclubit-2/packages/shared-modules":
+"shared-modules@^1.0.0", "shared-modules@1.0.0", "shared-modules@file:/home/ubuntu/inclubit-2/packages/shared-modules":
   "resolved" "file:packages/shared-modules"
   "version" "1.0.0"
   dependencies:
     "shared-types" "1.0.0"
 
-"shared-types@^1.0.0", "shared-types@1.0.0", "shared-types@file:/root/inclubit-2/packages/shared-types":
+"shared-types@^1.0.0", "shared-types@1.0.0", "shared-types@file:/home/ubuntu/inclubit-2/packages/shared-types":
   "resolved" "file:packages/shared-types"
   "version" "1.0.0"
 
@@ -10410,9 +10410,9 @@
   "resolved" "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
   "version" "8.3.2"
 
-"uWebSockets.js@https://git@github.com/uNetworking/uWebSockets.js#v20.0.0":
-  "resolved" "git+https://git@github.com/uNetworking/uWebSockets.js.git#4558ee00f9f1f686fffe1accbfc2e85b1af9c50f"
-  "version" "20.0.0"
+"uWebSockets.js@git+https://git@github.com/uNetworking/uWebSockets.js#v20.15.0":
+  "resolved" "git+ssh://git@github.com/uNetworking/uWebSockets.js.git#77bc1fd5577ae42b56675912eb8481a31f3fefd2"
+  "version" "20.15.0"
 
 "v8-compile-cache-lib@^3.0.0":
   "integrity" "sha512-mpSYqfsFvASnSn5qMiwrr4VKfumbPyONLCOPmsR3A6pTY/r0+tSaVbgPWSAIuzbk3lCTa+FForeTiO+wBQGkjA=="

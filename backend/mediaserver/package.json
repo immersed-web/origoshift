@@ -22,7 +22,7 @@
     "shared-types": "1.0.0",
     "tiny-typed-emitter": "^2.1.0",
     "uuid": "^8.3.2",
-    "uWebSockets.js": "https://git@github.com/uNetworking/uWebSockets.js#v20.0.0"
+    "uWebSockets.js": "git+https://git@github.com/uNetworking/uWebSockets.js#v20.15.0"
   },
   "devDependencies": {
     "@ef-carbon/tspm": "^2.2.5",

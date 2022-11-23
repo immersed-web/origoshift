@@ -70,7 +70,7 @@
         <a-videosphere />
         <a-entity
           ref="videoRotaterTag"
-          position="0 1.6 0"
+          position="0 1.2 0"
           rotation="0 0 0"
           class="rotation-target"
         >

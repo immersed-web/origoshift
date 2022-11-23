@@ -173,7 +173,7 @@ export type AnyMessageOrRequest = AnyMessage | AnyRequest;
 export type MessageOrRequest<Key extends AnyMessageOrRequest> = Extract<AnyMessageOrRequest, {subject: Key}>;
 
 //Interfaces for return Messages
-interface IResponse extends IPacket {
+export interface IResponse extends IPacket {
   // isResponse: true,
   type: 'response',
   wasSuccess: boolean,
@@ -255,15 +255,26 @@ export type SocketMessage<T extends UnknownMessageType> = T
 type AnyRequestWithData = Extract<AnyRequest, {data: unknown}>
 type AnyResponsWithData = Extract<AnyResponse, {data: unknown}>
 
+
 // type RequestSubjectsWithData = AnyRequestWithData['subject'];
 type RequestWithData<Key extends RequestSubjects> = Extract<AnyRequestWithData, {subject: Key}>
 type ResponseWithData<Key extends RequestSubjects> = Extract<AnyResponsWithData, {subject: Key}>
+
+type WithDataSubjects = ResponseWithData<RequestSubjects>['subject']
+
+// const sub: WithDataSubjects = 'createReceiveTransport';
 
 type DataForMessage<Subject extends MessageSubjects> = Message<Subject>['data'];
 // type DataForRequest<Key extends RequestSubjects> = Extract<AnyRequestWithData, Request<Key>>['data']
 type DataForRequest<Key extends RequestSubjects> = RequestWithData<Key>['data']
 // type DataForResponse<Key extends RequestSubjects> = Extract<AnyResponsWithData, ResponseTo<Key>>['data']
-type DataForResponse<Key extends RequestSubjects> = ResponseWithData<Key> extends { data: unknown } ?  ResponseWithData<Key>['data'] : never
+type DataForResponse<Key extends WithDataSubjects> = ResponseWithData<Key>['data'];
+// type DataForResponse<Key extends RequestSubjects> = ResponseWithData<Key> extends { data: unknown} ? ResponseWithData<Key>['data']: never
+// const test: DataForResponse<'connectTransport'> = {
+
+// }
+
+// type DataForResponse<Key extends RequestSubjects> = ResponseWithData<Key> extends { data: unknown } ?  ResponseWithData<Key>[data] : never
 
 export const createMessage = <Subject extends MessageSubjects>(subject: Subject, data: DataForMessage<Subject>) => {
   const msg: Message<Subject> = {
@@ -293,7 +304,7 @@ export const createRequest = <Key extends RequestSubjects>(subject: Key, data?: 
 // type ResponseParams<Subject extends RequestSubjects> = Pick<ResponseTo<Subject>, 'wasSuccess' | 'data' | 'message'>
 type ResponseParams<Subject extends RequestSubjects> = {
   wasSuccess: true,
-  data?: DataForResponse<Subject>,
+  data?: DataForResponse<Extract<Subject, WithDataSubjects>>,
   // message?: string
 } |
 {
@@ -309,20 +320,20 @@ export const createFailResponse = (msg: AnyRequest, message: string) => {
   })
 }
 
-export const createSuccessResponse = <ReqType extends AnyRequest>(msg: ReqType, data?: DataForResponse<ReqType['subject']>) => {
-  let responseField: ResponseParams<ReqType['subject']>;
-  if(data){
-    responseField = {
-      wasSuccess: true,
-      data: data,
-    }
-  } else {
-    responseField = {
-      wasSuccess: true
-    }
-  }
-  return createResponse(msg.subject, msg.id, responseField);
-}
+// export const createSuccessResponse = <ReqType extends AnyRequest>(msg: ReqType, data?: DataForResponse<Extract<ReqType['subject'], WithDataSubjects>>) => {
+//   let responseField: ResponseParams<ReqType['subject']>;
+//   if(data !== undefined){
+//     responseField = {
+//       wasSuccess: true,
+//       data: data,
+//     }
+//   } else {
+//     responseField = {
+//       wasSuccess: true
+//     }
+//   }
+//   return createResponse(msg.subject, msg.id, responseField);
+// }
 
 export const createResponse = <Subject extends RequestSubjects>(subject: Subject, id:number, responseFields: ResponseParams<Subject>): ResponseTo<Subject> => {
   // const { wasSuccess } = responseFields;

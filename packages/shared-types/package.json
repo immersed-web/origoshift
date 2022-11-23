@@ -4,8 +4,9 @@
   "description": "shared types for front & back",
   "main": "dist",
   "types": "dist",
+  "type": "module",
   "exports": {
-    "./": "./dist/"
+    "./*": "./dist/*.js"
   },
   "scripts": {
     "dev": "echo 'dummy script'",

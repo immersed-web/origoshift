@@ -1,5 +1,6 @@
 import { types as mediasoupTypes } from 'mediasoup';
 // import { WorkerLogTag } from 'mediasoup/lib/Worker';
+import ip from 'ip';
 
 
 let listenIp = process.env.LISTEN_IP;
@@ -22,8 +23,8 @@ const logTags: mediasoupTypes.WorkerLogTag[] = [
   // 'rtx',
   // 'bwe',
   // 'score',
-  // 'simulcast',
-  // 'svc'
+  'simulcast',
+  'svc'
 ];
 
 const router: mediasoupTypes.RouterOptions = {
@@ -69,14 +70,14 @@ const router: mediasoupTypes.RouterOptions = {
 
 const webRtcTransport: mediasoupTypes.WebRtcTransportOptions = {
   listenIps: [
-    { ip: listenIp, announcedIp: undefined },
+    { ip: ip.address(), announcedIp: listenIp },
     // { ip: "192.168.42.68", announcedIp: null },
     // { ip: '10.10.23.101', announcedIp: null },
   ],
   enableUdp: true,
   enableTcp: true,
   preferUdp: true,
-  initialAvailableOutgoingBitrate: 100000000,
+  initialAvailableOutgoingBitrate: 100_000_000,
 };
 
 export interface MediasoupConfig {
@@ -107,7 +108,7 @@ const mediasoupConfig: MediasoupConfig = {
   // run anywhere but on localhost
   webRtcTransport,
   
-  maxIncomingBitrate: 20000000,
+  maxIncomingBitrate: 20_000_000,
   // numWorkers: 1,
 };
 

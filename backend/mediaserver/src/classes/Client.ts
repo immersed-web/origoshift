@@ -1,14 +1,13 @@
 import { randomUUID } from 'crypto';
-import SocketWrapper from './SocketWrapper';
+import SocketWrapper from './SocketWrapper.js';
 import {types as soupTypes} from 'mediasoup';
 import {types as soupClientTypes} from 'mediasoup-client';
 import { ClientProperties, ClientState, ProducerInfo, UserData, UserRole } from 'shared-types/CustomTypes';
 import { createMessage, createRequest, createResponse, Request, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-// import { checkPermission } from '../modules/utilFns';
-import { checkPermission } from '../modules/utilFns';
+import { checkPermission } from '../modules/utilFns.js';
 
-import Gathering from './Gathering';
+import Gathering from './Gathering.js';
 import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
 // namespace MediaSoup {
 //   interface AppData {

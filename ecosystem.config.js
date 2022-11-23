@@ -5,6 +5,7 @@ const path = require('path');
 
 let envString = fs.readFileSync(path.join(__dirname, '.env'));
 if(process.env.DEVELOPMENT){
+  console.log('RUNNING IN DEV MODE');
   envString = fs.readFileSync(path.join(__dirname, '.env.dev'));
 }
 const envVars = dotenv.parse(envString);
@@ -19,16 +20,16 @@ const authEnvs = _.pick(envVars, [
 
 const scripts = {
   frontend: 'quasar serve ./dist/spa --history --port=8080',
-  auth: "yarn start",
-  mediaserver: 'yarn start',
+  auth: "npm run start",
+  mediaserver: 'npm run start',
   caddy: 'caddy stop; caddy run'
 }
 
 if(envVars.DEVELOPMENT){
   console.log('using dev scripts in ecosystem file!');
-  scripts.frontend = 'yarn dev';
-  scripts.auth = 'yarn dev';
-  scripts.mediaserver = 'yarn dev';
+  scripts.frontend = 'npm run dev';
+  scripts.auth = 'npm run dev';
+  scripts.mediaserver = 'npm run dev';
 }
 
 module.exports = {

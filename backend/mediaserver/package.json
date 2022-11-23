@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "mediasoup server for inclubit 2",
   "main": "dist/index.js",
+  "type": "module",
   "author": "Gunnar Oledal",
   "license": "ISC",
   "scripts": {
@@ -16,15 +17,17 @@
   },
   "dependencies": {
     "@types/uuid": "^8.3.1",
+    "ip": "^1.1.8",
     "mediasoup": "3.10.5",
     "shared-modules": "workspace:*",
     "shared-types": "workspace:*",
     "tiny-typed-emitter": "^2.1.0",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#semver:^20.15.0",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "uWebSockets.js": "git+https://git@github.com/uNetworking/uWebSockets.js#v20.15.0"
   },
   "devDependencies": {
     "@ef-carbon/tspm": "^2.2.5",
+    "@types/ip": "^1.1.0",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.10.9",
     "@typescript-eslint/eslint-plugin": "^5.0.0",

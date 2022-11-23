@@ -1,9 +1,9 @@
 import { RequestHandler, Router, Request as ExpressReq } from 'express';
 import bcrypt from 'bcrypt';
-import prisma, { Prisma, users, exclude } from './prismaClient';
+import prisma, { Prisma, users, exclude } from './prismaClient.js';
 import { createJwt } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { validateUserSession } from './utils';
+import { validateUserSession } from './utils.js';
 import 'shared-types/augmentedRequest';
 import { UserRole, securityLevels } from 'shared-types/CustomTypes';
 
@@ -56,7 +56,7 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
     switch (userData.role) {
       case 'guest':
       case 'client':
-        res.status(403).send('fuck you. You may not create other users! You are not cool enough!');
+        res.status(403).send('You may not create other users! You are not cool enough!');
         return;
       case 'host':
         if (!userData.gathering) {
@@ -167,7 +167,7 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
     switch (userData.role) {
       case 'guest':
       case 'client':
-        res.status(403).send('fuck you. You may not edit users! You are not cool enough!');
+        res.status(403).send('You may not edit users! You are not cool enough!');
         return;
       case 'host':
         if (payload.gathering) {
@@ -371,7 +371,7 @@ const loginUser: RequestHandler = async (req, res) => {
     // res.status(501).send('failed when trying to login');
     // return;
   }
-  res.status(403).send('fuck you');
+  res.status(403).send('You shall not pass!');
 
 };
 

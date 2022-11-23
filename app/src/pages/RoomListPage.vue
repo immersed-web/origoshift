@@ -49,9 +49,17 @@
 import usePeerClient from 'src/composables/usePeerClient';
 import { useSoupStore } from 'src/stores/soupStore';
 import { useRouter } from 'vue-router';
+import { useQuasar } from 'quasar';
 
-const peer = usePeerClient();
 const router = useRouter();
+const peer = usePeerClient();
+const $q = useQuasar();
+
+peer.on('abort', (reason) => {
+  console.error('connection aborted!', reason);
+  $q.notify({ type: 'negative', message: 'Du är redan ansluten. Från en annan flik, annan webbläsare, eller annan enhet' });
+  router.replace({ name: 'logout' });
+});
 
 interface Props {
   sendToRoomOverview?: boolean

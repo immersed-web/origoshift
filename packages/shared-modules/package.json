@@ -2,10 +2,11 @@
   "name": "shared-modules",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "dist",
   "types": "dist",
   "exports": {
-    "./": "./dist/"
+    "./*": "./dist/*.js"
   },
   "scripts": {
     "build": "tsc --build",

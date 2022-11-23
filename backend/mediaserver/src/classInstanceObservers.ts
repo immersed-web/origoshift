@@ -1,4 +1,4 @@
-import Gathering from './classes/Gathering';
+import Gathering from './classes/Gathering.js';
 
 
 export default () => {

@@ -2,6 +2,7 @@
   "name": "auth",
   "version": "1.0.0",
   "description": "auth endpoint for inclubit v.2",
+  "type": "module",
   "main": "dist/index.js",
   "author": "Gunnar Oledal",
   "license": "MIT",

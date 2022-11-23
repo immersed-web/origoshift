@@ -48,6 +48,7 @@
     "haikunator": "^2.1.2",
     "jsonwebtoken": "^8.5.1",
     "shared-modules": "workspace:*",
-    "shared-types": "workspace:*"
+    "shared-types": "workspace:*",
+    "database": "workspace:*"
   }
 }

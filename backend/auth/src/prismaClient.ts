@@ -1,4 +1,5 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+// import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma } from 'database';
 import { UserData, UserRole } from 'shared-types/CustomTypes';
 
 const prisma = new PrismaClient();
@@ -42,7 +43,7 @@ export const users = Object.assign(prisma.user, {
     };
     return userData;
   },
-  
+
   async findUserAsUserData(query: Prisma.UserFindUniqueArgs): Promise<UserData> {
     // const includes: Includes = {gathering: true, role: true, rooms: true};
     const userFind: UserQueryWithIncludes = {...query, include: includes};

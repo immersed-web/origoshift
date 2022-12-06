@@ -1,15 +1,10 @@
 {
-  "extends": "../../tsconfig.json",
-  // "references": [
-  //   {
-  //     "path": "../../shared-types",
-  //   },
-  //   {"path": "../shared-modules"}
-  // ],
+  "extends": "../../tsconfig",
   "include": ["./src/**/*.ts"],
   // "include": ["./**/*.ts","../../types/*.ts"],
   "exclude": ["**/*.test.ts"],
   "compilerOptions": {
+    // "preserveSymlinks": true,
     // "module": "ES2022",
     // "moduleResolution": "node",
     // "allowSyntheticDefaultImports": true,
@@ -17,8 +12,8 @@
     // "lib": ["ES2021"],
     "downlevelIteration": true,
     "outDir": "./dist",                              /* Redirect output structure to the directory. */
-    "rootDir": "./src"                             /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
-    // "baseUrl": "./src/",                             /* Base directory to resolve non-absolute module names. */
+    "rootDir": "./src",                             /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
+    "baseUrl": "./src"                             /* Base directory to resolve non-absolute module names. */
     // "paths": {},                                 /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
   }
 }

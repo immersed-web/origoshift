@@ -11,10 +11,12 @@
 const { configure } = require('quasar/wrappers');
 const dotenv = require('dotenv');
 
+// const viteCommonjs = require('@originjs/vite-plugin-commonjs');
+
 module.exports = configure(function (ctx) {
   let envVars;
   if (ctx.dev) {
-    envVars = dotenv.config({ path: '../.env.localdev' }).parsed;
+    envVars = dotenv.config({ path: '../.env.local' }).parsed;
   } else {
     envVars = dotenv.config({ path: '../.env' }).parsed;
   }
@@ -87,7 +89,10 @@ module.exports = configure(function (ctx) {
       // polyfillModulePreload: true,
       // distDir
 
-      // extendViteConf (viteConf) {},
+      extendViteConf (viteConf) {
+        // viteConf.optimizeDeps.include = ['shared-types', 'shared-modules']
+        viteConf.optimizeDeps.exclude = ['shared-types', 'shared-modules']
+      },
       viteVuePluginOptions: {
         template: {
           compilerOptions: {
@@ -97,7 +102,7 @@ module.exports = configure(function (ctx) {
       },
 
       // vitePlugins: [
-      //   [ 'package-name', { ..options.. } ]
+      //   [ viteCommonjs.viteCommonjs({include: ['shared-modules', 'shared-types']}) ]
       // ]
     },
 

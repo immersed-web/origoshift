@@ -3,13 +3,13 @@
 //   consumers: Record<string, unknown>[],
 //   clients: Record<string, unknown>[],
 // }
-import {types as soup} from 'mediasoup';
-import { RequestSubjects } from './MessageTypes';
+import { types as soup } from 'mediasoup';
+import { RequestSubjects } from './MessageTypes.js';
 
 export interface ProducerInfo {
   screenShare?: boolean,
   forceMuted?: boolean,
-  dimensions?: {w: number, h: number},
+  dimensions?: { w: number, h: number },
   [key: string]: unknown
 }
 
@@ -21,7 +21,7 @@ export interface ClientProperties {
 
 export interface RoomProperties {
   doorIsOpen?: boolean,
-  [key:string]:unknown,
+  [key: string]: unknown,
 }
 
 export interface ClientState {
@@ -47,19 +47,19 @@ export interface RoomState {
   roomName?: string;
   customProperties: RoomProperties,
   mainProducers: {
-    video?:string,
+    video?: string,
     audio?: string,
   },
   // clients: string[]
   clients: {
-      [clientId: string]: ClientState;
+    [clientId: string]: ClientState;
   }
   // senderClients: {
   //     [clientId: string]: ClientState;
   // }
 }
 
-export type ShallowRoomState = Omit<RoomState, 'clients'> & {clients: string[]}
+export type ShallowRoomState = Omit<RoomState, 'clients'> & { clients: string[] }
 
 export interface GatheringState {
   gatheringId: string;
@@ -68,15 +68,15 @@ export interface GatheringState {
   //   [clientId: string] : ClientState
   // };
   rooms: {
-    [roomId: string ] : ShallowRoomState;
+    [roomId: string]: ShallowRoomState;
   }
   clients: {
-      [clientId: string]: ClientState;
+    [clientId: string]: ClientState;
   }
 }
 
 // export type AllowedActions  = Extract<RequestSubjects, 'createGathering' |'joinGathering' | 'gatheringState' | 'createRoom' | 'joinRoom'>
-export type AllowedAction  =  RequestSubjects | '*';
+export type AllowedAction = RequestSubjects | '*';
 export interface UserData {
   uuid: string,
   username: string,
@@ -87,12 +87,12 @@ export interface UserData {
 }
 
 export const securityLevels = [
-'guest',
-'client',
-// 'sender',
-'host',
-'admin',
-'gunnar' 
+  'guest',
+  'client',
+  // 'sender',
+  'host',
+  'admin',
+  'gunnar'
 ] as const;
 
 export type UserRole = (typeof securityLevels)[number];
@@ -100,7 +100,7 @@ export type NonGuestUserRole = Exclude<(typeof securityLevels)[number], 'guest'>
 
 
 function makeDefaultAction<T extends AllowedAction[]>(t: T): T {
-    return t;
+  return t;
 }
 
 const defaultActions = makeDefaultAction([
@@ -131,7 +131,7 @@ type DefaultAction = (typeof defaultActions)[number];
 type NonDefaultAction = Exclude<AllowedAction, DefaultAction>
 
 const hostActions: NonDefaultAction[] = [
-'assignMainProducerToRoom', 'createRoom', 'setRoomName', 'customRequest', 'getGatheringState', 'removeClientFromRoom', 'closeAllProducersForClient', 'setForceMuteStateForProducer', 'setForceMuteStateForClient', 'setCustomRoomProperties',
+  'assignMainProducerToRoom', 'createRoom', 'setRoomName', 'customRequest', 'getGatheringState', 'removeClientFromRoom', 'closeAllProducersForClient', 'setForceMuteStateForProducer', 'setForceMuteStateForClient', 'setCustomRoomProperties',
 ]
 
 export const allowedActions: Record<UserRole, AllowedAction[]> = {

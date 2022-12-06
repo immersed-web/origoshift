@@ -6,7 +6,7 @@ import { Request, AnyResponse, SocketMessage, RequestSubjects, UnknownMessageTyp
 const requestTimeout = 3000;
 type RequestResolver = (msg: AnySuccessResponse) => void;
 type RequestRejecter = (msg: unknown) => void;
-const pendingRequests = new Map<number, {resolve: RequestResolver, reject: RequestRejecter}>();
+const pendingRequests = new Map<number, { resolve: RequestResolver, reject: RequestRejecter }>();
 
 interface SocketEvents {
   'open': () => void;
@@ -32,7 +32,7 @@ export default {
       // if (!retryIsActive) return;
       createSocketTimeout = window.setTimeout(() => this.createSocket(token), seconds * 1000);
     };
-    if (!process.env.MEDIASOUP_URL || !process.env.MEDIASOUP_PATH) {
+    if (process.env.MEDIASOUP_URL === undefined || !process.env.MEDIASOUP_PATH === undefined) {
       console.error('No socket url provided from environment variables!! Huge error of doom!');
       throw new Error('no socket url provided!');
     }
@@ -42,7 +42,7 @@ export default {
     }
     const promise = new Promise<Event>((resolve, reject) => {
       try {
-        const connectionsString = `${process.env.MEDIASOUP_URL}/${process.env.MEDIASOUP_PATH}?${token}`;
+        const connectionsString = `${process.env.MEDIASOUP_URL}${process.env.MEDIASOUP_PORT}${process.env.MEDIASOUP_PATH}?${token}`;
         console.log('creating websocket with connectionsString;', connectionsString);
         socket = new WebSocket(connectionsString);
         socket.onopen = (ev) => {
@@ -115,12 +115,12 @@ export default {
       }
     } else if (msg.type === 'request') {
       eventEmitter.emit('request', msg);
-    // if (onReqOrMsgCallback) {
-    //   onReqOrMsgCallback(msg);
-    // } else {
-    //   console.log('message received, but no callback attached');
-    //   console.log('this is the received message: ', msg);
-    // }
+      // if (onReqOrMsgCallback) {
+      //   onReqOrMsgCallback(msg);
+      // } else {
+      //   console.log('message received, but no callback attached');
+      //   console.log('this is the received message: ', msg);
+      // }
     } else if (msg.type === 'message') {
       eventEmitter.emit('message', msg);
     }

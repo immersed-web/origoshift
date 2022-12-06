@@ -22,7 +22,7 @@
 				"mode": "auto"
 			}
 		],
-		"eslint.packageManager": "yarn",
+		"eslint.packageManager": "pnpm",
 		"eslint.validate": [
 			"javascript",
 			"javascriptreact",
@@ -33,18 +33,19 @@
 			"editor.formatOnSave": true
 		},
 		"[vue]": {
-			"editor.defaultFormatter": "johnsoncodehk.volar"
+			"editor.defaultFormatter": "dbaeumer.vscode-eslint"
 		},
 		"editor.codeActionsOnSave": {
 			"source.fixAll": false,
 			"source.fixAll.eslint": true,
-		},
+    },
+    "typescript.tsdk": "root/node_modules/typescript/lib",
 	},
 	"extensions": {
 		"recommendations": [
 			"dbaeumer.vscode-eslint",
 			// "lokalise.i18n-ally"
-			"johnsoncodehk.volar"
+			"Vue.volar"
 		],
 		"unwantedRecommendations": [
 			"octref.vetur",

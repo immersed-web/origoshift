@@ -4,7 +4,8 @@ import { randomUUID } from 'crypto';
 import { createJwt } from 'shared-modules/jwtUtils';
 import { UserData } from 'shared-types/CustomTypes';
 import createUserRouter from './userRoutes.js';
-import Haikunator from 'haikunator';
+import {default as Haikunator} from 'haikunator';
+// const Haikunator = require('haikunator');
 import wordlist from './haikunator-wordlist.js';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import session from 'express-session';
@@ -18,6 +19,8 @@ const haikunator = new Haikunator({
   defaults: { tokenLength: 2 }
 });
 
+
+
 // console.log('environment: ', process.env);
 const devMode = process.env.DEVELOPMENT;
 
@@ -29,22 +32,28 @@ app.set('trust proxy', 1);
 
 let cookieHttpOnly = true;
 let cookieSecure = true;
-if(devMode){
-  console.log('allowing cors for frontend');
-  app.use(cors({
-    origin: ['http://localhost:8080'],
-    credentials: true,
-  }));
+if (devMode) {
+  // NOTE: I couldnt come up with a way to allow all origins so we have hardcoded the devservers url here
+  const devServerUrl = 'http://localhost:9000';
+  console.log('allowing cors for development: ', devServerUrl);
+  app.use(cors({ credentials: true, origin: [devServerUrl] }));
 
   console.log('allowing cookie despite not https');
   cookieHttpOnly = false;
   cookieSecure = false;
-
+} else {
+  if (process.env.SERVER_URL) {
+    console.log('restricting CORS for production');
+    app.use(cors({
+      origin: [process.env.SERVER_URL],
+      credentials: true
+    }));
+  }
 }
 
 app.use((req, res, next) => {
   return parseJsonBody()(req, res, (err) => {
-    if(err){
+    if (err) {
       //There was error!!
       const msg = extractMessageFromCatch(err, 'failed to parse your shitt request!');
       res.status(400).send(`You suck!!! ${msg}`);
@@ -83,7 +92,7 @@ app.use('/', userRouter);
 
 const apiRouter = createApiRouter();
 app.use('/', apiRouter);
-  
+
 
 app.get('/health', (req, res) => {
   res.status(200).send({
@@ -105,8 +114,8 @@ app.get('/guest-jwt', (req, res) => {
 
 
 const port = 3333;
-app.listen(port, ()=> {
+app.listen(port, () => {
   console.log(`listening on ${port}`);
-  if(process.env.DEVELOPMENT)
+  if (process.env.DEVELOPMENT)
     console.log('Running in dev mode!!!');
 });

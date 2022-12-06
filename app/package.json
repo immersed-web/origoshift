@@ -10,6 +10,7 @@
     "build": "quasar build",
     "clean": "quasar clean",
     "lint": "eslint --ext .js,.ts,.vue ./",
+    "lint:fix": "eslint --fix --ext .js,.ts,.vue ./",
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
@@ -27,6 +28,7 @@
     "pinia": "^2.0.11",
     "pinia-plugin-persistedstate": "^1.5.1",
     "quasar": "^2.6.0",
+    "shared-modules": "workspace:*",
     "three": "^0.141.0",
     "tiny-typed-emitter": "^2.1.0",
     "typed-emitter": "^2.1.0",
@@ -35,8 +37,6 @@
     "vue-router": "^4.0.0"
   },
   "devDependencies": {
-    "shared-types": "workspace:*",
-    "database": "workspace:*",
     "@quasar/app-vite": "^1.0.0",
     "@types/lodash": "^4.14.182",
     "@types/node": "^12.20.21",
@@ -45,6 +45,7 @@
     "@typescript-eslint/eslint-plugin": "^5.10.0",
     "@typescript-eslint/parser": "^5.10.0",
     "autoprefixer": "^10.4.2",
+    "database": "workspace:*",
     "dotenv": "^10.0.0",
     "eslint": "^8.10.0",
     "eslint-config-standard": "^17.0.0",
@@ -53,6 +54,7 @@
     "eslint-plugin-node": "^11.0.0",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-vue": "^9.0.0",
+    "shared-types": "workspace:*",
     "typescript": "^4.5.4"
   },
   "engines": {

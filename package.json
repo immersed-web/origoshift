@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "mediasoup": "3",
+    "mediasoup-client": "3",
+    "shared-modules": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.3"
+  }
+}

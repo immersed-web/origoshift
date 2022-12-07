@@ -4,11 +4,13 @@ const fs = require('fs');
 const path = require('path');
 
 let envString = fs.readFileSync(path.join(__dirname, '.env'));
+const envVars = dotenv.parse(envString);
 if(process.env.DEVELOPMENT){
   console.log('RUNNING IN DEV MODE');
-  envString = fs.readFileSync(path.join(__dirname, '.env.dev'));
+  // envString = fs.readFileSync(path.join(__dirname, '.env.dev'));
+  envVars['DEVELOPMENT'] = true;
 }
-const envVars = dotenv.parse(envString);
+
 const authEnvs = _.pick(envVars, [
   'DEVELOPMENT',
   'DATABASE_URL',

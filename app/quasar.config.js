@@ -14,11 +14,12 @@ const dotenv = require('dotenv');
 // const viteCommonjs = require('@originjs/vite-plugin-commonjs');
 
 module.exports = configure(function (ctx) {
-  let envVars;
+  let envVars = dotenv.config({ path: '../.env' }).parsed;
   if (ctx.dev) {
-    envVars = dotenv.config({ path: '../.env.local' }).parsed;
+    envVars.DEVELOPMENT = true;
+    // envVars = dotenv.config({ path: '../.env.local' }).parsed;
   } else {
-    envVars = dotenv.config({ path: '../.env' }).parsed;
+    // envVars = dotenv.config({ path: '../.env' }).parsed;
   }
   console.log('envVars in quasar config:', envVars);
   return {

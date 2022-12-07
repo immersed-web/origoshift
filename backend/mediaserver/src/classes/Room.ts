@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
-import Client from './Client.js';
+import Client from './Client';
 import { RoomProperties, RoomState, ShallowRoomState, UserRole } from 'shared-types/CustomTypes';
-import Gathering from './Gathering.js';
+import Gathering from './Gathering';
 import { types as soupTypes } from 'mediasoup';
 // import type { RtpParameters } from 'mediasoup/node/lib/types';
 import { Request, createMessage, RequestSubjects, SuccessResponseTo } from 'shared-types/MessageTypes';

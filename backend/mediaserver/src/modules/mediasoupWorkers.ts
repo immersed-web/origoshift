@@ -1,5 +1,5 @@
 import { createWorker, types as soupTypes} from 'mediasoup';
-import config from '../mediasoupConfig.js';
+import config from '../mediasoupConfig';
 
 import { cpus } from 'os';
 

@@ -6,16 +6,14 @@
   "author": "Gunnar Oledal",
   "license": "ISC",
   "scripts": {
-    "start": "dotenv -c -e ../../.env node ./dist/index.js",
-    "dev": "tsc-watch --build --onSuccess 'dotenv -c -e ../../.env -- node ./dist/index.js'",
-    "build:watch": "tsc --build --watch",
+    "start": "dotenv -e ../../.env node ./dist/index.js",
+    "dev": "dotenv -v DEVELOPMENT=true -e ../../.env -- node-dev ./src/index.ts",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "test": "jest --watch",
     "test:once": "jest"
   },
   "dependencies": {
-    "@types/uuid": "^8.3.1",
     "debug": "^4.3.4",
     "ip": "^1.1.8",
     "shared-modules": "workspace:*",
@@ -26,6 +24,7 @@
   },
   "devDependencies": {
     "@ef-carbon/tspm": "^2.2.5",
+    "@types/uuid": "^8.3.1",
     "@types/debug": "^4.1.7",
     "@types/ip": "^1.1.0",
     "@types/jest": "^27.0.2",
@@ -35,9 +34,9 @@
     "eslint": "^8.0.1",
     "jest": "^27.3.1",
     "jest-mock-extended": "^2.0.4",
+    "node-dev": "^7.4.3",
     "ts-jest": "^27.0.7",
     "ts-node": "^10.4.0",
-    "tsc-watch": "^4.5.0",
     "tsconfig-paths": "^3.12.0",
     "tscpaths": "^0.0.9"
   }

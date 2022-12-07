@@ -1,9 +1,9 @@
 import { RequestHandler, Router, Request as ExpressReq } from 'express';
 import bcrypt from 'bcrypt';
-import prisma, { Prisma, users, exclude } from './prismaClient.js';
+import prisma, { Prisma, users, exclude } from './prismaClient';
 import { createJwt } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { validateUserSession } from './utils.js';
+import { validateUserSession } from './utils';
 import 'shared-types/augmentedRequest';
 import 'shared-types/augmentedSession';
 import { UserRole, securityLevels } from 'shared-types/CustomTypes';

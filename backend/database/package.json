@@ -10,14 +10,15 @@
     "schema": "./prisma/schema.prisma"
   },
   "scripts": {
-    "build": "tsc --build",
-    "migrate:deploy": "dotenv -e ../../.env -c -- prisma migrate deploy",
-    "db:generate": "prisma generate",
-    "migrate": "dotenv -e ../../.env -c -- prisma migrate dev",
-    "migrate:reset": "dotenv -e ../../.env -c -- prisma migrate reset",
-    "seed": "dotenv -e ../../.env -c -- prisma db seed",
-    "studio": "dotenv -e ../../.env -c -- prisma studio",
-    "dbpush": "dotenv -e ../../.env -c -- prisma db push"
+    "build": "tsc --build && pnpm generate",
+    "clean": "tsc --build --clean",
+    "generate": "prisma generate",
+    "migrate:deploy": "dotenv -e ../../.env -- prisma migrate deploy",
+    "migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "migrate:reset": "dotenv -e ../../.env -- prisma migrate reset",
+    "seed": "dotenv -e ../../.env -- prisma db seed",
+    "studio": "dotenv -e ../../.env -- prisma studio",
+    "dbpush": "dotenv -e ../../.env -- prisma db push"
   },
   "devDependencies": {
     "prisma": "3",

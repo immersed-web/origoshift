@@ -200,7 +200,6 @@ importers:
       uWebSockets.js: git+https://git@github.com/uNetworking/uWebSockets.js#v20.15.0
       uuid: ^8.3.2
     dependencies:
-      '@types/uuid': 8.3.4
       debug: 4.3.4
       ip: 1.1.8
       shared-modules: link:../../packages/shared-modules
@@ -214,6 +213,7 @@ importers:
       '@types/ip': 1.1.0
       '@types/jest': 27.5.2
       '@types/node': 16.18.3
+      '@types/uuid': 8.3.4
       '@typescript-eslint/eslint-plugin': 5.43.0_wbsj7pk5g7hogwvhsif6xntns4
       '@typescript-eslint/parser': 5.43.0_eslint@8.27.0
       eslint: 8.27.0
@@ -1397,6 +1397,7 @@ packages:
 
   /@types/uuid/8.3.4:
     resolution: {integrity: sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==}
+    dev: true
 
   /@types/webxr/0.5.0:
     resolution: {integrity: sha512-IUMDPSXnYIbEO2IereEFcgcqfDREOgmbGqtrMpVPpACTU6pltYLwHgVkrnYv0XhWEcjio9sYEfIEzgn3c7nDqA==}

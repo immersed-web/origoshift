@@ -16,9 +16,9 @@
     "dist/*"
   ],
   "scripts": {
-    "dev": "echo 'dummy script'",
-    "build": "tsc --build",
-    "clean": "tsc --build --clean"
+    "build": "tsc --build tsconfig.json tsconfig.esm.json",
+    "build:watch": "tsc --build --watch tsconfig.json tsconfig.esm.json",
+    "clean": "tsc --build --clean tsconfig.json tsconfig.esm.json"
   },
   "author": "Gunnar Oledal",
   "license": "MIT",

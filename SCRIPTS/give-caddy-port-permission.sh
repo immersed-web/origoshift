@@ -8,5 +8,5 @@ fi
 say() { echo "\$ $@" ;}
 exe() { echo "\$ $@" ; "$@" ; }
 
-say 'We now give caddy permission to bind to lower number ports. This is so caddy can listen on port 80 and 443'
-exe sudo setcap CAP_NET_BIND_SERVICE=+eip $(which caddy)
+say 'We now give caddy server permission to bind to lower number ports. This is so caddy can listen on port 80 and 443'
+exe setcap CAP_NET_BIND_SERVICE=+eip $(which caddy)

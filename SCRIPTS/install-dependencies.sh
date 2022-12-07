@@ -14,23 +14,25 @@ stage() { echo ' '; echo ' '; echo '========================================='; 
 say() { echo ' '; echo '#############'; echo "\$ $@" ; echo '';}
 exe() { echo "\$ $@" ; "$@" ; }
 
-cd ..
-
 stage 'Gunnar är bäst!'
 
 stage 'Welcome to the install script!
 | This script will attempt to install EVERYTHING needed to run inclubit 2 on the server.
-| Tested on ubuntu only. 
+| Tested on ubuntu only. The script is designed to run as a non-root user I.E. without "sudo" in front.
 | The script prints out what it is doing so you can have fun and follow along :-)'
 
 read -p "Press ENTER to continue. Press ctrl-c to cancel."
+
+say 'Changing directory to project root'
+BASEDIR=$(dirname $BASH_SOURCE)
+exe cd $BASEDIR/..
 
 export NEEDRESTART_MODE=a
 # set -x
 say 'Updating package register'
 exe sudo apt-get update
 
-stage 'Node, yarn and other global javascript dependencies'
+stage 'Node, PNPM and other global javascript/node dependencies'
 ######### Node and yarn
 say 'Install NVM (node version manager)'
 exe curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
@@ -46,17 +48,29 @@ exe nvm install --lts
 say 'Verify node is installed'
 exe node --version
 
-say 'Install yarn'
-exe npm install --global yarn
+say 'Install PNPM node package manager'
+exe corepack enable
+exe corepack prepare pnpm@latest --activate
 
-say 'Verify yarn is installed'
-exe yarn --version
+say 'Verify PNPM is installed'
+exe pnpm --version
+# pnpm setup makes sure the global bin dir gets set
+exe pnpm setup
+
+say 'we need to reload bashrc so the added global pnpm bin dir is available'
+exe source ~/.bashrc
+
+# say 'Install yarn'
+# exe npm install --global yarn
+
+# say 'Verify yarn is installed'
+# exe yarn --version
 
 say "Install dotenv-cli so we can inject env files when running npm scripts"
-exe npm install dotenv-cli -g
+exe pnpm add dotenv-cli -g
 
 say 'Install pm2'
-exe npm install pm2 -g
+exe pnpm add pm2 -g
 
 say 'Verify pm2 is installed'
 exe pm2 --version
@@ -65,7 +79,7 @@ exe pm2 --version
 # exe pm2 startup
 
 say 'Install quasar cli'
-exe npm install @quasar/cli -g
+exe pnpm add @quasar/cli -g
 
 say 'Verify quasar cli is installed'
 exe quasar --version

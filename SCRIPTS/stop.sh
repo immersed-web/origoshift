@@ -6,8 +6,10 @@ stage() { echo ' '; echo ' '; echo '========================================='; 
 say() { echo ' '; echo '#############'; echo "\$ $@" ; echo '';}
 exe() { echo "\$ $@" ; "$@" ; }
 
-cd ..
+say 'Changing directory to project root'
+BASEDIR=$(dirname $BASH_SOURCE)
+exe cd $BASEDIR/..
 
-say 'stoping all pm2 processes'
+say 'stopping all pm2 processes'
 exe pm2 stop ecosystem.config.js
 exe pm2 delete ecosystem.config.js

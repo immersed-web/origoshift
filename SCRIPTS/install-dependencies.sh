@@ -1,18 +1,8 @@
 #!/bin/bash
 
-# this din't work on ICE VM running Ubuntu
-# if (( $EUID != 0 )); then
-
-# if [[ $(id -u) -ne 0 ]] ; then
-#     echo "Please run as root"
-#     echo 'This script runs a bunch of stuff that requires privileges in order to configure the environment'
-#     exit
-# fi
-
-# Function to display commands
-stage() { echo ' '; echo ' '; echo '========================================='; printf "| $@ \n" ; echo '========================================='; echo '  ';}
-say() { echo ' '; echo '#############'; echo "\$ $@" ; echo '';}
-exe() { echo "\$ $@" ; "$@" ; }
+BASEDIR=$(dirname $BASH_SOURCE)
+cd $BASEDIR
+source utility.sh
 
 stage 'Gunnar är bäst!'
 
@@ -23,17 +13,13 @@ stage 'Welcome to the install script!
 
 read -p "Press ENTER to continue. Press ctrl-c to cancel."
 
-say 'Changing directory to project root'
-BASEDIR=$(dirname $BASH_SOURCE)
-exe cd $BASEDIR/..
+cd_to_project_root
 
 export NEEDRESTART_MODE=a
-# set -x
 say 'Updating package register'
 exe sudo apt-get update
 
 stage 'Node, PNPM and other global javascript/node dependencies'
-######### Node and yarn
 say 'Install NVM (node version manager)'
 exe curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 
@@ -60,12 +46,6 @@ exe pnpm setup
 say 'we need to reload bashrc so the added global pnpm bin dir is available'
 exe source ~/.bashrc
 
-# say 'Install yarn'
-# exe npm install --global yarn
-
-# say 'Verify yarn is installed'
-# exe yarn --version
-
 say "Install dotenv-cli so we can inject env files when running npm scripts"
 exe pnpm add dotenv-cli -g
 
@@ -75,16 +55,12 @@ exe pnpm add pm2 -g
 say 'Verify pm2 is installed'
 exe pm2 --version
 
-# say 'Activate autostart for pm2'
-# exe pm2 startup
-
 say 'Install quasar cli'
 exe pnpm add @quasar/cli -g
 
 say 'Verify quasar cli is installed'
 exe quasar --version
 
-######### Mediasoup dependencies
 stage 'Mediasoup dependencies'
 say 'Install python and PIP'
 exe sudo apt-get --yes install python3 python3-pip
@@ -94,7 +70,6 @@ exe python3 --version
 say 'Install make and gcc/g++'
 exe sudo apt-get --yes install build-essential
 
-##### CADDY
 stage 'CADDY Server'
 say 'Get caddy dep package'
 exe sudo apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
@@ -106,11 +81,7 @@ exe sudo apt-get update
 say 'actually install caddy'
 exe sudo apt install caddy
 
-######### DOCKER
 stage 'DOCKER STUFF'
-
-# say 'Remove any old docker stuff'
-# exe apt-get remove docker docker-engine docker.io -y
 
 say 'Set up docker repository to be installed with apt'
 exe sudo apt-get install \
@@ -140,11 +111,6 @@ exe sudo groupadd docker
 username=$USER
 exe sudo usermod -aG docker $username
 
-# say 'Installing docker compose'
-# exe curl -L "https://github.com/docker/compose/releases/download/1.26.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-# say 'Giving docker compose permission to execute'
-# exe chmod +x /usr/local/bin/docker-compose
-
 # say 'Creating a directory for mounting docker persistent volumes'
 # exe mkdir ~/docker-persistence
 # say 'Give ownership to container user (UID 1001) and docker group'
@@ -153,9 +119,19 @@ exe sudo usermod -aG docker $username
 # exe chmod g+rw ~/docker-persistence
 
 
-echo '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
-echo '###############################'
-echo '-------------------------------'
+stage 'We will use a tool called PM2 to run, monitor and manage all the apps/processes.
+| PM2 has functionality to automatically (re)start a saved list of processes when the server reboots.
+| PM2 should have been installed earlier in this script, but the autostart functionality must be manually activated.
+| Instructions can be found here:
+| https://pm2.keymetrics.io/docs/usage/startup/
+|
+| In short the procedure is to run:
+| pm2 startup
+| then copy the output produced from running that command and paste it back into the terminal and run it.'
+read -p "Press ENTER when you have read and understood the above."
+
+stage 'The script is finished. Please look through the output so there werent any sad errors.'
+
 echo '    '
 echo 'NOW LOG OUT THE USER AND LOG IN AGAIN. OTHERWISE THE USER WILL NOT BE CONSIDERED PART OF THE DOCKER USER GROUP'
 echo 'YOU MIGHT EVEN HAVE TO REBOOT THE SYSTEM FOR THE CHANGES TO TAKE EFFECT. if so, run "sudo reboot"'

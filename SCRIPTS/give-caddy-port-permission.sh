@@ -5,8 +5,9 @@ if [ $(id -u) -ne 0 ]
     exit
 fi
 
-say() { echo "\$ $@" ;}
-exe() { echo "\$ $@" ; "$@" ; }
+BASEDIR=$(dirname $BASH_SOURCE)
+cd $BASEDIR
+source utility.sh
 
 say 'We now give caddy server permission to bind to lower number ports. This is so caddy can listen on port 80 and 443'
 exe setcap CAP_NET_BIND_SERVICE=+eip $(which caddy)

@@ -1,9 +1,13 @@
 #!/bin/bash
 
+BASEDIR=$(dirname $BASH_SOURCE)
+cd $BASEDIR
+source utility.sh
+
 # Functions to display commands
-stage() { echo ' '; echo ' '; echo '========================================='; printf "| $@" ; echo '========================================='; echo '  ';}
-say() { echo ' '; echo '#############'; echo "\$ $@" ; echo '';}
-exe() { echo "\$ $@" ; "$@" ; }
+# stage() { echo ' '; echo ' '; echo '========================================='; printf "| $@" ; echo '========================================='; echo '  ';}
+# say() { echo ' '; echo '#############'; echo "\$ $@" ; echo '';}
+# exe() { echo "\$ $@" ; "$@" ; }
 
 stage 'Welcome to the update script!
 |
@@ -12,9 +16,7 @@ stage 'Welcome to the update script!
 | It also deploys any pending database migrations.\n'
 read -p "Press ENTER to continue. Press ctrl-c to cancel."
 
-say 'Changing directory to project root'
-BASEDIR=$(dirname $BASH_SOURCE)
-exe cd $BASEDIR/..
+cd_to_project_root
 
 say 'Pull latest git changes'
 exe git pull

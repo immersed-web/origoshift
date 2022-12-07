@@ -1,18 +1,14 @@
 #!/bin/bash
 
-# Function to display commands
-stage() { echo ' '; echo ' '; echo '========================================='; printf "| $@" ; echo '========================================='; echo '  ';}
-say() { echo ' '; echo '#############'; echo "\$ $@" ; echo '';}
-exe() { echo "\$ $@" ; "$@" ; }
+BASEDIR=$(dirname $BASH_SOURCE)
+cd $BASEDIR
+source utility.sh
 
 stage 'Welcome to the database init/reset script!!
-| This script will reset the database to its default initial state.
-'
+| This script will reset the database to its default initial state.'
 read -p "WARNING! This will erase everything in the database. Press ENTER to continue. Press ctrl-c to cancel."
 
-say 'Changing directory to project root'
-BASEDIR=$(dirname $BASH_SOURCE)
-exe cd $BASEDIR/..
+cd_to_project_root
 
 say 'spin up the postgres database (if not already running)'
 exe docker compose up -d

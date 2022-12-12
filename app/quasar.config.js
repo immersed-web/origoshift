@@ -14,12 +14,15 @@ const dotenv = require('dotenv');
 // const viteCommonjs = require('@originjs/vite-plugin-commonjs');
 
 module.exports = configure(function (ctx) {
-  let envVars = dotenv.config({ path: '../.env' }).parsed;
+  const envVars = dotenv.config({ path: '../.env' }).parsed;
+  let hmrPort;
   if (ctx.dev) {
     envVars.DEVELOPMENT = true;
     // envVars = dotenv.config({ path: '../.env.local' }).parsed;
-  } else {
-    // envVars = dotenv.config({ path: '../.env' }).parsed;
+    if (!envVars.SERVER_URL.includes('localhost')) {
+      console.log('We are running dev outside localhost. Switching hmr port to 443');
+      hmrPort = 443;
+    }
   }
   console.log('envVars in quasar config:', envVars);
   return {
@@ -92,7 +95,7 @@ module.exports = configure(function (ctx) {
 
       extendViteConf (viteConf) {
         // viteConf.optimizeDeps.include = ['shared-types', 'shared-modules']
-        viteConf.optimizeDeps.exclude = ['shared-types', 'shared-modules']
+        viteConf.optimizeDeps.exclude = ['shared-types', 'shared-modules'];
       },
       viteVuePluginOptions: {
         template: {
@@ -110,7 +113,7 @@ module.exports = configure(function (ctx) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
       hmr: {
-        clientPort: 443
+        clientPort: hmrPort,
       },
       // https: true
       open: false, // opens browser window automatically

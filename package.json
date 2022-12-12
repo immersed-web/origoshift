@@ -1,17 +1,11 @@
 {
-  "private": true,
-  "workspaces": {
-    "packages": [
-      "packages/*",
-      "app",
-      "backend/*"
-    ],
-    "nohoist": [
-      "**/mediasoup",
-      "**/mediasoup/**"
-    ]
-  },
   "dependencies": {
-    "three-bmfont-text": "^3.0.1"
+    "mediasoup": "3",
+    "mediasoup-client": "3",
+    "shared-modules": "workspace:*"
+  },
+  "devDependencies": {
+    "eslint": "^8.29.0",
+    "typescript": "^4.9.3"
   }
 }

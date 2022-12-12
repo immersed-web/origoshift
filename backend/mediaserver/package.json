@@ -3,30 +3,29 @@
   "version": "1.0.0",
   "description": "mediasoup server for inclubit 2",
   "main": "dist/index.js",
-  "type": "module",
   "author": "Gunnar Oledal",
   "license": "ISC",
   "scripts": {
     "start": "dotenv -e ../../.env node ./dist/index.js",
-    "dev": "tsc-watch --build --onSuccess 'dotenv -e ../../.env.dev node ./dist/index.js'",
-    "build:watch": "tsc --build --watch",
+    "dev": "dotenv -v DEVELOPMENT=true -e ../../.env -- node-dev ./src/index.ts",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "test": "jest --watch",
     "test:once": "jest"
   },
   "dependencies": {
-    "@types/uuid": "^8.3.1",
+    "debug": "^4.3.4",
     "ip": "^1.1.8",
-    "mediasoup": "3.10.5",
-    "shared-modules": "1.0.0",
-    "shared-types": "1.0.0",
+    "shared-modules": "workspace:*",
+    "shared-types": "workspace:*",
     "tiny-typed-emitter": "^2.1.0",
-    "uuid": "^8.3.2",
-    "uWebSockets.js": "git+https://git@github.com/uNetworking/uWebSockets.js#v20.15.0"
+    "uWebSockets.js": "git+https://git@github.com/uNetworking/uWebSockets.js#v20.15.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@ef-carbon/tspm": "^2.2.5",
+    "@types/uuid": "^8.3.1",
+    "@types/debug": "^4.1.7",
     "@types/ip": "^1.1.0",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.10.9",
@@ -35,12 +34,10 @@
     "eslint": "^8.0.1",
     "jest": "^27.3.1",
     "jest-mock-extended": "^2.0.4",
-    "mediasoup-client": "^3.6.43",
+    "node-dev": "^7.4.3",
     "ts-jest": "^27.0.7",
     "ts-node": "^10.4.0",
-    "tsc-watch": "^4.5.0",
     "tsconfig-paths": "^3.12.0",
-    "tscpaths": "^0.0.9",
-    "typescript": "^4.4.4"
+    "tscpaths": "^0.0.9"
   }
 }

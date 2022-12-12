@@ -44,12 +44,12 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     }
     // const clientStateReq = createRequest('getClientState');
     // return socketutils.sendRequest(clientStateReq);
-  }
+  };
 
   disconnect = () => {
     socketutils.tearDown();
     this.clear();
-  }
+  };
 
   private clear = () => {
     this.mediasoupDevice = undefined;
@@ -58,7 +58,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     this.producers.clear();
     this.consumers.clear();
     this.routerRtpCapabilities = undefined;
-  }
+  };
 
   constructor () {
     super();
@@ -140,7 +140,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
 
   sendResponse = (msg: AnyResponse) => {
     return socketutils.sendResponse(msg);
-  }
+  };
 
   loadMediasoupDevice = async () => {
     if (!this.routerRtpCapabilities) {
@@ -157,7 +157,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     } catch (err) {
       console.error(err);
     }
-  }
+  };
 
   sendRtpCapabilities = async () => {
     if (!this.mediasoupDevice) {
@@ -167,45 +167,45 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     const setRtpCapabilitiesReq = createRequest('setRtpCapabilities', deviceCapabilities);
 
     await socketutils.sendRequest(setRtpCapabilitiesReq);
-  }
+  };
 
   setName = async (name: string) => {
     console.log('setting name', name);
     // return this.triggerSocketEvent('setName', name);
     // return this.socket.request('setName', { name });
-    const setNameReq = createRequest('setName', { name: name });
+    const setNameReq = createRequest('setName', { name });
     await socketutils.sendRequest(setNameReq);
-  }
+  };
 
   setCustomClientProperties = async (props: ClientProperties) => {
     await socketutils.sendRequest(createRequest('setCustomClientProperties', props));
-  }
+  };
 
   setCustomRoomProperties = async (roomId: string, props: RoomProperties) => {
     await socketutils.sendRequest(createRequest('setCustomRoomProperties', { roomId, properties: props }));
-  }
+  };
 
   findGathering = async (name: string) => {
     const response = await socketutils.sendRequest(createRequest('findGatheringByName', {
-      name: name,
+      name,
     }));
     return response.data.id;
-  }
+  };
 
   createGathering = async (gatheringName: string) => {
     const createGatheringReq = createRequest('createGathering', {
-      gatheringName: gatheringName,
+      gatheringName,
     });
     // return socket.sendRequest(createGatheringReq);
     const response = await socketutils.sendRequest(createGatheringReq);
     return response.data;
-  }
+  };
 
   joinGathering = async (gatheringId: string) => {
     const joinGatheringReq = createRequest('joinGathering', { gatheringId });
     const response = await socketutils.sendRequest(joinGatheringReq);
     return response.data;
-  }
+  };
 
   joinOrCreateGathering = async (gatheringName: string) => {
     try {
@@ -216,19 +216,19 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       const gathState = await this.createGathering(gatheringName);
       return this.joinGathering(gathState.gatheringId);
     }
-  }
+  };
 
   getGatheringState = async () => {
     const getRoomsReq = createRequest('getGatheringState');
     const response = await socketutils.sendRequest(getRoomsReq);
     return response.data;
-  }
+  };
 
   findRoom = async (roomName: string) => {
     const findReq = createRequest('findRoomByName', { roomName });
     const response = await socketutils.sendRequest(findReq);
     return response.data.id;
-  }
+  };
 
   createRoom = async (roomName: string) => {
     const createRoomReq = createRequest('createRoom', {
@@ -236,7 +236,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     });
     const response = await socketutils.sendRequest(createRoomReq);
     return response.data;
-  }
+  };
 
   joinRoom = async (roomId: string) => {
     const joinRoomReq = createRequest('joinRoom', { roomId });
@@ -244,7 +244,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     return response.data;
     // this.closeAllConsumers();
     // this.roomStore.currentRoomId = roomId;
-  }
+  };
 
   setRoomName = async (roomId: string, roomName: string) => {
     const req = createRequest('setRoomName', {
@@ -252,13 +252,13 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       roomName,
     });
     await socketutils.sendRequest(req);
-  }
+  };
 
   requestToJoinRoom = async (roomId: string) => {
     const req = createRequest('requestToJoinRoom', { roomId });
     const response = await socketutils.sendRequest(req, 32000);
     return response.data;
-  }
+  };
 
   joinOrCreateRoom = async (roomName: string) => {
     try {
@@ -269,13 +269,13 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       const roomState = await this.createRoom(roomName);
       return this.joinRoom(roomState.roomId);
     }
-  }
+  };
 
   leaveRoom = async () => {
     const leaveRoomReq = createRequest('leaveRoom');
     await socketutils.sendRequest(leaveRoomReq);
     // this.closeAllConsumers();
-  }
+  };
 
   removeClientFromRoom = async (clientId: string, roomId: string) => {
     const kickClientReq = createRequest('removeClientFromRoom', {
@@ -283,14 +283,14 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       roomId,
     });
     await socketutils.sendRequest(kickClientReq);
-  }
+  };
 
   closeAllProducersForClient = async (clientId: string) => {
     const closeReq = createRequest('closeAllProducersForClient', {
       clientId,
     });
     await socketutils.sendRequest(closeReq);
-  }
+  };
 
   setForcedMuteStateForClient = async (clientId: string, forceMuted: boolean) => {
     const req = createRequest('setForceMuteStateForClient', {
@@ -298,7 +298,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       forceMuted,
     });
     await socketutils.sendRequest(req);
-  }
+  };
 
   getRouterCapabilities = async (): Promise<mediasoupTypes.RtpCapabilities> => {
     const getRouterCapsReq = createRequest('getRouterRtpCapabilities');
@@ -306,7 +306,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     const response = await socketutils.sendRequest(getRouterCapsReq);
     this.routerRtpCapabilities = response.data;
     return response.data;
-  }
+  };
 
   createSendTransport = async () => {
     if (!this.mediasoupDevice) {
@@ -318,7 +318,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     const transportOptions: mediasoupTypes.TransportOptions = response.data;
     this.sendTransport = this.mediasoupDevice.createSendTransport(transportOptions);
     this.attachTransportEvents(this.sendTransport);
-  }
+  };
 
   createReceiveTransport = async () => {
     if (!this.mediasoupDevice) {
@@ -331,7 +331,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     const transportOptions: mediasoupTypes.TransportOptions = response.data;
     this.receiveTransport = this.mediasoupDevice.createRecvTransport(transportOptions);
     this.attachTransportEvents(this.receiveTransport);
-  }
+  };
 
   private attachTransportEvents = (transport: mediasoupTypes.Transport) => {
     transport.on('connect', ({ dtlsParameters }: {dtlsParameters: mediasoupTypes.DtlsParameters}, callback: () => void, errback: (error: unknown) => void) => {
@@ -397,14 +397,14 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
           break;
       }
     });
-  }
+  };
 
   assignMainProducerToRoom = async (clientId: string, producerId: string, roomId: string, mediaKind: mediasoupTypes.MediaKind) => {
     const assignProducerReq = createRequest('assignMainProducerToRoom', {
       clientId, producerId, roomId, mediaKind,
     });
     await socketutils.sendRequest(assignProducerReq);
-  }
+  };
 
   produce = async (track: MediaStreamTrack, producerInfo?: ProducerInfo): Promise<mediasoupTypes.Producer['id']> => {
     if (!this.sendTransport) {
@@ -417,7 +417,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     const producer = await this.sendTransport.produce(producerOptions);
     this.producers.set(producer.id, producer);
     return producer.id;
-  }
+  };
 
   replaceProducerTrack = async (producerId: string, track: MediaStreamTrack) => {
     const producer = this.producers.get(producerId);
@@ -426,7 +426,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     }
     console.log('replacing producer track');
     return producer.replaceTrack({ track });
-  }
+  };
 
   consume = async (producerId: string): Promise<{track: MediaStreamTrack, consumerId: string}> => {
     if (!producerId) {
@@ -436,7 +436,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       return Promise.reject('No receiveTransport present. Needed to be able to consume');
     }
     const createConsumerReq = createRequest('createConsumer', {
-      producerId: producerId,
+      producerId,
     });
     try {
       const response = await socketutils.sendRequest(createConsumerReq);
@@ -458,15 +458,15 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     } catch (e) {
       return Promise.reject(e);
     }
-  }
+  };
 
   pauseConsumer = (consumerId: string) => {
     this.pauseResumeConsumer(consumerId, true);
-  }
+  };
 
   resumeConsumer = (consumerId: string) => {
     this.pauseResumeConsumer(consumerId, false);
-  }
+  };
 
   private pauseResumeConsumer = async (consumerId: string, wasPaused: boolean) => {
     const consumer = this.consumers.get(consumerId);
@@ -476,10 +476,10 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     const pauseReq = createRequest('notifyPauseResumeRequest', {
       objectType: 'consumer',
       objectId: consumer.id,
-      wasPaused: wasPaused,
+      wasPaused,
     });
     await socketutils.sendRequest(pauseReq);
-  }
+  };
 
   closeAndNotifyProducer = async (producerId: string) => {
     const producer = this.producers.get(producerId);
@@ -493,7 +493,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     });
     socketutils.sendRequest(closeReq);
     this.producers.delete(producerId);
-  }
+  };
 
   closeAndNotifyConsumer = async (consumerId: string) => {
     const consumer = this.consumers.get(consumerId);
@@ -507,7 +507,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     });
     socketutils.sendRequest(closeReq);
     this.consumers.delete(consumerId);
-  }
+  };
 
   closeAndNotifyAllConsumers = async () => {
     console.log('closeAllConsumers called');
@@ -522,7 +522,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       await socketutils.sendRequest(notifyCloseEventReq);
       this.consumers.delete(consumerKey);
     }
-  }
+  };
 
   closeAndNotifyAllProducers = async () => {
     console.log('closeAllProducers called');
@@ -537,5 +537,5 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       await socketutils.sendRequest(notifyCloseEventReq);
       this.producers.delete(producerKey);
     }
-  }
+  };
 }

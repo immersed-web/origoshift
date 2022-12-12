@@ -1,10 +1,11 @@
 import { RequestHandler, Router, Request as ExpressReq } from 'express';
 import bcrypt from 'bcrypt';
-import prisma, { Prisma, users, exclude } from './prismaClient.js';
+import prisma, { Prisma, users, exclude } from './prismaClient';
 import { createJwt } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { validateUserSession } from './utils.js';
+import { validateUserSession } from './utils';
 import 'shared-types/augmentedRequest';
+import 'shared-types/augmentedSession';
 import { UserRole, securityLevels } from 'shared-types/CustomTypes';
 
 
@@ -157,7 +158,7 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
   }
   try {
     // Who is making this request!!! Thats stored in userData
-    if(payload.role){
+    if (payload.role) {
       const clientSecurityLevel = securityLevels.indexOf(userData.role);
       const createdUserSecurityLevel = securityLevels.indexOf(payload.role);
       if (clientSecurityLevel < createdUserSecurityLevel) {
@@ -187,7 +188,7 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
     return;
   }
   let hashedPassword = undefined;
-  if(payload.password){
+  if (payload.password) {
     hashedPassword = await bcrypt.hash(payload.password, 10);
   }
   const userUpdate: Prisma.UserUpdateArgs['data'] = {
@@ -205,7 +206,7 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
     // }
   };
 
-  if(gathering){
+  if (gathering) {
     userUpdate['gathering'] = {
       connect: {
         name: gathering,
@@ -253,11 +254,11 @@ const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
   try {
 
     const userData = req.session.user;
-    if(!userData){
-      throw new Error('not allowed'); 
+    if (!userData) {
+      throw new Error('not allowed');
     }
     const payload = req.body;
-    if(!payload || !payload.uuid){
+    if (!payload || !payload.uuid) {
       throw new Error('no uuid provided. cant delete');
     }
     const userToDelete = await users.findUserAsUserData({
@@ -265,12 +266,12 @@ const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
         uuid: payload.uuid
       }
     });
-    if(!userToDelete){
+    if (!userToDelete) {
       throw new Error('no user found');
     }
     const clientSecurityLevel = securityLevels.indexOf(userData.role);
-    if(clientSecurityLevel < securityLevels.indexOf('admin')){
-      if(!userData.gathering || !userToDelete.gathering || userData.gathering !== userToDelete.gathering){
+    if (clientSecurityLevel < securityLevels.indexOf('admin')) {
+      if (!userData.gathering || !userToDelete.gathering || userData.gathering !== userToDelete.gathering) {
         throw new Error('no can do. too low security level!');
       }
     }
@@ -298,10 +299,10 @@ const getUsers: RequestHandler = async (req: GetUsersRequest, res) => {
   const payload = req.body;
 
   try {
-    if (!userData){
+    if (!userData) {
       throw new Error('no client userdata. unauthorized!');
     }
-    if(!userData.role){
+    if (!userData.role) {
       throw new Error('you have no role! Thus you are not authorized!');
     }
   } catch (e) {
@@ -312,26 +313,26 @@ const getUsers: RequestHandler = async (req: GetUsersRequest, res) => {
   const clientSecurityLevel = securityLevels.indexOf(userData.role);
 
   try {
-    if(clientSecurityLevel < securityLevels.indexOf('host')){
+    if (clientSecurityLevel < securityLevels.indexOf('host')) {
       throw new Error('Too low security clearance! You fucking loooser!');
     }
-    if(clientSecurityLevel < securityLevels.indexOf('admin')){
+    if (clientSecurityLevel < securityLevels.indexOf('admin')) {
       // Below admin in level
-      if(!userData.gathering){
+      if (!userData.gathering) {
         throw new Error('With your security clearance, you must be assigned to a gathering to query for users');
       }
-      if(userData.gathering !== payload.gathering){
+      if (userData.gathering !== payload.gathering) {
         // throw new Error('You can only query for users in your own gathering!!');
         console.warn('received get users without gathering provided in payload.');
       }
       payload.gathering = userData.gathering;
     }
-  } catch(e){
+  } catch (e) {
     const msg = extractMessageFromCatch(e, 'fuck off. Not authorized');
     res.status(401).send(msg);
   }
 
-  const userSelect: Prisma.UserFindManyArgs & {where: Prisma.UserWhereInput}  = {
+  const userSelect: Prisma.UserFindManyArgs & { where: Prisma.UserWhereInput } = {
     where: {},
     include: {
       gathering: true,
@@ -339,8 +340,8 @@ const getUsers: RequestHandler = async (req: GetUsersRequest, res) => {
     }
   };
 
-  if(payload.gathering){
-    userSelect.where['gathering'] = {name: payload.gathering};
+  if (payload.gathering) {
+    userSelect.where['gathering'] = { name: payload.gathering };
   }
 
   const response = await users.findMany(userSelect);

@@ -1,8 +1,8 @@
 {
   "name": "app",
   "version": "0.0.1",
-  "description": "Frontend for inclubit 2",
-  "productName": "Inclubit 2",
+  "description": "Origoshift frontend",
+  "productName": "Origoshift frontend",
   "author": "Gunnar Oledal <gunnar.oledal@gmail.com>",
   "private": true,
   "scripts": {
@@ -10,10 +10,10 @@
     "build": "quasar build",
     "clean": "quasar clean",
     "lint": "eslint --ext .js,.ts,.vue ./",
+    "lint:fix": "eslint --fix --ext .js,.ts,.vue ./",
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@prisma/client": "^3.5.0",
     "@quasar/extras": "^1.0.0",
     "@types/aframe": "^1.2.0",
     "@types/await-timeout": "^0.3.1",
@@ -25,46 +25,40 @@
     "jwt-decode": "^3.1.2",
     "lodash": "^4.17.21",
     "mediasoup-client": "^3",
-    "pinia": "^2.0.6",
+    "pinia": "^2.0.11",
     "pinia-plugin-persistedstate": "^1.5.1",
-    "quasar": "^2.0.0",
-    "shared-types": "^1.0.0",
+    "quasar": "^2.6.0",
+    "shared-modules": "workspace:*",
     "three": "^0.141.0",
-    "three-bmfont-text": "^3.0.1",
     "tiny-typed-emitter": "^2.1.0",
     "typed-emitter": "^2.1.0",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "vue": "^3.0.0",
+    "vue-router": "^4.0.0"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.13.14",
-    "@quasar/app": "^3.0.0",
+    "@quasar/app-vite": "^1.0.0",
     "@types/lodash": "^4.14.182",
     "@types/node": "^12.20.21",
     "@types/three": "^0.141.0",
     "@types/uuid": "^8.3.4",
-    "@typescript-eslint/eslint-plugin": "^4.16.1",
-    "@typescript-eslint/parser": "^4.16.1",
+    "@typescript-eslint/eslint-plugin": "^5.10.0",
+    "@typescript-eslint/parser": "^5.10.0",
+    "autoprefixer": "^10.4.2",
+    "database": "workspace:*",
     "dotenv": "^10.0.0",
-    "eslint": "^7.14.0",
-    "eslint-config-standard": "^16.0.2",
+    "eslint": "^8.10.0",
+    "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.19.1",
+    "eslint-plugin-n": "^15.0.0",
     "eslint-plugin-node": "^11.0.0",
-    "eslint-plugin-promise": "^5.1.0",
-    "eslint-plugin-vue": "^8.0.0"
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-vue": "^9.0.0",
+    "shared-types": "workspace:*",
+    "typescript": "^4.5.4"
   },
-  "browserslist": [
-    "last 10 Chrome versions",
-    "last 10 Firefox versions",
-    "last 4 Edge versions",
-    "last 7 Safari versions",
-    "last 8 Android versions",
-    "last 8 ChromeAndroid versions",
-    "last 8 FirefoxAndroid versions",
-    "last 10 iOS versions",
-    "last 5 Opera versions"
-  ],
   "engines": {
-    "node": ">= 12.22.1",
+    "node": "^18 || ^16 || ^14.19",
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
   }

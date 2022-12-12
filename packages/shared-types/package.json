@@ -2,26 +2,32 @@
   "name": "shared-types",
   "version": "1.0.0",
   "description": "shared types for front & back",
-  "main": "dist",
-  "types": "dist",
-  "type": "module",
   "exports": {
-    "./*": "./dist/*.js"
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/index.js"
+    },
+    "./*": {
+      "import": "./dist/esm/*.js",
+      "require": "./dist/*.js"
+    }
   },
+  "files": [
+    "dist/*"
+  ],
   "scripts": {
-    "dev": "echo 'dummy script'",
-    "build": "tsc --build"
+    "build": "tsc --build tsconfig.json tsconfig.esm.json",
+    "build:watch": "tsc --build --watch tsconfig.json tsconfig.esm.json",
+    "clean": "tsc --build --clean tsconfig.json tsconfig.esm.json"
   },
   "author": "Gunnar Oledal",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
+    "@types/express": "4.17.13",
+    "@types/express-serve-static-core": "^4.17.31",
+    "@types/express-session": "^1.17.4",
     "@typescript-eslint/eslint-plugin": "^5.3.1",
     "@typescript-eslint/parser": "^5.3.1",
-    "@types/express": "4.17.13",
-    "eslint": "^8.2.0",
-    "mediasoup": "3",
-    "mediasoup-client": "3",
-    "typescript": "^4.4.4"
+    "eslint": "^8.2.0"
   }
 }

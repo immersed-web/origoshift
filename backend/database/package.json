@@ -1,31 +1,33 @@
 {
   "name": "database",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "author": "Gunnar Oledal",
   "license": "MIT",
   "prisma": {
     "seed": "ts-node ./seed.ts",
-    "schema": "../database/prisma/schema.prisma"
+    "schema": "./prisma/schema.prisma"
   },
   "scripts": {
-    "migrate:deploy": "dotenv -e ../../.env npx prisma migrate deploy",
-    "generate": "yarn prisma generate",
-    "migrate": "dotenv -e ../../.env.dev npx prisma migrate dev",
-    "migrate:reset": "dotenv -e ../../.env -- npx prisma migrate reset",
-    "seed": "dotenv -e ../../.env npx prisma db seed",
-    "studio": "dotenv -e ../../.env npx prisma studio",
-    "dbpush": "dotenv -e ../../.env npx prisma db push"
+    "build": "tsc --build && pnpm generate",
+    "clean": "tsc --build --clean",
+    "generate": "prisma generate",
+    "migrate:deploy": "dotenv -e ../../.env -- prisma migrate deploy",
+    "migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "migrate:reset": "dotenv -e ../../.env -- prisma migrate reset",
+    "seed": "dotenv -e ../../.env -- prisma db seed",
+    "studio": "dotenv -e ../../.env -- prisma studio",
+    "dbpush": "dotenv -e ../../.env -- prisma db push"
   },
   "devDependencies": {
-    "prisma": "^3.15.2",
+    "prisma": "3",
     "ts-node": "^10.7.0",
-    "typescript": "^4.6.2"
+    "@types/bcrypt": "^5.0.0"
   },
   "dependencies": {
-    "@prisma/client": "^3.13.0",
-    "@types/bcrypt": "^5.0.0",
+    "@prisma/client": "3",
     "bcrypt": "^5.0.1",
-    "shared-types": "1.0.0"
+    "shared-types": "workspace:*"
   }
 }

@@ -8,10 +8,11 @@ import { NonGuestUserRole } from 'shared-types/CustomTypes'
 // console.log('env vars:', process.env);
 
 let role: NonGuestUserRole = 'admin';
-async function seedProd () {
-  if(!process.env.ADMIN_PASSWORD){
+async function seedProd() {
+  if (!process.env.ADMIN_PASSWORD) {
     throw Error('no admin password provided for seed script. set ADMIN_PASSWORD var in the file .env');
   }
+
   const password = process.env.ADMIN_PASSWORD;
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -29,8 +30,13 @@ async function seedProd () {
   })
 }
 
-async function seedDev () {
-  const hashedPassword = await bcrypt.hash('password', 10);
+async function seedDev() {
+  if (!process.env.ADMIN_PASSWORD) {
+    throw Error('no admin password provided for seed script. set ADMIN_PASSWORD var in the file .env');
+  }
+
+  const password = process.env.ADMIN_PASSWORD;
+  let hashedPassword = await bcrypt.hash(password, 10);
 
   await prisma.user.create({
     data:
@@ -45,6 +51,7 @@ async function seedDev () {
     },
   })
 
+  hashedPassword = await bcrypt.hash('password', 10);
   const testSkolan = await prisma.gathering.create({
     data: {
       name: 'TestSkolan',
@@ -201,10 +208,10 @@ async function seedDev () {
   })
 }
 
-if(process.env.DEVELOPMENT){
+if (process.env.DEVELOPMENT) {
   console.log('seeding db with development dummy data');
   seedDev();
-}else {
+} else {
   console.log('seeding db with prod data');
   seedProd();
 }

@@ -6,8 +6,10 @@ source utility.sh
 
 stage 'Gunnar är bäst!'
 
-stage 'Welcome to the install script!
-| This script will attempt to install EVERYTHING needed to run inclubit 2 on the server.
+stage 'Welcome to the environment/ubuntu setup script!
+| This script will attempt to install all the software, tools and dependencies needed to run the project on the server.
+| These are the dependencies that must be available and installed "globally" in the system. 
+| Another script is responsible for the internal/direct dependencies for the individual apps/services of the project.
 | Tested on ubuntu only. The script is designed to run as a non-root user I.E. without "sudo" in front.
 | The script prints out what it is doing so you can have fun and follow along :-)'
 
@@ -15,9 +17,10 @@ read -p "Press ENTER to continue. Press ctrl-c to cancel."
 
 cd_to_project_root
 
+export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
 say 'Updating package register'
-exe sudo apt-get update
+exe sudo apt-get update -y
 
 stage 'Node, PNPM and other global javascript/node dependencies'
 say 'Install NVM (node version manager)'
@@ -44,13 +47,15 @@ exe pnpm --version
 exe pnpm setup
 
 say 'we need to reload bashrc so the added global pnpm bin dir is available'
-exe source ~/.bashrc
+. ~/.profile
+. ~/.bashrc
+exe pnpm bin -g
 
 say "Install dotenv-cli so we can inject env files when running npm scripts"
-exe pnpm add dotenv-cli -g
+exe pnpm add -g dotenv-cli
 
 say 'Install pm2'
-exe pnpm add pm2 -g
+exe pnpm add -g pm2
 
 say 'Verify pm2 is installed'
 exe pm2 --version
@@ -61,7 +66,7 @@ exe pnpm add @quasar/cli -g
 say 'Verify quasar cli is installed'
 exe quasar --version
 
-stage 'Mediasoup dependencies'
+stage 'Mediasoup system requirements'
 say 'Install python and PIP'
 exe sudo apt-get --yes install python3 python3-pip
 say 'Check python is callable'
@@ -77,9 +82,9 @@ exe curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg
 # Dont use this next line with the exe function. it fucks up apt
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
 say 'update index after fetching pack'
-exe sudo apt-get update
+exe sudo apt-get --yes update
 say 'actually install caddy'
-exe sudo apt install caddy
+exe sudo apt install --yes caddy
 
 stage 'DOCKER STUFF'
 
@@ -97,7 +102,7 @@ echo \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 say 'Install DOCKER!!!'
-exe sudo apt-get update
+exe sudo apt-get update --yes
 exe sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
 
 say 'Make sure docker runs'
@@ -118,6 +123,10 @@ exe sudo usermod -aG docker $username
 # say 'Give read & write access to groups attached to folder'
 # exe chmod g+rw ~/docker-persistence
 
+stage "INSTALL NODE MODULES"
+say "We will now run the install command for each of the individual apps/services that makes up this project."
+exe pnpm install
+
 
 stage 'We will use a tool called PM2 to run, monitor and manage all the apps/processes.
 | PM2 has functionality to automatically (re)start a saved list of processes when the server reboots.
@@ -129,6 +138,7 @@ stage 'We will use a tool called PM2 to run, monitor and manage all the apps/pro
 | pm2 startup
 | then copy the output produced from running that command and paste it back into the terminal and run it.'
 read -p "Press ENTER when you have read and understood the above."
+
 
 stage 'The script is finished. Please look through the output so there werent any sad errors.'
 

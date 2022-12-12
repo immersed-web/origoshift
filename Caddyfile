@@ -8,7 +8,8 @@
     handle_path /socket* {
       reverse_proxy localhost:9001
     }
-    reverse_proxy /* localhost:8080
+    # reverse_proxy /* localhost:8080
+    reverse_proxy /* localhost:9000
     # root * /dist/spa
     # try_files {path} /index.html
     # file_server {

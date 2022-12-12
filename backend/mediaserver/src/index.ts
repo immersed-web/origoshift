@@ -5,9 +5,9 @@ process.env.DEBUG = 'Gathering* Room* mediasoup*';
 import observerLogger from './mediasoupObservers';
 const printSoupStats = observerLogger();
 import printClassInstances from './classInstanceObservers';
+import Client from './classes/Client';
 import uWebSockets from 'uWebSockets.js';
 const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
-import Client from './classes/Client';
 import SocketWrapper from './classes/SocketWrapper';
 import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken, DecodedJwt } from 'shared-modules/jwtUtils';
@@ -108,7 +108,7 @@ app.ws('/*', {
       //TODO: This doesnt scale... Perhaps we can use uuid for the clients map instead of ws instance. Then we can check directly against the keys active clients.
       // let alreadyLoggedIn = false;
       clients.forEach(value => {
-        if(value.userData.uuid === decoded.uuid){
+        if(value.userData.role === 'client' && value.userData.uuid === decoded.uuid){
           // alreadyLoggedIn = true;
           throw Error('already logged in!!!');
           

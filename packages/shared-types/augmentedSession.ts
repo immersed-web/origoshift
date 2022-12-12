@@ -1,5 +1,5 @@
-import 'express-session';
-import { UserData } from 'shared-types/CustomTypes';
+import type {SessionData} from 'express-session';
+import type { UserData } from './CustomTypes.js';
 
 declare module 'express-session' {
   interface SessionData {

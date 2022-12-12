@@ -1,4 +1,3 @@
-// import prisma from './prismaClient';
 import { RequestHandler } from 'express';
 
 export const validateUserSession: RequestHandler = async (req, res, next) => {

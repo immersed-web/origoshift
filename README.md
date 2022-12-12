@@ -125,9 +125,9 @@ Make all the bash scripts in the folder executable (in case they're not).
 ```
 chmod +x *.sh
 ```
-Install all the stuffz 📡
+Setup all the system wide tools and dependencies
 ```
-./install-dependencies.sh
+./setup-environment.sh
 ```
 Reboot the system so the user group changes take effect
 ```
@@ -135,13 +135,21 @@ sudo reboot
 ```
 You will probably get kicked out (if you're connected with SSH). Reconnect when the server has rebooted and go back to the SCRIPT folder.
 
+Give Caddy server permission to bind to low port numbers
+```
+sudo bash give-caddy-port-permission.sh 
+```
+
+Install the internal project dependencies and build the apps 📡
+```
+./install-dependencies.sh
+```
+The script will tell you to manually setup autostart for PM2. Follow thos instructions.
+
+
 Now let's initialize the database:
 ```
 ./init-database.sh
-```
-Update and build all the applications:
-```
-./update.sh
 ```
 Now let's run the project 🚀:
 ```
@@ -150,7 +158,13 @@ Now let's run the project 🚀:
 
 
 ### Update to new version
-If you want to update to a new version available on github, you need to stop the applications, pull the new changes from github, update the applications, and start the applications again. Luckily, the provided shell scripts can aid you in this venture!
+If you want to update to a new version available on github, you need to
+- stop the applications
+- pull the new changes from github
+- update and build the applications
+- start the applications again.
+
+Luckily, the provided shell scripts can aid you in this venture!
 Steps:
 - go to the scripts folder `cd ~/inclubit-2/SCRIPTS`
 - run `./stop.sh`
@@ -160,9 +174,12 @@ Steps:
 
 ### Bash Utility Scripts
 There are some shell scripts provided to help with installing, updating and running the applications:
-* `install-dependencies.sh` - This script will attempt to download and install everything needed for inclubit 2 to run properly.
+* `setup-environment.sh` - This script will attempt to setup the ubuntu system with all the sytem wide dependencies and tools required to run the project.
+* `give-caddy-port-permission.sh` - This scripts sets permissions so that caddy server can bind to low port numbers. Run it as root by calling **`sudo bash give-caddy-port-permission.sh`**
+* `install-dependencies.sh` - This script will install and build all the individual apps that makes up the project.
 * `init-database.sh` - This script will initialize/reset the database with the default data. Default data is one admin user with the password defined in the **.env** file.
 * `update.sh` - This script will try to pull the latest changes from github, then update and build the applications as well as apply any new database migrations.
+* `dev.sh` - This script runs the whole project in development mode, including hot reloading etc. This should only be used during development and not to run the project in production for "real" users.
 * `start.sh` - This script will run all the applications. The script uses [pm2](https://pm2.keymetrics.io/), a process manager, to run all the applications in the project.
 * `stop.sh` - This script will stop all the processes started by pm2 and delete them from the process list.
 

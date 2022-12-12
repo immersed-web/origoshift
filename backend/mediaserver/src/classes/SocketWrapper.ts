@@ -1,7 +1,7 @@
 // import EventEmitter from 'events';
 import uWebsocket from 'uWebSockets.js';
 // import { TypedEmitter } from 'tiny-typed-emitter';
-import { Request, AnyResponse, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType, AnySuccessResponse, SuccessResponseTo } from 'shared-types/MessageTypes';
+import { Request, AnyResponse, RequestSubjects, SocketMessage, UnknownMessageType, AnySuccessResponse, SuccessResponseTo } from 'shared-types/MessageTypes';
 
 export type InternalSocketType = uWebsocket.WebSocket;
 // type InternalMessageType = uWebsocket.RecognizedString;
@@ -26,6 +26,8 @@ type RequestRejecter = (msg: unknown) => void;
 //  * @emits message event that is triggered when a message is received.
 //  */
 // export default class SocketWrapper extends TypedEmitter<SocketWrapperEvents>{
+
+type callbackSignature = (msg:SocketMessage<UnknownMessageType>) => void;
 export default class SocketWrapper{
   private socket: InternalSocketType;
   constructor(socket: InternalSocketType){
@@ -36,8 +38,9 @@ export default class SocketWrapper{
   
   // private pendingRequests = new Map<number, RequestResolver>();
   private pendingRequests = new Map<number, {resolve: RequestResolver, reject: RequestRejecter}>();
-  private receivedMessageCallback?: (msg: SocketMessage<UnknownMessageType>) => void;
-  registerReceivedMessageCallback(cb: typeof this.receivedMessageCallback){
+  private receivedMessageCallback?: callbackSignature;
+
+  registerReceivedMessageCallback(cb: callbackSignature){
     this.receivedMessageCallback = cb;
   }
 

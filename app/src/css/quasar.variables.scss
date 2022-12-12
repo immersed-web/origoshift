@@ -46,8 +46,8 @@ $warning   : #F2C037;
   font-weight: 200;
   size-adjust: 130%;
   src: local(''),
-       url('~assets/fonts/cairo-v20-latin-200.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-       url('~assets/fonts/cairo-v20-latin-200.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+       url('assets/fonts/cairo-v20-latin-200.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('assets/fonts/cairo-v20-latin-200.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 /* cairo-300 - latin */
 @font-face {
@@ -56,8 +56,8 @@ $warning   : #F2C037;
   font-weight: 300;
   size-adjust: 130%;
   src: local(''),
-       url('~assets/fonts/cairo-v20-latin-300.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-       url('~assets/fonts/cairo-v20-latin-300.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+      url('assets/fonts/cairo-v20-latin-300.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('assets/fonts/cairo-v20-latin-300.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 /* cairo-regular - latin */
 @font-face {
@@ -66,8 +66,8 @@ $warning   : #F2C037;
   font-weight: 400;
   size-adjust: 130%;
   src: local(''),
-       url('~assets/fonts/cairo-v20-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-       url('~assets/fonts/cairo-v20-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+       url('assets/fonts/cairo-v20-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('assets/fonts/cairo-v20-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 /* cairo-600 - latin */
 @font-face {
@@ -76,8 +76,8 @@ $warning   : #F2C037;
   font-weight: 600;
   size-adjust: 130%;
   src: local(''),
-       url('~assets/fonts/cairo-v20-latin-600.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-       url('~assets/fonts/cairo-v20-latin-600.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+       url('assets/fonts/cairo-v20-latin-600.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('assets/fonts/cairo-v20-latin-600.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 /* cairo-700 - latin */
 @font-face {
@@ -86,8 +86,8 @@ $warning   : #F2C037;
   font-weight: 700;
   size-adjust: 130%;
   src: local(''),
-       url('~assets/fonts/cairo-v20-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-       url('~assets/fonts/cairo-v20-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+       url('assets/fonts/cairo-v20-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('assets/fonts/cairo-v20-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 /* cairo-900 - latin */
 @font-face {
@@ -96,8 +96,8 @@ $warning   : #F2C037;
   font-weight: 900;
   size-adjust: 130%;
   src: local(''),
-       url('~assets/fonts/cairo-v20-latin-900.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-       url('~assets/fonts/cairo-v20-latin-900.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+       url('assets/fonts/cairo-v20-latin-900.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('assets/fonts/cairo-v20-latin-900.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 
 $typography-font-family: 'Cairo', sans-serif;

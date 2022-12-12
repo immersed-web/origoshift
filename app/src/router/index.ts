@@ -5,14 +5,13 @@ import {
   createWebHashHistory,
   createWebHistory,
 } from 'vue-router';
-// import { StateInterface } from '../store';
+
 import routes from './routes';
 
 import { useUserStore } from 'src/stores/userStore';
 import { securityLevels } from 'app/../packages/shared-types/CustomTypes';
 
 import { Notify } from 'quasar';
-
 /*
  * If not building with SSR mode, you can
  * directly export the Router instantiation;
@@ -34,9 +33,7 @@ export default route(function (/* { store, ssrContext } */) {
     // Leave this as is and make changes in quasar.conf.js instead!
     // quasar.conf.js -> build -> vueRouterMode
     // quasar.conf.js -> build -> publicPath
-    history: createHistory(
-      process.env.MODE === 'ssr' ? void 0 : process.env.VUE_ROUTER_BASE,
-    ),
+    history: createHistory(process.env.VUE_ROUTER_BASE),
   });
 
   Router.beforeEach(async (to) => {

@@ -6,7 +6,6 @@ import { throwIfUnauthorized, hasAtLeastSecurityLevel } from 'shared-modules/aut
 import { securityLevels } from 'shared-types/CustomTypes';
 import { validateUserSession } from './utils';
 
-
 const index: RequestHandler = (req, res) => {
   res.send({ message: 'this is the auth api route. Here youcan interact with the rooms and gatherings' });
 };
@@ -17,21 +16,21 @@ interface GetGatheringRequest extends ExpressReq {
   }
 }
 
-const getGathering:RequestHandler = async (req: GetGatheringRequest, res) => {
+const getGathering: RequestHandler = async (req: GetGatheringRequest, res) => {
   const payload = req.body;
   const userData = req.session.user;
   let gatheringName = payload.gatheringName;
 
   try {
 
-    if(!userData || !userData.role) {
+    if (!userData || !userData.role) {
       throw new Error('no role!');
     }
     throwIfUnauthorized(userData.role, 'host');
-    if(!hasAtLeastSecurityLevel(userData.role, 'admin')){
+    if (!hasAtLeastSecurityLevel(userData.role, 'admin')) {
       gatheringName = userData.gathering;
     }
-    if(!gatheringName){
+    if (!gatheringName) {
       throw new Error('either no gatheringName provided or no gatheringName in userData');
     }
 
@@ -56,11 +55,11 @@ const getGathering:RequestHandler = async (req: GetGatheringRequest, res) => {
 const allGatherings: RequestHandler = async (req, res) => {
   const userData = req.session.user;
   try {
-    if(!userData || !userData.role){
+    if (!userData || !userData.role) {
       throw new Error('no role!!!');
     }
     const clientSecurityLevel = securityLevels.indexOf(userData.role);
-    if(clientSecurityLevel < securityLevels.indexOf('admin')){
+    if (clientSecurityLevel < securityLevels.indexOf('admin')) {
       throw new Error('not authorized! Go fuck yourself!');
     }
 
@@ -71,7 +70,7 @@ const allGatherings: RequestHandler = async (req, res) => {
       }
     });
     res.send(gatherings);
-  } catch(e) {
+  } catch (e) {
     const msg = extractMessageFromCatch(e, 'please dont!');
     res.status(401).send(msg);
   }
@@ -82,7 +81,7 @@ const createGathering: RequestHandler = async (req, res) => {
   const payload = req.body;
   try {
     throwIfUnauthorized(userData?.role, 'admin');
-    if(!payload.gatheringName){
+    if (!payload.gatheringName) {
       throw new Error('no name provided');
     }
     const createdGathering = await prisma.gathering.create({
@@ -98,12 +97,12 @@ const createGathering: RequestHandler = async (req, res) => {
   }
 };
 
-const deleteGathering : RequestHandler = async (req, res) => {
+const deleteGathering: RequestHandler = async (req, res) => {
   const userData = req.session.user;
   const payload = req.body;
   try {
     throwIfUnauthorized(userData?.role, 'admin');
-    if(!payload.gatheringName) {
+    if (!payload.gatheringName) {
       throw new Error('no gatheringName provided!');
     }
     const deleteResult = await prisma.gathering.delete({

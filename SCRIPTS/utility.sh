@@ -24,11 +24,13 @@ exe() { echo "\$ $@" ; "$@" ; }
 print_hline() {
   printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
 }
+STARTDIR=$(pwd)
 
 cd $(dirname $BASH_SOURCE)
 SCRIPTDIR=$(pwd)
 cd ..
 PROJECTDIR=$(pwd)
+cd $STARTDIR
 
 cd_to_script() {
   say 'Changing directory to script folder'

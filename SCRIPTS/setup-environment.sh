@@ -49,22 +49,21 @@ exe pnpm setup
 say 'we need to reload bashrc so the added global pnpm bin dir is available'
 . ~/.profile
 . ~/.bashrc
-exe pnpm bin -g
 
-say "Install dotenv-cli so we can inject env files when running npm scripts"
-exe pnpm add -g dotenv-cli
+# say "Install dotenv-cli so we can inject env files when running npm scripts"
+# exe pnpm add -g dotenv-cli
 
-say 'Install pm2'
-exe pnpm add -g pm2
+# say 'Install pm2'
+# exe pnpm add -g pm2
 
-say 'Verify pm2 is installed'
-exe pm2 --version
+# say 'Verify pm2 is installed'
+# exe pm2 --version
 
-say 'Install quasar cli'
-exe pnpm add @quasar/cli -g
+# say 'Install quasar cli'
+# exe pnpm add @quasar/cli -g
 
-say 'Verify quasar cli is installed'
-exe quasar --version
+# say 'Verify quasar cli is installed'
+# exe quasar --version
 
 stage 'Mediasoup system requirements'
 say 'Install python and PIP'
@@ -123,27 +122,27 @@ exe sudo usermod -aG docker $username
 # say 'Give read & write access to groups attached to folder'
 # exe chmod g+rw ~/docker-persistence
 
-stage "INSTALL NODE MODULES"
-say "We will now run the install command for each of the individual apps/services that makes up this project."
-exe pnpm install
+# stage "INSTALL NODE MODULES"
+# say "We will now run the install command for each of the individual apps/services that makes up this project."
+# exe pnpm install
 
 
-stage 'We will use a tool called PM2 to run, monitor and manage all the apps/processes.
-| PM2 has functionality to automatically (re)start a saved list of processes when the server reboots.
-| PM2 should have been installed earlier in this script, but the autostart functionality must be manually activated.
-| Instructions can be found here:
-| https://pm2.keymetrics.io/docs/usage/startup/
-|
-| In short the procedure is to run:
-| pm2 startup
-| then copy the output produced from running that command and paste it back into the terminal and run it.'
-read -p "Press ENTER when you have read and understood the above."
+# stage 'We will use a tool called PM2 to run, monitor and manage all the apps/processes.
+# | PM2 has functionality to automatically (re)start a saved list of processes when the server reboots.
+# | PM2 should have been installed earlier in this script, but the autostart functionality must be manually activated.
+# | Instructions can be found here:
+# | https://pm2.keymetrics.io/docs/usage/startup/
+# |
+# | In short the procedure is to run:
+# | pm2 startup
+# | then copy the output produced from running that command and paste it back into the terminal and run it.'
+# read -p "Press ENTER when you have read and understood the above."
 
 
 stage 'The script is finished. Please look through the output so there werent any sad errors.'
 
 echo '    '
-echo 'NOW LOG OUT THE USER AND LOG IN AGAIN. OTHERWISE THE USER WILL NOT BE CONSIDERED PART OF THE DOCKER USER GROUP'
+echo 'NOW LOG OUT THE USER AND LOG IN AGAIN. OTHERWISE THE USER WILL NOT BE CONSIDERED PART OF THE DOCKER USER GROUP.'
 echo 'YOU MIGHT EVEN HAVE TO REBOOT THE SYSTEM FOR THE CHANGES TO TAKE EFFECT. if so, run "sudo reboot"'
 echo '    '
 echo '-------------------------------'

@@ -3,12 +3,25 @@ import { types as mediasoupTypes } from 'mediasoup';
 import ip from 'ip';
 
 
-let listenIp = process.env.LISTEN_IP;
+let publicIp = process.env.LISTEN_IP;
+let listenIps: mediasoupTypes.WebRtcTransportOptions['listenIps'];
 
-if(!listenIp){
-  listenIp = '0.0.0.0';
-  console.warn('WARNING! No listenIp provided to mediasoup. Defaulting to 0.0.0.0');
-  // throw new Error('no listenIp set for mediaserver!');
+if(!publicIp){
+  publicIp = '127.0.0.1';
+  listenIps = [
+    {
+      ip: publicIp,
+      announcedIp: undefined,
+    }
+  ];
+  console.warn('WARNING! No listenIp provided to mediasoup. Defaulting to 127.0.0.1');
+} else {
+  listenIps = [
+    {
+      ip: publicIp,
+      announcedIp: ip.address(),
+    }
+  ];
 }
 
 
@@ -69,11 +82,12 @@ const router: mediasoupTypes.RouterOptions = {
 };
 
 const webRtcTransport: mediasoupTypes.WebRtcTransportOptions = {
-  listenIps: [
-    { ip: ip.address(), announcedIp: listenIp },
-    // { ip: "192.168.42.68", announcedIp: null },
-    // { ip: '10.10.23.101', announcedIp: null },
-  ],
+  listenIps,
+  // listenIps: [
+  //   { ip: ip.address(), announcedIp: listenIp },
+  //   // { ip: "192.168.42.68", announcedIp: null },
+  //   // { ip: '10.10.23.101', announcedIp: null },
+  // ],
   enableUdp: true,
   enableTcp: true,
   preferUdp: true,
@@ -107,7 +121,7 @@ const mediasoupConfig: MediasoupConfig = {
   // to set these appropriately for your network for the demo to
   // run anywhere but on localhost
   webRtcTransport,
-  
+
   maxIncomingBitrate: 20_000_000,
   // numWorkers: 1,
 };

@@ -37,7 +37,7 @@ exe quasar --version
 
 stage "INSTALL NODE MODULES"
 say "We will now run the install command for each of the individual apps/services that makes up this project."
-exe pnpm install
+exe pnpm install --reporter=append-only
 
 say 'build all the node projects'
 exe pnpm -r build

@@ -18,8 +18,8 @@ if(!publicIp){
 } else {
   listenIps = [
     {
-      ip: publicIp,
-      announcedIp: ip.address(),
+      ip: ip.address(),
+      announcedIp: publicIp,
     }
   ];
 }

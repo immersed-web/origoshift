@@ -22,6 +22,7 @@ if(!publicIp){
       announcedIp: publicIp,
     }
   ];
+  console.log('Using the following IP config for mediasoup:', listenIps);
 }
 
 

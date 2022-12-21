@@ -308,6 +308,8 @@ async function onVideoPicked (deviceInfo: MediaDeviceInfo) {
   videoStream = await navigator.mediaDevices.getUserMedia({
     video: {
       deviceId: deviceInfo.deviceId,
+      width: { min: 3000 },
+      height: { min: 1900 },
     },
   });
   const videoSettings = videoStream.getVideoTracks()[0].getSettings();

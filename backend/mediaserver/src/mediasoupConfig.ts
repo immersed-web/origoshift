@@ -124,7 +124,8 @@ const mediasoupConfig: MediasoupConfig = {
   // run anywhere but on localhost
   webRtcTransport,
 
-  maxIncomingBitrate: 25_000_000,
+  // Per transport max bitrate
+  maxIncomingBitrate: 50_000_000,
   // numWorkers: 1,
 };
 

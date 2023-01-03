@@ -310,6 +310,7 @@ async function onVideoPicked (deviceInfo: MediaDeviceInfo) {
       deviceId: deviceInfo.deviceId,
       width: { min: 3000 },
       height: { min: 1900 },
+      frameRate: 20,
     },
   });
   const videoSettings = videoStream.getVideoTracks()[0].getSettings();

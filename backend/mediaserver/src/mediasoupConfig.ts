@@ -18,10 +18,12 @@ if(!publicIp){
 } else {
   listenIps = [
     {
-      ip: publicIp,
-      announcedIp: ip.address(),
+      // ip: ip.address(),
+      ip: '0.0.0.0',
+      announcedIp: publicIp,
     }
   ];
+  console.log('Using the following IP config for mediasoup:', listenIps);
 }
 
 
@@ -53,31 +55,31 @@ const router: mediasoupTypes.RouterOptions = {
       mimeType: 'video/VP8',
       clockRate: 90000,
       parameters: {
-        //                'x-google-start-bitrate': 1000
+        'x-google-start-bitrate': 1_000_000
       },
     },
-    {
-      kind: 'video',
-      mimeType: 'video/h264',
-      clockRate: 90000,
-      parameters: {
-        'packetization-mode': 1,
-        'profile-level-id': '4d0032',
-        'level-asymmetry-allowed': 1,
-        //						  'x-google-start-bitrate'  : 1000
-      },
-    },
-    {
-      kind: 'video',
-      mimeType: 'video/h264',
-      clockRate: 90000,
-      parameters: {
-        'packetization-mode': 1,
-        'profile-level-id': '42e01f',
-        'level-asymmetry-allowed': 1,
-        //						  'x-google-start-bitrate'  : 1000
-      },
-    },
+    // {
+    //   kind: 'video',
+    //   mimeType: 'video/h264',
+    //   clockRate: 90000,
+    //   parameters: {
+    //     'packetization-mode': 1,
+    //     'profile-level-id': '4d0032',
+    //     'level-asymmetry-allowed': 1,
+    //     //						  'x-google-start-bitrate'  : 1000
+    //   },
+    // },
+    // {
+    //   kind: 'video',
+    //   mimeType: 'video/h264',
+    //   clockRate: 90000,
+    //   parameters: {
+    //     'packetization-mode': 1,
+    //     'profile-level-id': '42e01f',
+    //     'level-asymmetry-allowed': 1,
+    //     //						  'x-google-start-bitrate'  : 1000
+    //   },
+    // },
   ],
 };
 
@@ -122,7 +124,8 @@ const mediasoupConfig: MediasoupConfig = {
   // run anywhere but on localhost
   webRtcTransport,
 
-  maxIncomingBitrate: 20_000_000,
+  // Per transport max bitrate
+  maxIncomingBitrate: 50_000_000,
   // numWorkers: 1,
 };
 

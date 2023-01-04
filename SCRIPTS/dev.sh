@@ -1,10 +1,9 @@
 #!/bin/bash
 
 BASEDIR=$(dirname $BASH_SOURCE)
-echo $BASEDIR
 cd $BASEDIR
 source utility.sh
-say 'Changed directory to SCRIPT folder (if not already set)'
+# say 'Changed directory to SCRIPT folder (if not already set)'
 
 cd_to_script
 

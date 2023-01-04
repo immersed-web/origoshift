@@ -10,12 +10,12 @@ type MsgEvents = {
   [event in MessageSubjects]: (data: Message<event>['data']) => void;
 };
 type ReqEvents = {
-  [event in RequestSubjects]: (msgId: number, data: Request<event> extends {data: unknown}? Request<event>['data']: undefined) => void;
+  [event in RequestSubjects]: (msgId: number, data: Request<event> extends { data: unknown } ? Request<event>['data'] : undefined) => void;
 }
 
 type AbortEvent = (reason: string) => void;
 
-type PeerEvents = MsgEvents & ReqEvents & {abort: AbortEvent};
+type PeerEvents = MsgEvents & ReqEvents & { abort: AbortEvent };
 interface TransportProduceParams {
   kind: mediasoupTypes.MediaKind;
   rtpParameters: mediasoupTypes.RtpParameters;
@@ -334,7 +334,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
   };
 
   private attachTransportEvents = (transport: mediasoupTypes.Transport) => {
-    transport.on('connect', ({ dtlsParameters }: {dtlsParameters: mediasoupTypes.DtlsParameters}, callback: () => void, errback: (error: unknown) => void) => {
+    transport.on('connect', ({ dtlsParameters }: { dtlsParameters: mediasoupTypes.DtlsParameters }, callback: () => void, errback: (error: unknown) => void) => {
       void (async () => {
         const connectTransportReq = createRequest('connectTransport', {
           transportId: transport.id,
@@ -354,8 +354,8 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
         kind,
         rtpParameters,
         appData,
-      }: TransportProduceParams, callback: ({ id }: {id: string}) => void, errorback: (error: unknown) => void) => {
-      // void (async () => {
+      }: TransportProduceParams, callback: ({ id }: { id: string }) => void, errorback: (error: unknown) => void) => {
+        // void (async () => {
         // const params: {transportId: string | undefined, kind: mediasoupTypes.MediaKind, rtpParameters: mediasoupTypes.RtpParameters } = { transportId: transport?.id, kind, rtpParameters };
         try {
           const { producerInfo } = appData;
@@ -378,7 +378,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
         } catch (err) {
           errorback(err);
         }
-      // })();
+        // })();
       });
     }
 
@@ -410,7 +410,12 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     if (!this.sendTransport) {
       return Promise.reject('Need a transport to be able to produce. No transport present');
     }
-    const producerOptions: mediasoupTypes.ProducerOptions = { track };
+    const encodings: mediasoupTypes.ProducerOptions['encodings'] = [
+      {
+        maxBitrate: 25_000_000,
+      },
+    ];
+    const producerOptions: mediasoupTypes.ProducerOptions = { track, encodings };
     if (producerInfo) {
       producerOptions.appData = { producerInfo };
     }
@@ -428,7 +433,7 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     return producer.replaceTrack({ track });
   };
 
-  consume = async (producerId: string): Promise<{track: MediaStreamTrack, consumerId: string}> => {
+  consume = async (producerId: string): Promise<{ track: MediaStreamTrack, consumerId: string }> => {
     if (!producerId) {
       throw Error('consume called without producerId! Please provide one!');
     }

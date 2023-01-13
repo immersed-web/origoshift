@@ -1,8 +1,8 @@
 {
   "name": "app",
   "version": "0.0.1",
-  "description": "Origoshift frontend",
-  "productName": "Origoshift frontend",
+  "description": "360 video streaming to virtual reality using web technologies",
+  "productName": "Inclubit 360",
   "author": "Gunnar Oledal <gunnar.oledal@gmail.com>",
   "private": true,
   "scripts": {

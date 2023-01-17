@@ -113,7 +113,9 @@ const clientsWithMuteState = computed(() => {
     if (client.customProperties.forceMuted) {
       return 'forceMuted';
     }
-    if (Object.keys(client.producers).length === 0) {
+    // if(Object.keys(client.producers).length === 0) {
+    const producererArr = Object.values(client.producers);
+    if (!producererArr.length || producererArr[0].producerInfo?.paused) {
       return 'muted';
     } else {
       return 'unmuted';
@@ -144,27 +146,42 @@ const soundOn = ref<boolean>(false);
 const producerAudioTags = ref<Record<string, HTMLAudioElement>>({});
 let consumedProducers: Record<string, string> = {};
 watch(clientProducers, (producers) => {
+  console.log('clientProducers watcher triggered:', producers);
   if (!soundOn.value) return;
   updateProducelistAndConsumeThem(producers);
 }, { deep: true, immediate: true });
 
-function updateProducelistAndConsumeThem (producers: (typeof props.clients)[string]['producers']) {
-  console.log('LOOPING PRODUCERS AND CONSUMING TTHEM');
-  const newConsumedProducers: Record<string, string> = {};
-  Object.values(producers).forEach(async producer => {
-    if (consumedProducers[producer.producerId]) return;
+// TODO: Here is memoryleak where we create more and more consumers!!! NO GOOD! MUST FIX!!!
+async function updateProducelistAndConsumeThem (producers: (typeof props.clients)[string]['producers']) {
+  console.log('Update producelistandconsume triggered!!');
+
+  console.log('consumedProducers before:', consumedProducers);
+  // console.log('LOOPING (Not yet consumed) PRODUCERS AND CONSUMING THEM');
+  const addedConsumedProducers: Record<string, string> = {};
+  for (const producer of Object.values(producers)) {
+    if (consumedProducers[producer.producerId]) {
+      console.log('this producer is already consumed. Skipping it!');
+      continue;
+    }
+    if (producer.producerInfo?.paused) {
+      console.log('this producer is paused. Will not cosumer it.');
+      continue;
+    }
 
     if (!peer.receiveTransport) {
+      console.log('Creating receive transport in watcher callback');
       await peer.sendRtpCapabilities();
       await peer.createReceiveTransport();
     }
+    console.log('this producer was not conumsed. Adding it!');
     const { consumerId, track } = await peer.consume(producer.producerId);
-    newConsumedProducers[producer.producerId] = consumerId;
+    addedConsumedProducers[producer.producerId] = consumerId;
     const audioStream = new MediaStream([track]);
     if (producerAudioTags.value[producer.producerId]) producerAudioTags.value[producer.producerId].srcObject = audioStream;
-  });
+  }
 
-  consumedProducers = newConsumedProducers;
+  consumedProducers = { ...addedConsumedProducers, ...consumedProducers };
+  console.log('consumed producers after:', consumedProducers);
 }
 
 async function toggleSound () {
@@ -179,7 +196,8 @@ async function toggleSound () {
 
 async function toggleConsume (client: (typeof clientsWithMuteState.value)[number]) {
   if (client.muteState === 'unmuted') {
-    await peer.closeAllProducersForClient(client.clientId);
+    await peer.pauseAllProducersForCLient(client.clientId);
+    // await peer.closeAllProducersForClient(client.clientId);
     return;
   }
   const newState = client.muteState === 'muted';

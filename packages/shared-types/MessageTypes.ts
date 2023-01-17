@@ -121,6 +121,9 @@ export type AnyRequest =
   | RequestBuilder<'closeAllProducersForClient', {
     clientId: string,
   }>
+  | RequestBuilder<'pauseAllProducersForClient', {
+    clientId: string,
+  }>
   | RequestBuilder<'setForceMuteStateForProducer', {
     clientId: string,
     producerId: string,
@@ -230,6 +233,7 @@ export type AnyResponse =
   | ResponseBuilder<'forwardedRequestToJoinRoom'>
   | ResponseBuilder<'removeClientFromRoom'>
   | ResponseBuilder<'closeAllProducersForClient'>
+  | ResponseBuilder<'pauseAllProducersForClient'>
   | ResponseBuilder<'setForceMuteStateForProducer'>
   | ResponseBuilder<'setForceMuteStateForClient'>
   | ResponseBuilder<'leaveRoom', { roomId: string }>

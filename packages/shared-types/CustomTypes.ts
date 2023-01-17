@@ -7,6 +7,7 @@ import { types as soup } from 'mediasoup';
 import { RequestSubjects } from './MessageTypes.js';
 
 export interface ProducerInfo {
+  paused: boolean,
   screenShare?: boolean,
   forceMuted?: boolean,
   dimensions?: { w: number, h: number },
@@ -131,7 +132,7 @@ type DefaultAction = (typeof defaultActions)[number];
 type NonDefaultAction = Exclude<AllowedAction, DefaultAction>
 
 const hostActions: NonDefaultAction[] = [
-  'assignMainProducerToRoom', 'createRoom', 'setRoomName', 'customRequest', 'getGatheringState', 'removeClientFromRoom', 'closeAllProducersForClient', 'setForceMuteStateForProducer', 'setForceMuteStateForClient', 'setCustomRoomProperties',
+  'assignMainProducerToRoom', 'createRoom', 'setRoomName', 'customRequest', 'getGatheringState', 'removeClientFromRoom', 'closeAllProducersForClient', 'pauseAllProducersForClient', 'setForceMuteStateForProducer', 'setForceMuteStateForClient', 'setCustomRoomProperties',
 ]
 
 export const allowedActions: Record<UserRole, AllowedAction[]> = {

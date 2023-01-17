@@ -200,7 +200,9 @@ const currentMuteState = computed(() => {
   if (soupStore.clientState.customProperties.forceMuted) {
     return 'forceMuted';
   }
-  if (Object.keys(soupStore.clientState.producers).length === 0) {
+  // if (!peer.producers.size || Array.from(peer.producers.values())[0].paused) {
+  const producerArr = Object.values(soupStore.clientState.producers);
+  if (!producerArr.length || producerArr[0].producerInfo?.paused) {
     return 'muted';
   }
   return 'unmuted';
@@ -212,15 +214,20 @@ async function toggleMute () {
       return;
     }
     case 'muted': {
-      const microphoneStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
-      });
-      audioProducerId = await peer.produce(microphoneStream.getAudioTracks()[0]);
+      if (!audioProducerId) {
+        const microphoneStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: false,
+        });
+        audioProducerId = await peer.produce(microphoneStream.getAudioTracks()[0]);
+      } else {
+        peer.resumeProducer(audioProducerId);
+      }
       break;
     }
     case 'unmuted': {
-      peer.closeAndNotifyProducer(audioProducerId);
+      // peer.closeAndNotifyProducer(audioProducerId);
+      peer.pauseProducer(audioProducerId);
     }
   }
 }

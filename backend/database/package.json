@@ -10,7 +10,7 @@
     "schema": "./prisma/schema.prisma"
   },
   "scripts": {
-    "build": "tsc --build && pnpm generate",
+    "build": "tsc --build",
     "clean": "tsc --build --clean",
     "generate": "prisma generate",
     "migrate:deploy": "dotenv -e ../../.env -- prisma migrate deploy",

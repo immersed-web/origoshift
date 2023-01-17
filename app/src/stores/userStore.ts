@@ -6,8 +6,10 @@ import jwtDecode, { JwtPayload } from 'jwt-decode';
 
 const rootState: {
   jwt?: string
+  firstInteractionDone: boolean
 } = {
   jwt: undefined,
+  firstInteractionDone: false,
 };
 
 export const useUserStore = defineStore('user', {

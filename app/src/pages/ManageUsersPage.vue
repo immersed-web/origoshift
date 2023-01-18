@@ -383,7 +383,7 @@ async function addUser () {
     addingOrEditingUser.value = false;
   } catch (e) {
     // console.error(e);
-    const errMsg = extractMessageFromCatch(e, 'upptaaaaget');
+    const errMsg = extractMessageFromCatch(e, 'Kunde inte skapa användare');
     // console.log(errMsg);
     errorMsg.value = errMsg;
   }
@@ -404,11 +404,16 @@ async function editUser () {
   if (showGatheringPanel.value) {
     payload.gathering = usersGatheringName.value;
   }
-  const updatedUser = await updateUser(payload);
-  console.log(updatedUser);
-  const idx = _.findIndex(users.value, { uuid: updatedUser.uuid });
-  users.value?.splice(idx, 1, updatedUser);
-  addingOrEditingUser.value = false;
+  try {
+    const updatedUser = await updateUser(payload);
+    console.log(updatedUser);
+    const idx = _.findIndex(users.value, { uuid: updatedUser.uuid });
+    users.value?.splice(idx, 1, updatedUser);
+    addingOrEditingUser.value = false;
+  } catch (e) {
+    const msg = extractMessageFromCatch(e, 'Kunde inte uppdatera användare');
+    errorMsg.value = msg;
+  }
 }
 
 </script>

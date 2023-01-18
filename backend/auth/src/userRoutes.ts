@@ -120,7 +120,7 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === 'P2002') {
-        res.status(409).send({ message: 'username already taken maddafakka!' });
+        res.status(409).send('Det användarnamnet är upptaget!');
         return;
       } else {
         console.error('prisma client error when creating user');
@@ -232,10 +232,10 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === 'P2002') {
-        res.status(409).send({ message: 'username already taken maddafakka!' });
+        res.status(409).send('användarnamnet är upptaget!');
         return;
       } else {
-        console.error('prisma client error when creating user');
+        console.error('prisma client error when editing user');
         console.error(e);
         res.status(501).send(e.message);
         return;

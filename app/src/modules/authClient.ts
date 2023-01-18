@@ -2,13 +2,18 @@
 import { NonGuestUserRole, UserData } from 'shared-types/CustomTypes';
 import { AxiosResponse } from 'axios';
 import { api } from 'boot/axios';
+import { extractMessageFromCatch } from "shared-modules/utilFns";
 
 import type { Gathering, GatheringWithRoomsAndUsers, UserWithIncludes } from 'database';
 
 const handleResponse = async <ReturnType>(apiCall: () => Promise<AxiosResponse<ReturnType>>) => {
-  const response = await apiCall();
-  console.log('user/auth Api response received:', response);
-  return response.data;
+  try {
+    const response = await apiCall();
+    console.log('user/auth Api response received:', response);
+    return response.data;
+  } catch (e: any) {
+    return Promise.reject(Error(e.response.data));
+  }
 };
 
 export const login = async (username: string, password: string) => {

@@ -245,8 +245,6 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     const joinRoomReq = createRequest('joinRoom', { roomId });
     const response = await socketutils.sendRequest(joinRoomReq);
     return response.data;
-    // this.closeAllConsumers();
-    // this.roomStore.currentRoomId = roomId;
   };
 
   setRoomName = async (roomId: string, roomName: string) => {
@@ -275,9 +273,14 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
   };
 
   leaveRoom = async () => {
+    // await this.closeAndNotifyAllConsumers();
+    // await this.closeAndNotifyAllProducers();
     const leaveRoomReq = createRequest('leaveRoom');
     await socketutils.sendRequest(leaveRoomReq);
-    // this.closeAllConsumers();
+    this.sendTransport?.close();
+    this.sendTransport = undefined;
+    this.receiveTransport?.close();
+    this.receiveTransport = undefined;
   };
 
   removeClientFromRoom = async (clientId: string, roomId: string) => {

@@ -959,6 +959,10 @@ export default class Client {
     }
     this.closeAndNotifyAllConsumers();
     this.closeAndNotifyAllProducers();
+    this.sendTransport?.close();
+    this.sendTransport = undefined;
+    this.receiveTransport?.close();
+    this.receiveTransport = undefined;
     const roomId = this.room.id;
     this.room.removeClient(this);
     return roomId;

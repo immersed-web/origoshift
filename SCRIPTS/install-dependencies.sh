@@ -39,6 +39,12 @@ stage "INSTALL NODE MODULES"
 say "We will now run the install command for each of the individual apps/services that makes up this project."
 exe pnpm install --reporter=append-only
 
+say 'build only the shared packages'
+exe pnpm --filter "./packages/**" -r build
+
+say 'generate the prisma client'
+exe pnpm --filter "database" generate
+
 say 'build all the node projects'
 exe pnpm -r build
 

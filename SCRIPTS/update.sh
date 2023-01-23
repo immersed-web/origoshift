@@ -24,6 +24,12 @@ exe git pull
 say 'install/update all npm projects'
 exe pnpm install
 
+say 'build only the shared packages'
+exe pnpm --filter "./packages/**" -r build
+
+say 'generate the prisma client'
+exe pnpm --filter "database" generate
+
 say 'build all the npm projects'
 exe pnpm -r build
 

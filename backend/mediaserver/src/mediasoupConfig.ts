@@ -4,7 +4,12 @@ import ip from 'ip';
 
 
 let publicIp = process.env.LISTEN_IP;
+let internalIp = process.env.INTERNAL_IP;
 let listenIps: mediasoupTypes.WebRtcTransportOptions['listenIps'];
+
+if(!internalIp){
+  internalIp = ip.address();
+}
 
 if(!publicIp){
   publicIp = '127.0.0.1';
@@ -18,13 +23,12 @@ if(!publicIp){
 } else {
   listenIps = [
     {
-      // ip: ip.address(),
-      ip: '0.0.0.0',
+      ip: internalIp,
       announcedIp: publicIp,
     }
   ];
-  console.log('Using the following IP config for mediasoup:', listenIps);
 }
+console.log('Using the following IP config for mediasoup:', listenIps);
 
 
 const logLevel: mediasoupTypes.WorkerLogLevel = 'debug';

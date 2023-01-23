@@ -25,6 +25,10 @@ if(!publicIp){
     {
       ip: internalIp,
       announcedIp: publicIp,
+    },
+    {
+      ip: internalIp,
+      announcedIp: internalIp,
     }
   ];
 }

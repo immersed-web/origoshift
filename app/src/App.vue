@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router';
 import HelloWorld from './components/HelloWorld.vue';
+import { Switch } from '@headlessui/vue';
+import { ref } from 'vue';
+const switchValue = ref<boolean>(false);
 </script>
 
 <template>
@@ -18,8 +20,15 @@ import HelloWorld from './components/HelloWorld.vue';
         class="bg-slate-400"
         msg="You did it! Hurrray"
       />
-
+      <Switch v-model="switchValue">
+        Test
+        {{ switchValue }}
+      </Switch>
       <nav>
+        <TestComponent msg="yeees" />
+        <RouterLink to="/test">
+          TestRoute
+        </RouterLink>
         <RouterLink to="/">
           Home
         </RouterLink>

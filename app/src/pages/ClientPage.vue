@@ -151,7 +151,7 @@
     setup
     lang="ts"
   >
-import { ref, nextTick, watch, onMounted, onBeforeUnmount, computed } from 'vue';
+import { ref, nextTick, watch, onMounted, onBeforeUnmount, onUnmounted, computed } from 'vue';
 import { useSoupStore } from 'src/stores/soupStore';
 import usePeerClient from 'src/composables/usePeerClient';
 import { useRouter } from 'vue-router';
@@ -159,12 +159,14 @@ import { THREE, Entity } from 'aframe';
 import { RoomState } from 'shared-types/CustomTypes';
 import { useQuasar } from 'quasar';
 import BottomPanel from 'src/components/BottomPanel.vue';
+import { useUserStore } from 'stores/userStore';
 
 const $q = useQuasar();
 
 const router = useRouter();
 const peer = usePeerClient();
 const soupStore = useSoupStore();
+const userStore = useUserStore();
 
 watch(() => soupStore.roomState?.mainProducers, (newMainProducers, oldMainProducers) => {
   if (!newMainProducers) return;
@@ -200,7 +202,9 @@ const currentMuteState = computed(() => {
   if (soupStore.clientState.customProperties.forceMuted) {
     return 'forceMuted';
   }
-  if (Object.keys(soupStore.clientState.producers).length === 0) {
+  // if (!peer.producers.size || Array.from(peer.producers.values())[0].paused) {
+  const producerArr = Object.values(soupStore.clientState.producers);
+  if (!producerArr.length || producerArr[0].producerInfo?.paused) {
     return 'muted';
   }
   return 'unmuted';
@@ -212,15 +216,20 @@ async function toggleMute () {
       return;
     }
     case 'muted': {
-      const microphoneStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
-      });
-      audioProducerId = await peer.produce(microphoneStream.getAudioTracks()[0]);
+      if (!audioProducerId) {
+        const microphoneStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: false,
+        });
+        audioProducerId = await peer.produce(microphoneStream.getAudioTracks()[0]);
+      } else {
+        peer.resumeProducer(audioProducerId);
+      }
       break;
     }
     case 'unmuted': {
-      peer.closeAndNotifyProducer(audioProducerId);
+      // peer.closeAndNotifyProducer(audioProducerId);
+      peer.pauseProducer(audioProducerId);
     }
   }
 }
@@ -295,6 +304,7 @@ async function consumeVideo (producerId: string) {
   const { track } = await peer.consume(producerId);
   // videoTag.value.srcObject = new MediaStream([track]);
   receiveStream.addTrack(track);
+  attachSrcObject();
   await nextTick();
   initVideoSphere();
 }
@@ -305,12 +315,33 @@ async function consumeAudio (producerId: string) {
 }
 
 onMounted(() => {
-  if (videoTag.value) {
-    videoTag.value.srcObject = receiveStream;
+  if (!userStore.firstInteractionDone) {
+    $q.dialog({
+      title: 'Sidan laddad',
+      message: 'Starta?',
+    }).onDismiss(() => {
+      attachSrcObject();
+      userStore.firstInteractionDone = true;
+    });
+  } else {
+    attachSrcObject();
   }
 });
 
-onBeforeUnmount(() => {
+function attachSrcObject () {
+  if (!videoTag.value) {
+    console.error('no video tag to attach stream to!');
+    return;
+  }
+  if (!receiveStream) {
+    console.error('receiveStream was undefined');
+    return;
+  }
+  videoTag.value.srcObject = receiveStream;
+}
+
+onUnmounted(() => {
+  console.log('UNMOUNTING"""""""""""""');
   // peer.closeAndNotifyAllConsumers();
   // peer.receiveTransport?.close();
   $q.loading.hide();
@@ -318,6 +349,9 @@ onBeforeUnmount(() => {
     handRaised: false,
   });
   if (soupStore.roomId) {
+    // peer.closeAndNotifyAllConsumers();
+    // peer.closeAndNotifyAllProducers();
+    console.log('LEAVING ROOOOOM!');
     peer.leaveRoom();
   }
 });

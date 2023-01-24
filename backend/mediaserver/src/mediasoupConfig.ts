@@ -4,7 +4,12 @@ import ip from 'ip';
 
 
 let publicIp = process.env.LISTEN_IP;
+let internalIp = process.env.INTERNAL_IP;
 let listenIps: mediasoupTypes.WebRtcTransportOptions['listenIps'];
+
+if(!internalIp){
+  internalIp = ip.address();
+}
 
 if(!publicIp){
   publicIp = '127.0.0.1';
@@ -18,13 +23,16 @@ if(!publicIp){
 } else {
   listenIps = [
     {
-      // ip: ip.address(),
-      ip: '0.0.0.0',
+      ip: internalIp,
       announcedIp: publicIp,
+    },
+    {
+      ip: internalIp,
+      announcedIp: internalIp,
     }
   ];
-  console.log('Using the following IP config for mediasoup:', listenIps);
 }
+console.log('Using the following IP config for mediasoup:', listenIps);
 
 
 const logLevel: mediasoupTypes.WorkerLogLevel = 'debug';
@@ -66,7 +74,7 @@ const router: mediasoupTypes.RouterOptions = {
     //     'packetization-mode': 1,
     //     'profile-level-id': '4d0032',
     //     'level-asymmetry-allowed': 1,
-    //     //						  'x-google-start-bitrate'  : 1000
+    //     //						  'x-google-start-bitrate'  : 1_000_000
     //   },
     // },
     // {
@@ -77,7 +85,7 @@ const router: mediasoupTypes.RouterOptions = {
     //     'packetization-mode': 1,
     //     'profile-level-id': '42e01f',
     //     'level-asymmetry-allowed': 1,
-    //     //						  'x-google-start-bitrate'  : 1000
+    //     //						  'x-google-start-bitrate'  : 1_000_000
     //   },
     // },
   ],

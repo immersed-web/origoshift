@@ -219,7 +219,7 @@ export default class Client {
       }
       case 'joinGathering': {
         let response: ResponseTo<'joinGathering'>;
-        try{ 
+        try{
 
           const prevGathering = this.gathering;
           if(prevGathering) {
@@ -228,7 +228,7 @@ export default class Client {
             } else {
               prevGathering.removeClient(this);
               this.setGathering(undefined);
-            } 
+            }
           }
           const gathering = Gathering.getGathering({id: msg.data.gatheringId});
           if(!gathering){
@@ -270,7 +270,7 @@ export default class Client {
           response.message = msg;
         }
         this.send(response);
-        break; 
+        break;
       }
       case 'getGatheringState': {
         let response: ResponseTo<'getGatheringState'>;
@@ -331,7 +331,7 @@ export default class Client {
           response = createResponse('createRoom', msg.id, {
             wasSuccess: false,
             message: extractMessageFromCatch(e, 'failed to create room!!')
-          }); 
+          });
         }
         this.send(response);
         break;
@@ -352,7 +352,7 @@ export default class Client {
             wasSuccess: true,
           });
         } catch(e) {
-          response = createResponse('setRoomName', msg.id, { 
+          response = createResponse('setRoomName', msg.id, {
             wasSuccess: false,
             message: extractMessageFromCatch(e, 'failed to set name for room'),
           });
@@ -413,7 +413,7 @@ export default class Client {
           });
         }
         this.send(response);
-        break; 
+        break;
       }
       case 'removeClientFromRoom': {
         let response: ResponseTo<'removeClientFromRoom'>;
@@ -421,7 +421,7 @@ export default class Client {
 
           const roomId = msg.data.roomId;
           const clientId = msg.data.clientId;
-          
+
           if(this.id === clientId){
             throw Error('cant remove oneself from a room. Use the leaveRoom request instead.');
           }
@@ -473,6 +473,32 @@ export default class Client {
         this.send(response);
         break;
       }
+      case 'pauseAllProducersForClient': {
+        let response: ResponseTo<'pauseAllProducersForClient'>;
+        try {
+          const clientId = msg.data.clientId;
+          if(!this.gathering) {
+            throw Error('must be in gathering when pausing a clients all producers');
+          }
+          if(!this.room) {
+            throw Error('not in a room. Must be in same room as the client you want to pause');
+          }
+          const client = this.room.clients.get(clientId);
+          if(!client) {
+            throw Error('no client with that id found in current room!');
+          }
+          client.producers.forEach(producer => {
+            (producer.appData.producerInfo as ProducerInfo).paused = true;
+            producer.pause();
+          });
+          response = createResponse('pauseAllProducersForClient', msg.id, { wasSuccess: true });
+          client.onClientStateUpdated('clients producers were paused by host');
+        } catch (e) {
+          response = createResponse('pauseAllProducersForClient', msg.id, { wasSuccess: false, message: extractMessageFromCatch(e, 'failed to pause the clients all producers')});
+        }
+        this.send(response);
+        break;
+      }
       case 'setForceMuteStateForClient': {
         let response: ResponseTo<'setForceMuteStateForClient'>;
         try {
@@ -489,8 +515,13 @@ export default class Client {
           if(!client) {
             throw Error('no client with that id found in current room!');
           }
-          // client.producers.forEach(producer => producer.pause());
-          client.closeAndNotifyAllProducers();
+          if(muteState){
+            client.producers.forEach(producer => {
+              (producer.appData.producerInfo as ProducerInfo).paused = muteState;
+              producer.pause();
+            });
+          }
+          // client.closeAndNotifyAllProducers();
           client.setCustomProperties({forceMuted: muteState});
           response = createResponse('setForceMuteStateForClient', msg.id, {wasSuccess: true});
         } catch(e){
@@ -524,7 +555,7 @@ export default class Client {
           if(!producer.appData.producerInfo)
             producer.appData.producerInfo = {};
           // TODO: Actually fix this!
-          (producer.appData.producerInfo as Record<string, unknown>).forceMuted = muteState;
+          (producer.appData.producerInfo as ProducerInfo).forceMuted = muteState;
           if(muteState){
             producer.pause();
           }
@@ -663,7 +694,7 @@ export default class Client {
             room.mainProducers.audio = producer;
           }
           this.gathering?.broadCastGatheringState(undefined, 'mainProducer assigned to a room');
-          response = createResponse('assignMainProducerToRoom', msg.id, { 
+          response = createResponse('assignMainProducerToRoom', msg.id, {
             wasSuccess: true,
           });
         } catch(e){
@@ -696,7 +727,7 @@ export default class Client {
             }));
             this.onClientStateUpdated('transport for a producer closed');
           });
-          this.producers.set(producer.id, producer); 
+          this.producers.set(producer.id, producer);
           // if(this.role === 'admin'){
           //   this.gathering?.broadCastGatheringState();
           // }
@@ -771,13 +802,13 @@ export default class Client {
           consumer.on('producerresume', () => {
             console.log('producer was resumed! Handler NOT IMPLEMENTED YET!');
           });
-          
+
           const {id, producerId, kind, rtpParameters} = consumer;
 
           response = createResponse('createConsumer', msg.id, {
             wasSuccess: true,
             data: {
-              id, producerId, kind, rtpParameters 
+              id, producerId, kind, rtpParameters
             }
           });
         } catch (e) {
@@ -787,7 +818,7 @@ export default class Client {
           });
         }
         this.send(response);
-        break; 
+        break;
       }
       case 'notifyPauseResumeRequest': {
         console.log('received notify Pause resume:', msg.data);
@@ -807,6 +838,11 @@ export default class Client {
           } else {
             await prodcon.resume();
           }
+          if(typeof prodcon.appData.producerInfo !== 'object'){
+            prodcon.appData.producerInfo = {};
+          }
+          // TODO: Typescript is harsh...
+          (prodcon.appData.producerInfo as ProducerInfo).paused = msg.data.wasPaused;
           response = createResponse('notifyPauseResumeRequest', msg.id, {
             wasSuccess: true,
           });
@@ -817,7 +853,8 @@ export default class Client {
           });
         }
         this.send(response);
-        break; 
+        this.onClientStateUpdated(`pause/resume event notified for a ${msg.data.objectType}`);
+        break;
       }
       case 'setCustomClientProperties': {
         let response: ResponseTo<'setCustomClientProperties'>;
@@ -863,7 +900,7 @@ export default class Client {
   get clientState(){
     const producers: ClientState['producers'] = {};
     for(const [_, producer] of this.producers){
-      
+
       producers[producer.id] = {
         producerId: producer.id,
         kind: producer.kind,
@@ -898,7 +935,7 @@ export default class Client {
       this.room.broadcastRoomState(reason);
     } else {
       this.send(createMessage('clientStateUpdated', {
-        newState: this.clientState, 
+        newState: this.clientState,
         reason}));
     }
   }
@@ -912,7 +949,7 @@ export default class Client {
 
   private leaveCurrentRoom(): string;
   private leaveCurrentRoom(throwIfNonExistent: true): string;
-  private leaveCurrentRoom(throwIfNonExistent: false): string | undefined; 
+  private leaveCurrentRoom(throwIfNonExistent: false): string | undefined;
   private leaveCurrentRoom(throwIfNonExistent = true){
     if(!this.room){
       if(throwIfNonExistent){
@@ -922,6 +959,10 @@ export default class Client {
     }
     this.closeAndNotifyAllConsumers();
     this.closeAndNotifyAllProducers();
+    this.sendTransport?.close();
+    this.sendTransport = undefined;
+    this.receiveTransport?.close();
+    this.receiveTransport = undefined;
     const roomId = this.room.id;
     this.room.removeClient(this);
     return roomId;
@@ -936,7 +977,7 @@ export default class Client {
         objectId: producerKey,
       });
       this.send(closeProducersMsg);
-      this.producers.delete(producerKey);      
+      this.producers.delete(producerKey);
     }
     this.room?.broadcastRoomState('a client closed all their producers');
   };
@@ -950,7 +991,7 @@ export default class Client {
         objectId: consumerKey,
       });
       this.send(closeConsumerMsg);
-      this.consumers.delete(consumerKey);      
+      this.consumers.delete(consumerKey);
     }
   };
 
@@ -975,7 +1016,7 @@ export default class Client {
     this.connected = false;
     this.room?.removeClient(this, true);
     this.gathering?.removeClient(this);
-   
+
     // mediasoup should handle closing and notifying producers and consumers when their respective transports are closed. So we wont close producers or consumers ourselves
     this.sendTransport?.close();
     this.receiveTransport?.close();

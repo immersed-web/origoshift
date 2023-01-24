@@ -30,7 +30,7 @@ The different server applications are:
 - **Media Server** - A custom nodejs server using the [mediasoup](mediasoup.org) SFU and websockets ([uWebSockets](https://github.com/uNetworking/uWebSockets)) to handle all media streaming and communication between the clients.
 - **Auth Server** - a nodejs server handling user authentication as well as [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) operations for the users. It provides [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token) access tokens to validated users that will be used by the clients when interacting with the mediaserver.
 - **PostgreSQL** - a docker container running PostgreSQL.
-- **Database** - A node project responsible for handling interactions with the PostgreSQL database using [Prisma 2](https://www.prisma.io/).
+- **Database** - A node project responsible for handling interactions with the PostgreSQL database using [Prisma 3](https://www.prisma.io/).
 
 ### Caddy
 The reverse proxy (and static file) server is an instance of [Caddy v2](https://caddyserver.com/). Caddy is a server software written in the language Go. It has built in functionality for retrieving and setting up https certificates using the free, open and automated certificate authority, [Let's Encrypt](https://letsencrypt.org/). In this project, Caddy is set up to act as both a static file server as well as a reverse proxy to the other running server applications. The configuration of how Caddy handles incoming requests is defined in the file named Caddyfile.
@@ -46,7 +46,7 @@ This is a docker compose file in the project root folder for running PostgreSQL 
 
 ### Database - /backend/database/
 The naming of this folder/application can be a bit misleading. This folder hosts the tools/software needed to interact with the database. It doesn't contain the actual database itself.
-The project uses [Prisma 2](https://www.prisma.io/), a typescript compatible [ORM](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping). Prisma is handling database migrations, seeding and generation of a typescript database client. the generated client is directly used by the other applications such as the Auth Server.
+The project uses [Prisma 3](https://www.prisma.io/), a typescript compatible [ORM](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping). Prisma is handling database migrations, seeding and generation of a typescript database client. the generated client is then exported and used by the other applications such as the Auth Server.
 
 ## Installation
 > **Prerequisites**: Initially you will need [Git](https://git-scm.com/) to be able to fetch the repository. Git is installed by default on most linux systems. There are some additional dependencies that is needed to run the project. There are a few bash scripts included in the repository to help with installing and running the project. Have a look below in the section [Bash utility scripts](#bash-utility-scripts)
@@ -62,34 +62,37 @@ cp example.env .env
 
 The example file looks like this:
 ```
-PRODUCTION=true
-SERVER_URL='example.com'
+SERVER_URL="example.com"
 
-# The public IP of the server 
-LISTEN_IP='123.123.123.123'
+# The public IP of the server
+LISTEN_IP="123.123.123.123"
 
-AUTH_URL='https://example.com'
-AUTH_PORT=''
-AUTH_PATH='/auth'
+AUTH_URL="https://example.com"
+AUTH_PORT=""
+AUTH_PATH="/auth"
 
-MEDIASOUP_URL='wss://example.com'
-MEDIASOUP_PORT=''
-MEDIASOUP_PATH='/socket'
+MEDIASOUP_URL="wss://example.com"
+MEDIASOUP_PORT=""
+MEDIASOUP_PATH="/socket"
 
 # Be aware! The database variables are used on INITIAL STARTUP of the database container only. So change these to appropriate values BEFORE creating the database container.
-DATABASE_PASSWORD='megasecretdatabasepassword'
+# If you end up needing to change the database password, the easiest way would be to wipe the whole db:
+# run docker compose down -v and then delete the folder ./docker-data/postgres
+# I think kungsbacka had problems when they had a hash sign "#" or parentheses "(" in their database password.
+# I haven't verified this, but perhaps avoid those characters for this password?
+DATABASE_PASSWORD="megasecretdatabasepassword"
 DATABASE_NAME="inclubit"
 # Prisma cli supports expanding env vars. dotenv-cli apparently also does. So we should be fine!
 DATABASE_URL="postgresql://postgres:${DATABASE_PASSWORD}@localhost:5432/${DATABASE_NAME}?schema=public"
 
 # changing this (and restarting) should logout everyone by invalidating their sessions. Haven't tried though...
-SESSION_KEY='secretKeyUsedByTheUserSessions'
+SESSION_KEY="secretKeyUsedByTheUserSessions"
 
-ADMIN_PASSWORD='PLEASEchangeMEorIwillCRYtrueTEARSofSADNESS'
+ADMIN_PASSWORD="PLEASEchangeMEorIwillCRYtrueTEARSofSADNESS"
 
-JWT_SECRET='SOOOOOSECRETPLEASEPUTGOODPASSWORDHERE'
-JWT_ISSUER='Inclubit auth server'
-JWT_AUDIENCE='inclubit application'
+JWT_SECRET="SOOOOOSECRETPLEASEPUTGOODPASSWORDHERE"
+JWT_ISSUER="Inclubit auth server"
+JWT_AUDIENCE="inclubit application"
 ```
 A normal setup would require setting new values for:
 - SERVER_URL
@@ -112,7 +115,7 @@ cd ~
 ```
 Clone the repository from github:
 ```
-git clone https://github.com/Dealerpriest/inclubit-2.git
+git clone https://github.com/inclubit/inclubit-2.git
 ```
 - Create a .env file according to the instructions in the [.env section](#.env) above.
 
@@ -137,14 +140,14 @@ You will probably get kicked out (if you're connected with SSH). Reconnect when 
 
 Give Caddy server permission to bind to low port numbers
 ```
-sudo bash give-caddy-port-permission.sh 
+sudo bash give-caddy-port-permission.sh
 ```
 
 Install the internal project dependencies and build the apps 📡
 ```
 ./install-dependencies.sh
 ```
-The script will tell you to manually setup autostart for PM2. Follow thos instructions.
+The script will tell you to manually setup autostart for PM2. Follow those instructions.
 
 
 Now let's initialize the database:

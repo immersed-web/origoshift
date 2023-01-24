@@ -163,6 +163,9 @@
             label="gathering"
           />
         </QCardSection>
+        <QCardSection v-if="errorMsg" class="text-white bg-negative">
+          {{ errorMsg }}
+        </QCardSection>
         <QCardActions
           class="q-pa-md"
           align="right"
@@ -186,8 +189,9 @@
 
 <script setup lang="ts">
 
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { throwIfUnauthorized } from 'shared-modules/authUtils';
+import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import { securityLevels, NonGuestUserRole } from 'shared-types/CustomTypes';
 import { deleteUser, getUsers, createUser, updateUser, getAllGatherings, createGathering, getGathering, deleteGathering } from 'src/modules/authClient';
 import { useUserStore } from 'src/stores/userStore';
@@ -333,10 +337,15 @@ const username = ref<string>();
 const password = ref<string>();
 const role = ref<NonGuestUserRole>();
 const uuid = ref<string>();
+const errorMsg = ref<string>();
+watch([username, password, role], () => {
+  errorMsg.value = undefined;
+});
 
 function startEditingUser (user: Exclude<(typeof users.value), undefined>[number]) {
   username.value = user.username;
   password.value = '';
+  errorMsg.value = undefined;
   uuid.value = user.uuid;
   if (!user.role) return;
   role.value = user.role.role as NonGuestUserRole;
@@ -349,6 +358,7 @@ function startEditingUser (user: Exclude<(typeof users.value), undefined>[number
 function startAddingUser (_gatheringName: string) {
   username.value = '';
   password.value = '';
+  errorMsg.value = undefined;
   uuid.value = undefined;
   role.value = allowedRoles.value[0];
   startDialog(_gatheringName);
@@ -362,14 +372,21 @@ async function addUser () {
   if (!username.value || !password.value || !role.value) {
     return;
   }
-  const createdUser = await createUser({
-    username: username.value,
-    password: password.value,
-    role: role.value,
-    gathering: usersGatheringName.value,
-  });
-  users.value?.push(createdUser);
-  addingOrEditingUser.value = false;
+  try {
+    const createdUser = await createUser({
+      username: username.value,
+      password: password.value,
+      role: role.value,
+      gathering: usersGatheringName.value,
+    });
+    users.value?.push(createdUser);
+    addingOrEditingUser.value = false;
+  } catch (e) {
+    // console.error(e);
+    const errMsg = extractMessageFromCatch(e, 'Kunde inte skapa användare');
+    // console.log(errMsg);
+    errorMsg.value = errMsg;
+  }
 }
 
 async function editUser () {
@@ -387,11 +404,16 @@ async function editUser () {
   if (showGatheringPanel.value) {
     payload.gathering = usersGatheringName.value;
   }
-  const updatedUser = await updateUser(payload);
-  console.log(updatedUser);
-  const idx = _.findIndex(users.value, { uuid: updatedUser.uuid });
-  users.value?.splice(idx, 1, updatedUser);
-  addingOrEditingUser.value = false;
+  try {
+    const updatedUser = await updateUser(payload);
+    console.log(updatedUser);
+    const idx = _.findIndex(users.value, { uuid: updatedUser.uuid });
+    users.value?.splice(idx, 1, updatedUser);
+    addingOrEditingUser.value = false;
+  } catch (e) {
+    const msg = extractMessageFromCatch(e, 'Kunde inte uppdatera användare');
+    errorMsg.value = msg;
+  }
 }
 
 </script>

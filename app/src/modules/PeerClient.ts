@@ -129,7 +129,10 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
 
   private createDevice () {
     try {
-      return new mediasoupClient.Device();
+      console.log('mediasoup detected devices:', mediasoupClient.detectDevice());
+      const dev = new mediasoupClient.Device();
+      console.log('mediasoup chosen handler:', dev.handlerName);
+      return dev;
     } catch (error) {
       if (error instanceof mediasoupTypes.UnsupportedError && error.name === 'UnsupportedError') {
         console.error('browser not supported!. Cant create mediasoupDevice');
@@ -242,8 +245,6 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     const joinRoomReq = createRequest('joinRoom', { roomId });
     const response = await socketutils.sendRequest(joinRoomReq);
     return response.data;
-    // this.closeAllConsumers();
-    // this.roomStore.currentRoomId = roomId;
   };
 
   setRoomName = async (roomId: string, roomName: string) => {
@@ -272,9 +273,14 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
   };
 
   leaveRoom = async () => {
+    // await this.closeAndNotifyAllConsumers();
+    // await this.closeAndNotifyAllProducers();
     const leaveRoomReq = createRequest('leaveRoom');
     await socketutils.sendRequest(leaveRoomReq);
-    // this.closeAllConsumers();
+    this.sendTransport?.close();
+    this.sendTransport = undefined;
+    this.receiveTransport?.close();
+    this.receiveTransport = undefined;
   };
 
   removeClientFromRoom = async (clientId: string, roomId: string) => {
@@ -290,6 +296,13 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       clientId,
     });
     await socketutils.sendRequest(closeReq);
+  };
+
+  pauseAllProducersForCLient = async (clientId: string) => {
+    const pauseReq = createRequest('pauseAllProducersForClient', {
+      clientId,
+    });
+    await socketutils.sendRequest(pauseReq);
   };
 
   setForcedMuteStateForClient = async (clientId: string, forceMuted: boolean) => {
@@ -416,9 +429,10 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
       },
     ];
     const producerOptions: mediasoupTypes.ProducerOptions = { track, encodings };
-    if (producerInfo) {
-      producerOptions.appData = { producerInfo };
-    }
+    producerInfo = { paused: false, ...producerInfo };
+
+    producerOptions.appData = { producerInfo };
+    console.log('produce with appData:', producerOptions.appData);
     const producer = await this.sendTransport.produce(producerOptions);
     this.producers.set(producer.id, producer);
     return producer.id;
@@ -478,9 +492,40 @@ export default class PeerClient extends TypedEmitter<PeerEvents> {
     if (!consumer) {
       throw new Error('no such consumer found (client-side)');
     }
+    if (wasPaused) {
+      consumer.pause();
+    } else {
+      consumer.resume();
+    }
     const pauseReq = createRequest('notifyPauseResumeRequest', {
       objectType: 'consumer',
       objectId: consumer.id,
+      wasPaused,
+    });
+    await socketutils.sendRequest(pauseReq);
+  };
+
+  pauseProducer = (producerId: string) => {
+    this.pauseResumeProducer(producerId, true);
+  };
+
+  resumeProducer = (producerId: string) => {
+    this.pauseResumeProducer(producerId, false);
+  };
+
+  private pauseResumeProducer = async (producerId: string, wasPaused: boolean) => {
+    const producer = this.producers.get(producerId);
+    if (!producer) {
+      throw Error('no such producer found (client-side)');
+    }
+    if (wasPaused) {
+      producer.pause();
+    } else {
+      producer.resume();
+    }
+    const pauseReq = createRequest('notifyPauseResumeRequest', {
+      objectType: 'producer',
+      objectId: producer.id,
       wasPaused,
     });
     await socketutils.sendRequest(pauseReq);

@@ -1,0 +1,20 @@
+// app global css in SCSS form
+// @import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&display=swap');
+
+// @import url('https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap');
+// @import url('https://fonts.googleapis.com/css2?family=Supermercado+One&display=swap');
+
+$heading-base-size: 2.5rem; // size for biggest heading (h1)
+$heading-scale: .3; // amount headings shrink from h1 to h6
+
+@for $i from 1 through 6 {
+  h#{$i}, .text-h#{$i} {
+    font-size: $heading-base-size - $heading-scale * ($i - 1);
+    line-height: $heading-base-size - $heading-scale * ($i - 1) + 0.5;
+    font-weight: 600;
+  }
+  h#{$i} {
+    margin-top: 0.2rem + 0.2 * (7 - $i);
+    margin-bottom: 0.4rem + 0.2 * (7 - $i);
+  }
+}

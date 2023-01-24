@@ -1,24 +1,47 @@
 /* eslint-env node */
-require('@rushstack/eslint-patch/modern-module-resolution')
+require('@rushstack/eslint-patch/modern-module-resolution');
 
 module.exports = {
   root: true,
-  'extends': [
-    'plugin:vue/vue3-essential',
+  extends: [
+    'plugin:vue/vue3-strongly-recommended',
     'eslint:recommended',
-    '@vue/eslint-config-typescript'
+    '@vue/eslint-config-typescript',
   ],
   overrides: [
     {
       files: [
-        'cypress/e2e/**/*.{cy,spec}.{js,ts,jsx,tsx}'
+        'cypress/e2e/**/*.{cy,spec}.{js,ts,jsx,tsx}',
       ],
       'extends': [
-        'plugin:cypress/recommended'
-      ]
-    }
+        'plugin:cypress/recommended',
+      ],
+    },
   ],
   parserOptions: {
-    ecmaVersion: 'latest'
-  }
-}
+    ecmaVersion: 'latest',
+  },
+  rules: {
+    // 'arrow-parens': 'off',
+    'comma-dangle': ['error', 'always-multiline'],
+    semi: ['error', 'always'],
+    quotes: ['warn', 'single', { avoidEscape: true }],
+    'vue/component-name-in-template-casing': ['error', 'PascalCase', {
+      'registeredComponentsOnly': false,
+      'ignores': ['/^(a-)/'],
+    }],
+    '@typescript-eslint/indent': ['error', 2],
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
+      // {
+      //   argsIgnorePattern: '^_',
+      //   varsIgnorePattern: '^_',
+      //   caughtErrorsIgnorePattern: '^_',
+      // },
+    ],
+
+    // allow debugger during development only
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+  },
+};

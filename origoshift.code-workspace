@@ -17,6 +17,7 @@
   ],
   "settings": {
     "editor.formatOnSave": true,
+    "eslint.format.enable": true,
     "editor.defaultFormatter": "dbaeumer.vscode-eslint",
     "files.watcherExclude": {
       "**/.git/objects/**": true,
@@ -41,6 +42,9 @@
       "editor.formatOnSave": true
     },
     "[vue]": {
+      "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    },
+    "[javascript]": {
       "editor.defaultFormatter": "dbaeumer.vscode-eslint"
     },
     "[typescript]": {

@@ -5,13 +5,16 @@
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
-      "require": "./dist/index.js"
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
     "./*": {
       "import": "./dist/esm/*.js",
-      "require": "./dist/*.js"
+      "require": "./dist/*.js",
+      "types": "./dist/*.d.ts"
     }
   },
+  "files": ["dist/*"],
   "scripts": {
     "build": "tsc --build tsconfig.json tsconfig.esm.json",
     "build:watch": "tsc --build --watch tsconfig.json tsconfig.esm.json",

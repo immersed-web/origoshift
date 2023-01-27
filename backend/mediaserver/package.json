@@ -9,6 +9,7 @@
     "start": "dotenv -e ../../.env node ./dist/index.js",
     "dev": "dotenv -v DEVELOPMENT=true -e ../../.env -- node-dev ./src/index.ts",
     "build": "tsc --build",
+    "build:watch": "tsc --build --watch",
     "clean": "tsc --build --clean",
     "test": "jest --watch",
     "test:once": "jest"

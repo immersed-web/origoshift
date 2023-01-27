@@ -1,9 +1,7 @@
-// import EventEmitter from 'events';
 import uWebsocket from 'uWebSockets.js';
-// import { TypedEmitter } from 'tiny-typed-emitter';
 import { Request, AnyResponse, RequestSubjects, SocketMessage, UnknownMessageType, AnySuccessResponse, SuccessResponseTo } from 'shared-types/MessageTypes';
-
-export type InternalSocketType = uWebsocket.WebSocket;
+import type { DecodedJwt } from 'shared-modules/jwtUtils';
+export type InternalSocketType = uWebsocket.WebSocket<DecodedJwt>;
 // type InternalMessageType = uWebsocket.RecognizedString;
 export type InternalMessageType = ArrayBuffer;
 
@@ -21,8 +19,8 @@ type RequestRejecter = (msg: unknown) => void;
 
 // /**
 //  * This class is an abstraction layer on top of the websocket implementation.
-//  * My hope is that this will make it easier to maintain if we have to change to another websocket library 
-//  * 
+//  * My hope is that this will make it easier to maintain if we have to change to another websocket library
+//  *
 //  * @emits message event that is triggered when a message is received.
 //  */
 // export default class SocketWrapper extends TypedEmitter<SocketWrapperEvents>{
@@ -35,7 +33,7 @@ export default class SocketWrapper{
     this.socket = socket;
   }
 
-  
+
   // private pendingRequests = new Map<number, RequestResolver>();
   private pendingRequests = new Map<number, {resolve: RequestResolver, reject: RequestRejecter}>();
   private receivedMessageCallback?: callbackSignature;
@@ -75,7 +73,7 @@ export default class SocketWrapper{
         }catch(e){
           console.error(e);
         }
-      }else{ 
+      }else{
         // this.emit('message', socketMsg);
         if(!this.receivedMessageCallback){
           throw Error('no callback assigned for handling received message!');
@@ -109,12 +107,12 @@ export default class SocketWrapper{
 
     return promise as Promise<SuccessResponseTo<T>>;
   };
-  
+
   send(msg: SocketMessage<UnknownMessageType>){
     // console.log('raw SocketMessage:', msg);
     const str = JSON.stringify(msg);
     // console.log('gonna send back:', str);
-    const ok = this.socket.send(str); 
+    const ok = this.socket.send(str);
     // console.log('sending backpressure was ok?: ', ok);
     return ok;
   }

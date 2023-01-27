@@ -14,21 +14,23 @@
     "test:once": "jest"
   },
   "dependencies": {
+    "@trpc/server": "^10.9.0",
     "debug": "^4.3.4",
     "ip": "^1.1.8",
     "shared-modules": "workspace:*",
     "shared-types": "workspace:*",
     "tiny-typed-emitter": "^2.1.0",
-    "uWebSockets.js": "git+https://git@github.com/uNetworking/uWebSockets.js#v20.15.0",
-    "uuid": "^8.3.2"
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.19.0",
+    "uuid": "^8.3.2",
+    "zod": "^3.20.2"
   },
   "devDependencies": {
     "@ef-carbon/tspm": "^2.2.5",
-    "@types/uuid": "^8.3.1",
     "@types/debug": "^4.1.7",
     "@types/ip": "^1.1.0",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.10.9",
+    "@types/uuid": "^8.3.1",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.1",

@@ -13,7 +13,7 @@ import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken, DecodedJwt } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 
-const clients: Map<uWebSockets.WebSocket, Client> = new Map();
+const clients: Map<uWebSockets.WebSocket<DecodedJwt>, Client> = new Map();
 const disconnectedClients: Map<string, Client> = new Map();
 
 createWorkers();
@@ -26,14 +26,14 @@ const stdin = process.stdin;
 if(stdin && stdin.isTTY){
   // without this, we would only get streams once enter is pressed
   stdin.setRawMode( true );
-  
+
   // resume stdin in the parent process (node app won't quit all by itself
   // unless an error or process.exit() happens)
   stdin.resume();
-  
+
   // i don't want binary, do you?
   stdin.setEncoding( 'utf8' );
-  
+
   // on any data into stdin
   stdin.on( 'data', function( key ){
     const asString = key.toString();
@@ -51,11 +51,11 @@ if(stdin && stdin.isTTY){
     // process.stdout.write( 'bajs' );
   });
 }
-  
+
 
 const app = uWebSockets.App();
 
-app.ws('/*', {
+app.ws<DecodedJwt>('/*', {
 
   /* There are many common helper features */
   idleTimeout: 64,
@@ -71,7 +71,7 @@ app.ws('/*', {
     if(client) {
       // const strMsg = textDecoder.decode(message);
       // console.log('converted message:', strMsg);
-      
+
       // @ts-expect-error: In ooonly this specific case we want to ignore the private field (ws). But never elsewhere
       client.ws.incomingMessage(message);
       // console.log('client :>> ', client);
@@ -91,7 +91,7 @@ app.ws('/*', {
       //   res.writeStatus('403 Forbidden').end('YOU SHALL NOT PASS!!!');
       //   return;
       // }
-    
+
       console.log('upgrade request provided this token:', receivedToken);
 
       const decoded = verifyJwtToken(receivedToken);
@@ -104,14 +104,14 @@ app.ws('/*', {
         throw Error('failed to decode token!');
       }
       console.log('decoded jwt:', decoded);
-      
+
       //TODO: This doesnt scale... Perhaps we can use uuid for the clients map instead of ws instance. Then we can check directly against the keys active clients.
       // let alreadyLoggedIn = false;
       clients.forEach(value => {
         if(value.userData.role === 'client' && value.userData.uuid === decoded.uuid){
           // alreadyLoggedIn = true;
           throw Error('already logged in!!!');
-          
+
         }
       });
 
@@ -131,7 +131,7 @@ app.ws('/*', {
     }
   },
   open: (ws) => {
-    const decodedJwt = ws.decoded as DecodedJwt;
+    const decodedJwt = ws.getUserData();
     // const wsWrapper = new SocketWrapper(ws);
     const idleClient = disconnectedClients.get(decodedJwt.uuid);
     let client: Client;
@@ -166,18 +166,21 @@ app.ws('/*', {
     client.onDisconnected();
     console.log('client disconnected:', client.id);
   }
-  // 
-  
+  //
+
 }).get('/*', (res, _req) => {
 
   /* It does Http as well */
   res.writeStatus('200 OK').writeHeader('IsExample', 'Yes').end('Hello there!');
-  
+
 }).listen(9001, (listenSocket) => {
 
   if (listenSocket) {
     console.log('listenSocket:' ,listenSocket);
     console.log('Listening to port 9001');
   }
-  
+
 });
+
+
+export type { AppRouter } from './server';

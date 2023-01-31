@@ -18,6 +18,8 @@
     "@indielayer/ui": "^1.0.9",
     "@trpc/client": "^10.9.0",
     "@trpc/server": "^10.9.0",
+    "@types/aframe": "^1.2.2",
+    "aframe": "^1.4.1",
     "pinia": "^2.0.28",
     "vue": "^3.2.45",
     "vue-router": "^4.1.6"

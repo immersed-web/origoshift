@@ -3,16 +3,27 @@
     A-frame
     <a-scene cursor="rayOrigin: mouse">
 
-      <a-entity camera look-controls wasd-controls position="0 1.6 0" emit-move="interval: 1000" @move="cameraMove" />
-
-      <a-assets>
+      <a-assets @loaded="onLoaded">
         <img id="groundTexture" src="https://cdn.aframe.io/a-painter/images/floor.jpg">
+        <!-- <a-asset-item id="dungeon" src="/models/nav_test.obj"></a-asset-item> -->
+        <a-asset-item id="dung" src="/models/dung22.gltf"></a-asset-item>
+        <a-asset-item id="venue-asset" src="/models/venue/scene.gltf"></a-asset-item>
+        <a-asset-item id="venue_navmesh-asset" src="/models/venue_navmesh/scene.gltf"></a-asset-item>
       </a-assets>
-      <a-box position="0 2 -5" rotation="0 45 45" scale="1 1 1"
-         animation="property: object3D.position.y; to: 2.2; dir: alternate; dur: 2000; loop: true"></a-box>
-      <a-plane src="#groundTexture" rotation="-90 0 0" width="30" height="30" repeat="10 10"></a-plane>
 
       <a-sky color="#ECECEC"></a-sky>
+
+      <!-- The navmesh needs to refer to the actual entity, not only the asset -->
+      <a-camera wasd-controls="acceleration:100;" simple-navmesh-constraint="navmesh:#venue_navmesh;fall:0.5;height:1.65;" look-controls/>
+
+      <a-entity v-if="loaded">
+        <!-- The venue model -->
+        <a-entity id="venue" gltf-model="#venue-asset"></a-entity>
+
+        <!-- The navmesh, this should not be rendered. How to do? -->
+        <a-entity id="venue_navmesh" gltf-model="#venue_navmesh-asset"></a-entity>
+      </a-entity>
+
     </a-scene>
   </div>
 </template>

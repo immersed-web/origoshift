@@ -14,7 +14,10 @@
       <a-sky color="#ECECEC"></a-sky>
 
       <!-- The navmesh needs to refer to the actual entity, not only the asset -->
-      <a-camera wasd-controls="acceleration:100;" simple-navmesh-constraint="navmesh:#venue_navmesh;fall:0.5;height:1.65;" look-controls/>
+      <a-camera look-controls wasd-controls="acceleration:100;"
+        emit-move="interval: 1000" @move="cameraMove"
+        simple-navmesh-constraint="navmesh:#venue_navmesh; fall:0.5; height:1.65;"
+        />
 
       <a-entity v-if="loaded">
         <!-- The venue model -->

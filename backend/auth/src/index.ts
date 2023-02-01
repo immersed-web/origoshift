@@ -2,7 +2,7 @@ import express, { json as parseJsonBody } from 'express';
 import cors from 'cors';
 import { randomUUID } from 'crypto';
 import { createJwt } from 'shared-modules/jwtUtils';
-import { UserData } from 'shared-types/CustomTypes';
+// import { UserData } from 'shared-types/CustomTypes';
 import createUserRouter from './userRoutes';
 import {default as Haikunator} from 'haikunator';
 import wordlist from './haikunator-wordlist';
@@ -10,7 +10,8 @@ import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import session from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import prisma from './prismaClient';
-import createApiRouter from './apiRoutes';
+// import createApiRouter from './apiRoutes';
+import { JwtUserData } from 'schemas';
 
 const haikunator = new Haikunator({
   adjectives: wordlist.adjectives,
@@ -54,7 +55,7 @@ app.use((req, res, next) => {
   return parseJsonBody()(req, res, (err) => {
     if (err) {
       //There was error!!
-      const msg = extractMessageFromCatch(err, 'failed to parse your shitt request!');
+      const msg = extractMessageFromCatch(err, 'failed to parse your shitty request!');
       res.status(400).send(`You suck!!! ${msg}`);
     } else {
       next();
@@ -89,8 +90,8 @@ app.use(session({
 const userRouter = createUserRouter();
 app.use('/', userRouter);
 
-const apiRouter = createApiRouter();
-app.use('/', apiRouter);
+// const apiRouter = createApiRouter();
+// app.use('/', apiRouter);
 
 
 app.get('/health', (req, res) => {
@@ -101,7 +102,7 @@ app.get('/health', (req, res) => {
 
 app.get('/guest-jwt', (req, res) => {
   const haikuName = haikunator.haikunate();
-  const guestObject: UserData = {
+  const guestObject: JwtUserData = {
     username: haikuName,
     role: 'guest',
     // allowedActions: ['*'],

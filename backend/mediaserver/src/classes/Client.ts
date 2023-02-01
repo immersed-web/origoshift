@@ -2,10 +2,12 @@ import { randomUUID } from 'crypto';
 import SocketWrapper from './SocketWrapper';
 import {types as soupTypes} from 'mediasoup';
 import {types as soupClientTypes} from 'mediasoup-client';
-import { ClientProperties, ClientState, ProducerInfo, UserData, UserRole } from 'shared-types/CustomTypes';
+import { ClientProperties, ClientState, ProducerInfo } from 'shared-types/CustomTypes';
 import { createMessage, createRequest, createResponse, Request, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import { checkPermission } from '../modules/utilFns';
+
+import { JwtUserData, UserRole } from 'schemas';
 
 import Gathering from './Gathering';
 import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
@@ -18,7 +20,7 @@ import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
 interface constructionParams {
   id?: string,
   ws: SocketWrapper,
-  userData: UserData,
+  userData: JwtUserData,
 }
 /**
  * This class represents a client in the backend. This class is also responsible for the communication with the "actual" client (i.e. the frontend).
@@ -27,7 +29,7 @@ export default class Client {
   id: string;
   private ws: SocketWrapper;
 
-  userData: UserData;
+  userData: constructionParams['userData'];
   get userName(): string{
     // if(this.userData?.username){
     return this.userData.username;
@@ -181,117 +183,117 @@ export default class Client {
         this.send(response);
         break;
       }
-      case 'findGatheringByName': {
-        let response: ResponseTo<'findGatheringByName'>;
-        try{
-          const foundGathering = Gathering.getGathering({name: msg.data.name});
-          response = createResponse('findGatheringByName', msg.id, {
-            wasSuccess: true,
-            data: { id: foundGathering.id }
-          });
-        } catch(e){
-          response = createResponse('findGatheringByName', msg.id, {
-            wasSuccess: false,
-            message: extractMessageFromCatch(e, 'failed to get gathering'),
-          }) ;
-        }
-        this.send(response);
+      // case 'findGatheringByName': {
+      //   let response: ResponseTo<'findGatheringByName'>;
+      //   try{
+      //     const foundGathering = Gathering.getGathering({name: msg.data.name});
+      //     response = createResponse('findGatheringByName', msg.id, {
+      //       wasSuccess: true,
+      //       data: { id: foundGathering.id }
+      //     });
+      //   } catch(e){
+      //     response = createResponse('findGatheringByName', msg.id, {
+      //       wasSuccess: false,
+      //       message: extractMessageFromCatch(e, 'failed to get gathering'),
+      //     }) ;
+      //   }
+      //   this.send(response);
 
-        break;
-      }
-      case 'createGathering': {
-        let response: ResponseTo<'createGathering'>;
-        try{
+      //   break;
+      // }
+      // case 'createGathering': {
+      //   let response: ResponseTo<'createGathering'>;
+      //   try{
 
-          const gathering = await Gathering.createGathering(undefined, msg.data.gatheringName);
-          response = createResponse('createGathering', msg.id, {
-            data: gathering.gatheringState,
-            wasSuccess: true,
-          });
-        } catch (e) {
-          response = createResponse('createGathering', msg.id, {
-            wasSuccess: false,
-            message: extractMessageFromCatch(e, 'failed to create gathering!'),
-          });
-        }
-        this.send(response);
-        break;
-      }
-      case 'joinGathering': {
-        let response: ResponseTo<'joinGathering'>;
-        try{
+      //     const gathering = await Gathering.createGathering(undefined, msg.data.gatheringName);
+      //     response = createResponse('createGathering', msg.id, {
+      //       data: gathering.gatheringState,
+      //       wasSuccess: true,
+      //     });
+      //   } catch (e) {
+      //     response = createResponse('createGathering', msg.id, {
+      //       wasSuccess: false,
+      //       message: extractMessageFromCatch(e, 'failed to create gathering!'),
+      //     });
+      //   }
+      //   this.send(response);
+      //   break;
+      // }
+      // case 'joinGathering': {
+      //   let response: ResponseTo<'joinGathering'>;
+      //   try{
 
-          const prevGathering = this.gathering;
-          if(prevGathering) {
-            if(prevGathering.id === msg.data.gatheringId){
-              throw new Error('Already in that gathering. No need to join!');
-            } else {
-              prevGathering.removeClient(this);
-              this.setGathering(undefined);
-            }
-          }
-          const gathering = Gathering.getGathering({id: msg.data.gatheringId});
-          if(!gathering){
-            throw new Error('Cant join that gathering. Does not exist');
-          }
-          const clientRole = this.userData.role;
-          const isPriviliged = hasAtLeastSecurityLevel(clientRole, 'admin');
-          if(!isPriviliged && this.userData.gathering !== gathering.name){
-            throw Error('not authorized to join gathering!');
-          }
-          gathering.addClient(this);
-          response = createResponse('joinGathering', msg.id, {
-            data: gathering.gatheringState,
-            wasSuccess: true,
-          });
-        } catch (e){
-          this.setGathering(undefined);
-          response = createResponse('joinGathering', msg.id, {
-            wasSuccess: false,
-            message: extractMessageFromCatch(e, 'failed to join gathering!!! Very inconvenient!'),
-          });
-        }
-        this.send(response);
-        break;
-      }
-      case 'leaveGathering': {
-        const response = createResponse('leaveGathering', msg.id, {
-          wasSuccess: true,
-        });
-        try {
-          if(!this.gathering){
-            throw Error('not in a gathering. Thus cant leave one');
-          }
-          this.gathering.removeClient(this);
-          // this.setGathering(undefined);
-        } catch(e){
-          response.wasSuccess = false;
-          const msg = extractMessageFromCatch(e, 'failed to leave gathering');
-          response.message = msg;
-        }
-        this.send(response);
-        break;
-      }
-      case 'getGatheringState': {
-        let response: ResponseTo<'getGatheringState'>;
-        try{
-          if(!this.gathering){
-            throw new Error('cant list rooms if isnt in a gathering');
-          }
-          const gatheringState = this.gathering.gatheringState;
-          response = createResponse('getGatheringState', msg.id, {
-            wasSuccess: true,
-            data: gatheringState
-          });
-        } catch (e) {
-          response = createResponse('getGatheringState', msg.id, {
-            wasSuccess: false,
-            message: extractMessageFromCatch(e, 'failed to get gathering state! You cry!'),
-          });
-        }
-        this.send(response);
-        break;
-      }
+      //     const prevGathering = this.gathering;
+      //     if(prevGathering) {
+      //       if(prevGathering.id === msg.data.gatheringId){
+      //         throw new Error('Already in that gathering. No need to join!');
+      //       } else {
+      //         prevGathering.removeClient(this);
+      //         this.setGathering(undefined);
+      //       }
+      //     }
+      //     const gathering = Gathering.getGathering({id: msg.data.gatheringId});
+      //     if(!gathering){
+      //       throw new Error('Cant join that gathering. Does not exist');
+      //     }
+      //     const clientRole = this.userData.role;
+      //     const isPriviliged = hasAtLeastSecurityLevel(clientRole, 'admin');
+      //     if(!isPriviliged && this.userData.gathering !== gathering.name){
+      //       throw Error('not authorized to join gathering!');
+      //     }
+      //     gathering.addClient(this);
+      //     response = createResponse('joinGathering', msg.id, {
+      //       data: gathering.gatheringState,
+      //       wasSuccess: true,
+      //     });
+      //   } catch (e){
+      //     this.setGathering(undefined);
+      //     response = createResponse('joinGathering', msg.id, {
+      //       wasSuccess: false,
+      //       message: extractMessageFromCatch(e, 'failed to join gathering!!! Very inconvenient!'),
+      //     });
+      //   }
+      //   this.send(response);
+      //   break;
+      // }
+      // case 'leaveGathering': {
+      //   const response = createResponse('leaveGathering', msg.id, {
+      //     wasSuccess: true,
+      //   });
+      //   try {
+      //     if(!this.gathering){
+      //       throw Error('not in a gathering. Thus cant leave one');
+      //     }
+      //     this.gathering.removeClient(this);
+      //     // this.setGathering(undefined);
+      //   } catch(e){
+      //     response.wasSuccess = false;
+      //     const msg = extractMessageFromCatch(e, 'failed to leave gathering');
+      //     response.message = msg;
+      //   }
+      //   this.send(response);
+      //   break;
+      // }
+      // case 'getGatheringState': {
+      //   let response: ResponseTo<'getGatheringState'>;
+      //   try{
+      //     if(!this.gathering){
+      //       throw new Error('cant list rooms if isnt in a gathering');
+      //     }
+      //     const gatheringState = this.gathering.gatheringState;
+      //     response = createResponse('getGatheringState', msg.id, {
+      //       wasSuccess: true,
+      //       data: gatheringState
+      //     });
+      //   } catch (e) {
+      //     response = createResponse('getGatheringState', msg.id, {
+      //       wasSuccess: false,
+      //       message: extractMessageFromCatch(e, 'failed to get gathering state! You cry!'),
+      //     });
+      //   }
+      //   this.send(response);
+      //   break;
+      // }
       case 'findRoomByName': {
         let response: ResponseTo<'findRoomByName'>;
         try {
@@ -399,7 +401,7 @@ export default class Client {
             roomId: msg.data.roomId,
             clientId: this.id,
           });
-          await foundRoom.broadcastRequest(req, 'host', 30000);
+          await foundRoom.broadcastRequest(req, 'moderator', 30000);
           this.setRoom(foundRoom.id);
           foundRoom.addClient(this);
           response = createResponse('requestToJoinRoom', msg.id, {

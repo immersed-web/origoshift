@@ -1,23 +1,22 @@
 process.env.DEBUG = 'Gathering* Room* mediasoup*';
 
-// import { debug } from 'util';
-// const messageLogger = debug('socketMessage');
 import observerLogger from './mediasoupObservers';
 const printSoupStats = observerLogger();
+
 import printClassInstances from './classInstanceObservers';
 import Client from './classes/Client';
 import uWebSockets from 'uWebSockets.js';
 const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import SocketWrapper from './classes/SocketWrapper';
 import { createWorkers } from './modules/mediasoupWorkers';
-import { verifyJwtToken, DecodedJwt } from 'shared-modules/jwtUtils';
+import { verifyJwtToken } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
+import { JwtUserData, JwtUserDataSchema } from 'schemas';
 
-const clients: Map<uWebSockets.WebSocket<DecodedJwt>, Client> = new Map();
-const disconnectedClients: Map<string, Client> = new Map();
+const clients: Map<uWebSockets.WebSocket<JwtUserData>, Client> = new Map();
+// const disconnectedClients: Map<string, Client> = new Map();
 
 createWorkers();
-
 
 const stdin = process.stdin;
 
@@ -55,7 +54,7 @@ if(stdin && stdin.isTTY){
 
 const app = uWebSockets.App();
 
-app.ws<DecodedJwt>('/*', {
+app.ws<JwtUserData>('/*', {
 
   /* There are many common helper features */
   idleTimeout: 64,
@@ -94,29 +93,22 @@ app.ws<DecodedJwt>('/*', {
 
       console.log('upgrade request provided this token:', receivedToken);
 
-      const decoded = verifyJwtToken(receivedToken);
-      if(typeof decoded === 'string'){
-        throw Error('jwtVerify returned a string. No good!');
-      }
+      const validJwt = verifyJwtToken(receivedToken);
 
-      if(!decoded){
-        console.error('failed to decode jwt token');
-        throw Error('failed to decode token!');
-      }
-      console.log('decoded jwt:', decoded);
+      console.log('decoded jwt:', validJwt);
 
       //TODO: This doesnt scale... Perhaps we can use uuid for the clients map instead of ws instance. Then we can check directly against the keys active clients.
       // let alreadyLoggedIn = false;
       clients.forEach(value => {
-        if(value.userData.role === 'client' && value.userData.uuid === decoded.uuid){
-          // alreadyLoggedIn = true;
+        if(validJwt.role === 'user' && value.userData.uuid === validJwt.uuid){
           throw Error('already logged in!!!');
-
         }
       });
 
-      res.upgrade(
-        {decoded},
+      const userDataOnly = JwtUserDataSchema.parse(validJwt);
+
+      res.upgrade<JwtUserData>(
+        userDataOnly,
         /* Spell these correctly */
         req.getHeader('sec-websocket-key'),
         req.getHeader('sec-websocket-protocol'),
@@ -131,23 +123,11 @@ app.ws<DecodedJwt>('/*', {
     }
   },
   open: (ws) => {
-    const decodedJwt = ws.getUserData();
+    const userData = ws.getUserData();
     // const wsWrapper = new SocketWrapper(ws);
-    const idleClient = disconnectedClients.get(decodedJwt.uuid);
-    let client: Client;
-    if(false && idleClient){
-      // disconnectedClients.delete(decodedJwt.uuid);
-      // idleClient.assignSocketWrapper(wsWrapper);
-      // client = idleClient;
-      // console.log('socket REopened with provided data: ', decodedJwt);
-    } else {
-      // console.log('socket opened with provided data: ', decodedJwt);
-      console.log('socket opened');
-      client = new Client({ws: new SocketWrapper(ws), userData: decodedJwt });
-    }
-    // Check so client is unique!!
+    console.log('socket opened');
+    const client = new Client({ws: new SocketWrapper(ws), userData });
 
-    // client.userData = ws.decoded;
     clients.set(ws, client);
     console.log('client :>> ', client);
   },

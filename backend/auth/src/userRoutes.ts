@@ -6,7 +6,8 @@ import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import { validateUserSession } from './utils';
 import 'shared-types/augmentedRequest';
 import 'shared-types/augmentedSession';
-import { UserRole, securityLevels } from 'shared-types/CustomTypes';
+import { UserRole, roleHierarchy } from 'schemas';
+// import { UserRole, securityLevels } from 'shared-types/CustomTypes';
 
 
 const index: RequestHandler = (req, res) => {
@@ -16,7 +17,6 @@ const index: RequestHandler = (req, res) => {
 interface CreateUserRequest extends ExpressReq {
   body: {
     role?: UserRole,
-    gathering?: string,
     username?: string,
     password?: string,
   }
@@ -25,7 +25,6 @@ interface CreateUserRequest extends ExpressReq {
 const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
   const userData = req.session.user;
   const payload = req.body;
-  let gathering = undefined;
   const username = payload.username;
   const password = payload.password;
   const role = payload.role;
@@ -39,7 +38,7 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
     if (!userData || !userData.role) {
       throw new Error('no userdata/session present. You are not authorized / logged in!');
     }
-    if (!role || !securityLevels.includes(role)) {
+    if (!role || !roleHierarchy.includes(role)) {
       throw new Error('created user MUST have a (valid) role!');
     }
   } catch (e) {
@@ -49,27 +48,19 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
   }
   try {
     // Who is making this request!!! Thats stored in userData
-    const clientSecurityLevel = securityLevels.indexOf(userData.role);
-    const createdUserSecurityLevel = securityLevels.indexOf(role);
+    const clientSecurityLevel = roleHierarchy.indexOf(userData.role);
+    const createdUserSecurityLevel = roleHierarchy.indexOf(role);
     if (clientSecurityLevel < createdUserSecurityLevel) {
       throw new Error('cant create user with higher security level than yourself!! STUPID!!');
     }
     switch (userData.role) {
       case 'guest':
-      case 'client':
+      case 'user':
         res.status(403).send('You may not create other users! You are not cool enough!');
         return;
-      case 'host':
-        if (!userData.gathering) {
-          throw new Error('hosts must assign created users to same gathering as themselves. No gathering set for requesting client');
-        }
-        gathering = userData.gathering;
+      case 'moderator':
         break;
       case 'admin': {
-        gathering = payload.gathering;
-        if (role !== 'admin' && !gathering) {
-          throw new Error('Only admin or higher can be created without an assigned gathering');
-        }
         break;
       }
       default:
@@ -82,36 +73,15 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  let userCreate: Prisma.UserCreateArgs['data'] = {
+  const userCreate: Prisma.UserCreateArgs['data'] = {
     username: username,
-    role: {
-      connectOrCreate: {
-        where: { role: role },
-        create: { role: role }
-      }
-    },
+    role: role,
     password: hashedPassword
   };
 
-  if (gathering) {
-    const gatheringCreate: Prisma.UserCreateArgs['data']['gathering'] = {
-      connectOrCreate: {
-        where: {
-          name: gathering,
-        },
-        create: {
-          name: gathering,
-        }
-      }
-    };
-    userCreate = { ...userCreate, gathering: gatheringCreate };
-  }
   try {
     const result = await prisma.user.create({
-      data: userCreate, include: {
-        role: true,
-        gathering: true,
-      }
+      data: userCreate
     });
     // We dont wan to send the password back!!!
     const resultWithoutPassword = exclude(result, 'password');
@@ -138,7 +108,6 @@ interface UpdateUserRequest extends ExpressReq {
   body: {
     uuid: string,
     role?: UserRole,
-    gathering?: string,
     username?: string,
     password?: string,
   }
@@ -146,7 +115,6 @@ interface UpdateUserRequest extends ExpressReq {
 const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
   const userData = req.session.user;
   const payload = req.body;
-  let gathering = undefined;
   try {
     if (!userData || !userData.role) {
       throw new Error('no userdata/session present. You are not authorized / logged in!');
@@ -159,24 +127,20 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
   try {
     // Who is making this request!!! Thats stored in userData
     if (payload.role) {
-      const clientSecurityLevel = securityLevels.indexOf(userData.role);
-      const createdUserSecurityLevel = securityLevels.indexOf(payload.role);
+      const clientSecurityLevel = roleHierarchy.indexOf(userData.role);
+      const createdUserSecurityLevel = roleHierarchy.indexOf(payload.role);
       if (clientSecurityLevel < createdUserSecurityLevel) {
         throw new Error('cant assign a higher security level than yourself!! STUPID!!');
       }
     }
     switch (userData.role) {
       case 'guest':
-      case 'client':
+      case 'user':
         res.status(403).send('You may not edit users! You are not cool enough!');
         return;
-      case 'host':
-        if (payload.gathering) {
-          throw new Error('hosts cant change gathering for existing users');
-        }
+      case 'moderator':
         break;
       case 'admin': {
-        gathering = payload.gathering;
         break;
       }
       default:
@@ -194,25 +158,8 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
   const userUpdate: Prisma.UserUpdateArgs['data'] = {
     username: payload.username,
     password: hashedPassword,
-    role: {
-      connect: {
-        role: payload.role
-      }
-    },
-    // gathering: {
-    //   connect: {
-    //     name: gathering,
-    //   }
-    // }
+    role: payload.role,
   };
-
-  if (gathering) {
-    userUpdate['gathering'] = {
-      connect: {
-        name: gathering,
-      }
-    };
-  }
 
   try {
     const result = await prisma.user.update({
@@ -220,10 +167,6 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
         uuid: payload.uuid
       },
       data: userUpdate,
-      include: {
-        role: true,
-        gathering: true,
-      }
     });
     // We dont wan to send the password back!!!
     const resultWithoutPassword = exclude(result, 'password');
@@ -252,7 +195,6 @@ interface DeleteUserRequest extends ExpressReq {
 }
 const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
   try {
-
     const userData = req.session.user;
     if (!userData) {
       throw new Error('not allowed');
@@ -269,11 +211,9 @@ const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
     if (!userToDelete) {
       throw new Error('no user found');
     }
-    const clientSecurityLevel = securityLevels.indexOf(userData.role);
-    if (clientSecurityLevel < securityLevels.indexOf('admin')) {
-      if (!userData.gathering || !userToDelete.gathering || userData.gathering !== userToDelete.gathering) {
-        throw new Error('no can do. too low security level!');
-      }
+    const clientSecurityLevel = roleHierarchy.indexOf(userData.role);
+    if (clientSecurityLevel > roleHierarchy.indexOf('moderator')) {
+      throw Error('not allowed to remove users');
     }
     const deletedUser = await users.delete({
       where: {
@@ -287,74 +227,56 @@ const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
     res.status(401).send(msg);
   }
 };
-interface GetUsersRequest extends ExpressReq {
-  body: {
-    gathering?: string
-    room?: string
-  }
-}
 
-const getUsers: RequestHandler = async (req: GetUsersRequest, res) => {
-  const userData = req.session.user;
-  const payload = req.body;
+// interface GetUsersRequest extends ExpressReq {
+//   body: {
+//     gathering?: string
+//     room?: string
+//   }
+// }
 
-  try {
-    if (!userData) {
-      throw new Error('no client userdata. unauthorized!');
-    }
-    if (!userData.role) {
-      throw new Error('you have no role! Thus you are not authorized!');
-    }
-  } catch (e) {
-    const msg = extractMessageFromCatch(e, 'You give bad data!!!!');
-    res.status(400).send(msg);
-    return;
-  }
-  const clientSecurityLevel = securityLevels.indexOf(userData.role);
+// const getUsers: RequestHandler = async (req: GetUsersRequest, res) => {
+//   const userData = req.session.user;
+//   const payload = req.body;
 
-  try {
-    if (clientSecurityLevel < securityLevels.indexOf('host')) {
-      throw new Error('Too low security clearance! You fucking loooser!');
-    }
-    if (clientSecurityLevel < securityLevels.indexOf('admin')) {
-      // Below admin in level
-      if (!userData.gathering) {
-        throw new Error('With your security clearance, you must be assigned to a gathering to query for users');
-      }
-      if (userData.gathering !== payload.gathering) {
-        // throw new Error('You can only query for users in your own gathering!!');
-        console.warn('received get users without gathering provided in payload.');
-      }
-      payload.gathering = userData.gathering;
-    }
-  } catch (e) {
-    const msg = extractMessageFromCatch(e, 'fuck off. Not authorized');
-    res.status(401).send(msg);
-  }
+//   try {
+//     if (!userData) {
+//       throw new Error('no client userdata. unauthorized!');
+//     }
+//     if (!userData.role) {
+//       throw new Error('you have no role! Thus you are not authorized!');
+//     }
+//   } catch (e) {
+//     const msg = extractMessageFromCatch(e, 'You give bad data!!!!');
+//     res.status(400).send(msg);
+//     return;
+//   }
+//   const clientSecurityLevel = roleHierarchy.indexOf(userData.role);
 
-  const userSelect: Prisma.UserFindManyArgs & { where: Prisma.UserWhereInput } = {
-    where: {},
-    include: {
-      gathering: true,
-      role: true,
-    }
-  };
+//   try {
+//     if (clientSecurityLevel > roleHierarchy.indexOf('moderator')) {
+//       throw new Error('Too low security clearance! You loooser!');
+//     }
+//   } catch (e) {
+//     const msg = extractMessageFromCatch(e, 'Go away. Not authorized');
+//     res.status(401).send(msg);
+//   }
 
-  if (payload.gathering) {
-    userSelect.where['gathering'] = { name: payload.gathering };
-  }
+//   const userSelect: Prisma.UserFindManyArgs & { where: Prisma.UserWhereInput } = {
+//     where: {},
+//   };
 
-  const response = await users.findMany(userSelect);
-  const withoutPasswords = response.map(user => exclude(user, 'password'));
-  res.send(withoutPasswords);
-};
+//   const response = await users.findMany(userSelect);
+//   const withoutPasswords = response.map(user => exclude(user, 'password'));
+//   res.send(withoutPasswords);
+// };
 
 const loginUser: RequestHandler = async (req, res) => {
   // console.log('login req received');
   const username = req.body.username;
   const password = req.body.password;
   try {
-    const foundUser = await prisma.user.findUnique({ where: { username: username }, include: { role: true, gathering: true } });
+    const foundUser = await prisma.user.findUnique({ where: { username: username } });
     if (!foundUser) {
       throw new Error('no user with that username found!');
     }
@@ -429,7 +351,7 @@ export default function createUserRouter() {
   userRouter.post('/create', validateUserSession, createUser);
   userRouter.post('/update', validateUserSession, updateUser);
   userRouter.post('/delete-user', validateUserSession, deleteUser);
-  userRouter.post('/get-users', validateUserSession, getUsers);
+  // userRouter.post('/get-users', validateUserSession, getUsers);
 
   userRouter.get('/me', validateUserSession, getSelf);
 

@@ -8,13 +8,30 @@
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
+    "./jwtUtils": {
+      "import": "./dist/esm/jwtUtils.js",
+      "require": "./dist/jwtUtils.js",
+      "types": "./dist/jwtUtils.d.js"
+    },
+    "./authUtils": {
+      "import": "./dist/esm/authUtils.js",
+      "require": "./dist/authUtils.js",
+      "types": "./dist/authUtils.d.js"
+    },
+    "./utilFns": {
+      "import": "./dist/esm/utilFns.js",
+      "require": "./dist/utilFns.js",
+      "types": "./dist/utilFns.d.js"
+    },
     "./*": {
       "import": "./dist/esm/*.js",
       "require": "./dist/*.js",
       "types": "./dist/*.d.ts"
     }
   },
-  "files": ["dist/*"],
+  "files": [
+    "dist/*"
+  ],
   "scripts": {
     "build": "tsc --build tsconfig.json tsconfig.esm.json",
     "build:watch": "tsc --build --watch tsconfig.json tsconfig.esm.json",
@@ -27,6 +44,7 @@
   "license": "ISC",
   "dependencies": {
     "jsonwebtoken": "^8.5.1",
+    "schemas": "workspace:*",
     "shared-types": "workspace:*"
   },
   "devDependencies": {

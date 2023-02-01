@@ -1,9 +1,13 @@
-import { PrismaClient, Prisma } from 'database';
-import { UserData, UserRole } from 'shared-types/CustomTypes';
+import { PrismaClient, Prisma, User } from 'database';
+// import { UserData, UserRole } from 'shared-types/CustomTypes';
+import { UserRole, JwtUserData } from 'schemas';
 
 const prisma = new PrismaClient();
 
-
+// This is not optimal. We actually want an SQL query that excludes stuff. This merely removes the data in js land afterwards
+// See: https://github.com/prisma/prisma/issues/5042
+// And possibly cleaner (yet hacky) solution than the one below: https://github.com/prisma/prisma/issues/5042#issuecomment-1383213516
+// Another possible solution is using "Prisma Client Extensions"
 export function exclude<User, Key extends keyof User>(
   user: User,
   ...keys: Key[]
@@ -14,39 +18,39 @@ export function exclude<User, Key extends keyof User>(
   return user;
 }
 
-type Includes = {
-  [Property in keyof Pick<Required<Prisma.UserInclude>, 'gathering' | 'role'>]: true
-}
-const includes: Includes = {
-  gathering: true,
-  role: true,
-};
+// type Includes = {
+//   [Property in keyof Pick<Required<Prisma.UserInclude>, 'gathering' | 'role'>]: true
+// }
+// const includes: Includes = {
+//   gathering: true,
+//   role: true,
+// };
 
-const userWithIncludes = Prisma.validator<Prisma.UserArgs>()({
-  include: includes
-});
+// const userWithIncludes = Prisma.validator<Prisma.UserArgs>()({
+//   include: includes
+// });
 
-type UserWithIncludes = Prisma.UserGetPayload<typeof userWithIncludes>
-type UserQueryWithIncludes = Prisma.UserFindUniqueArgs & {include: typeof includes };
+// type UserWithIncludes = Prisma.UserGetPayload<typeof userWithIncludes>
+// type UserQueryWithIncludes = Prisma.UserFindUniqueArgs & {include: typeof includes };
 
 export const users = Object.assign(prisma.user, {
 
-  userResponseToUserData(user: UserWithIncludes){
-    const userData: UserData = {
+  userResponseToUserData(user: User){
+    const userData: JwtUserData = {
       username: user.username,
-      role: user.role?.role as UserRole,
+      role: user.role,
       uuid: user.uuid,
-      gathering: user.gathering?.name,
+      // gathering: user.gathering?.name,
       // allowedRooms: rooms,
       // allowedActions: allowedActions,
     };
     return userData;
   },
 
-  async findUserAsUserData(query: Prisma.UserFindUniqueArgs): Promise<UserData> {
+  async findUserAsUserData(query: Prisma.UserFindUniqueArgs): Promise<JwtUserData> {
     // const includes: Includes = {gathering: true, role: true, rooms: true};
-    const userFind: UserQueryWithIncludes = {...query, include: includes};
-    const foundUser = await prisma.user.findUnique<UserQueryWithIncludes>(userFind );
+    // const userFind = {...query};
+    const foundUser = await prisma.user.findUnique(query);
     // const foundUser = await prisma.user.findUnique({where:{username: 'admin'}, include: { role: true, gathering: true, rooms: true}});
 
     if (!foundUser) {

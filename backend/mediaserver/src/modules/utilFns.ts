@@ -1,5 +1,5 @@
-
-import { AllowedAction, allowedActions, UserRole } from 'shared-types/CustomTypes';
+import { UserRole } from 'schemas';
+import { AllowedAction, allowedActions } from 'shared-types/CustomTypes';
 
 export function checkPermission(role: UserRole, action: AllowedAction) {
   if(!role){

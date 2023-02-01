@@ -21,12 +21,12 @@
     "dbpush": "dotenv -e ../../.env -- prisma db push"
   },
   "devDependencies": {
-    "prisma": "3",
-    "ts-node": "^10.7.0",
-    "@types/bcrypt": "^5.0.0"
+    "@types/bcrypt": "^5.0.0",
+    "prisma": "4",
+    "ts-node": "^10.7.0"
   },
   "dependencies": {
-    "@prisma/client": "3",
+    "@prisma/client": "4",
     "bcrypt": "^5.0.1",
     "shared-types": "workspace:*"
   }

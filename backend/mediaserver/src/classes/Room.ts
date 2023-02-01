@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import Client from './Client';
-import { RoomProperties, RoomState, ShallowRoomState, UserRole } from 'shared-types/CustomTypes';
+import { RoomProperties, RoomState, ShallowRoomState } from 'shared-types/CustomTypes';
+import { UserRole } from 'schemas';
 import Gathering from './Gathering';
 import { types as soupTypes } from 'mediasoup';
 // import type { RtpParameters } from 'mediasoup/node/lib/types';

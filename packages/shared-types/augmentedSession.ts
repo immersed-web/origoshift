@@ -1,9 +1,12 @@
-import type {SessionData} from 'express-session';
-import type { UserData } from './CustomTypes.js';
+// import type {SessionData} from 'express-session';
+// import type { UserData } from './CustomTypes.js';
+import { JwtUserData } from 'schemas'
 
 declare module 'express-session' {
   interface SessionData {
     userId: string
-    user: UserData
+    user: JwtUserData
   }
 }
+
+export {}

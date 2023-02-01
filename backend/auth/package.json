@@ -32,7 +32,7 @@
     "ttypescript": "^1.5.13"
   },
   "dependencies": {
-    "@quixo3/prisma-session-store": "^3.1.0",
+    "@quixo3/prisma-session-store": "^3.1.10",
     "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
     "database": "workspace:*",
@@ -40,6 +40,7 @@
     "express-session": "^1.17.2",
     "haikunator": "^2.1.2",
     "jsonwebtoken": "^8.5.1",
+    "schemas": "workspace:*",
     "shared-types": "workspace:*"
   }
 }

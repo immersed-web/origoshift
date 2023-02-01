@@ -1,13 +1,9 @@
-// const bcrypt = require('bcrypt');
 import bcrypt from 'bcrypt';
-// const { PrismaClient } = require('@prisma/client');
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role, User } from "./src/index";
 const prisma = new PrismaClient();
-import { NonGuestUserRole } from 'shared-types/CustomTypes'
 
-// console.log('env vars:', process.env);
 
-let role: NonGuestUserRole = 'admin';
 async function seedProd() {
   if (!process.env.ADMIN_PASSWORD) {
     throw Error('no admin password provided for seed script. set ADMIN_PASSWORD var in the file .env');
@@ -19,16 +15,14 @@ async function seedProd() {
   await prisma.user.create({
     data:
     {
-      username: 'admin',
+      username: 'superadmin',
       password: hashedPassword,
-      role: {
-        create: {
-          role: role
-        }
-      },
+      role: 'superadmin',
     },
   })
 }
+
+
 
 async function seedDev() {
   if (!process.env.ADMIN_PASSWORD) {
@@ -41,171 +35,23 @@ async function seedDev() {
   await prisma.user.create({
     data:
     {
-      username: 'admin',
+      username: 'superadmin',
       password: hashedPassword,
-      role: {
-        create: {
-          role: role
-        }
-      },
+      role: 'superadmin'
     },
   })
 
-  hashedPassword = await bcrypt.hash('password', 10);
-  const testSkolan = await prisma.gathering.create({
-    data: {
-      name: 'TestSkolan',
-      // rooms: {
-      //   createMany: {
-      //     data: [
-      //       { name: 'Klassrum 1' },
-      //       { name: 'Klassrum 2' },
-      //     ]
-      //   }
-      // },
-    }
-  })
+  hashedPassword = await bcrypt.hash('123', 10);
 
-  const testSkolan2 = await prisma.gathering.create({
-    data: {
-      name: 'TestSkolan2',
-    }
-  })
-
-
-  role = 'host'
+  const userRole: Role = 'user';
   await prisma.user.create({
     data: {
-      username: 'host1',
+      username: 'user1',
       password: hashedPassword,
-      role: {
-        connectOrCreate: {
-          create: {
-            role: role
-          },
-          where: {
-            role: role
-          }
-        }
-      },
-      gathering: {
-        connect: {
-          name: testSkolan.name
-        }
-      }
+      role: userRole,
     }
   })
 
-
-  role = 'client';
-  await prisma.user.create({
-    data: {
-      username: 'elev1',
-      password: hashedPassword,
-      role: {
-        connectOrCreate: {
-          create: {
-            role: role
-          },
-          where: {
-            role: role
-          }
-        }
-      },
-      gathering: {
-        connect: {
-          name: testSkolan.name
-        }
-      }
-    }
-  })
-
-  await prisma.user.create({
-    data: {
-      username: 'elev2',
-      password: hashedPassword,
-      role: {
-        connectOrCreate: {
-          create: {
-            role: role
-          },
-          where: {
-            role: role
-          }
-        }
-      },
-      gathering: {
-        connect: {
-          name: testSkolan.name
-        }
-      }
-    }
-  })
-
-  role = 'host';
-  await prisma.user.create({
-    data: {
-      username: 'host2',
-      password: hashedPassword,
-      role: {
-        connectOrCreate: {
-          create: {
-            role: role
-          },
-          where: {
-            role: role
-          }
-        }
-      },
-      gathering: {
-        connect: {
-          name: testSkolan2.name
-        }
-      },
-    }
-  })
-  await prisma.user.create({
-    data: {
-      username: 'elev3',
-      password: hashedPassword,
-      role: {
-        connectOrCreate: {
-          create: {
-            role: role
-          },
-          where: {
-            role: role
-          }
-        }
-      },
-      gathering: {
-        connect: {
-          name: testSkolan2.name
-        }
-      }
-    }
-  })
-  await prisma.user.create({
-    data: {
-      username: 'elev4',
-      password: hashedPassword,
-      role: {
-        connectOrCreate: {
-          create: {
-            role: role
-          },
-          where: {
-            role: role
-          }
-        }
-      },
-      gathering: {
-        connect: {
-          name: testSkolan2.name
-        }
-      }
-    }
-  })
 }
 
 if (process.env.DEVELOPMENT) {

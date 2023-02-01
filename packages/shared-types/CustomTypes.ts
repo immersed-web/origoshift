@@ -4,6 +4,7 @@
 //   clients: Record<string, unknown>[],
 // }
 import { types as soup } from 'mediasoup';
+import { UserRole } from 'schemas';
 import { RequestSubjects } from './MessageTypes.js';
 
 export interface ProducerInfo {
@@ -78,68 +79,68 @@ export interface GatheringState {
 
 // export type AllowedActions  = Extract<RequestSubjects, 'createGathering' |'joinGathering' | 'gatheringState' | 'createRoom' | 'joinRoom'>
 export type AllowedAction = RequestSubjects | '*';
-export interface UserData {
-  uuid: string,
-  username: string,
-  role: UserRole,
-  gathering?: '*' | string
-  // allowedRooms?: '*' | string[]
-  // allowedActions: Array<AllowedAction>
-}
+// export interface UserData {
+//   uuid: string,
+//   username: string,
+//   role: UserRole,
+//   gathering?: '*' | string
+//   // allowedRooms?: '*' | string[]
+//   // allowedActions: Array<AllowedAction>
+// }
 
-export const securityLevels = [
-  'guest',
-  'client',
-  // 'sender',
-  'host',
-  'admin',
-  'gunnar'
-] as const;
+// export const securityLevels = [
+//   'guest',
+//   'client',
+//   // 'sender',
+//   'host',
+//   'admin',
+//   'gunnar'
+// ] as const;
 
-export type UserRole = (typeof securityLevels)[number];
-export type NonGuestUserRole = Exclude<(typeof securityLevels)[number], 'guest'>;
-
-
-function makeDefaultAction<T extends AllowedAction[]>(t: T): T {
-  return t;
-}
-
-const defaultActions = makeDefaultAction([
-  'connectTransport',
-  'createReceiveTransport',
-  'createConsumer',
-  'getRouterRtpCapabilities',
-  'setRtpCapabilities',
-  'notifyCloseEventRequest',
-  'notifyPauseResumeRequest',
-  'joinRoom',
-  'requestToJoinRoom',
-  'leaveRoom',
-  'findRoomByName',
-  'joinGathering',
-  'leaveGathering',
-  'findGatheringByName',
-  'setName',
-  'getClientState',
-  'setCustomClientProperties',
-  'createGathering',
-  'createProducer',
-  'createSendTransport',
-]);
+// export type UserRole = (typeof securityLevels)[number];
+// export type NonGuestUserRole = Exclude<(typeof securityLevels)[number], 'guest'>;
 
 
-type DefaultAction = (typeof defaultActions)[number];
-type NonDefaultAction = Exclude<AllowedAction, DefaultAction>
+// function makeDefaultAction<T extends AllowedAction[]>(t: T): T {
+//   return t;
+// }
 
-const hostActions: NonDefaultAction[] = [
-  'assignMainProducerToRoom', 'createRoom', 'setRoomName', 'customRequest', 'getGatheringState', 'removeClientFromRoom', 'closeAllProducersForClient', 'pauseAllProducersForClient', 'setForceMuteStateForProducer', 'setForceMuteStateForClient', 'setCustomRoomProperties',
-]
+// const defaultActions = makeDefaultAction([
+//   'connectTransport',
+//   'createReceiveTransport',
+//   'createConsumer',
+//   'getRouterRtpCapabilities',
+//   'setRtpCapabilities',
+//   'notifyCloseEventRequest',
+//   'notifyPauseResumeRequest',
+//   'joinRoom',
+//   'requestToJoinRoom',
+//   'leaveRoom',
+//   'findRoomByName',
+//   'joinGathering',
+//   'leaveGathering',
+//   'findGatheringByName',
+//   'setName',
+//   'getClientState',
+//   'setCustomClientProperties',
+//   'createGathering',
+//   'createProducer',
+//   'createSendTransport',
+// ]);
+
+
+// type DefaultAction = (typeof defaultActions)[number];
+// type NonDefaultAction = Exclude<AllowedAction, DefaultAction>
+
+// const hostActions: NonDefaultAction[] = [
+//   'assignMainProducerToRoom', 'createRoom', 'setRoomName', 'customRequest', 'getGatheringState', 'removeClientFromRoom', 'closeAllProducersForClient', 'pauseAllProducersForClient', 'setForceMuteStateForProducer', 'setForceMuteStateForClient', 'setCustomRoomProperties',
+// ]
 
 export const allowedActions: Record<UserRole, AllowedAction[]> = {
   gunnar: ['*'],
+  superadmin: ['*'],
   admin: ['*'],
-  host: [...defaultActions, ...hostActions],
-  // sender: [...defaultActions],
-  client: [...defaultActions],
-  guest: [...defaultActions],
+  moderator: ['*'],
+  user: ['*'],
+  guest: ['*'],
 }

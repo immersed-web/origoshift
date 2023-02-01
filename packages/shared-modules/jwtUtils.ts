@@ -1,20 +1,7 @@
-
-// import passport from 'passport';
-// import {ExtractJwt, Strategy as JwtStrategy, StrategyOptions} from 'passport-jwt';
 import Express from 'express';
-import jwt, { JwtPayload} from 'jsonwebtoken';
-import { UserData } from 'shared-types/CustomTypes';
+import jwt from 'jsonwebtoken';
 import 'shared-types/augmentedRequest';
-
-// passport.unuse('session');
-
-// type User = Express.Request['user'];
-
-declare module 'express' {
-  interface Request {
-    user?: UserData;
-  }
-}
+import { JwtPayloadSchema, JwtPayload, JwtUserData } from 'schemas';
 
 if(!process.env.JWT_ISSUER || !process.env.JWT_AUDIENCE || !process.env.JWT_SECRET){
   throw Error('missing Environment variables for jwt settings!!!');
@@ -29,16 +16,7 @@ const jwtSignOptions: jwt.SignOptions = {
   algorithm: 'HS256',
 };
 
-// passport.use('jwtStrategy', new JwtStrategy(jwtStrategyOptions, function(jwtPayload, done){
-//   console.log('received valid jwt:', jwtPayload);
-//   done(null, jwtPayload);
-// }));
-
-// export default function  initPassport(app: Express){
-//   app.use(passport.initialize());
-// }
-
-export function createJwt(userObj: object | string | Buffer, expiresInSeconds: number | undefined = undefined, jwtId?: string, secret?: string){
+export function createJwt(userObj: JwtUserData, expiresInSeconds: number | undefined = undefined, jwtId?: string, secret?: string){
   const signOptions: jwt.SignOptions = {
     issuer: process.env.JWT_ISSUER,
     audience: process.env.JWT_AUDIENCE,
@@ -57,15 +35,13 @@ export function createJwt(userObj: object | string | Buffer, expiresInSeconds: n
   return token;
 }
 
-export type DecodedJwt = UserData & JwtPayload;
-
-
 export function verifyJwtToken(token: string, secret?: string){
   if(!secret){
     secret = envJwtSecret;
   }
   const decoded = jwt.verify(token, secret, jwtSignOptions);
-  return decoded as DecodedJwt;
+  const validJwt = JwtPayloadSchema.parse(decoded);
+  return validJwt;
 }
 
 export const jwtMiddleware: Express.RequestHandler = (req, res, next) => {
@@ -78,9 +54,8 @@ export const jwtMiddleware: Express.RequestHandler = (req, res, next) => {
   }
   const token = authHeader.substring('Bearer '.length, authHeader.length);
   try{
-    const decodedToken = verifyJwtToken(token);
-      // req['user'] = decodedToken;
-      req.user = decodedToken;
+    const jwtObject = verifyJwtToken(token);
+    req.user = jwtObject;
     return next();
   } catch (e){
     res.status(403).send('invalid token maddafakka!');

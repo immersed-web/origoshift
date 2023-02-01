@@ -5,8 +5,8 @@
     // "target": "ES2022",
     "module": "ESNext",
     // "moduleResolution": "NodeNext",
-    // "declaration": true,
-    // "declarationMap": true,
+    "declaration": false,
+    "declarationMap": false,
     "outDir": "./dist/esm",                              /* Redirect output structure to the directory. */
     "rootDir": "./",                             /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
     "baseUrl": "./"                             /* Base directory to resolve non-absolute module names. */

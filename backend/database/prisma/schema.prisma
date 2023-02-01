@@ -19,44 +19,59 @@ model Session {
   expiresAt DateTime
 }
 
-// model Profile {
-//   id     Int    @id @default(autoincrement())
-//   // uuid   String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-//   user   User   @relation(fields: [userId], references: [uuid], onDelete: Cascade)
-//   userId String @unique @db.Uuid
+model Venue {
+  uuid           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String       @unique
+  startTime      DateTime
+  settings       Json
+  virtualSpace   VirtualSpace @relation(fields: [virtualSpaceId], references: [uuid])
+  virtualSpaceId String       @unique @db.Uuid
+  owner          User         @relation(fields: [ownerId], references: [uuid], onDelete: Cascade)
+  ownerId        String       @db.Uuid
+  allowedUsers   User[]       @relation("allowedUsers")
+  cameras        Camera[]
+}
+
+model VirtualSpace {
+  uuid     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  settings Json
+  venue    Venue?
+}
+
+model Camera {
+  uuid    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name    String
+  venue   Venue  @relation(fields: [venueId], references: [uuid], onDelete: Cascade)
+  venueId String @db.Uuid
+
+  settings Json
+
+  @@unique([name, venueId]) // We allow duplicate camera names as long as they are at different venues
+}
+
+// model Role {
+//   id    Int    @id @default(autoincrement())
+//   // uuid String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   role  String @unique
+//   users User[]
 // }
-
-model Gathering {
-  uuid  String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name  String @unique
-  users User[]
-  rooms Room[]
-}
-
-model Room {
-  uuid        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String
-  gathering   Gathering @relation(fields: [gatheringId], references: [uuid], onDelete: Cascade)
-  gatheringId String    @db.Uuid
-
-  @@unique([name, gatheringId])
-}
-
-model Role {
-  id    Int    @id @default(autoincrement())
-  // uuid String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role  String @unique
-  users User[]
+enum Role {
+  gunnar
+  superadmin
+  admin
+  moderator
+  user
+  guest
 }
 
 model User {
-  uuid        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  updatedAt   DateTime   @updatedAt
-  username    String     @unique
-  password    String
-  role        Role?      @relation(fields: [roleId], references: [id])
-  roleId      Int?
-  // profile     Profile?
-  gathering   Gathering? @relation(fields: [gatheringId], references: [uuid], onDelete: Cascade)
-  gatheringId String?    @db.Uuid
+  uuid          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  updatedAt     DateTime @updatedAt
+  username      String   @unique
+  password      String
+  // role      Role?    @relation(fields: [roleId], references: [id])
+  // roleId    Int?
+  role          Role     @default(user)
+  ownedVenues   Venue[]
+  allowedVenues Venue[]  @relation("allowedUsers")
 }

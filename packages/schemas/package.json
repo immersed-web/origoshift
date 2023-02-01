@@ -1,0 +1,31 @@
+{
+  "name": "schemas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jsonwebtoken": "^8.5.8",
+    "database": "workspace:*",
+    "jsonwebtoken": "^8.5.1",
+    "tsup": "^6.5.0"
+  },
+  "dependencies": {
+    "ts-extras": "^0.11.0",
+    "zod": "^3.20.2"
+  }
+}

@@ -5,10 +5,8 @@
 
       <a-assets @loaded="onLoaded">
         <img id="groundTexture" src="https://cdn.aframe.io/a-painter/images/floor.jpg">
-        <!-- <a-asset-item id="dungeon" src="/models/nav_test.obj"></a-asset-item> -->
-        <!-- <a-asset-item id="dung" src="/models/dung22.gltf"></a-asset-item> -->
         <a-asset-item id="venue-asset" src="/models/venue/scene.gltf"></a-asset-item>
-        <a-asset-item id="venue_navmesh-asset" src="/models/venue_navmesh/scene.gltf" material="visible: false"></a-asset-item>
+        <a-asset-item id="venue_navmesh-asset" src="/models/venue_navmesh/scene.gltf"></a-asset-item>
       </a-assets>
 
       <a-sky color="#ECECEC"></a-sky>
@@ -33,14 +31,7 @@
 
 <script setup lang="ts">
 import 'aframe'
-import type { AFrame, ThreeLib } from 'aframe';
 import { onBeforeMount, ref } from 'vue'
-
-// import components from '../ts/components'
-// components.registerComponents()
-onBeforeMount(() => {
-  // components.registerComponents()
-})
 
 const loaded = ref(false)
 

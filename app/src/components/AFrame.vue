@@ -21,7 +21,7 @@
 
       <a-entity v-if="loaded">
         <!-- The venue model -->
-        <a-entity id="venue" gltf-model="#venue-asset" material="transparent: true; opacity: 0.0"></a-entity>
+        <a-entity id="venue" gltf-model="#venue-asset"></a-entity>
 
         <!-- The navmesh, this should not be rendered. How to do? -->
         <a-entity id="venue_navmesh" gltf-model="#venue_navmesh-asset" visible="false"></a-entity>

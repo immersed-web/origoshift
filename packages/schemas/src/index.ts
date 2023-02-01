@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { JwtPayload as JwtShapeFromLib } from 'jsonwebtoken'
 import { Role } from "database";
-import { objectKeys } from "ts-extras";
+import { toZod } from "tozod";
 
 type RemoveIndex<T> = {
   [ K in keyof T as string extends K ? never : number extends K ? never : K ] : T[K]
@@ -9,29 +9,39 @@ type RemoveIndex<T> = {
 
 type JWTDefaultPayload = RemoveIndex<JwtShapeFromLib>
 
-type Implements<Model> = {
-  [key in keyof Model]-?: undefined extends Model[key]
-    ? null extends Model[key]
-      ? z.ZodNullableType<z.ZodOptionalType<z.ZodType<Model[key]>>>
-      : z.ZodOptionalType<z.ZodType<Model[key]>>
-    : null extends Model[key]
-    ? z.ZodNullableType<z.ZodType<Model[key]>>
-    : z.ZodType<Model[key]>;
-};
+// type Implements<Model> = {
+//   [key in keyof Model]-?: undefined extends Model[key]
+//     ? null extends Model[key]
+//       ? z.ZodNullableType<z.ZodOptionalType<z.ZodType<Model[key]>>>
+//       : z.ZodOptionalType<z.ZodType<Model[key]>>
+//     : null extends Model[key]
+//     ? z.ZodNullableType<z.ZodType<Model[key]>>
+//     : z.ZodType<Model[key]>;
+// };
 
-function implement<Model = never>() {
-  return {
-    with: <
-      Schema extends Implements<Model> & {
-        [unknownKey in Exclude<keyof Schema, keyof Model>]: never;
-      }
-    >(
-      schema: Schema
-    ) => z.object(schema),
-  };
-}
+// function implement<Model = never>() {
+//   return {
+//     with: <
+//       Schema extends Implements<Model> & {
+//         [unknownKey in Exclude<keyof Schema, keyof Model>]: never;
+//       }
+//     >(
+//       schema: Schema
+//     ) => z.object(schema),
+//   };
+// }
 
-const jwtDefaultPayload = implement<JWTDefaultPayload>().with({
+// const jwtDefaultPayload = implement<JWTDefaultPayload>().with({
+//   aud: z.string().optional(),
+//   exp: z.number().optional(),
+//   iat: z.number().optional(),
+//   iss: z.string().optional(),
+//   jti: z.string().optional(),
+//   nbf: z.number().optional(),
+//   sub: z.string().optional(),
+// })
+
+const jwtDefaultPayload: toZod<JWTDefaultPayload> = z.object({
   aud: z.string().optional(),
   exp: z.number().optional(),
   iat: z.number().optional(),

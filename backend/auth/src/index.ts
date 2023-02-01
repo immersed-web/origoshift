@@ -76,7 +76,7 @@ app.use(session({
     secure: cookieSecure,
     maxAge: 7 * 24 * 60 * 60 * 1000 // ms
   },
-  name: 'inclubit',
+  name: 'origoshift',
   resave: false,
   saveUninitialized: false,
   store: new PrismaSessionStore(prisma,
@@ -88,7 +88,7 @@ app.use(session({
 }),
 );
 const userRouter = createUserRouter();
-app.use('/', userRouter);
+app.use('/user/', userRouter);
 
 // const apiRouter = createApiRouter();
 // app.use('/', apiRouter);

@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import prisma, { Prisma, users, exclude } from './prismaClient';
 import { createJwt } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { validateUserSession } from './utils';
+import { isLoggedIn } from './utils';
 import 'shared-types/augmentedRequest';
 import 'shared-types/augmentedSession';
 import { UserRole, roleHierarchy } from 'schemas';
@@ -338,45 +338,18 @@ export default function createUserRouter() {
 
   userRouter.get('', index);
 
-
-  // userRouter.get('/dummylogin', (req, res) => {
-
-  //   req.session.userId = 'mrMaster';
-  //   res.send('niiice');
-  // });
-
   userRouter.post('/login', loginUser);
   userRouter.get('/logout', logoutUser);
 
-  userRouter.post('/create', validateUserSession, createUser);
-  userRouter.post('/update', validateUserSession, updateUser);
-  userRouter.post('/delete-user', validateUserSession, deleteUser);
+  userRouter.post('/create', isLoggedIn, createUser);
+  userRouter.post('/update', isLoggedIn, updateUser);
+  userRouter.post('/delete-user', isLoggedIn, deleteUser);
   // userRouter.post('/get-users', validateUserSession, getUsers);
 
-  userRouter.get('/me', validateUserSession, getSelf);
+  userRouter.get('/me', isLoggedIn, getSelf);
 
-  userRouter.get('/jwt', validateUserSession, getJwt);
-
-  // userRouter.get('jwt', async (req, res, next) =>{
-
-  //   const query: Prisma.UserSelect = {
-  //     uuid: true,
-  //     role: true,
-
-  //   }
-
-
-  //   const user = await prisma.user.findUnique({where: {uuid: req.session.userId}});
-
-
-  // });
-
-
+  userRouter.get('/jwt', isLoggedIn, getJwt);
 
   return userRouter;
 
 }
-
-
-
-// export default createUserRouter;

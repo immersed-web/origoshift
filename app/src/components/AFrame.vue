@@ -6,9 +6,9 @@
       <a-assets @loaded="onLoaded">
         <img id="groundTexture" src="https://cdn.aframe.io/a-painter/images/floor.jpg">
         <!-- <a-asset-item id="dungeon" src="/models/nav_test.obj"></a-asset-item> -->
-        <a-asset-item id="dung" src="/models/dung22.gltf"></a-asset-item>
+        <!-- <a-asset-item id="dung" src="/models/dung22.gltf"></a-asset-item> -->
         <a-asset-item id="venue-asset" src="/models/venue/scene.gltf"></a-asset-item>
-        <a-asset-item id="venue_navmesh-asset" src="/models/venue_navmesh/scene.gltf"></a-asset-item>
+        <a-asset-item id="venue_navmesh-asset" src="/models/venue_navmesh/scene.gltf" material="visible: false"></a-asset-item>
       </a-assets>
 
       <a-sky color="#ECECEC"></a-sky>
@@ -21,10 +21,10 @@
 
       <a-entity v-if="loaded">
         <!-- The venue model -->
-        <a-entity id="venue" gltf-model="#venue-asset"></a-entity>
+        <a-entity id="venue" gltf-model="#venue-asset" material="transparent: true; opacity: 0.0"></a-entity>
 
         <!-- The navmesh, this should not be rendered. How to do? -->
-        <a-entity id="venue_navmesh" gltf-model="#venue_navmesh-asset"></a-entity>
+        <a-entity id="venue_navmesh" gltf-model="#venue_navmesh-asset" visible="false"></a-entity>
       </a-entity>
 
     </a-scene>

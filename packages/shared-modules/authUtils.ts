@@ -1,4 +1,4 @@
-import { UserRole, possibleUserRoles } from "schemas";
+import { UserRole, roleHierarchy } from "schemas";
 
 export function throwIfUnauthorized(role: UserRole | undefined, minimumUserRole: UserRole) {
   // const userIndex = securityLevels.indexOf(role);
@@ -9,8 +9,8 @@ export function throwIfUnauthorized(role: UserRole | undefined, minimumUserRole:
   if(!minimumUserRole) {
     throw new Error('no minimum userRole provided for auth check!');
   }
-  const clientSecurityLevel = possibleUserRoles.indexOf(role);
-  if(clientSecurityLevel < possibleUserRoles.indexOf(minimumUserRole)){
+  const clientSecurityLevel = roleHierarchy.indexOf(role);
+  if(clientSecurityLevel < roleHierarchy.indexOf(minimumUserRole)){
     throw new Error('not authorized!');
   }
 }
@@ -24,6 +24,6 @@ export function hasAtLeastSecurityLevel(role: UserRole | undefined, minimumUserR
   if(!minimumUserRole) {
     throw new Error('no minimum userRole provided for auth check!');
   }
-  const clientSecurityLevel = possibleUserRoles.indexOf(role);
-  return clientSecurityLevel >= possibleUserRoles.indexOf(minimumUserRole)
+  const clientSecurityLevel = roleHierarchy.indexOf(role);
+  return clientSecurityLevel >= roleHierarchy.indexOf(minimumUserRole)
 }

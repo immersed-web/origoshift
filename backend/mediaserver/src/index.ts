@@ -5,15 +5,31 @@ const printSoupStats = observerLogger();
 
 import printClassInstances from './classInstanceObservers';
 import Client from './classes/Client';
-import uWebSockets from 'uWebSockets.js';
+import uWebSockets, { WebSocket } from 'uWebSockets.js';
 const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import SocketWrapper from './classes/SocketWrapper';
 import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { JwtUserData, JwtUserDataSchema } from 'schemas';
+import { JwtUserData, JwtUserDataSchema, UserRole } from 'schemas';
+import { applyWSHandler } from './trpc/ws-adapter';
+import { initTRPC } from '@trpc/server';
+import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
 
-const clients: Map<uWebSockets.WebSocket<JwtUserData>, Client> = new Map();
+type MyWebsocketType = WebSocket<JwtUserData>;
+// const clients: Map<uWebSockets.WebSocket<JwtUserData>, Client> = new Map();
+
+
+type TempClient = {
+  uuid: string;
+  username: string;
+  role: UserRole
+}
+
+// Usually there is one connection per user. But.
+// Privileged users might be allowed to have several connections active simultaneously
+const connectedUsers: Map<JwtUserData['uuid'], MyWebsocketType[]> = new Map();
+const clientConnections: Map<MyWebsocketType, TempClient> = new Map();
 // const disconnectedClients: Map<string, Client> = new Map();
 
 createWorkers();
@@ -51,6 +67,18 @@ if(stdin && stdin.isTTY){
   });
 }
 
+const trpc = initTRPC.context<JwtUserData>().create();
+
+const appRouter = trpc.router({
+  health: trpc.procedure.query(({ctx}) => {
+    return 'Yooo! I\'m healthy' as const;
+  }),
+  greeting: trpc.procedure.query(({ctx}) => `Hello ${ctx.username}!`)
+})
+
+export type AppRouter = typeof appRouter
+
+const {onSocketOpen, onSocketMessage, onSocketClose} = applyWSHandler<AppRouter, JwtUserData>({router: appRouter});
 
 const app = uWebSockets.App();
 
@@ -62,19 +90,22 @@ app.ws<JwtUserData>('/*', {
   // maxPayloadLength: 512,
   compression: DEDICATED_COMPRESSOR_3KB,
 
-  /* For brevity we skip the other events (upgrade, open, ping, pong, close) */
   message: (ws, message) => {
-    /* You can do app.publish('sensors/home/temperature', '22C') kind of pub/sub as well */
 
-    const client = clients.get(ws);
-    if(client) {
-      // const strMsg = textDecoder.decode(message);
-      // console.log('converted message:', strMsg);
+      const asString = Buffer.from(message).toString();
+      // const parsedMsg = JSON.parse(asString);
+      // if(!parsedMsg){
+      //   console.error('fuck. Couldnt convert incoming data to js object');
+      //   return;
+      // }
+    onSocketMessage(ws, asString);
+    // const client = clients.get(ws);
+    // if(client) {
 
-      // @ts-expect-error: In ooonly this specific case we want to ignore the private field (ws). But never elsewhere
-      client.ws.incomingMessage(message);
-      // console.log('client :>> ', client);
-    }
+    //   // @ts-expect-error: In ooonly this specific case we want to ignore the private field (ws). But never elsewhere
+    //   client.ws.incomingMessage(message);
+    //   // console.log('client :>> ', client);
+    // }
     // console.log('isBinary:', isBinary);
 
     /* Here we echo the message back, using compression if available */
@@ -85,27 +116,17 @@ app.ws<JwtUserData>('/*', {
     console.log('upgrade request received:', req);
     try{
       const receivedToken = req.getQuery();
-
-      // if(!receivedToken){
-      //   res.writeStatus('403 Forbidden').end('YOU SHALL NOT PASS!!!');
-      //   return;
-      // }
-
       console.log('upgrade request provided this token:', receivedToken);
-
       const validJwt = verifyJwtToken(receivedToken);
 
       console.log('decoded jwt:', validJwt);
 
-      //TODO: This doesnt scale... Perhaps we can use uuid for the clients map instead of ws instance. Then we can check directly against the keys active clients.
-      // let alreadyLoggedIn = false;
-      clients.forEach(value => {
-        if(validJwt.role === 'user' && value.userData.uuid === validJwt.uuid){
-          throw Error('already logged in!!!');
-        }
-      });
-
       const userDataOnly = JwtUserDataSchema.parse(validJwt);
+
+      const isAlreadyConnected = connectedUsers.has(userDataOnly.uuid);
+      if(!hasAtLeastSecurityLevel(userDataOnly.role, 'moderator') && isAlreadyConnected){
+            throw Error('already logged in!!!');
+      }
 
       res.upgrade<JwtUserData>(
         userDataOnly,
@@ -126,32 +147,44 @@ app.ws<JwtUserData>('/*', {
     const userData = ws.getUserData();
     // const wsWrapper = new SocketWrapper(ws);
     console.log('socket opened');
-    const client = new Client({ws: new SocketWrapper(ws), userData });
+    // const client = new Client({ws, userData });
 
-    clients.set(ws, client);
-    console.log('client :>> ', client);
+    const client: TempClient = {...userData};
+
+    clientConnections.set(ws, client);
+
+    // Housekeeping our users and connections
+    const wasAlreadyLoggedIn = connectedUsers.has(userData.uuid);
+    if(wasAlreadyLoggedIn){
+      const activeSockets = connectedUsers.get(userData.uuid)!
+      activeSockets.push(ws);
+    } else {
+      connectedUsers.set(userData.uuid, [ws]);
+    }
+    console.log('new client:', client);
+
+    onSocketOpen(ws, userData)
   },
   close: (ws) => {
-    const client = clients.get(ws);
+    const userData = ws.getUserData();
+    const client = clientConnections.get(ws);
     if(!client){
       throw Error('a disconnecting client was not in client list! Something is astray!');
     }
-    clients.delete(ws);
-    if( false && client){
-      // disconnectedClients.set(client.id, client);
-      // setTimeout(() => {
-      //   disconnectedClients.delete(client.id);
-      // }, 1000 * 60 * 5);
+    clientConnections.delete(ws);
+
+    let activeSockets = connectedUsers.get(userData.uuid)!;
+    activeSockets = activeSockets.filter(s => s !== ws);
+    if(activeSockets.length === 0){
+      //no active connections. also remove from connectedUsers dictionary
+      connectedUsers.delete(userData.uuid);
     }
-    client.onDisconnected();
-    console.log('client disconnected:', client.id);
+
+    // client.onDisconnected();
+    console.log('client disconnected:', client.uuid);
+    onSocketClose(ws, 'no more');
   }
   //
-
-}).get('/*', (res, _req) => {
-
-  /* It does Http as well */
-  res.writeStatus('200 OK').writeHeader('IsExample', 'Yes').end('Hello there!');
 
 }).listen(9001, (listenSocket) => {
 
@@ -161,6 +194,3 @@ app.ws<JwtUserData>('/*', {
   }
 
 });
-
-
-export type { AppRouter } from './server';

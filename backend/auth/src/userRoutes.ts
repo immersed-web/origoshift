@@ -7,8 +7,6 @@ import { isLoggedIn } from './utils';
 import 'shared-types/augmentedRequest';
 import 'shared-types/augmentedSession';
 import { UserRole, roleHierarchy } from 'schemas';
-// import { UserRole, securityLevels } from 'shared-types/CustomTypes';
-
 
 const index: RequestHandler = (req, res) => {
   res.send({ message: 'this is the auth user route. Whats cookin good lookin?' });

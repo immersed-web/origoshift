@@ -56,6 +56,26 @@ const jwtDefaultPayload: toZod<JWTDefaultPayload> = z.object({
 // Because then we could use the extracted literal tuple from prisma instead of defining it manually here. This is redundant and we need to keep them in sync
 export const roleHierarchy = (['gunnar', 'superadmin', 'admin', 'moderator', 'user', 'guest'] as const) satisfies Readonly<Role[]>;
 
+// type RoleSet = Set<Role>;
+// const roles: Set<Role> = new Set(['gunnar', 'superadmin', 'admin', 'moderator', 'user', 'guest']);
+// const arr = Array.from(roles);
+// type RoleEnumToZod = toZod<EnumFromRoleUnion>
+
+// type EnumFromRoleUnion = {
+//   [k in Role]: k
+// };
+
+// const zodifiedRoleEnun: toZod<EnumFromRoleUnion> = z.object({
+//   gunnar: z.literal('gunnar'),
+//   superadmin: z.literal('superadmin'),
+//   admin: z.literal('admin'),
+//   moderator: z.literal('moderator'),
+//   user: z.literal('user'),
+//   guest: z.literal('guest'),
+// });
+
+// type InferredRole = z.infer<typeof zodifiedRoleEnun>;
+//
 // const UserRoleSchema = z.enum(possibleUserRoles);
 export const UserRoleSchema = z.enum(roleHierarchy);
 export type UserRole = z.infer<typeof UserRoleSchema>;

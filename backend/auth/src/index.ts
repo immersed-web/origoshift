@@ -34,7 +34,7 @@ let cookieHttpOnly = true;
 let cookieSecure = true;
 if (devMode) {
   // NOTE: I couldnt come up with a way to allow all origins so we have hardcoded the devservers url here
-  const devServerUrl = 'http://localhost:9000';
+  const devServerUrl = 'http://localhost:5173';
   console.log('allowing cors for development: ', devServerUrl);
   app.use(cors({ credentials: true, origin: [devServerUrl] }));
 
@@ -108,7 +108,8 @@ app.get('/guest-jwt', (req, res) => {
     // allowedActions: ['*'],
     uuid: randomUUID(),
   };
-  const jwt = createJwt(guestObject, 60);
+  console.log('sending a guest jwt:', guestObject);
+  const jwt = createJwt(guestObject, 60 * 5);
   res.send(jwt);
 });
 

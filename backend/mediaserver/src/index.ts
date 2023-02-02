@@ -4,10 +4,8 @@ import observerLogger from './mediasoupObservers';
 const printSoupStats = observerLogger();
 
 import printClassInstances from './classInstanceObservers';
-import Client from './classes/Client';
 import uWebSockets, { WebSocket } from 'uWebSockets.js';
 const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
-import SocketWrapper from './classes/SocketWrapper';
 import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
@@ -17,8 +15,6 @@ import { initTRPC } from '@trpc/server';
 import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
 
 type MyWebsocketType = WebSocket<JwtUserData>;
-// const clients: Map<uWebSockets.WebSocket<JwtUserData>, Client> = new Map();
-
 
 type TempClient = {
   uuid: string;
@@ -26,11 +22,10 @@ type TempClient = {
   role: UserRole
 }
 
-// Usually there is one connection per user. But.
+// Usually there is one connection per user. But...
 // Privileged users might be allowed to have several connections active simultaneously
 const connectedUsers: Map<JwtUserData['uuid'], MyWebsocketType[]> = new Map();
 const clientConnections: Map<MyWebsocketType, TempClient> = new Map();
-// const disconnectedClients: Map<string, Client> = new Map();
 
 createWorkers();
 
@@ -74,7 +69,7 @@ const appRouter = trpc.router({
     return 'Yooo! I\'m healthy' as const;
   }),
   greeting: trpc.procedure.query(({ctx}) => `Hello ${ctx.username}!`)
-})
+});
 
 export type AppRouter = typeof appRouter
 
@@ -91,26 +86,8 @@ app.ws<JwtUserData>('/*', {
   compression: DEDICATED_COMPRESSOR_3KB,
 
   message: (ws, message) => {
-
-      const asString = Buffer.from(message).toString();
-      // const parsedMsg = JSON.parse(asString);
-      // if(!parsedMsg){
-      //   console.error('fuck. Couldnt convert incoming data to js object');
-      //   return;
-      // }
+    const asString = Buffer.from(message).toString();
     onSocketMessage(ws, asString);
-    // const client = clients.get(ws);
-    // if(client) {
-
-    //   // @ts-expect-error: In ooonly this specific case we want to ignore the private field (ws). But never elsewhere
-    //   client.ws.incomingMessage(message);
-    //   // console.log('client :>> ', client);
-    // }
-    // console.log('isBinary:', isBinary);
-
-    /* Here we echo the message back, using compression if available */
-    // const ok = ws.send(message, isBinary, true);
-    // console.log('was ok:', ok);
   },
   upgrade: (res, req, context) => {
     console.log('upgrade request received:', req);
@@ -125,7 +102,7 @@ app.ws<JwtUserData>('/*', {
 
       const isAlreadyConnected = connectedUsers.has(userDataOnly.uuid);
       if(!hasAtLeastSecurityLevel(userDataOnly.role, 'moderator') && isAlreadyConnected){
-            throw Error('already logged in!!!');
+        throw Error('already logged in!!!');
       }
 
       res.upgrade<JwtUserData>(
@@ -156,14 +133,14 @@ app.ws<JwtUserData>('/*', {
     // Housekeeping our users and connections
     const wasAlreadyLoggedIn = connectedUsers.has(userData.uuid);
     if(wasAlreadyLoggedIn){
-      const activeSockets = connectedUsers.get(userData.uuid)!
+      const activeSockets = connectedUsers.get(userData.uuid)!;
       activeSockets.push(ws);
     } else {
       connectedUsers.set(userData.uuid, [ws]);
     }
     console.log('new client:', client);
 
-    onSocketOpen(ws, userData)
+    onSocketOpen(ws, userData);
   },
   close: (ws) => {
     const userData = ws.getUserData();

@@ -8,6 +8,7 @@
   "scripts": {
     "start": "dotenv -e ../../.env node ./dist/index.js",
     "dev": "dotenv -v DEVELOPMENT=true -e ../../.env -- node-dev ./src/index.ts",
+    "test-client": "dotenv -v DEVELOPMENT=true -e ../../.env -- node-dev ./src/testClient.ts",
     "build": "tsc --build",
     "build:watch": "tsc --build --watch",
     "clean": "tsc --build --clean",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@ef-carbon/tspm": "^2.2.5",
+    "@trpc/client": "^10.9.0",
     "@types/debug": "^4.1.7",
     "@types/ip": "^1.1.0",
     "@types/jest": "^27.0.2",

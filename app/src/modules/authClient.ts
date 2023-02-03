@@ -22,7 +22,7 @@ const handleResponse = async <ReturnType>(apiCall: () => Promise<AxiosResponse<R
 
 export const login = async (username: string, password: string) => {
   try {
-    const response = await authEndpoint.post('/user/login', {
+    await authEndpoint.post('/user/login', {
       username,
       password,
     });

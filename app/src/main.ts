@@ -6,7 +6,7 @@ import router from './router';
 
 import './main.css';
 
-import TestComponent from './components/TestComponent.vue';
+import TestComponent from '@/components/TestComponent.vue';
 
 import UI, { colors } from '@indielayer/ui';
 

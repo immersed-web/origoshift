@@ -1,7 +1,7 @@
-import 'aframe'
+import 'aframe';
 
 const registerComponents = () => {
-  console.log('Register a-frame components')
+  console.log('Register a-frame components');
 
   AFRAME.registerComponent('emit-move', {
     schema: {
@@ -16,46 +16,46 @@ const registerComponents = () => {
       this.el.emit('move', position);
     },
     tick: function () {
-      const newPosition = AFRAME.utils.coordinates.stringify(this.el.object3D.position)
+      const newPosition = AFRAME.utils.coordinates.stringify(this.el.object3D.position);
       // If entity has moved since last tick
       if (newPosition !== this.position) {
         this.position = newPosition;
         if(!this.firstEmitSent || Date.now() - this.lastEmit > this.data.interval){
-          this.emitPosition(newPosition)
+          this.emitPosition(newPosition);
         }
         this.firstEmitSent = true,
-        this.finalEmitSent = false
+        this.finalEmitSent = false;
       }
       // First tick after entity stopped moving
       else if(!this.finalEmitSent){
-        this.emitPosition(newPosition)
-        this.firstEmitSent = false
-        this.finalEmitSent = true
+        this.emitPosition(newPosition);
+        this.firstEmitSent = false;
+        this.finalEmitSent = true;
       }
-    }
+    },
   });
 
   // Nav mesh constraints
   AFRAME.registerComponent('simple-navmesh-constraint', {
     schema: {
       enabled: {
-        default: true
+        default: true,
       },
       navmesh: {
-        default: ''
+        default: '',
       },
       fall: {
-        default: 0.5
+        default: 0.5,
       },
       height: {
-        default: 1.6
+        default: 1.6,
       },
       exclude: {
-        default: ''
+        default: '',
       },
       xzOrigin: {
-        default: ''
-      }
+        default: '',
+      },
     },
 
     update: function () {
@@ -160,15 +160,15 @@ const registerComponents = () => {
           this.el.object3D.position.copy(this.lastPosition);
           this.el.object3D.parent.worldToLocal(this.el.object3D.position);
         }
-      }
-    }())
+      };
+    }()),
   });
 
 
 
-}
+};
 
 export default {
-  registerAframeComponents: registerComponents
-}
+  registerAframeComponents: registerComponents,
+};
 

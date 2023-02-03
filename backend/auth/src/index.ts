@@ -110,13 +110,16 @@ app.get('/guest-jwt', (req, res) => {
   let haikuName = haikunator.haikunate();
   let uuid = randomUUID();
   if(query){
+    // console.log(`received query: ${query}`);
     try {
       const decodedToken = verifyJwtToken(query);
       uuid = decodedToken.uuid;
       haikuName = decodedToken.username;
-    } catch(e){
-      console.error('failed to parse incoming jwt');
-      res.status(123).send('no fun');
+    } catch(e: unknown){
+      console.error((e as Error).message);
+      // console.error('failed to parse incoming jwt, is it expired?');
+      res.status(400).send('failed. Did you perhaps send an expired token?');
+      return;
     }
   }
   const guestObject: JwtUserData = {
@@ -125,7 +128,7 @@ app.get('/guest-jwt', (req, res) => {
     uuid,
   };
   console.log('sending a guest jwt:', guestObject);
-  const jwt = createJwt(guestObject, 3);
+  const jwt = createJwt(guestObject, 60 * 2);
   res.send(jwt);
 });
 

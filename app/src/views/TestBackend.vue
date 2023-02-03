@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { getJwt, login, loginWithAutoToken, latestJwtToken, autoGuestToken, latestGuestJwtToken } from '@/modules/authClient';
+import { loginWithAutoToken, autoGuestToken } from '@/modules/authClient';
 
 const token = ref<string>('');
 
@@ -19,7 +19,7 @@ onMounted(() => {
 });
 
 async function loginAsAdmin(){
-  // loginWithAutoToken('superadmin', 'bajskorv');
+  loginWithAutoToken('superadmin', 'bajskorv');
   // await login('superadmin', 'bajskorv');
   // token.value = await getJwt();
 }

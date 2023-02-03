@@ -44,29 +44,36 @@ export const loginWithAutoToken = async (username: string, password: string) => 
   autoFetchJwt((token) => {latestJwtToken = token;}, getJwt);
 };
 
+// TODO: As of now all works fine AS LONG AS clients autofetches and gets a new token before the current is expired.
+// BUT. If autofetch is running and for some reason the old token is expired, the autofetch will just keep trying and fail. Very sad!
 const autoFetchJwt = async (assignFn: (receivedToken: string) => void, fetchFn: typeof getJwt) => {
   if(activeTimeout){
-    console.log('cleared old jwt autofetch timeout');
+    // console.log('cleared old jwt autofetch timeout');
     clearTimeout(activeTimeout);
+    activeTimeout = undefined;
   }
-  const receivedToken = await fetchFn();
-  assignFn(receivedToken);
-  const decodedToken = decodeJwt<JwtPayload>(receivedToken);
-  if(decodedToken.exp){
+  try{
+    const receivedToken = await fetchFn();
+    assignFn(receivedToken);
+    const decodedToken = decodeJwt<JwtPayload>(receivedToken);
+    if(!decodedToken.exp) {
+      throw Error('no exp key found in token');
+    }
     const expUnixStamp = new Date(decodedToken.exp * 1000);
     const expInMillis = expUnixStamp.valueOf() - Date.now();
     console.log('jwtToken expires in (millis):', expInMillis);
     activeTimeout = setTimeout(() => {
       autoFetchJwt(assignFn, fetchFn);
     }, expInMillis-100);
-  }else{
+  } catch (e) {
+    console.error(e);
     const retryIn = 5;
-    console.warn(`Something seems wrong with jwt fetching. Retrying in ${retryIn} seconds`);
-    setTimeout(() => autoFetchJwt(assignFn, fetchFn), retryIn * 1000);
+    console.error(`Something seems wrong with jwt fetching. Retrying in ${retryIn} seconds`);
+    activeTimeout = setTimeout(() => autoFetchJwt(assignFn, fetchFn), retryIn * 1000);
   }
 };
 
-export let latestGuestJwtToken: string;
+export let latestGuestJwtToken: string | undefined = undefined;
 export const autoGuestToken = () => {
   autoFetchJwt((token) => {latestGuestJwtToken = token;}, async () => {return await guestJwt(latestGuestJwtToken);});
 };

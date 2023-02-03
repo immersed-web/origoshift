@@ -1,7 +1,5 @@
 import 'aframe';
-// const InterpolationBuffer = require('buffered-interpolation');
-// const interpolationBuffer = new InterpolationBuffer();
-
+import InterpolationBuffer from 'buffered-interpolation';
 
 const registerComponents = () => {
   console.log('Register a-frame components');
@@ -44,13 +42,18 @@ const registerComponents = () => {
     setPosition: function (position: string) {
 
     },
+    interpolationBuffer: new InterpolationBuffer(),
     init: function () {
       const el = this.el;
+      const interpolationBuffer = this.interpolationBuffer;
       this.el.addEventListener('moveTo', function (e) {
-        // console.log(e.detail);
-        // console.log(e.detail.position._rawValue);
-        // interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(e.detail.position._rawValue[0], e.detail.position._rawValue[1], e.detail.position._rawValue[2]));
+        console.log('Remote avatar, move to', e.detail);
 
+        // Trying to interpolate with buffered-interpolation - no workie.
+        // interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(1,2,3),100);
+        // interpolationBuffer.update(10);
+
+        // A quick jumper - workie
         el.object3D.position.x = e.detail.position._rawValue[0];
         el.object3D.position.y = e.detail.position._rawValue[1];
         el.object3D.position.z = e.detail.position._rawValue[2];

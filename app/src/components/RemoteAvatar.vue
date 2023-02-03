@@ -18,18 +18,19 @@
 import { onMounted, ref } from 'vue';
 
 onMounted(() => {
-  setInterval(randomizePosition,1000);
+  setInterval(randomizePosition, 1000);
 });
 
 const position = ref([-2, 2, -2]);
-function randomizePosition(){
-  position.value[0] = (Math.random()*4+2);
+function randomizePosition() {
+  position.value[0] = (Math.random() * 4 + 2);
   position.value[1] = 2;
-  position.value[2] = (Math.random()*4+2);
+  position.value[2] = (Math.random() * 4 + 2);
   // position.value = (Math.random()*4+2).toString() + ' 2 ' + (Math.random()*4+2).toString()
 }
 
 </script>
 
 <style scoped>
+
 </style>

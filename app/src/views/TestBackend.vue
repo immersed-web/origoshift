@@ -9,15 +9,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { getJwt, login } from '@/modules/authClient';
+import { onMounted, ref } from 'vue';
+import { getJwt, login, loginWithAutoToken, latestJwtToken, autoGuestToken, latestGuestJwtToken } from '@/modules/authClient';
 
 const token = ref<string>('');
 
-async function loginAsAdmin(){
-  await login('superadmin', 'bajskorv');
-  token.value = await getJwt();
+onMounted(() => {
+  autoGuestToken();
+});
 
+async function loginAsAdmin(){
+  // loginWithAutoToken('superadmin', 'bajskorv');
+  // await login('superadmin', 'bajskorv');
+  // token.value = await getJwt();
 }
 
 </script>

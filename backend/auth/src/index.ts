@@ -1,7 +1,8 @@
 import express, { json as parseJsonBody } from 'express';
+import url from 'url';
 import cors from 'cors';
 import { randomUUID } from 'crypto';
-import { createJwt } from 'shared-modules/jwtUtils';
+import { createJwt, verifyJwtToken } from 'shared-modules/jwtUtils';
 // import { UserData } from 'shared-types/CustomTypes';
 import createUserRouter from './userRoutes';
 import {default as Haikunator} from 'haikunator';
@@ -12,6 +13,7 @@ import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import prisma from './prismaClient';
 // import createApiRouter from './apiRoutes';
 import { JwtUserData } from 'schemas';
+import { STATUS_CODES } from 'http';
 
 const haikunator = new Haikunator({
   adjectives: wordlist.adjectives,
@@ -100,16 +102,30 @@ app.get('/health', (req, res) => {
   });
 });
 
+// TODO: Right now guests will keep their assigned uuid and haikuname as long as they keep refreshing their token using the old one.
+// But what if we want to allow them to change name? Perhaps the haikuname inside the jwt is only used initially, and then we rely on local storage?
+// We shall see....
 app.get('/guest-jwt', (req, res) => {
-  const haikuName = haikunator.haikunate();
+  const query = url.parse(req.url).query;
+  let haikuName = haikunator.haikunate();
+  let uuid = randomUUID();
+  if(query){
+    try {
+      const decodedToken = verifyJwtToken(query);
+      uuid = decodedToken.uuid;
+      haikuName = decodedToken.username;
+    } catch(e){
+      console.error('failed to parse incoming jwt');
+      res.status(123).send('no fun');
+    }
+  }
   const guestObject: JwtUserData = {
     username: haikuName,
     role: 'guest',
-    // allowedActions: ['*'],
-    uuid: randomUUID(),
+    uuid,
   };
   console.log('sending a guest jwt:', guestObject);
-  const jwt = createJwt(guestObject, 60 * 5);
+  const jwt = createJwt(guestObject, 3);
   res.send(jwt);
 });
 

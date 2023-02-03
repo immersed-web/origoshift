@@ -1,4 +1,7 @@
 import 'aframe';
+// const InterpolationBuffer = require('buffered-interpolation');
+// const interpolationBuffer = new InterpolationBuffer();
+
 
 const registerComponents = () => {
   console.log('Register a-frame components');
@@ -32,6 +35,26 @@ const registerComponents = () => {
         this.firstEmitSent = false;
         this.finalEmitSent = true;
       }
+    },
+  });
+
+  AFRAME.registerComponent('remote-avatar', {
+    schema: {
+    },
+    setPosition: function (position: string) {
+
+    },
+    init: function () {
+      const el = this.el;
+      this.el.addEventListener('moveTo', function (e) {
+        // console.log(e.detail);
+        // console.log(e.detail.position._rawValue);
+        // interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(e.detail.position._rawValue[0], e.detail.position._rawValue[1], e.detail.position._rawValue[2]));
+
+        el.object3D.position.x = e.detail.position._rawValue[0];
+        el.object3D.position.y = e.detail.position._rawValue[1];
+        el.object3D.position.z = e.detail.position._rawValue[2];
+      });
     },
   });
 

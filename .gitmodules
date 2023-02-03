@@ -1,0 +1,3 @@
+[submodule "buffered-interpolation"]
+	path = buffered-interpolation
+	url = git@github.com:inclubit/buffered-interpolation.git

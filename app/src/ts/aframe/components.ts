@@ -50,7 +50,7 @@ const registerComponents = () => {
         console.log('Remote avatar, move to', e.detail);
 
         // Trying to interpolate with buffered-interpolation - no workie.
-        // interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(1,2,3),100);
+        // interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(1,2,3));
         // interpolationBuffer.update(10);
 
         // A quick jumper - workie
@@ -58,6 +58,9 @@ const registerComponents = () => {
         el.object3D.position.y = e.detail.position._rawValue[1];
         el.object3D.position.z = e.detail.position._rawValue[2];
       });
+    },
+    tick: function () {
+      this.el.object3D.position.copy(this.interpolationBuffer.getPosition());
     },
   });
 

@@ -169,6 +169,6 @@ const registerComponents = () => {
 }
 
 export default {
-  registerComponents
+  registerAframeComponents: registerComponents
 }
 

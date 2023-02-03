@@ -28,6 +28,7 @@
         simple-navmesh-constraint="navmesh:#venue_navmesh; fall:0.5; height:1.65;"
       />
 
+      <!-- Venue model -->
       <a-entity v-if="loaded">
         <!-- The venue model -->
         <a-entity
@@ -42,6 +43,9 @@
           visible="false"
         />
       </a-entity>
+
+      <!-- The avatars -->
+      <RemoteAvatar />
     </a-scene>
   </div>
 </template>
@@ -49,6 +53,7 @@
 <script setup lang="ts">
 import 'aframe';
 import { ref } from 'vue';
+import RemoteAvatar from './RemoteAvatar.vue';
 
 const loaded = ref(false);
 

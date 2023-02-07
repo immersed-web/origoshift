@@ -74,8 +74,8 @@ const autoFetchJwt = async (assignFn: (receivedToken: string) => void, fetchFn: 
 };
 
 export let latestGuestJwtToken: string | undefined = undefined;
-export const autoGuestToken = () => {
-  autoFetchJwt((token) => {latestGuestJwtToken = token;}, async () => {return await guestJwt(latestGuestJwtToken);});
+export const autoGuestToken =  async () => {
+  await autoFetchJwt((token) => {latestGuestJwtToken = token;}, async () => {return await guestJwt(latestGuestJwtToken);});
 };
 
 // export const deleteUser = (uuid: string) => authEndpoint.post('delete-user', { uuid });

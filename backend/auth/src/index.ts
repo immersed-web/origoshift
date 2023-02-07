@@ -13,7 +13,6 @@ import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import prisma from './prismaClient';
 // import createApiRouter from './apiRoutes';
 import { JwtUserData } from 'schemas';
-import { STATUS_CODES } from 'http';
 
 const haikunator = new Haikunator({
   adjectives: wordlist.adjectives,

@@ -80,12 +80,14 @@ export const roleHierarchy = (['gunnar', 'superadmin', 'admin', 'moderator', 'us
 export const UserRoleSchema = z.enum(roleHierarchy);
 export type UserRole = z.infer<typeof UserRoleSchema>;
 
+export const UuidSchema = z.string().uuid();
+export type Uuid = z.infer<typeof UuidSchema>;
+
 export const JwtUserDataSchema = z.object({
-  uuid: z.string().uuid(),
+  uuid: UuidSchema,
   username: z.string(),
   role: UserRoleSchema,
 })
-
 export type JwtUserData = z.infer<typeof JwtUserDataSchema>;
 
 export const JwtPayloadSchema = jwtDefaultPayload.merge(JwtUserDataSchema)

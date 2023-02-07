@@ -1,4 +1,4 @@
-process.env.DEBUG = 'Gathering* Room* mediasoup*';
+process.env.DEBUG = 'Venue* Room* mediasoup*';
 
 import observerLogger from './mediasoupObservers';
 const printSoupStats = observerLogger();
@@ -11,7 +11,7 @@ import { verifyJwtToken } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import { JwtUserData, JwtUserDataSchema, UserRole } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
-import { initTRPC } from '@trpc/server';
+import { appRouter, AppRouter } from './routers/appRouter';
 import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
 
 type MyWebsocketType = WebSocket<JwtUserData>;
@@ -62,18 +62,21 @@ if(stdin && stdin.isTTY){
   });
 }
 
-const trpc = initTRPC.context<JwtUserData>().create();
+// export const t = initTRPC.context<JwtUserData>().create();
 
-const appRouter = trpc.router({
-  health: trpc.procedure.query(({ctx}) => {
-    return 'Yooo! I\'m healthy' as const;
-  }),
-  greeting: trpc.procedure.query(({ctx}) => `Hello ${ctx.username}!`)
-});
+// const appRouter = t.router({
+//   test: t.procedure.query(() => {
+//     return 'hello' as const;
+//   }),
+//   soup: soupRouter
+// });
 
-export type AppRouter = typeof appRouter
+// export type AppRouter = typeof appRouter;
+
+// export type SnapRouter = typeof snapRouter;
 
 const {onSocketOpen, onSocketMessage, onSocketClose} = applyWSHandler<AppRouter, JwtUserData>({router: appRouter});
+
 
 const app = uWebSockets.App();
 

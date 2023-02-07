@@ -7,7 +7,7 @@
     ".": {
       "default": "./dist/index.js",
       "import": "./dist/index.mjs",
-      "types": "./src/index.ts"
+      "types": "./dist/index.d.ts"
     }
   },
   "scripts": {

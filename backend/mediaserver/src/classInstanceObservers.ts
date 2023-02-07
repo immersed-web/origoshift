@@ -1,4 +1,4 @@
-import Gathering from './classes/Gathering';
+import Venue from './classes/Venue';
 
 
 export default () => {
@@ -8,18 +8,13 @@ export default () => {
     clients: 0,
   };
 
-  
+
   // @ts-expect-error: In ooonly this specific case we want to ignore the private field (ws). But never elsewhere
-  for( const [gatheringKey, gathering] of Gathering.gatherings.entries()) {
+  for( const [venueKey, venue] of Venue.venues.entries()) {
     totalNrOf.gatherings++;
     // @ts-expect-error: In ooonly this specific case we want to ignore the private field (ws). But never elsewhere
-    for(const [clientKey, client] of gathering.clients.entries()) {
+    for(const [clientKey, client] of venue.clients.entries()) {
       totalNrOf.clients++;
-    }
-
-    // @ts-expect-error: In ooonly this specific case we want to ignore the private field (ws). But never elsewhere
-    for(const [roomKey, room] of gathering.rooms.entries()) {
-      totalNrOf.rooms++;
     }
   }
 

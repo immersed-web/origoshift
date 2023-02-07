@@ -39,32 +39,23 @@ const registerComponents = () => {
   AFRAME.registerComponent('remote-avatar', {
     schema: {
     },
-    setPosition: function (position: string) {
-
-    },
-    interpolationBuffer: new InterpolationBuffer(),
+    interpolationBuffer: new InterpolationBuffer(undefined, 1),
     init: function () {
-      const el = this.el;
       const interpolationBuffer = this.interpolationBuffer;
       this.el.addEventListener('moveTo', function (e) {
-        console.log('Remote avatar, move to', e.detail.position._rawValue);
+        // console.log('Remote avatar, move to', e.detail.position);
 
-        // // Interpolate with buffered-interpolation - no workie yet.
-        // interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(e.detail.position._rawValue[0], e.detail.position._rawValue[1], e.detail.position._rawValue[2]));
+        // // Interpolate with buffered-interpolation
+        interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(e.detail.position[0], e.detail.position[1], e.detail.position[2]));
 
-        // A quick jumper - workie
-        el.object3D.position.x = e.detail.position._rawValue[0];
-        el.object3D.position.y = e.detail.position._rawValue[1];
-        el.object3D.position.z = e.detail.position._rawValue[2];
       });
     },
-    tick: function () {
+    tick: function (time, timeDelta) {
       // // Interpolate with buffered-interpolation - no workie yet.
-      // this.el.object3D.position.copy(this.interpolationBuffer.getPosition());
+      this.el.object3D.position.copy(this.interpolationBuffer.getPosition());
 
-      // // delta value should be calculated
-      // const delta = 10;
-      // this.interpolationBuffer.update(delta);
+      // delta value should be calculated
+      this.interpolationBuffer.update(timeDelta);
     },
   });
 

@@ -229,6 +229,21 @@ importers:
       tsconfig-paths: 3.14.1
       tscpaths: 0.0.9
 
+  backend/trpc-test-client:
+    specifiers:
+      '@trpc/client': ^10.9.0
+      '@trpc/server': ^10.9.0
+      '@types/ws': ^8.5.4
+      mediaserver: workspace:^1.0.0
+      ws: ^8.12.0
+    dependencies:
+      '@trpc/client': 10.9.0_@trpc+server@10.9.0
+      '@trpc/server': 10.9.0
+      mediaserver: link:../mediaserver
+      ws: 8.12.0
+    devDependencies:
+      '@types/ws': 8.5.4
+
   packages/buffered-interpolation:
     specifiers:
       '@types/three': ^0.149.0
@@ -1637,6 +1652,12 @@ packages:
 
   /@types/webxr/0.5.1:
     resolution: {integrity: sha512-xlFXPfgJR5vIuDefhaHuUM9uUgvPaXB6GKdXy2gdEh8gBWQZ2ul24AJz3foUd8NNKlSTQuWYJpCb1/pL81m1KQ==}
+    dev: true
+
+  /@types/ws/8.5.4:
+    resolution: {integrity: sha512-zdQDHKUgcX/zBc4GrwsE/7dVdAD8JR4EuiAXiiUhhfyIJXXb2+PrGshFyeXWQPMmmZ2XxgaqclgpIC7eTXc1mg==}
+    dependencies:
+      '@types/node': 18.11.18
     dev: true
 
   /@types/yargs-parser/21.0.0:
@@ -10575,7 +10596,6 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
-    dev: true
 
   /xhr-request/1.1.0:
     resolution: {integrity: sha512-Y7qzEaR3FDtL3fP30k9wO/e+FBnBByZeybKOhASsGP30NIkRAAkKD/sCnLvgEfAIEC1rcmK7YG8f4oEnIrrWzA==}

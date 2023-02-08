@@ -31,15 +31,15 @@ export function attachFilteredEmitter<E extends ListenerSignature<E>, K extends 
     const onEvent  = (data: EventArgument<E,typeof event>, triggerId: FilterType): void => {
       if(triggerId === filter){
         // console.log('skipping because emitter is filtered');
-        return
+        return;
       }
       // console.log('emitter triggered');
       emit.next(data);
-    }
+    };
 
     emitter.on(event, onEvent as E[typeof event]);
     return () => {
       emitter.off(event, onEvent as E[typeof event]);
-    }
-  })
+    };
+  });
 }

@@ -64,7 +64,7 @@ const autoFetchJwt = async (assignFn: (receivedToken: string) => void, fetchFn: 
     console.log('jwtToken expires in (millis):', expInMillis);
     activeTimeout = setTimeout(() => {
       autoFetchJwt(assignFn, fetchFn);
-    }, expInMillis-100);
+    }, expInMillis * 0.9);
   } catch (e) {
     console.error(e);
     const retryIn = 5;

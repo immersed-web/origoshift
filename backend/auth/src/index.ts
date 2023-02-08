@@ -127,7 +127,7 @@ app.get('/guest-jwt', (req, res) => {
     uuid,
   };
   console.log('sending a guest jwt:', guestObject);
-  const jwt = createJwt(guestObject, 60 * 2);
+  const jwt = createJwt(guestObject, 5);
   res.send(jwt);
 });
 

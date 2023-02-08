@@ -11,8 +11,10 @@ import { onMounted, ref } from 'vue';
 // import { loginWithAutoToken, autoGuestToken, latestGuestJwtToken } from '@/modules/authClient';
 // import type { AppRouter } from 'mediaserver';
 // import { createTRPCProxyClient, wsLink, createWSClient } from '@trpc/client';
-import { getClient } from '@/modules/trpcClient';
+import { getClient, type RouterOutputs  } from '@/modules/trpcClient';
+import type { ClientPosition } from 'schemas';
 
+type subscriptionOutput = RouterOutputs['vr']['clientTransforms']
 
 // const token = ref<string>('');
 const health = ref<string>('');
@@ -20,6 +22,21 @@ const greeting = ref<string>('');
 
 onMounted(async () => {
   const client = await getClient();
+  const sub = client.vr.clientTransforms.subscribe(undefined, {
+    onData(data){
+      console.log(data);
+      for(const key in data){
+        console.log(data[key]);
+      }
+    },
+  });
+  setInterval(async () => {
+
+    const randomPos: ClientPosition['position'] = [Math.random(),Math.random(),Math.random()];
+    const randomRot: ClientPosition['orientation'] = [Math.random(),Math.random(),Math.random(),Math.random()];
+    await client.vr.updateTransform.mutate({orientation: randomRot, position: randomPos});
+  }, 50);
+
   greeting.value = await client.greeting.query();
   health.value = await client.health.query();
 });

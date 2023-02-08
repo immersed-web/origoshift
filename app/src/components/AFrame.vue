@@ -9,11 +9,23 @@
         >
         <a-asset-item
           id="venue-asset"
-          src="/models/venue/scene.gltf"
+          src="/models/venue/venue/scene.gltf"
         />
         <a-asset-item
           id="venue_navmesh-asset"
-          src="/models/venue_navmesh/scene.gltf"
+          src="/models/venue/venue_navmesh/scene.gltf"
+        />
+        <a-asset-item
+          id="dungeon-asset"
+          src="/models/dungeon/dungeon.gltf"
+        />
+        <a-asset-item
+          id="dungeon_navmesh-asset"
+          src="/models/dungeon/navmesh.gltf"
+        />
+        <a-asset-item
+          id="hallway-asset"
+          src="/models/hallway/scene.gltf"
         />
       </a-assets>
 
@@ -25,24 +37,52 @@
         wasd-controls="acceleration:100;"
         emit-move="interval: 1000"
         @move="cameraMove"
-        simple-navmesh-constraint="navmesh:#venue_navmesh; fall:0.5; height:1.65;"
+        simple-navmesh-constraint="navmesh:#dungeon; fall:0.5; height:1.65;"
       />
 
+      <!-- <a-camera
+        look-controls
+        wasd-controls="acceleration:100;"
+        emit-move="interval: 1000"
+        @move="cameraMove"
+      /> -->
+
       <!-- Venue model -->
-      <a-entity v-if="loaded">
-        <!-- The venue model -->
+      <!-- <a-entity v-if="loaded">
         <a-entity
           id="venue"
           gltf-model="#venue-asset"
         />
 
-        <!-- The navmesh, this should not be rendered. How to do? -->
         <a-entity
           id="venue_navmesh"
           gltf-model="#venue_navmesh-asset"
           visible="false"
         />
+      </a-entity> -->
+
+      <!-- Dungeon model -->
+      <a-entity v-if="loaded">
+        <a-entity
+          id="dungeon"
+          gltf-model="#dungeon-asset"
+          color="red"
+        />
+
+        <a-entity
+          id="dungeon_navmesh"
+          gltf-model="#dungeon_navmesh-asset"
+          visible="true"
+        />
       </a-entity>
+
+      <!-- <a-entity v-if="loaded">
+        <a-entity
+          id="hallway"
+          gltf-model="#hallway-asset"
+          scale="0.1 0.1 0.1"
+        />
+      </a-entity> -->
 
       <!-- The avatars -->
       <RemoteAvatar />

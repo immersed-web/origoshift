@@ -2,13 +2,19 @@
   "name": "mediaserver",
   "version": "1.0.0",
   "description": "mediasoup server for inclubit 2",
-  "main": "dist/index.js",
+  "main": "./dist/routers/appRouter.js",
+  "exports": {
+    ".": {
+      "import": "./dist/routers/appRouter.js",
+      "require": "./dist/routers/appRouter.js",
+      "types": "./dist/routers/appRouter.d.ts"
+    }
+  },
   "author": "Gunnar Oledal",
   "license": "ISC",
   "scripts": {
     "start": "dotenv -e ../../.env node ./dist/index.js",
     "dev": "dotenv -v DEVELOPMENT=true -e ../../.env -- node-dev ./src/index.ts",
-    "test-client": "dotenv -v DEVELOPMENT=true -e ../../.env -- node-dev ./src/testClient.ts",
     "build": "tsc --build",
     "build:watch": "tsc --build --watch",
     "clean": "tsc --build --clean",
@@ -19,9 +25,10 @@
     "@trpc/server": "^10.9.0",
     "debug": "^4.3.4",
     "ip": "^1.1.8",
-    "schemas": "workspace:^1.0.0",
+    "schemas": "workspace:*",
     "shared-modules": "workspace:*",
     "shared-types": "workspace:*",
+    "database": "workspace:*",
     "tiny-typed-emitter": "^2.1.0",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.19.0",
     "uuid": "^8.3.2",

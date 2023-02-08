@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import Client from './Client';
 import { RoomProperties, RoomState, ShallowRoomState } from 'shared-types/CustomTypes';
 import { UserRole } from 'schemas';
-import Gathering from './Gathering';
+import Venue from './Venue';
 import { types as soupTypes } from 'mediasoup';
 // import type { RtpParameters } from 'mediasoup/node/lib/types';
 import { Request, createMessage, RequestSubjects, SuccessResponseTo } from 'shared-types/MessageTypes';
@@ -31,7 +31,7 @@ export default class Room {
   }
   get gathering() {
     try {
-      return Gathering.getGathering({ id: this.gatheringId });
+      return Venue.getVenue({ id: this.gatheringId });
     } catch (e) {
       roomError(e);
       return undefined;
@@ -53,7 +53,7 @@ export default class Room {
     return producers;
   }
 
-  static createRoom(params: { roomId?: string, roomName: string, gathering: Gathering }): Room {
+  static createRoom(params: { roomId?: string, roomName: string, gathering: Venue }): Room {
     return new Room(params);
   }
 
@@ -61,23 +61,23 @@ export default class Room {
     this.clients.forEach(client => this.removeClient(client));
   }
 
-  private constructor({ roomId = randomUUID(), roomName, gathering }: { roomId?: string, roomName: string, gathering: Gathering }) {
+  private constructor({ roomId = randomUUID(), roomName, gathering }: { roomId?: string, roomName: string, gathering: Venue }) {
     this.id = roomId;
-    this.setGathering(gathering.id);
+    this.setGathering(gathering.uuid);
     this.roomName = roomName;
     roomLog('Room created:', this.id);
   }
 
   addClient(client: Client) {
-    if (this.clients.has(client.id)) {
+    if (this.clients.has(client.connectionId)) {
       throw Error('This client is already in the room!!');
       // roomWarn('This client is already in the room!!');
       // return false;
     }
-    this.clients.set(client.id, client);
+    this.clients.set(client.connectionId, client);
     client.setRoom(this.id);
     // TODO; Should we perhaps only broadcast roomstate here?
-    this.gathering?.broadCastGatheringState([client.id], 'client added to room');
+    this.gathering?.broadCastGatheringState([client.connectionId], 'client added to room');
   }
 
   removeClient(clientOrId: Client | string, skipBroadcast = false) {
@@ -92,12 +92,12 @@ export default class Room {
     } else {
       client = clientOrId;
     }
-    if (!client.id) {
+    if (!client.connectionId) {
       // roomWarn('invalid client object provided when trying to remove client from room. id missing!');
       // return false;
       throw new Error('invalid client object provided when trying to remove client from room. id missing!');
     }
-    const isInDictionary = this.clients.has(client.id);
+    const isInDictionary = this.clients.has(client.connectionId);
     if (!isInDictionary) {
       roomWarn('client is NOT in the room, Cant remove client from the room');
       return;
@@ -118,9 +118,9 @@ export default class Room {
       }
     }
     delete client.customProperties.forceMuted;
-    const ok = this.clients.delete(client.id);
+    const ok = this.clients.delete(client.connectionId);
     if (!ok) {
-      throw new Error(`failed to remove client ${client.id} from room`);
+      throw new Error(`failed to remove client ${client.connectionId} from room`);
     }
     client.setRoom(undefined); // Be aware. I've now decided to let the room be responsible for clearing the clients room-field.
     if (this.clients.size == 0) {
@@ -128,7 +128,7 @@ export default class Room {
       this.gathering?.deleteRoom(this);
     }
     if (!skipBroadcast) {
-      this.gathering?.broadCastGatheringState([client.id], 'client removed from room');
+      this.gathering?.broadCastGatheringState([client.connectionId], 'client removed from room');
     }
   }
 
@@ -143,7 +143,7 @@ export default class Room {
   get roomState(): RoomState {
     const clients: RoomState['clients'] = {};
     this.clients.forEach(client => {
-      clients[client.id] = client.clientState;
+      clients[client.connectionId] = client.clientState;
       // clients.push(client.id);
     });
 

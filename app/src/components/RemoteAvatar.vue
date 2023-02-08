@@ -1,11 +1,13 @@
 <template>
   <a-entity
     remote-avatar
-    ref="avatar"
+    @close="distanceClose"
+    @far="distanceFar"
   >
     <a-box
       position="-2 2 -2"
-      scale="0.5 2 0.5"
+      :scale="scale.join(' ')"
+      :color="distanceColor"
     />
   </a-entity>
 </template>
@@ -13,20 +15,21 @@
 <script setup lang="ts">
 
 import 'aframe';
-import type { Entity } from 'aframe';
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 
 // Remote avatar
+const scale = ref([Math.random(), Math.random(), Math.random()]);
 
-const avatar = ref<Entity>();
+// Distance to client camera callbacks
+const distanceColor = ref('white');
+function distanceClose (e: CustomEvent<number>){
+  distanceColor.value = 'green';
+  console.log('Came close', e.detail);
+}
 
-onMounted(() => {
-  setInterval(randomizePosition, 1000);
-});
-
-function randomizePosition() {
-  const position = [(Math.random() * 4 + 2), 0, (Math.random() * 4 + 2)];
-  avatar.value?.emit('moveTo', {position});
+function distanceFar (e: CustomEvent<number>){
+  distanceColor.value = 'white';
+  console.log('Went away', e.detail);
 }
 
 </script>

@@ -37,7 +37,7 @@
         wasd-controls="acceleration:100;"
         emit-move="interval: 1000"
         @move="cameraMove"
-        simple-navmesh-constraint="navmesh:#dungeon; fall:0.5; height:1.65;"
+        simple-navmesh-constraint="navmesh:#hallway; fall:0.5; height:1.65;"
       />
 
       <!-- <a-camera
@@ -62,7 +62,7 @@
       </a-entity> -->
 
       <!-- Dungeon model -->
-      <a-entity v-if="loaded">
+      <!-- <a-entity v-if="loaded">
         <a-entity
           id="dungeon"
           gltf-model="#dungeon-asset"
@@ -74,17 +74,18 @@
           gltf-model="#dungeon_navmesh-asset"
           visible="true"
         />
-      </a-entity>
+      </a-entity> -->
 
-      <!-- <a-entity v-if="loaded">
+      <a-entity v-if="loaded">
         <a-entity
           id="hallway"
           gltf-model="#hallway-asset"
-          scale="0.1 0.1 0.1"
+          scale="0.04 0.04 0.04"
         />
-      </a-entity> -->
+      </a-entity>
 
       <!-- The avatars -->
+      <RemoteAvatar />
       <RemoteAvatar />
     </a-scene>
   </div>

@@ -11,6 +11,7 @@
   },
   "scripts": {
     "build": "tsc --build",
+    "build:watch": "tsc --build --watch",
     "clean": "tsc --build --clean",
     "generate": "prisma generate",
     "migrate:deploy": "dotenv -e ../../.env -- prisma migrate deploy",

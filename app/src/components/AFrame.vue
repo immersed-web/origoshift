@@ -31,53 +31,7 @@
 
       <a-sky color="#ECECEC" />
 
-      <!-- The navmesh needs to refer to the actual entity, not only the asset -->
-      <a-camera
-        look-controls
-        wasd-controls="acceleration:100;"
-        emit-move="intervals: 100 1000"
-        position="2 2 5"
-        @move0="cameraMoveFast"
-        @move1="cameraMoveSlow"
-        simple-navmesh-constraint="navmesh:#hallway; fall:0.5; height:1.65;"
-      />
-
-      <!-- <a-camera
-        look-controls
-        wasd-controls="acceleration:100;"
-        emit-move="interval: 1000"
-        @move="cameraMove"
-      /> -->
-
-      <!-- Venue model -->
-      <!-- <a-entity v-if="loaded">
-        <a-entity
-          id="venue"
-          gltf-model="#venue-asset"
-        />
-
-        <a-entity
-          id="venue_navmesh"
-          gltf-model="#venue_navmesh-asset"
-          visible="false"
-        />
-      </a-entity> -->
-
-      <!-- Dungeon model -->
-      <!-- <a-entity v-if="loaded">
-        <a-entity
-          id="dungeon"
-          gltf-model="#dungeon-asset"
-          color="red"
-        />
-
-        <a-entity
-          id="dungeon_navmesh"
-          gltf-model="#dungeon_navmesh-asset"
-          visible="true"
-        />
-      </a-entity> -->
-
+      <!-- The model -->
       <a-entity v-if="loaded">
         <a-entity
           id="hallway"
@@ -86,13 +40,30 @@
         />
       </a-entity>
 
-      <!-- The avatars -->
-      <a-entity ref="avatars">
-        <RemoteAvatar
-          v-for="avatar in remoteData"
-          :key="avatar.id"
-          :id="'avatar-'+avatar.id"
+      <!-- Avatar wrapper element -->
+      <a-entity position="2 0 0">
+        <!-- The camera / own avatar -->
+        <!-- The navmesh needs to refer to the actual entity, not only the asset -->
+        <a-camera
+          look-controls
+          wasd-controls="acceleration:100;"
+          emit-move="intervals: 100 1000"
+          position="0 2 0"
+          @move0="cameraMoveFast"
+          @move1="cameraMoveSlow"
+          simple-navmesh-constraint="navmesh:#hallway; fall:0.5; height:1.65;"
         />
+
+        <!-- The avatars -->
+        <a-entity
+          ref="avatars"
+        >
+          <RemoteAvatar
+            v-for="avatar in remoteData"
+            :key="avatar.id"
+            :id="'avatar-'+avatar.id"
+          />
+        </a-entity>
       </a-entity>
     </a-scene>
   </div>
@@ -144,7 +115,7 @@ onMounted(() => {
 
 // Generate a random position as dummy data
 function randomizePosition() : [number, number, number] {
-  return [(Math.random() * 4 + 2), 0, (Math.random() * 4 + 2)];
+  return [(Math.random() * 4 - 2) + 2, 2, (Math.random() * 4 - 2) - 2];
 }
 
 const avatars = ref<Entity>();

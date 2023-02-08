@@ -13,19 +13,14 @@ import { JwtUserData, JwtUserDataSchema, UserRole } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
 import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
+import Client from './classes/Client';
 
 type MyWebsocketType = WebSocket<JwtUserData>;
-
-type TempClient = {
-  uuid: string;
-  username: string;
-  role: UserRole
-}
 
 // Usually there is one connection per user. But...
 // Privileged users might be allowed to have several connections active simultaneously
 const connectedUsers: Map<JwtUserData['uuid'], MyWebsocketType[]> = new Map();
-const clientConnections: Map<MyWebsocketType, TempClient> = new Map();
+const clientConnections: Map<MyWebsocketType, Client> = new Map();
 
 createWorkers();
 
@@ -62,20 +57,13 @@ if(stdin && stdin.isTTY){
   });
 }
 
-// export const t = initTRPC.context<JwtUserData>().create();
+export type Context = {
+  uuid: JwtUserData['uuid']
+  jwt: JwtUserData
+  client: Client
+}
 
-// const appRouter = t.router({
-//   test: t.procedure.query(() => {
-//     return 'hello' as const;
-//   }),
-//   soup: soupRouter
-// });
-
-// export type AppRouter = typeof appRouter;
-
-// export type SnapRouter = typeof snapRouter;
-
-const {onSocketOpen, onSocketMessage, onSocketClose} = applyWSHandler<AppRouter, JwtUserData>({router: appRouter});
+const {onSocketOpen, onSocketMessage, onSocketClose} = applyWSHandler<AppRouter, Context>({router: appRouter});
 
 
 const app = uWebSockets.App();
@@ -124,28 +112,30 @@ app.ws<JwtUserData>('/*', {
     }
   },
   open: (ws) => {
-    const userData = ws.getUserData();
+    const jwtUserData = ws.getUserData();
     // const wsWrapper = new SocketWrapper(ws);
     console.log('socket opened');
     // const client = new Client({ws, userData });
 
-    const client: TempClient = {...userData};
+    // const client: TempClient = {...jwtUserData};
+    const client = new Client({jwtUserData});
 
     clientConnections.set(ws, client);
 
     // Housekeeping our users and connections
-    const wasAlreadyLoggedIn = connectedUsers.has(userData.uuid);
+    const wasAlreadyLoggedIn = connectedUsers.has(jwtUserData.uuid);
     if(wasAlreadyLoggedIn){
-      const activeSockets = connectedUsers.get(userData.uuid)!;
+      const activeSockets = connectedUsers.get(jwtUserData.uuid)!;
       activeSockets.push(ws);
     } else {
-      connectedUsers.set(userData.uuid, [ws]);
+      connectedUsers.set(jwtUserData.uuid, [ws]);
     }
     console.log('new client:', client);
 
-    onSocketOpen(ws, userData);
+    const context: Context = {uuid: jwtUserData.uuid, jwt: jwtUserData, client};
+    onSocketOpen(ws, context);
   },
-  close: (ws) => {
+  close: (ws, code, msg) => {
     const userData = ws.getUserData();
     const client = clientConnections.get(ws);
     if(!client){
@@ -161,8 +151,8 @@ app.ws<JwtUserData>('/*', {
     }
 
     // client.onDisconnected();
-    console.log('client disconnected:', client.uuid);
-    onSocketClose(ws, 'no more');
+    console.log(`client ${client.userName} disconnected. connectionid: ${client.connectionId}`);
+    onSocketClose(ws, Buffer.from(msg).toString());
   }
   //
 

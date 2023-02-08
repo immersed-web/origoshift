@@ -8,8 +8,8 @@ import type {types as soupTypes} from 'mediasoup';
 // import { checkPermission } from '../modules/utilFns';
 
 import type { JwtUserData, UserRole, Uuid } from 'schemas';
+import Venue from './Venue';
 
-// import Gathering from './Gathering';
 // import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
 // namespace MediaSoup {
 //   interface AppData {
@@ -18,7 +18,7 @@ import type { JwtUserData, UserRole, Uuid } from 'schemas';
 // }
 
 interface ConstructorParams {
-  id?: Uuid,
+  connectionId?: Uuid,
   // ws: SocketWrapper,
   jwtUserData: JwtUserData,
 }
@@ -53,25 +53,25 @@ export default class Client {
   consumers: Map<Uuid, soupTypes.Consumer> = new Map();
   producers: Map<Uuid, soupTypes.Producer> = new Map();
 
-  constructor({id = randomUUID(), jwtUserData}: ConstructorParams){
-    this.connectionId = id;
+  constructor({connectionId = randomUUID(), jwtUserData}: ConstructorParams){
+    this.connectionId = connectionId;
     this.jwtUserData = jwtUserData;
   }
   // customProperties: ClientProperties = {};
 
-  // private gatheringId?: string;
-  // setGathering(gatheringId: string | undefined){
-  //   this.gatheringId = gatheringId;
-  // }
-  // get gathering() {
-  //   try{
-  //     if(!this.gatheringId) return undefined;
-  //     return Gathering.getGathering({id: this.gatheringId });
-  //   } catch (e) {
-  //     console.error(e);
-  //     return undefined;
-  //   }
-  // }
+  private venueId?: Uuid;
+  setVenue(venueId: Uuid | undefined){
+    this.venueId = venueId;
+  }
+  get venue() {
+    try{
+      if(!this.venueId) return undefined;
+      return Venue.getVenue({uuid: this.venueId });
+    } catch (e) {
+      console.error(e);
+      return undefined;
+    }
+  }
 
 
   // private roomId?: string;

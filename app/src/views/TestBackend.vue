@@ -26,7 +26,7 @@ const positionData = ref({});
 
 onMounted(async () => {
   const client = await getClient();
-  const sub = client.vr.clientTransforms.subscribe(undefined, {
+  const sub = client.vr.transforms.clientTransformsSub.subscribe(undefined, {
     onData(data){
       console.log(data);
       positionData.value = data;
@@ -39,7 +39,7 @@ onMounted(async () => {
 
     const randomPos: ClientPosition['position'] = [Math.random(),Math.random(),Math.random()];
     const randomRot: ClientPosition['orientation'] = [Math.random(),Math.random(),Math.random(),Math.random()];
-    await client.vr.updateTransform.mutate({orientation: randomRot, position: randomPos});
+    await client.vr.transforms.updateTransform.mutate({orientation: randomRot, position: randomPos});
   }, 50);
 
   greeting.value = await client.greeting.query();

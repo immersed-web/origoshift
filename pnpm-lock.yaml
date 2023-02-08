@@ -234,7 +234,7 @@ importers:
       '@trpc/client': ^10.9.0
       '@trpc/server': ^10.9.0
       '@types/ws': ^8.5.4
-      mediaserver: workspace:^1.0.0
+      mediaserver: workspace:*
       ws: ^8.12.0
     dependencies:
       '@trpc/client': 10.9.0_@trpc+server@10.9.0

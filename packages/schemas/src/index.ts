@@ -74,42 +74,42 @@ export const roleHierarchy = (['gunnar', 'superadmin', 'admin', 'moderator', 'us
 //   guest: z.literal('guest'),
 // });
 
-// type InferredRole = z.infer<typeof zodifiedRoleEnun>;
+// type InferredRole = z.TypeOf<typeof zodifiedRoleEnun>;
 //
 // const UserRoleSchema = z.enum(possibleUserRoles);
 export const UserRoleSchema = z.enum(roleHierarchy);
-export type UserRole = z.infer<typeof UserRoleSchema>;
+export type UserRole = z.TypeOf<typeof UserRoleSchema>;
 
 export const UuidSchema = z.string().uuid();
-export type Uuid = z.infer<typeof UuidSchema>;
+export type Uuid = z.TypeOf<typeof UuidSchema>;
 
 export const JwtUserDataSchema = z.object({
   uuid: UuidSchema,
   username: z.string(),
   role: UserRoleSchema,
 })
-export type JwtUserData = z.infer<typeof JwtUserDataSchema>;
+export type JwtUserData = z.TypeOf<typeof JwtUserDataSchema>;
 
 export const JwtPayloadSchema = jwtDefaultPayload.merge(JwtUserDataSchema)
-export type JwtPayload = z.infer<typeof JwtPayloadSchema>;
+export type JwtPayload = z.TypeOf<typeof JwtPayloadSchema>;
 
 // export const UserDataSchema = z.object({
 //   jwtToken: z.string(),
 //   decodedJwt: JwtPayloadSchema,
 // })
-// export type UserData = z.infer<typeof UserDataSchema>
+// export type UserData = z.TypeOf<typeof UserDataSchema>
 
-export const ClientPositionSchema = z.object({
+export const ClientTransformSchema = z.object({
   position: z.tuple([z.number(), z.number(), z.number()]),
   orientation: z.tuple([z.number(), z.number(), z.number(), z.number()])
 })
 
-export type ClientPosition = z.infer<typeof ClientPositionSchema>;
+export type ClientTransform = z.TypeOf<typeof ClientTransformSchema>;
 
 export const ClientInfoSchema = z.object({
   uuid: z.string().uuid(),
   role: UserRoleSchema,
-  position: z.optional(ClientPositionSchema)
+  position: z.optional(ClientTransformSchema)
 })
 
-export type ClientInfo = z.infer<typeof ClientInfoSchema>;
+export type ClientInfo = z.TypeOf<typeof ClientInfoSchema>;

@@ -20,7 +20,7 @@ import Client from './Client';
 
 export default class Venue {
   // First some static stuff for global housekeeping
-  private static venues: Map<string, Venue> = new Map();
+  private static venues: Map<Uuid, Venue> = new Map();
 
   static async createNewVenue(name: string){
     // throw new Error('Gathering with that name already exists!!');
@@ -47,22 +47,20 @@ export default class Venue {
     }
   }
 
-  // static getVenue(params:{id?: string, name?:string}) {
-  //   // gatheringLog('trying to get a gathering with params: ', params);
-  //   // gatheringLog('gatherings map:', Gathering.gatherings);
-  //   if(params.id){
-
-  //     const gathering = Venue.venues.get(params.id);
-  //     if(!gathering){
-  //       throw new Error('a gathering with that id doesnt exist');
-  //     }
-  //     return gathering;
-  //   }else if(params.name){
-  //     return this.getGatheringFromName(params.name);
-  //   } else {
-  //     throw new Error('no id or name provided. Cant get gathering! Duuuh!');
-  //   }
-  // }
+  static getVenue(params:{uuid?: string, name?:string}) {
+    if(params.uuid){
+      const venue = Venue.venues.get(params.uuid);
+      if(!venue){
+        throw new Error('a venue with that id doesnt exist');
+      }
+      return venue;
+    }else if(params.name){
+      throw Error('Please dont implement this. We should strive to use Ids throughout');
+      // return this.getGatheringFromName(params.name);
+    } else {
+      throw new Error('no id or name provided. Cant get venue! Duuuh!');
+    }
+  }
 
   // private static getGatheringFromName(name:string): Venue {
   //   Log('searching gathering with name:',name);
@@ -86,7 +84,7 @@ export default class Venue {
 
   // private rooms: Map<string, Room> = new Map();
 
-  private clients: Map<string, Client> = new Map();
+  private clients: Map<Uuid, Client> = new Map();
 
   private constructor(uuid = randomUUID(), prismaData: Awaited<ReturnType<typeof prisma.venue.findUniqueOrThrow>>, router: soupTypes.Router){
     this.uuid = uuid;
@@ -101,6 +99,11 @@ export default class Venue {
     // }
 
     Venue.venues.set(this.uuid, this);
+  }
+
+  addClient ( client : Client){
+    this.clients.set(client.connectionId, client);
+    client.setVenue(this.uuid);
   }
 
   // addSender(client: Client){
@@ -121,11 +124,6 @@ export default class Venue {
   //   return client;
   // }
 
-  // addClient ( client : Client){
-  //   this.clients.set(client.connectionId, client);
-  //   client.setGathering(this.uuid);
-  //   this.broadCastGatheringState([client.connectionId], 'client added to gathering');
-  // }
 
   // removeClient (client: Client) {
   //   // TODO: We should also handle if client leaves gathering while in a room. Here or elsewhere

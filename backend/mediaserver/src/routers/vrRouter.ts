@@ -1,4 +1,4 @@
-import { JwtUserData, ClientPositionSchema, ClientPosition } from 'schemas';
+import { JwtUserData, ClientTransformSchema, ClientTransform } from 'schemas';
 // import { z } from 'zod';
 import { middleware, procedure as p, procedure, router } from '../trpc/trpc';
 import { TypedEmitter } from 'tiny-typed-emitter';
@@ -6,24 +6,26 @@ import { attachFilteredEmitter, FilteredEvents } from '../trpc/trpc-utils';
 
 
 type VREvents = FilteredEvents<{
-  'transforms': (transforms: ClientPositions) => void
+  'transforms': (transforms: ClientTransforms) => void
 }, JwtUserData['uuid']>
 
 const ee = new TypedEmitter<VREvents>();
 
-type ClientPositions = Record<JwtUserData['uuid'], ClientPosition>;
+type ClientTransforms = Record<JwtUserData['uuid'], ClientTransform>;
 // const clientPositions = new Map<JwtUserData['uuid'], ClientPosition>();
-const clientPositions: ClientPositions = {};
+const clientTransforms: ClientTransforms = {};
 
 export const vrRouter = router({
-  updateTransform: p.input(ClientPositionSchema).mutation(({input, ctx}) =>{
-    clientPositions[ctx.uuid] = input;
-    ee.emit('transforms', clientPositions, ctx.uuid);
-  }),
-  getClientTransforms: procedure.query(() => {
-    return clientPositions;
-  }),
-  clientTransforms: p.subscription(({ctx}) => {
-    return attachFilteredEmitter(ee, 'transforms', ctx.uuid);
+  transforms: router({
+    updateTransform: p.input(ClientTransformSchema).mutation(({input, ctx}) =>{
+      clientTransforms[ctx.uuid] = input;
+      ee.emit('transforms', clientTransforms, ctx.uuid);
+    }),
+    getClientTransforms: procedure.query(() => {
+      return clientTransforms;
+    }),
+    clientTransformsSub: p.subscription(({ctx}) => {
+      return attachFilteredEmitter(ee, 'transforms', ctx.uuid);
+    })
   })
 });

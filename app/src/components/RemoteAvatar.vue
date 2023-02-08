@@ -1,11 +1,11 @@
 <template>
   <a-entity
-    remote-avatar
-    ref="avatar"
+    :remote-avatar="'id: ' + props.idAvatar"
   >
+    {{ props.idAvatar }}
     <a-box
       position="-2 2 -2"
-      scale="0.5 2 0.5"
+      :scale="scale.join(' ')"
     />
   </a-entity>
 </template>
@@ -13,21 +13,15 @@
 <script setup lang="ts">
 
 import 'aframe';
-import type { Entity } from 'aframe';
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 
-// Remote avatar
-
-const avatar = ref<Entity>();
-
-onMounted(() => {
-  setInterval(randomizePosition, 1000);
+// Props
+const props = defineProps({
+  idAvatar: {type: String, default: ''},
 });
 
-function randomizePosition() {
-  const position = [(Math.random() * 4 + 2), 0, (Math.random() * 4 + 2)];
-  avatar.value?.emit('moveTo', {position});
-}
+// Remote avatar
+const scale = ref([Math.random(), Math.random(), Math.random()]);
 
 </script>
 

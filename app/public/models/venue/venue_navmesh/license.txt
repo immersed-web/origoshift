@@ -1,0 +1,11 @@
+Model Information:
+* title:	Venue Navmesh
+* source:	https://sketchfab.com/3d-models/venue-navmesh-405008db496c427d8ca3cfa2b81cc7b0
+* author:	adarose (https://sketchfab.com/adarose)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Venue Navmesh" (https://sketchfab.com/3d-models/venue-navmesh-405008db496c427d8ca3cfa2b81cc7b0) by adarose (https://sketchfab.com/adarose) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

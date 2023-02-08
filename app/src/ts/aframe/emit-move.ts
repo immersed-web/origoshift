@@ -4,32 +4,46 @@ export default () => {
 
   AFRAME.registerComponent('emit-move', {
     schema: {
-      interval: {type: 'int', default: 100},
+      intervals: {type: 'string', default: '100 1000'},
     },
     position: '',
-    lastEmit: Date.now(),
-    firstEmitSent: false,
-    finalEmitSent: false,
-    emitPosition: function (position: string) {
-      this.lastEmit = Date.now();
-      this.el.emit('move', position);
+    intervals: [] as number[],
+    lastEmit: [Date.now()] as number[],
+    firstEmitSent: [false] as boolean[],
+    finalEmitSent: [false] as boolean[],
+    emitPosition: function (i: number, position: string) {
+      this.lastEmit[i] = Date.now();
+      this.el.emit('move'+i, position);
+    },
+    init: function () {
+      this.intervals = (this.data.intervals as string).split(' ').map(i => parseInt(i));
+      console.log('Intervals', this.intervals);
     },
     tick: function () {
       const newPosition = AFRAME.utils.coordinates.stringify(this.el.object3D.position);
-      // If entity has moved since last tick
-      if (newPosition !== this.position) {
+      const moved = newPosition !== this.position;
+      this.intervals.forEach((interval,i) => {
+        this.emitTest(i, newPosition, moved);
+      });
+      if(moved){
         this.position = newPosition;
-        if(!this.firstEmitSent || Date.now() - this.lastEmit > this.data.interval){
-          this.emitPosition(newPosition);
+      }
+    },
+    emitTest: function (i: number, position: string, moved: boolean){
+      // If entity has moved since last tick
+      if (moved) {
+        // this.position = newPosition;
+        if(!this.firstEmitSent[i] || Date.now() - this.lastEmit[i] > this.intervals[i]){
+          this.emitPosition(i, position);
         }
-        this.firstEmitSent = true,
-        this.finalEmitSent = false;
+        this.firstEmitSent[i] = true,
+        this.finalEmitSent[i] = false;
       }
       // First tick after entity stopped moving
-      else if(!this.finalEmitSent){
-        this.emitPosition(newPosition);
-        this.firstEmitSent = false;
-        this.finalEmitSent = true;
+      else if(!this.finalEmitSent[i]){
+        this.emitPosition(i, position);
+        this.firstEmitSent[i] = false;
+        this.finalEmitSent[i] = true;
       }
     },
   });

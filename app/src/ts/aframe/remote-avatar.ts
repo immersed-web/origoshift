@@ -61,6 +61,8 @@ export default () => {
     },
     distanceToCamera: function () {
       const distanceOld = this.distance;
+      // Note: calculating distance between LOCAL position vectors, not taking into account the world position.
+      // This should be fine as long as the camera and the avatars share the same origin position.
       this.distance = this.el.object3D.position.distanceTo(this.cameraPosition);
       const threshold = 3;
       if(distanceOld > threshold && this.distance <= threshold){

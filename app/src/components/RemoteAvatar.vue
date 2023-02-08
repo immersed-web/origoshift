@@ -5,7 +5,6 @@
     @far="distanceFar"
   >
     <a-box
-      position="-2 2 -2"
       :scale="scale.join(' ')"
       :color="distanceColor"
     />

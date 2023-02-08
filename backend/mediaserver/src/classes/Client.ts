@@ -1000,43 +1000,43 @@ export default class Client {
   //   this.consumers.delete(consumerId);
   // }
 
-  async createWebRtcTransport(direction: 'send' | 'receive'){
-    if(!this.gathering) {
-      throw Error('must be in a gathering in order to create transport');
-    }
-    const transport = await this.gathering.createWebRtcTransport();
-    if(!transport){
-      throw new Error('failed to create transport!!');
-    }
-    transport.addListener('routerclose', () => {
-      this.send(createMessage('notifyCloseEvent', {
-        objectType: 'transport',
-        objectId: transport.id,
-      }));
-    });
-    if(direction == 'receive'){
-      this.receiveTransport = transport;
-      this.receiveTransport.addListener('routerclose', ()=> {
-        this.receiveTransport = undefined;
-      });
-    } else {
-      this.sendTransport = transport;
-      this.sendTransport.addListener('routerclose',()=> {
-        this.sendTransport = undefined;
-      });
-    }
-    const { id, iceParameters, dtlsParameters } = transport;
-    const iceCandidates = <soupClientTypes.IceCandidate[]>transport.iceCandidates;
-    const transportOptions: soupClientTypes.TransportOptions = {
-      id,
-      iceParameters,
-      iceCandidates,
-      dtlsParameters,
-    };
+  // async createWebRtcTransport(direction: 'send' | 'receive'){
+  //   if(!this.gathering) {
+  //     throw Error('must be in a gathering in order to create transport');
+  //   }
+  //   const transport = await this.gathering.createWebRtcTransport();
+  //   if(!transport){
+  //     throw new Error('failed to create transport!!');
+  //   }
+  //   transport.addListener('routerclose', () => {
+  //     this.send(createMessage('notifyCloseEvent', {
+  //       objectType: 'transport',
+  //       objectId: transport.id,
+  //     }));
+  //   });
+  //   if(direction == 'receive'){
+  //     this.receiveTransport = transport;
+  //     this.receiveTransport.addListener('routerclose', ()=> {
+  //       this.receiveTransport = undefined;
+  //     });
+  //   } else {
+  //     this.sendTransport = transport;
+  //     this.sendTransport.addListener('routerclose',()=> {
+  //       this.sendTransport = undefined;
+  //     });
+  //   }
+  //   const { id, iceParameters, dtlsParameters } = transport;
+  //   const iceCandidates = <soupClientTypes.IceCandidate[]>transport.iceCandidates;
+  //   const transportOptions: soupClientTypes.TransportOptions = {
+  //     id,
+  //     iceParameters,
+  //     iceCandidates,
+  //     dtlsParameters,
+  //   };
 
-    return transportOptions;
+  //   return transportOptions;
 
-  }
+  // }
 
 
   // /**

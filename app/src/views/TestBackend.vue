@@ -3,6 +3,9 @@
     <p>health: {{ health }}</p>
     <p>greeting: {{ greeting }}</p>
   </div>
+  <pre>
+    {{ positionData }}
+  </pre>
   <!-- <p>{{ token }}</p> -->
 </template>
 
@@ -19,15 +22,17 @@ type subscriptionOutput = RouterOutputs['vr']['clientTransforms']
 // const token = ref<string>('');
 const health = ref<string>('');
 const greeting = ref<string>('');
+const positionData = ref({});
 
 onMounted(async () => {
   const client = await getClient();
   const sub = client.vr.clientTransforms.subscribe(undefined, {
     onData(data){
       console.log(data);
-      for(const key in data){
-        console.log(data[key]);
-      }
+      positionData.value = data;
+      // for(const key in data){
+      //   console.log(data[key]);
+      // }
     },
   });
   setInterval(async () => {

@@ -1,4 +1,10 @@
 <template>
+  <XButton
+    @click="client"
+    class="m-6"
+  >
+    Login as Admin
+  </XButton>
   <div class="grid gap-4 p-6 m-6">
     <p>health: {{ health }}</p>
     <p>greeting: {{ greeting }}</p>
@@ -23,8 +29,12 @@ const health = ref<string>('');
 const greeting = ref<string>('');
 const positionData = ref({});
 
+let client: Awaited<ReturnType<typeof getClient>>;
+
 onMounted(async () => {
   const client = await getClient();
+  const connection = await client.getMe.query();
+  console.log(connection);
   client.venue.createNewVenue.mutate({name: 'TestVenue'});
   const sub = client.vr.transforms.clientTransformsSub.subscribe(undefined, {
     onData(data){

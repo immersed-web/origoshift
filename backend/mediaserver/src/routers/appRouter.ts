@@ -7,6 +7,11 @@ export const appRouter = router({
   health: procedure.query(({ctx}) => {
     return 'Yooo! I\'m healthy' as const;
   }),
+  getMe: procedure.query(({ctx}) => {
+    return {
+      connectionId: ctx.client.connectionId
+    };
+  }),
   greeting: procedure.query(({ctx}) => `Hello ${ctx.username}!`),
   venue: venueRouter,
   soup: soupRouter,

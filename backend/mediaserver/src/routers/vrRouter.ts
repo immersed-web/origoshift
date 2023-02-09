@@ -25,6 +25,9 @@ export const vrRouter = router({
       clientTransforms = {}
       ee.emit('transforms', clientTransforms, '');
     }),
+    getSelfId: procedure.query(({ctx}) => {
+      return ctx.uuid;
+    }),
     getClientTransforms: procedure.query(() => {
       return clientTransforms;
     }),

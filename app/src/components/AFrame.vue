@@ -59,7 +59,7 @@
           ref="avatars"
         >
           <RemoteAvatar
-            v-for="key in Object.keys(remoteAvatarsData)"
+            v-for="key in Object.keys(remoteAvatarsData).filter(k => k !== selfId)"
             :key="key"
             :id="'avatar-'+key"
           />
@@ -74,17 +74,19 @@ import 'aframe';
 import type { Entity } from 'aframe';
 import { ref, onMounted } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
-import { getClient, type RouterOutputs  } from '@/modules/trpcClient';
+import { getClient  } from '@/modules/trpcClient';
 import type { ClientTransform } from 'schemas';
 
 // Server, Client, etc.
 let client : Awaited<ReturnType<typeof getClient>>
+const selfId = ref('')
 const remoteAvatarsData = ref({});
 const avatars = ref<Entity>();
 
 onMounted(async () => {
   client = await getClient();
-  console.log("Client", client)
+  selfId.value = await client.vr.transforms.getSelfId.query()
+  console.log("Client", client, selfId.value)
   const sub = client.vr.transforms.clientTransformsSub.subscribe(undefined, {
     onData(data){
       remoteAvatarsData.value = data;

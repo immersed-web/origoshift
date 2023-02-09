@@ -93,7 +93,19 @@ onMounted(async () => {
       }
     },
   });
+
+  // Clear clients on C key down
+  window.addEventListener("keydown", (event) => {
+    if (event.isComposing || event.key === 'c') {
+      clearClients()
+    }
+  });
+
 })
+
+async function clearClients() {
+  await client.vr.transforms.clearTransforms.mutate();
+}
 
 // Handle single remote client data, called on subscription update
 function handleRemoteAvatarData(id: string, transform : ClientTransform) {

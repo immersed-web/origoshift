@@ -59,9 +59,9 @@
           ref="avatars"
         >
           <RemoteAvatar
-            v-for="avatar in remoteData"
-            :key="avatar.id"
-            :id="'avatar-'+avatar.id"
+            v-for="key in Object.keys(remoteAvatarsData)"
+            :key="key"
+            :id="'avatar-'+key"
           />
         </a-entity>
       </a-entity>
@@ -74,69 +74,66 @@ import 'aframe';
 import type { Entity } from 'aframe';
 import { ref, onMounted } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
+import { getClient, type RouterOutputs  } from '@/modules/trpcClient';
+import type { ClientTransform } from 'schemas';
+
+// Server, Client, etc.
+let client : Awaited<ReturnType<typeof getClient>>
+const remoteAvatarsData = ref({});
+const avatars = ref<Entity>();
+
+onMounted(async () => {
+  client = await getClient();
+  console.log("Client", client)
+  const sub = client.vr.transforms.clientTransformsSub.subscribe(undefined, {
+    onData(data){
+      remoteAvatarsData.value = data;
+      for(const key in data){
+        handleRemoteAvatarData(key, data[key]);
+      }
+    },
+  });
+})
+
+// Handle single remote client data, called on subscription update
+function handleRemoteAvatarData(id: string, transform : ClientTransform) {
+  const el = avatars.value?.querySelector<Entity>('#avatar-'+id);
+    if(el){
+      el.emit('moveTo', {position: transform.position});
+    }
+}
 
 // Load a-frame assets
 const loaded = ref(false);
 
 function onLoaded () {
   loaded.value = true;
-  console.log('loaded assets', loaded.value);
 }
 
-function cameraMoveSlow (e: CustomEvent<string>){
-  const position = e.detail;
-  console.log('Camera move slow', position);
+// Move callbacks
+
+async function cameraMoveSlow (e: CustomEvent<string>){
+  const positionStr = e.detail;
+  // console.log('Camera move slow', positionStr);
+  if(client){
+    const position: ClientTransform['position'] = positionStr.split(' ').map(c => parseFloat(c)) as [number, number, number]
+    const randomRot: ClientTransform['orientation'] = [Math.random(),Math.random(),Math.random(),Math.random()];
+    await client.vr.transforms.updateTransform.mutate({orientation: randomRot, position});
+  }
 }
 
 function cameraMoveFast (e: CustomEvent<string>){
-  const position = e.detail;
-  // console.log('Camera move fast', position);
-  remoteData.value.forEach(a => {
-    const el = avatars.value?.querySelector<Entity>('#avatar-'+a.id);
+  const positionStr = e.detail;
+  // console.log('Camera move fast', positionStr);
+
+  // Update camera (self avatar) position for each local RemoteAvatar
+  // Used to handle distance calculations etc.
+  Object.keys(remoteAvatarsData.value).forEach(id => {
+    const el = avatars.value?.querySelector<Entity>('#avatar-'+id);
     if(el)
-      el.emit('cameraPosition', {position: position.split(' ')});
+      el.emit('cameraPosition', {position: positionStr.split(' ')});
   });
 
-}
-
-// Remote avatars
-
-// Dummy data structure for position subscription updates
-type RemoteAvatarData = {
-  id: string,
-  position: [number, number, number]
-}
-
-onMounted(() => {
-  // Simulate backend position subscription updates
-  randomizeRemoteData();
-  setInterval(randomizeRemoteData, 1000);
-});
-
-// Generate a random position as dummy data
-function randomizePosition() : [number, number, number] {
-  return [(Math.random() * 4 - 2) + 2, 2, (Math.random() * 4 - 2) - 2];
-}
-
-const avatars = ref<Entity>();
-const remoteData = ref<RemoteAvatarData[]>([]);
-
-// Simulate backend position subscription update
-function randomizeRemoteData() {
-
-  // 3 avatars with random positions
-  remoteData.value = [
-    {id: 'A', position: randomizePosition()},
-    {id: 'B', position: randomizePosition()},
-    {id: 'C', position: randomizePosition()},
-  ];
-
-  // Send event 'moveTo-id' to each respective avatar
-  remoteData.value.forEach(a => {
-    const el = avatars.value?.querySelector<Entity>('#avatar-'+a.id);
-    if(el)
-      el.emit('moveTo', {position: a.position});
-  });
 }
 
 </script>

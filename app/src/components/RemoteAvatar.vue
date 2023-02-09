@@ -23,12 +23,12 @@ const scale = ref([Math.random(), Math.random(), Math.random()]);
 const distanceColor = ref('white');
 function distanceClose (e: CustomEvent<number>){
   distanceColor.value = 'green';
-  console.log('Came close', e.detail);
+  // console.log('Came close', e.detail);
 }
 
 function distanceFar (e: CustomEvent<number>){
   distanceColor.value = 'white';
-  console.log('Went away', e.detail);
+  // console.log('Went away', e.detail);
 }
 
 </script>

@@ -1,21 +1,23 @@
 import { createTRPCProxyClient, createWSClient, wsLink } from '@trpc/client';
 import type {} from '@trpc/server';
 import type { AppRouter } from 'mediaserver';
-import type { inferRouterOutputs } from '@trpc/server';
 import { autoGuestToken, latestGuestJwtToken } from '@/modules/authClient';
 
 
-export type RouterOutputs = inferRouterOutputs<AppRouter>
+let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
 export const getClient = async () => {
+  if(client){
+    return client;
+  }
   await autoGuestToken();
 
   const wsClient = createWSClient({url: `ws://localhost:9001?${latestGuestJwtToken}`});
-  const trpcClient = createTRPCProxyClient<AppRouter>({
+  client = createTRPCProxyClient<AppRouter>({
     links: [
       wsLink({client: wsClient}),
     ],
   });
-  console.log(await trpcClient.health.query());
+  console.log(await client.health.query());
 
-  return trpcClient;
+  return client;
 };

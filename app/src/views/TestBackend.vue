@@ -25,6 +25,7 @@ const positionData = ref({});
 
 onMounted(async () => {
   const client = await getClient();
+  client.venue.createNewVenue.mutate({name: 'TestVenue'});
   const sub = client.vr.transforms.clientTransformsSub.subscribe(undefined, {
     onData(data){
       console.log(data);

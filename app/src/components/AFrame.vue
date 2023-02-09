@@ -96,7 +96,7 @@ onMounted(async () => {
 
   // Clear clients on C key down
   window.addEventListener("keydown", (event) => {
-    if (event.isComposing || event.key === 'c') {
+    if (event.key === 'c') {
       clearClients()
     }
   });

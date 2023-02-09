@@ -1,6 +1,6 @@
 import { UuidSchema } from 'schemas';
 import { z } from 'zod';
-import { middleware, procedure as p, procedure, router } from '../trpc/trpc';
+import { middleware, procedure as p, moderatorP, router } from '../trpc/trpc';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { attachFilteredEmitter, FilteredEvents } from '../trpc/trpc-utils';
 import Venue from '../classes/Venue';
@@ -12,20 +12,22 @@ import Venue from '../classes/Venue';
 
 
 export const venueRouter = router({
-  createNewVenue: p.input(z.object({
+  createNewVenue: moderatorP.input(z.object({
     name: z.string()
   })).mutation(({input, ctx}) => {
-    Venue.createNewVenue(input.name);
+    Venue.createNewVenue(input.name, ctx.uuid);
   }),
-  spinUpVenue: p.input(z.object({uuid: z.string().uuid()})).mutation(({input}) => {
-    Venue.instantiateVenue(input.uuid);
+  loadVenue: moderatorP.input(z.object({uuid: z.string().uuid()})).mutation(({input}) => {
+    Venue.loadVenue(input.uuid);
   }),
   joinVenue: p.input(
     z.object({
       venueUuid: UuidSchema
     })
-  ).mutation(({input}) => {
-    Venue.getVenue({uuid: input.venueUuid});
+  ).mutation(({input, ctx}) => {
+    const venue = Venue.getVenue({uuid: input.venueUuid});
+    venue.addClient(ctx.client);
+
   })
 });
 

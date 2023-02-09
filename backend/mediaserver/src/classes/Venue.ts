@@ -3,10 +3,17 @@ import { randomUUID } from 'crypto';
 // import { createMessage } from 'shared-types/MessageTypes';
 import mediasoupConfig from '../mediasoupConfig';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
+import { Console2, hasConsoleStream} from 'debug-color2';
+
+const coloredLogger = new Console2();
 import debug from 'debug';
-const Log = debug('Gathering');
-const Err = debug('Gathering:ERROR');
-const Warn = debug('Gathering:WARNING');
+
+const Log = debug('Venue');
+const LogErr = Log.extend('ERROR');
+const LogWarn = Log.extend('WARNING');
+LogWarn.log = (args) => coloredLogger.bgYellow.warn(args);
+LogErr.log = (args) => coloredLogger.bgRed.error(args);
+
 // import Client from './Client';
 import {types as soupTypes} from 'mediasoup';
 import { Uuid } from 'schemas';
@@ -22,13 +29,38 @@ export default class Venue {
   // First some static stuff for global housekeeping
   private static venues: Map<Uuid, Venue> = new Map();
 
-  static async createNewVenue(name: string){
-    // throw new Error('Gathering with that name already exists!!');
-    // TODO: Not implemented yet. Use prisma to create db record here
-    return 'Not implemented yet' as const;
-  }
-  static async instantiateVenue(uuid: Uuid, worker?: soupTypes.Worker) {
+  static async createNewVenue(name: string, owner: Uuid){
     try {
+      const result = await prisma.venue.create({
+        data: {
+          name,
+          owner: {
+            connect: {
+              uuid: owner
+            }
+          },
+          settings: {coolSetting: 'aaaww yeeeah'},
+          startTime: new Date(),
+          virtualSpace: {
+            create: {
+              settings: 'asdas'
+            }
+          }
+
+        }
+      });
+
+      return result.uuid;
+    } catch (e){
+      LogErr(e);
+      throw e;
+    }
+  }
+  static async loadVenue(uuid: Uuid, worker?: soupTypes.Worker) {
+    try {
+      if(Venue.venues.has(uuid)){
+        throw new Error('Venue already loaded');
+      }
       const dbResponse = await prisma.venue.findUniqueOrThrow({
         where: {
           uuid
@@ -42,21 +74,21 @@ export default class Venue {
       const venue = new Venue(dbResponse.uuid, dbResponse, router);
       return venue;
     } catch (e) {
-      console.error('failed to create venue');
+      LogErr('failed to load venue');
       throw e;
     }
   }
 
-  static getVenue(params:{uuid?: string, name?:string}) {
+  static getVenue(params:{uuid?: string}) {
     if(params.uuid){
       const venue = Venue.venues.get(params.uuid);
       if(!venue){
         throw new Error('a venue with that id doesnt exist');
       }
       return venue;
-    }else if(params.name){
-      throw Error('Please dont implement this. We should strive to use Ids throughout');
-      // return this.getGatheringFromName(params.name);
+    // }else if(params.name){
+    //   throw Error('Please dont implement this. We should strive to use Ids throughout');
+    //   // return this.getGatheringFromName(params.name);
     } else {
       throw new Error('no id or name provided. Cant get venue! Duuuh!');
     }
@@ -79,8 +111,6 @@ export default class Venue {
   prismaData: Awaited<ReturnType<typeof prisma.venue.findUniqueOrThrow>>;
 
 
-  // Is it a possible security risk that all:ish clients have a reference to the gathering and thus to the sender map?
-  // private senderClients: Map<string, Client> = new Map();
 
   // private rooms: Map<string, Room> = new Map();
 
@@ -91,19 +121,41 @@ export default class Venue {
     this.router = router;
     this.prismaData = prismaData;
 
-    // const alreadyExistingGathering = Venue.venues.get(this.id);
-    // if(alreadyExistingGathering){
-    //   console.error('already exists a gathering with that id!');
-    //   throw new Error('cant create gathering with already taken id');
-    //   // return;
-    // }
+    const venueAlreadyLoaded = Venue.venues.has(this.uuid);
+    if(venueAlreadyLoaded){
+      throw new Error('Venue with that uuid already loaded');
+    }
 
     Venue.venues.set(this.uuid, this);
   }
 
+  /**
+   * adds a client to this venues collection of clients. Also takes care of assigning the venue inside the client itself
+   * @param client the client instance to add to the venue
+   */
   addClient ( client : Client){
     this.clients.set(client.connectionId, client);
     client.setVenue(this.uuid);
+  }
+
+  /**
+   * Removes the client from the venue. Also automatically unloads the venue if it becomes empty
+   */
+  removeClient (client: Client) {
+    // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states
+    this.clients.delete(client.connectionId);
+    client.setVenue(undefined);
+
+    if(!this.clients.size){
+      this.unload();
+    }
+  }
+
+  unload() {
+    Log(`unload venue ${this.uuid} `);
+    this.router.close();
+    // this.cameras.forEach(room => room.destroy());
+    Venue.venues.delete(this.uuid);
   }
 
   // addSender(client: Client){
@@ -125,23 +177,7 @@ export default class Venue {
   // }
 
 
-  // removeClient (client: Client) {
-  //   // TODO: We should also handle if client leaves gathering while in a room. Here or elsewhere
-  //   this.clients.delete(client.connectionId);
-  //   this.broadCastGatheringState( undefined, 'client removed from gathering');
-  //   client.setGathering(undefined);
 
-  //   if(!this.clients.size){
-  //     this.destroy();
-  //   }
-  // }
-
-  // destroy() {
-  //   Log(`destroying gathering ${this.uuid} `);
-  //   this.router.close();
-  //   this.rooms.forEach(room => room.destroy());
-  //   Venue.venues.delete(this.uuid);
-  // }
 
   // getClient (clientId: string){
   //   const client = this.clients.get(clientId);

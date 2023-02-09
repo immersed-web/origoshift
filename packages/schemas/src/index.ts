@@ -56,6 +56,24 @@ const jwtDefaultPayload: toZod<JWTDefaultPayload> = z.object({
 // Because then we could use the extracted literal tuple from prisma instead of defining it manually here. This is redundant and we need to keep them in sync
 export const roleHierarchy = (['gunnar', 'superadmin', 'admin', 'moderator', 'user', 'guest'] as const) satisfies Readonly<Role[]>;
 
+export function throwIfUnauthorized(role: UserRole, minimumUserRole: UserRole) {
+  if(!hasAtLeastSecurityLevel(role, minimumUserRole)){
+    throw new Error('Unauthorized! You fool!');
+  }
+}
+
+export function hasAtLeastSecurityLevel(role: UserRole, minimumUserRole: UserRole) {
+  if(!role){
+    // return false;
+    throw new Error('no userRole provided for auth check!');
+  }
+  if(!minimumUserRole) {
+    throw new Error('no minimum userRole provided for auth check!');
+  }
+  const clientSecurityLevel = roleHierarchy.indexOf(role);
+  return clientSecurityLevel <= roleHierarchy.indexOf(minimumUserRole)
+}
+
 // type RoleSet = Set<Role>;
 // const roles: Set<Role> = new Set(['gunnar', 'superadmin', 'admin', 'moderator', 'user', 'guest']);
 // const arr = Array.from(roles);

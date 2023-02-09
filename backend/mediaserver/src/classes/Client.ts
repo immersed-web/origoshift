@@ -63,7 +63,7 @@ export default class Client {
   setVenue(venueId: Uuid | undefined){
     this.venueId = venueId;
   }
-  get venue() {
+  getVenue() {
     try{
       if(!this.venueId) return undefined;
       return Venue.getVenue({uuid: this.venueId });

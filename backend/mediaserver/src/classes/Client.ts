@@ -72,6 +72,10 @@ export default class Client {
       return undefined;
     }
   }
+  leaveCurrentVenue() {
+    const venue = this.getVenue();
+    venue?.removeClient(this);
+  }
 
 
   // private roomId?: string;

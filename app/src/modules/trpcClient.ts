@@ -22,16 +22,16 @@ const createAutoClient = async (autoLogin: () => Promise<string>) => {
   const token = await autoLogin();
 
   wsClient = createWSClient({url: `ws://localhost:9001?${token}`, onClose(cause) {
-    console.error(`Socket closed!! ${cause?.code}`);
+    console.error(`Socket closed. Reason: ${cause?.code}`);
   }});
   connectionTimer = setInterval(() => {
-    console.log('TIMER TRIGGERED ----------------');
-    console.timeEnd('connectionTimer');
-    console.time('connectionTimer');
+    // console.log('TIMER TRIGGERED ----------------');
+    // console.timeEnd('connectionTimer');
+    // console.time('connectionTimer');
     const readyState = wsClient?.getConnection().readyState;
-    console.log('connection readyState: ', readyState);
+    // console.log('connection readyState: ', readyState);
     if(readyState !== WebSocket.OPEN){
-      console.log('CREATING NEW WsClient!!!!');
+      // console.log('CREATING NEW WsClient!!!!');
       wsClient?.close();
       wsClient?.getConnection().close();
       wsClient = undefined;

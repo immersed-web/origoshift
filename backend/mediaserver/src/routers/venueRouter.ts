@@ -26,9 +26,9 @@ export const venueRouter = router({
       uuid: UuidSchema
     })
   ).mutation(({input, ctx}) => {
+    ctx.client.leaveCurrentVenue();
     const venue = Venue.getVenue({uuid: input.uuid});
     venue.addClient(ctx.client);
-
   })
 });
 

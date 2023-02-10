@@ -50,7 +50,7 @@ if(stdin && stdin.isTTY){
       printSoupStats();
     }
     if(asString === 'c'){
-      printClassInstances();
+      printClassInstances(clientConnections);
     }
     // write the key to stdout all normal like
     // process.stdout.write( 'bajs' );
@@ -81,13 +81,13 @@ app.ws<JwtUserData>('/*', {
     onSocketMessage(ws, asString);
   },
   upgrade: (res, req, context) => {
-    console.log('upgrade request received:', req);
+    // console.log('upgrade request received:', req);
     try{
       const receivedToken = req.getQuery();
-      console.log('upgrade request provided this token:', receivedToken);
+      // console.log('upgrade request provided this token:', receivedToken);
       const validJwt = verifyJwtToken(receivedToken);
 
-      console.log('decoded jwt:', validJwt);
+      // console.log('decoded jwt:', validJwt);
 
       const userDataOnly = JwtUserDataSchema.parse(validJwt);
 

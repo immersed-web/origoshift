@@ -83,7 +83,7 @@ export default class Venue {
     if(params.uuid){
       const venue = Venue.venues.get(params.uuid);
       if(!venue){
-        throw new Error('a venue with that id doesnt exist');
+        throw new Error('No venue with that id is loaded');
       }
       return venue;
     // }else if(params.name){

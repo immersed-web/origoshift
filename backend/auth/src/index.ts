@@ -105,19 +105,23 @@ app.get('/health', (req, res) => {
 // But what if we want to allow them to change name? Perhaps the haikuname inside the jwt is only used initially, and then we rely on local storage?
 // We shall see....
 app.get('/guest-jwt', (req, res) => {
-  const query = url.parse(req.url).query;
+
   let haikuName = haikunator.haikunate();
   let uuid = randomUUID();
-  if(query){
-    // console.log(`received query: ${query}`);
+  if(req.query && req.query['username']){
     try {
-      const decodedToken = verifyJwtToken(query);
-      uuid = decodedToken.uuid;
-      haikuName = decodedToken.username;
+      const requestedName = req.query['username'];
+      if(typeof requestedName !== 'string'){
+        throw new Error('invalid username provided! Please stop this madness😥😥')
+      }
+      // const decodedToken = verifyJwtToken(query);
+      // uuid = decodedToken.uuid;
+      // haikuName = decodedToken.username;
+      haikuName = requestedName;
     } catch(e: unknown){
       console.error((e as Error).message);
       // console.error('failed to parse incoming jwt, is it expired?');
-      res.status(400).send('failed. Did you perhaps send an expired token?');
+      res.status(400).send('failed. Did you supply a malformed username?');
       return;
     }
   }

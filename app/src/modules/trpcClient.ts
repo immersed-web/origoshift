@@ -6,13 +6,13 @@ import { guestWithAutoToken, loginWithAutoToken, getToken } from '@/modules/auth
 
 let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
 let wsClient: ReturnType<typeof createWSClient> | undefined;
-let currentClientIsGuest = true
+let currentClientIsGuest = true;
 const createAutoClient = async (autoLogin: () => Promise<string>) => {
   await autoLogin();
 
   const createTearableClient = () => {
     wsClient?.close();
-    const token = getToken()
+    const token = getToken();
     wsClient = createWSClient({
       url: `ws://localhost:9001?${token}`,
       onClose: (cause) => {
@@ -23,13 +23,13 @@ const createAutoClient = async (autoLogin: () => Promise<string>) => {
         // }
 
       },
-    })
+    });
     const onError = (ev: Event) => {
       wsClient?.getConnection().removeEventListener('close', onClose);
       // Note: This is a hack to be able to retry with a NEW Token, since TRPC defaults to retry with same url... Sigh...
       console.log('native websocket error ATTACHED THORUGH wsClient:', ev);
       createTearableClient();
-    }
+    };
     wsClient.getConnection().addEventListener('error', onError);
     const onClose =  (ev: CloseEvent) => {
       console.log('native websocket close ATTACHED THROUGH wsClient: ', ev);
@@ -37,9 +37,9 @@ const createAutoClient = async (autoLogin: () => Promise<string>) => {
         wsClient?.getConnection().removeEventListener('error', onError);
         createTearableClient();
       }
-    }
-    wsClient.getConnection().addEventListener('close', onClose)
-  }
+    };
+    wsClient.getConnection().addEventListener('close', onClose);
+  };
 
   createTearableClient();
   // wsClient = createWSClient({url: `ws://localhost:9001?${token}`, onClose(cause) {
@@ -69,7 +69,7 @@ export const getLoggedInClient = async (username: string, password: string) => {
   await createAutoClient(() => loginWithAutoToken(username, password));
   currentClientIsGuest = false;
   return client;
-}
+};
 
 export const getGuestClient = async () => {
   if(currentClientIsGuest && client){
@@ -84,4 +84,4 @@ export const getGuestClient = async () => {
   await createAutoClient(() => guestWithAutoToken());
   currentClientIsGuest = true;
   return client;
-}
+};

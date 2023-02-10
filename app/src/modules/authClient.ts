@@ -35,6 +35,9 @@ export const login = async (username: string, password: string) => {
 };
 
 
+if(import.meta.hot){
+  import.meta.hot.on('vite:beforeUpdate', () => clearTimeout(activeTimeout));
+}
 let activeTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 
 export const getToken = () => latestJwtToken;
@@ -52,7 +55,7 @@ const autoFetchJwt = async (assignFn: (receivedToken: string) => void, fetchFn: 
     activeTimeout = undefined;
   }
   try{
-    let receivedToken
+    let receivedToken;
     if(nrOfRetries > 3 && failRecoveryFn){
       receivedToken = await failRecoveryFn();
     } else {
@@ -80,7 +83,7 @@ const autoFetchJwt = async (assignFn: (receivedToken: string) => void, fetchFn: 
     activeTimeout = setTimeout(() => {
       autoFetchJwt(assignFn, fetchFn, failRecoveryFn);
     }, retryIn * 1000);
-  };
+  }
 };
 
 // export let latestGuestJwtToken: string | undefined = undefined;
@@ -90,14 +93,14 @@ export const guestWithAutoToken =  async () => {
     async () => {
       let prevUName = undefined;
       if(latestJwtToken){
-        prevUName = decodeJwt<JwtPayload>(latestJwtToken)?.username
+        prevUName = decodeJwt<JwtPayload>(latestJwtToken)?.username;
       }
       return await guestJwt(prevUName);
     },
     async () => {return await guestJwt();},
   );
 
-    return latestJwtToken;
+  return latestJwtToken;
 };
 
 /**

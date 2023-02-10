@@ -7,53 +7,51 @@ import { guestWithAutoToken, loginWithAutoToken, getToken } from '@/modules/auth
 let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
 let wsClient: ReturnType<typeof createWSClient> | undefined;
 let currentClientIsGuest = true;
+if(import.meta.hot) {
+  import.meta.hot.on('vite:beforeUpdate', (payload) => {
+    console.log('Removing dangling interval before hot reload!');
+    clearInterval(connectionTimer);
+  });
+}
+
+let connectionTimer: ReturnType<typeof setInterval>;
 const createAutoClient = async (autoLogin: () => Promise<string>) => {
-  await autoLogin();
+  if(connectionTimer){
+    clearInterval(connectionTimer);
+  }
+  const token = await autoLogin();
 
-  const createTearableClient = () => {
-    wsClient?.close();
-    const token = getToken();
-    wsClient = createWSClient({
-      url: `ws://localhost:9001?${token}`,
-      onClose: (cause) => {
-        console.log('wsClient ONCLOSE triggered. cause: ', cause);
-        // if(cause?.code){
-        //   console.log('THERE was a CLOSE REASON CODE. Will tear down and up again');
-        //   createTearableClient();
-        // }
+  wsClient = createWSClient({url: `ws://localhost:9001?${token}`, onClose(cause) {
+    console.error(`Socket closed!! ${cause?.code}`);
+  }});
+  connectionTimer = setInterval(() => {
+    console.log('TIMER TRIGGERED ----------------');
+    console.timeEnd('connectionTimer');
+    console.time('connectionTimer');
+    const readyState = wsClient?.getConnection().readyState;
+    console.log('connection readyState: ', readyState);
+    if(readyState !== WebSocket.OPEN){
+      console.log('CREATING NEW WsClient!!!!');
+      wsClient?.close();
+      wsClient?.getConnection().close();
+      wsClient = undefined;
 
-      },
-    });
-    const onError = (ev: Event) => {
-      wsClient?.getConnection().removeEventListener('close', onClose);
-      // Note: This is a hack to be able to retry with a NEW Token, since TRPC defaults to retry with same url... Sigh...
-      console.log('native websocket error ATTACHED THORUGH wsClient:', ev);
-      createTearableClient();
-    };
-    wsClient.getConnection().addEventListener('error', onError);
-    const onClose =  (ev: CloseEvent) => {
-      console.log('native websocket close ATTACHED THROUGH wsClient: ', ev);
-      if(ev.code){
-        wsClient?.getConnection().removeEventListener('error', onError);
-        createTearableClient();
-      }
-    };
-    wsClient.getConnection().addEventListener('close', onClose);
-  };
+      const token = getToken();
+      wsClient = createWSClient({url: `ws://localhost:9001?${token}`, onClose(cause) {
+        console.error(`Interval socket closed!!!!! ${cause?.code}`);
+      }});
+    }
+  }, 5000);
 
-  createTearableClient();
-  // wsClient = createWSClient({url: `ws://localhost:9001?${token}`, onClose(cause) {
-  //     console.error(`Socket closed!! ${cause?.code}`);
-  //   },
-  // });
-  // client = createTRPCProxyClient<AppRouter>({
-  //   links: [
-  //     wsLink({client: wsClient}),
-  //   ],
-  // });
-  // console.log(await client.health.query());
+  client = createTRPCProxyClient<AppRouter>({
+    links: [
+      wsLink({client: wsClient}),
+    ],
+  });
 
-  // return client;
+  console.log(await client.health.query());
+
+  return client;
 };
 
 export const getLoggedInClient = async (username: string, password: string) => {

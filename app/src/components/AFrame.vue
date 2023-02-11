@@ -74,17 +74,17 @@ import 'aframe';
 import type { Entity } from 'aframe';
 import { ref, onMounted } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
-import { getGuestClient  } from '@/modules/trpcClient';
+import { startGuestClient  } from '@/modules/trpcClient';
 import type { ClientTransform } from 'schemas';
 
 // Server, Client, etc.
-let client : Awaited<ReturnType<typeof getGuestClient>>
+let client : Awaited<ReturnType<typeof startGuestClient>>
 const selfId = ref('')
 const remoteAvatarsData = ref({});
 const avatars = ref<Entity>();
 
 onMounted(async () => {
-  client = await getGuestClient();
+  client = await startGuestClient();
   selfId.value = await client.vr.transforms.getSelfId.query()
   console.log("Client", client, selfId.value)
   const sub = client.vr.transforms.clientTransformsSub.subscribe(undefined, {

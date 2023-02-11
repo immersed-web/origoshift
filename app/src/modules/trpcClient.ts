@@ -3,8 +3,12 @@ import type {} from '@trpc/server';
 import type { AppRouter } from 'mediaserver';
 import { guestWithAutoToken, loginWithAutoToken, getToken } from '@/modules/authClient';
 
+// import { ref } from 'vue';
+
 
 let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
+// const client = ref<ReturnType<typeof createTRPCProxyClient<AppRouter>>>();
+
 let wsClient: ReturnType<typeof createWSClient> | undefined;
 let currentClientIsGuest = true;
 if(import.meta.hot) {
@@ -21,9 +25,21 @@ const createAutoClient = async (autoLogin: () => Promise<string>) => {
   }
   const token = await autoLogin();
 
-  wsClient = createWSClient({url: `ws://localhost:9001?${token}`, onClose(cause) {
-    console.error(`Socket closed. Reason: ${cause?.code}`);
-  }});
+  const createApi = (token: string) => {
+    wsClient = createWSClient({url: `ws://localhost:9001?${token}`, onClose(cause) {
+      console.error(`Socket closed. Reason: ${cause?.code}`);
+    }});
+    client = createTRPCProxyClient<AppRouter>({
+      links: [
+        wsLink({client: wsClient}),
+      ],
+    });
+  };
+
+  createApi(token);
+
+  console.log(await client.health.query());
+
   connectionTimer = setInterval(() => {
     // console.log('TIMER TRIGGERED ----------------');
     // console.timeEnd('connectionTimer');
@@ -37,31 +53,22 @@ const createAutoClient = async (autoLogin: () => Promise<string>) => {
       wsClient = undefined;
 
       const token = getToken();
-      wsClient = createWSClient({url: `ws://localhost:9001?${token}`, onClose(cause) {
-        console.error(`Interval socket closed!!!!! ${cause?.code}`);
-      }});
+      createApi(token);
     }
   }, 5000);
 
-  client = createTRPCProxyClient<AppRouter>({
-    links: [
-      wsLink({client: wsClient}),
-    ],
-  });
-
-  console.log(await client.health.query());
-
   return client;
 };
+export const getClient = () => client;
 
-export const getLoggedInClient = async (username: string, password: string) => {
+export const startLoggedInClient = async (username: string, password: string) => {
   if(!currentClientIsGuest && client){
     return client;
   }
   if(wsClient){
     console.log('closing previous wsLink!');
     wsClient.close();
-    // wsClient.getConnection().close();
+    wsClient.getConnection().close();
   }
   console.log('creating logged in client');
   await createAutoClient(() => loginWithAutoToken(username, password));
@@ -69,14 +76,14 @@ export const getLoggedInClient = async (username: string, password: string) => {
   return client;
 };
 
-export const getGuestClient = async () => {
+export const startGuestClient = async () => {
   if(currentClientIsGuest && client){
     return client;
   }
   if(wsClient){
     console.log('closing previous wsLink!');
     wsClient.close();
-    // wsClient.getConnection().close();
+    wsClient.getConnection().close();
   }
   console.log('creating guest client');
   await createAutoClient(() => guestWithAutoToken());

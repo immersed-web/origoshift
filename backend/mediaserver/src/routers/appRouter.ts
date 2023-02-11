@@ -2,10 +2,22 @@ import { router, procedure } from '../trpc/trpc';
 import { soupRouter } from './soupRouter';
 import { vrRouter } from './vrRouter';
 import { venueRouter } from './venueRouter';
+import { observable } from '@trpc/server/observable';
 
+let tickTock: 'tick' | 'tock' = 'tick';
 export const appRouter = router({
   health: procedure.query(({ctx}) => {
     return 'Yooo! I\'m healthy' as const;
+  }),
+  heartbeatSub: procedure.subscription(() => {
+    return observable<'tick'|'tock'>((emit) => {
+      const interval = setInterval(() => {
+        emit.next(tickTock);
+        tickTock = tickTock === 'tick' ? 'tock' : 'tick';
+      }, 1500);
+
+      return () => clearInterval(interval);
+    });
   }),
   getMe: procedure.query(({ctx}) => {
     return {

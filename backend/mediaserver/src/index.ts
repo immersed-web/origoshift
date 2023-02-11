@@ -136,6 +136,7 @@ app.ws<JwtUserData>('/*', {
     onSocketOpen(ws, context);
   },
   close: (ws, code, msg) => {
+    console.log('socket diconnected:', ws.getUserData());
     const userData = ws.getUserData();
     const client = clientConnections.get(ws);
     if(!client){

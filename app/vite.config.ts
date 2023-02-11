@@ -7,6 +7,7 @@ import vue from '@vitejs/plugin-vue';
 export default defineConfig({
   plugins: [vue(
     {
+      // reactivityTransform: true,
       template: {
         compilerOptions: {
           // NOT WORKING: treat any tag that starts with a- as custom elements

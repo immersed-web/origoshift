@@ -9,7 +9,8 @@ export const appRouter = router({
   health: procedure.query(({ctx}) => {
     return 'Yooo! I\'m healthy' as const;
   }),
-  heartbeatSub: procedure.subscription(() => {
+  heartbeatSub: procedure.subscription(({ctx}) => {
+    console.log('heartbeat subscription requested by:', ctx.username);
     return observable<'tick'|'tock'>((emit) => {
       const interval = setInterval(() => {
         emit.next(tickTock);

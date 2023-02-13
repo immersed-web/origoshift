@@ -1,69 +1,72 @@
-import { createTRPCProxyClient, createWSClient, wsLink } from '@trpc/client';
+import { createTRPCProxyClient, wsLink } from '@trpc/client';
+import { createWSClient } from "./customWsLink";
 import type {} from '@trpc/server';
 import type { AppRouter } from 'mediaserver';
 import { guestWithAutoToken, loginWithAutoToken, getToken } from '@/modules/authClient';
 
 // import { ref } from 'vue';
 
+const wsBaseURL = 'ws://localhost:9001';
 
 let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
-// const client = ref<ReturnType<typeof createTRPCProxyClient<AppRouter>>>();
 
 let wsClient: ReturnType<typeof createWSClient> | undefined;
 let currentClientIsGuest = true;
-if(import.meta.hot) {
-  import.meta.hot.on('vite:beforeUpdate', (payload) => {
-    console.log('Removing dangling interval before hot reload!');
-    clearInterval(connectionTimer);
-  });
-}
 
-let connectionTimer: ReturnType<typeof setInterval>;
-const createAutoClient = async (autoLogin: () => Promise<string>) => {
-  if(connectionTimer){
-    clearInterval(connectionTimer);
-  }
-  const token = await autoLogin();
+// if(import.meta.hot) {
+//   import.meta.hot.on('vite:beforeUpdate', (payload) => {
+//     console.log('Removing dangling interval before hot reload!');
+//     clearInterval(connectionTimer);
+//   });
+// }
 
-  const createApi = (token: string) => {
-    wsClient = createWSClient({url: `ws://localhost:9001?${token}`, onClose(cause) {
-      console.error(`Socket closed. Reason: ${cause?.code}`);
-    }});
-    client = createTRPCProxyClient<AppRouter>({
-      links: [
-        wsLink({client: wsClient}),
-      ],
-    });
-  };
+// let connectionTimer: ReturnType<typeof setInterval>;
+// const createAutoClient = async (autoLogin: () => Promise<string>) => {
+//   if(connectionTimer){
+//     clearInterval(connectionTimer);
+//   }
+//   const token = await autoLogin();
 
-  createApi(token);
+//   const createApi = (token: string) => {
+//     wsClient = createWSClient({url: `ws://localhost:9001?${token}`, onClose(cause) {
+//       console.error(`Socket closed. Reason: ${cause?.code}`);
+//     }});
+//     client = createTRPCProxyClient<AppRouter>({
+//       links: [
+//         wsLink({client: wsClient}),
+//       ],
+//     });
+//   };
 
-  console.log(await client.health.query());
+//   createApi(token);
 
-  connectionTimer = setInterval(() => {
-    // console.log('TIMER TRIGGERED ----------------');
-    // console.timeEnd('connectionTimer');
-    // console.time('connectionTimer');
-    const readyState = wsClient?.getConnection().readyState;
-    // console.log('connection readyState: ', readyState);
-    if(readyState !== WebSocket.OPEN){
-      // console.log('CREATING NEW WsClient!!!!');
-      wsClient?.close();
-      wsClient?.getConnection().close();
-      wsClient = undefined;
+//   console.log(await client.health.query());
 
-      const token = getToken();
-      createApi(token);
-    }
-  }, 5000);
+//   connectionTimer = setInterval(() => {
+//     // console.log('TIMER TRIGGERED ----------------');
+//     // console.timeEnd('connectionTimer');
+//     // console.time('connectionTimer');
+//     const readyState = wsClient?.getConnection().readyState;
+//     // console.log('connection readyState: ', readyState);
+//     if(readyState !== WebSocket.OPEN){
+//       // console.log('CREATING NEW WsClient!!!!');
+//       wsClient?.close();
+//       wsClient?.getConnection().close();
+//       wsClient = undefined;
 
-  return client;
-};
+//       const token = getToken();
+//       createApi(token);
+//     }
+//   }, 5000);
+
+//   return client;
+// };
+
 export const getClient = () => client;
 
 export const startLoggedInClient = async (username: string, password: string) => {
-  if(!currentClientIsGuest && client){
-    return client;
+  if(client && !currentClientIsGuest){
+    console.warn('Eeeeeh. You are creating a new trpc-client when there is already one running. Are you suuure you know what you are doing?? I am rather sure you dont wanna do this :-P');
   }
   if(wsClient){
     console.log('closing previous wsLink!');
@@ -71,14 +74,25 @@ export const startLoggedInClient = async (username: string, password: string) =>
     wsClient.getConnection().close();
   }
   console.log('creating logged in client');
-  await createAutoClient(() => loginWithAutoToken(username, password));
+  await loginWithAutoToken(username, password);
+  wsClient = createWSClient({
+    url: () => `${wsBaseURL}?${getToken()}`,
+  });
+  client = createTRPCProxyClient<AppRouter>({
+    links: [
+      wsLink({client: wsClient})
+    ]
+  });
   currentClientIsGuest = false;
-  return client;
+
+
+  // await createAutoClient(() => loginWithAutoToken(username, password));
+  // return client;
 };
 
 export const startGuestClient = async () => {
-  if(currentClientIsGuest && client){
-    return client;
+  if(client && currentClientIsGuest){
+    console.warn('Eeeeeh. You are creating a new trpc-client when there is already one running. Are you suuure you know what you are doing?? I am rather sure you dont wanna do this :-P');
   }
   if(wsClient){
     console.log('closing previous wsLink!');
@@ -86,7 +100,17 @@ export const startGuestClient = async () => {
     wsClient.getConnection().close();
   }
   console.log('creating guest client');
-  await createAutoClient(() => guestWithAutoToken());
+  await guestWithAutoToken();
+  wsClient = createWSClient({
+    url: () => `${wsBaseURL}?${getToken()}`,
+  });
+  client = createTRPCProxyClient<AppRouter>({
+    links: [
+      wsLink({client: wsClient})
+    ]
+  });
   currentClientIsGuest = true;
-  return client;
+
+  // await createAutoClient(() => guestWithAutoToken());
+  // return client;
 };

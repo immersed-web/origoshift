@@ -93,7 +93,10 @@ export const guestWithAutoToken =  async () => {
     async () => {
       let prevUName = undefined;
       if(latestJwtToken){
-        prevUName = decodeJwt<JwtPayload>(latestJwtToken)?.username;
+        const decoded = decodeJwt<JwtPayload>(latestJwtToken);
+        if(decoded.role === 'guest'){
+          prevUName = decoded.username
+        }
       }
       return await guestJwt(prevUName);
     },

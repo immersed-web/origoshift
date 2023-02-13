@@ -57,13 +57,14 @@ const health = ref<string>('');
 const greeting = ref<string>('');
 const positionData = ref({});
 
-let client: Awaited<ReturnType<typeof startLoggedInClient>>;
+let client: Awaited<ReturnType<typeof getClient>>;
 const subToHeartBeat = () => getClient().heartbeatSub.subscribe(undefined, {
   onData(heartbeat){console.log(heartbeat);},
 });
 const testGreeting = async () => console.log(await getClient().greeting.query());
 onMounted(async () => {
-  client = await startGuestClient();
+  await startGuestClient();
+  client = getClient()
   const connection = await client.getMe.query();
   console.log(connection);
   // client.venue.createNewVenue.mutate({name: 'TestVenue'});

@@ -1,5 +1,5 @@
 import type { AnyRouter, ProcedureType, inferRouterError } from '@trpc/server';
-import { type Operation, type TRPCLink, TRPCClientError, type TRPCClientRuntime } from "@trpc/client";
+import { type Operation, type TRPCLink, TRPCClientError, type TRPCClientRuntime } from '@trpc/client';
 import { type Observer, type UnsubscribeFn, observable } from '@trpc/server/observable';
 import type {
   TRPCClientIncomingMessage,
@@ -375,8 +375,8 @@ export function wsLink<TRouter extends AnyRouter>(
 
 function transformResultInner<TRouter extends AnyRouter, TOutput>(
   response:
-    | TRPCResponseMessage<TOutput, inferRouterError<TRouter>>
-    | TRPCResponse<TOutput, inferRouterError<TRouter>>,
+  | TRPCResponseMessage<TOutput, inferRouterError<TRouter>>
+  | TRPCResponse<TOutput, inferRouterError<TRouter>>,
   runtime: TRPCClientRuntime,
 ) {
   if ('error' in response) {
@@ -413,8 +413,8 @@ function isObject(value: unknown): value is Record<string, unknown> {
  */
 function transformResult<TRouter extends AnyRouter, TOutput>(
   response:
-    | TRPCResponseMessage<TOutput, inferRouterError<TRouter>>
-    | TRPCResponse<TOutput, inferRouterError<TRouter>>,
+  | TRPCResponseMessage<TOutput, inferRouterError<TRouter>>
+  | TRPCResponse<TOutput, inferRouterError<TRouter>>,
   runtime: TRPCClientRuntime,
 ): ReturnType<typeof transformResultInner> {
   let result: ReturnType<typeof transformResultInner>;
@@ -444,11 +444,11 @@ const retryDelay = (attemptIndex: number) =>
   attemptIndex === 0 ? 0 : Math.min(1000 * 2 ** attemptIndex, 30000);
 
 type WSCallbackResult<TRouter extends AnyRouter, TOutput> = TRPCResponseMessage<
-  TOutput,
-  inferRouterError<TRouter>
+TOutput,
+inferRouterError<TRouter>
 >;
 
 type WSCallbackObserver<TRouter extends AnyRouter, TOutput> = Observer<
-  WSCallbackResult<TRouter, TOutput>,
-  TRPCClientError<TRouter>
+WSCallbackResult<TRouter, TOutput>,
+TRPCClientError<TRouter>
 >;

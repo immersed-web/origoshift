@@ -1,10 +1,10 @@
 import { createTRPCProxyClient, wsLink } from '@trpc/client';
-import { createWSClient } from "./customWsLink";
-import type {} from '@trpc/server';
+import { createWSClient } from './customWsLink';
 import type { AppRouter } from 'mediaserver';
 import { guestWithAutoToken, loginWithAutoToken, getToken } from '@/modules/authClient';
 
 // import { ref } from 'vue';
+
 
 const wsBaseURL = 'ws://localhost:9001';
 
@@ -80,8 +80,8 @@ export const startLoggedInClient = async (username: string, password: string) =>
   });
   client = createTRPCProxyClient<AppRouter>({
     links: [
-      wsLink({client: wsClient})
-    ]
+      wsLink({client: wsClient}),
+    ],
   });
   currentClientIsGuest = false;
 
@@ -106,11 +106,17 @@ export const startGuestClient = async () => {
   });
   client = createTRPCProxyClient<AppRouter>({
     links: [
-      wsLink({client: wsClient})
-    ]
+      wsLink({client: wsClient}),
+    ],
   });
   currentClientIsGuest = true;
 
   // await createAutoClient(() => guestWithAutoToken());
   // return client;
 };
+
+// const subscribeToEndpoint = <P extends {
+//   'subscribe': (input: any, opts: {'onData': (data: any) => void}) => Unsubscribable
+// }>(endPoint: P, input: Parameters<P['subscribe']>[0], onData: Parameters<P['subscribe']>[1]['onData']) => {
+//   // Implement here
+// }

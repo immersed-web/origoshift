@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 // import { createMessage } from 'shared-types/MessageTypes';
 import mediasoupConfig from '../mediasoupConfig';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
-import { Console2, hasConsoleStream} from 'debug-color2';
+import { Console2 } from 'debug-color2';
 
 const coloredLogger = new Console2();
 import debug from 'debug';
@@ -18,11 +18,26 @@ LogErr.log = (args) => coloredLogger.bgRed.error(args);
 import {types as soupTypes} from 'mediasoup';
 import { Uuid } from 'schemas';
 
-import prisma from '../modules/prismaClient';
+import prisma, {Prisma} from '../modules/prismaClient';
 
 // import Room from './Room';
-import Client from './Client';
+import Client, { type ClientEvents } from './Client';
+import { VRSpace } from './VRSpace';
 // import { valueIsAlreadyTaken } from '../modules/utilFns';
+
+
+const venueWithIncludes = Prisma.validator<Prisma.VenueArgs>()({
+  include: {
+    allowedUsers: {
+      select: {
+        uuid: true
+      }
+    },
+    virtualSpace: true
+  }
+});
+type VenueResponse = Prisma.VenueGetPayload<typeof venueWithIncludes>
+
 
 
 export default class Venue {
@@ -65,6 +80,7 @@ export default class Venue {
         where: {
           uuid
         },
+        include: venueWithIncludes['include'],
       });
 
       if(!worker){
@@ -94,21 +110,11 @@ export default class Venue {
     }
   }
 
-  // private static getGatheringFromName(name:string): Venue {
-  //   Log('searching gathering with name:',name);
-  //   for (const [ _ , gathering] of Venue.venues) {
-  //     Log('checking gathering:', gathering);
-  //     if(gathering.name === name){
-  //       return gathering;
-  //     }
-  //   }
-  //   throw new Error('couldnt find a gathering with that name!!! You fuckhead!');
-  // }
-
 
   uuid: Uuid;
   router: soupTypes.Router;
-  prismaData: Awaited<ReturnType<typeof prisma.venue.findUniqueOrThrow>>;
+  vrSpace: VRSpace;
+  prismaData: VenueResponse;
 
 
 
@@ -116,10 +122,12 @@ export default class Venue {
 
   private clients: Map<Uuid, Client> = new Map();
 
-  private constructor(uuid = randomUUID(), prismaData: Awaited<ReturnType<typeof prisma.venue.findUniqueOrThrow>>, router: soupTypes.Router){
+  private constructor(uuid = randomUUID(), prismaData: VenueResponse, router: soupTypes.Router){
     this.uuid = uuid;
     this.router = router;
     this.prismaData = prismaData;
+
+    this.vrSpace = new VRSpace(this, prismaData.virtualSpace);
 
     const venueAlreadyLoaded = Venue.venues.has(this.uuid);
     if(venueAlreadyLoaded){
@@ -151,11 +159,13 @@ export default class Venue {
     }
   }
 
+  // NOTE: It's important we release all references here!
   unload() {
     Log(`unload venue ${this.uuid} `);
     this.router.close();
     // this.cameras.forEach(room => room.destroy());
     Venue.venues.delete(this.uuid);
+    this.vrSpace.unload();
   }
 
   // addSender(client: Client){
@@ -179,13 +189,21 @@ export default class Venue {
 
 
 
-  // getClient (clientId: string){
-  //   const client = this.clients.get(clientId);
-  //   if(!client){
-  //     throw new Error('no client with that id in gathering');
-  //   }
-  //   return client;
-  // }
+  getClient (connectionId: string){
+    const client = this.clients.get(connectionId);
+    if(!client){
+      throw new Error('no client with that id in venue');
+    }
+    return client;
+  }
+
+  emitToAllClients<Key extends keyof ClientEvents>(eventName: Key, ...data: Parameters<ClientEvents[Key]>) {
+    this.clients.forEach((client) => {
+      client.emitter.emit(eventName, ...data);
+    });
+  }
+
+
 
   // getRtpCapabilities(): soupTypes.RtpCapabilities {
   //   return this.router.rtpCapabilities;

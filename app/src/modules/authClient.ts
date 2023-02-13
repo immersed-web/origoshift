@@ -95,7 +95,7 @@ export const guestWithAutoToken =  async () => {
       if(latestJwtToken){
         const decoded = decodeJwt<JwtPayload>(latestJwtToken);
         if(decoded.role === 'guest'){
-          prevUName = decoded.username
+          prevUName = decoded.username;
         }
       }
       return await guestJwt(prevUName);

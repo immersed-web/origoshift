@@ -101,6 +101,9 @@ export type UserRole = z.TypeOf<typeof UserRoleSchema>;
 export const UuidSchema = z.string().uuid();
 export type Uuid = z.TypeOf<typeof UuidSchema>;
 
+export const ConnectionIdSchema = z.string().uuid().brand<'ConnectionId'>();
+export type ConnectionId = z.TypeOf<typeof ConnectionIdSchema>;
+
 export const JwtUserDataSchema = z.object({
   uuid: UuidSchema,
   username: z.string(),
@@ -123,6 +126,8 @@ export const ClientTransformSchema = z.object({
 })
 
 export type ClientTransform = z.TypeOf<typeof ClientTransformSchema>;
+
+export type ClientTransforms = Record<ConnectionId, ClientTransform>;
 
 export const ClientInfoSchema = z.object({
   uuid: z.string().uuid(),

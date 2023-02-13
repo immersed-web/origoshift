@@ -1,22 +1,22 @@
 import { randomUUID } from 'crypto';
-// import SocketWrapper from './SocketWrapper';
 import type {types as soupTypes} from 'mediasoup';
+import { TypedEmitter } from 'tiny-typed-emitter';
 // import {types as soupClientTypes} from 'mediasoup-client';
 // import { ClientProperties, ClientState, ProducerInfo } from 'shared-types/CustomTypes';
 // import { createMessage, createRequest, createResponse, Request, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
 // import { extractMessageFromCatch } from 'shared-modules/utilFns';
 // import { checkPermission } from '../modules/utilFns';
 
-import type { JwtUserData, UserRole, Uuid } from 'schemas';
+
+import { ClientTransform, ConnectionId, ConnectionIdSchema, JwtUserData, UserRole, Uuid } from 'schemas';
 import Venue from './Venue';
+import { NonFilteredEvents } from 'trpc/trpc-utils';
 
 // import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
-// namespace MediaSoup {
-//   interface AppData {
-//     producerInfo?: Record<string, unknown>
-//   }
-// }
 
+export type ClientEvents = NonFilteredEvents<{
+  'clientTransforms': (transforms: Record<ConnectionId, ClientTransform>) => void
+}>
 interface ConstructorParams {
   connectionId?: Uuid,
   // ws: SocketWrapper,
@@ -30,7 +30,7 @@ export default class Client {
   /**
   * The id of the actual connection. This differs from the userId, as a user could potentially have multiple concurrent active connections
   */
-  connectionId: Uuid;
+  connectionId: ConnectionId;
 
   jwtUserData: JwtUserData;
   /**
@@ -53,9 +53,12 @@ export default class Client {
   consumers: Map<Uuid, soupTypes.Consumer> = new Map();
   producers: Map<Uuid, soupTypes.Producer> = new Map();
 
+  emitter: TypedEmitter<ClientEvents>;
+
   constructor({connectionId = randomUUID(), jwtUserData}: ConstructorParams){
-    this.connectionId = connectionId;
+    this.connectionId = ConnectionIdSchema.parse(connectionId);
     this.jwtUserData = jwtUserData;
+    this.emitter = new TypedEmitter();
   }
   // customProperties: ClientProperties = {};
 

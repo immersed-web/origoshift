@@ -64,7 +64,7 @@ const subToHeartBeat = () => getClient().heartbeatSub.subscribe(undefined, {
 const testGreeting = async () => console.log(await getClient().greeting.query());
 onMounted(async () => {
   await startGuestClient();
-  client = getClient()
+  client = getClient();
   const connection = await client.getMe.query();
   console.log(connection);
   // client.venue.createNewVenue.mutate({name: 'TestVenue'});

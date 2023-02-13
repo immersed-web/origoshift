@@ -1,5 +1,5 @@
 export * from '@prisma/client'
-// import { Prisma, PrismaClient } from '@prisma/client'
+// import { Prisma } from '@prisma/client'
 
 // const prisma = new PrismaClient();
 // prisma.$use(async (params, next) =>{
@@ -8,10 +8,6 @@ export * from '@prisma/client'
 //   return result;
 // });
 
-
-// const gatheringWithRoomsAndUsers = Prisma.validator<Prisma.GatheringArgs>()({
-//   include: { rooms: true, users: true },
-// });
 // export type GatheringWithRoomsAndUsers = Prisma.GatheringGetPayload<typeof gatheringWithRoomsAndUsers>;
 
 // const userWithIncludes = Prisma.validator<Prisma.UserArgs>()({

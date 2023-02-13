@@ -78,15 +78,15 @@ import { startGuestClient  } from '@/modules/trpcClient';
 import type { ClientTransform } from 'schemas';
 
 // Server, Client, etc.
-let client : Awaited<ReturnType<typeof startGuestClient>>
-const selfId = ref('')
+let client : Awaited<ReturnType<typeof startGuestClient>>;
+const selfId = ref('');
 const remoteAvatarsData = ref({});
 const avatars = ref<Entity>();
 
 onMounted(async () => {
   client = await startGuestClient();
-  selfId.value = await client.vr.transforms.getSelfId.query()
-  console.log("Client", client, selfId.value)
+  selfId.value = await client.vr.transforms.getSelfId.query();
+  console.log('Client', client, selfId.value);
   const sub = client.vr.transforms.clientTransformsSub.subscribe(undefined, {
     onData(data){
       remoteAvatarsData.value = data;
@@ -97,13 +97,13 @@ onMounted(async () => {
   });
 
   // Clear clients on C key down
-  window.addEventListener("keydown", (event) => {
+  window.addEventListener('keydown', (event) => {
     if (event.key === 'c') {
-      clearClients()
+      clearClients();
     }
   });
 
-})
+});
 
 async function clearClients() {
   await client.vr.transforms.clearTransforms.mutate();
@@ -112,9 +112,9 @@ async function clearClients() {
 // Handle single remote client data, called on subscription update
 function handleRemoteAvatarData(id: string, transform : ClientTransform) {
   const el = avatars.value?.querySelector<Entity>('#avatar-'+id);
-    if(el){
-      el.emit('moveTo', {position: transform.position});
-    }
+  if(el){
+    el.emit('moveTo', {position: transform.position});
+  }
 }
 
 // Load a-frame assets
@@ -130,7 +130,7 @@ async function cameraMoveSlow (e: CustomEvent<string>){
   const positionStr = e.detail;
   // console.log('Camera move slow', positionStr);
   if(client){
-    const position: ClientTransform['position'] = positionStr.split(' ').map(c => parseFloat(c)) as [number, number, number]
+    const position: ClientTransform['position'] = positionStr.split(' ').map(c => parseFloat(c)) as [number, number, number];
     const randomRot: ClientTransform['orientation'] = [Math.random(),Math.random(),Math.random(),Math.random()];
     await client.vr.transforms.updateTransform.mutate({orientation: randomRot, position});
   }

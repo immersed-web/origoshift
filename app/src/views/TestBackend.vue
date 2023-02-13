@@ -4,7 +4,7 @@
       Greet
     </XButton>
     <XButton
-      @click="async () => client = await startLoggedInClient('superadmin', 'bajskorv')"
+      @click="async () => await startLoggedInClient('superadmin', 'bajskorv')"
       class="m-6"
     >
       Login as Admin
@@ -13,19 +13,19 @@
       Subscribe to heartbeat
     </XButton>
     <XButton
-      @click="async () =>venueId = await client.venue.createNewVenue.mutate({name: `venue-${Math.trunc(Math.random() * 100)}`})"
+      @click="async () =>venueId = await getClient().venue.createNewVenue.mutate({name: `venue-${Math.trunc(Math.random() * 1000)}`})"
       class="m-6"
     >
       Create a new venue!!!
     </XButton>
     <XButton
-      @click="client.venue.loadVenue.mutate({uuid: venueId})"
+      @click="getClient().venue.loadVenue.mutate({uuid: venueId})"
       class="m-6"
     >
       Load venue
     </XButton>
     <XButton
-      @click="client.venue.joinVenue.mutate({uuid: venueId})"
+      @click="getClient().venue.joinVenue.mutate({uuid: venueId})"
       class="m-6"
     >
       Join venue

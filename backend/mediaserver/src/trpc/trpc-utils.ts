@@ -9,6 +9,8 @@ type AddFilterToEvents<IEvents extends ListenerSignature<IEvents>, FilterType> =
   [K in keyof IEvents]: AddFilterParam<IEvents[K], FilterType>
 }
 
+export type EmitSignature<E extends ListenerSignature<E>> = TypedEmitter<E>['emit'];
+
 export type NonFilteredEvents<E extends ListenerSignature<E>> = E
 export type FilteredEvents<E extends {[K in keyof E]: (p: any) => void}, FilterType> = AddFilterToEvents<E, FilterType>
 

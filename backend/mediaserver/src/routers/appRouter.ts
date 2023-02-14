@@ -5,7 +5,7 @@ import { venueRouter } from './venueRouter';
 import { observable } from '@trpc/server/observable';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { z } from 'zod';
-import { attachEmitter } from 'trpc/trpc-utils';
+import { attachEmitter } from '../trpc/trpc-utils';
 
 const appRouterEvents = new TypedEmitter<{
   'heartbeat': (msg: string) => void

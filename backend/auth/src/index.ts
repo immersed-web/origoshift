@@ -1,5 +1,4 @@
 import express, { json as parseJsonBody } from 'express';
-import url from 'url';
 import cors from 'cors';
 import { randomUUID } from 'crypto';
 import { createJwt, verifyJwtToken } from 'shared-modules/jwtUtils';
@@ -70,6 +69,11 @@ if (!process.env.SESSION_KEY) {
 }
 
 
+const prismaSessionStore = new PrismaSessionStore(prisma, {
+  checkPeriod: 2 * 60 * 1000,
+  dbRecordIdIsSessionId: true,
+  dbRecordIdFunction: undefined,
+});
 app.use(session({
   secret: process.env.SESSION_KEY,
   cookie: {
@@ -80,12 +84,7 @@ app.use(session({
   name: 'origoshift',
   resave: false,
   saveUninitialized: false,
-  store: new PrismaSessionStore(prisma,
-    {
-      checkPeriod: 2 * 60 * 1000, // ms
-      dbRecordIdIsSessionId: true,
-      dbRecordIdFunction: undefined,
-    })
+  store: prismaSessionStore
 }),
 );
 const userRouter = createUserRouter();
@@ -107,16 +106,13 @@ app.get('/health', (req, res) => {
 app.get('/guest-jwt', (req, res) => {
 
   let haikuName = haikunator.haikunate();
-  let uuid = randomUUID();
+  const uuid = randomUUID();
   if(req.query && req.query['username']){
     try {
       const requestedName = req.query['username'];
       if(typeof requestedName !== 'string'){
-        throw new Error('invalid username provided! Please stop this madness😥😥')
+        throw new Error('invalid username provided! Please stop this madness😥😥');
       }
-      // const decodedToken = verifyJwtToken(query);
-      // uuid = decodedToken.uuid;
-      // haikuName = decodedToken.username;
       haikuName = requestedName;
     } catch(e: unknown){
       console.error((e as Error).message);

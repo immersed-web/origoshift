@@ -4,12 +4,9 @@ import { middleware, procedure as p, moderatorP, router } from '../trpc/trpc';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { attachFilteredEmitter, FilteredEvents } from '../trpc/trpc-utils';
 import Venue from '../classes/Venue';
-
-
-// type VREvents = FilteredEvents<{
-//   'transforms': (transforms: ClientTransforms) => void
-// }, JwtUserData['uuid']>
-
+import prismaClient from '../modules/prismaClient';
+import { TRPCError } from '@trpc/server';
+import type {} from 'database';
 
 export const venueRouter = router({
   createNewVenue: moderatorP.input(z.object({
@@ -18,8 +15,31 @@ export const venueRouter = router({
     const venueId = await Venue.createNewVenue(input.name, ctx.uuid);
     return venueId;
   }),
+  deleteVenue: moderatorP.input(z.object({uuid: z.string().uuid()})).mutation(async ({ctx, input}) => {
+    if(Venue.venueIsLoaded({venueId: input.uuid})){
+      throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'Cant delete a venue when its loaded. Unload it first!'});
+    }
+    const dbResponse = await prismaClient.venue.delete({
+      where: {
+        uuid: input.uuid
+      }
+    });
+    return dbResponse;
+  }),
   loadVenue: moderatorP.input(z.object({uuid: z.string().uuid()})).mutation(({input}) => {
     Venue.loadVenue(input.uuid);
+  }),
+  listMyRouters: moderatorP.query(async ({ctx}) => {
+    const dbResponse = await prismaClient.venue.findMany({
+      where: {
+        ownerId: ctx.uuid
+      },
+      select: {
+        uuid: true,
+        name: true,
+      }
+    });
+    return dbResponse;
   }),
   joinVenue: p.input(
     z.object({

@@ -2,13 +2,6 @@ import { VirtualSpace } from 'database';
 import { ClientTransforms } from 'schemas';
 import Venue from './Venue';
 import {throttle} from 'lodash';
-// import { NonFilteredEvents } from 'trpc/trpc-utils';
-import { TypedEmitter } from 'tiny-typed-emitter';
-
-// type VREvents = NonFilteredEvents<{
-//   'transforms': (transforms: ClientTransforms) => void
-// }>
-
 
 export class VRSpace {
   private venue: Venue;

@@ -23,6 +23,7 @@ import prisma, {Prisma} from '../modules/prismaClient';
 // import Room from './Room';
 import Client, { type ClientEvents } from './Client';
 import { VRSpace } from './VRSpace';
+import { EmitSignature } from 'trpc/trpc-utils';
 // import { valueIsAlreadyTaken } from '../modules/utilFns';
 
 
@@ -95,7 +96,11 @@ export default class Venue {
     }
   }
 
-  static getVenue(params:{uuid?: string}) {
+  static venueIsLoaded(params: {venueId: Uuid}){
+    return Venue.venues.has(params.venueId);
+  }
+
+  static getVenue(params:{uuid?: Uuid}) {
     if(params.uuid){
       const venue = Venue.venues.get(params.uuid);
       if(!venue){
@@ -197,11 +202,13 @@ export default class Venue {
     return client;
   }
 
-  emitToAllClients<Key extends keyof ClientEvents>(eventName: Key, ...data: Parameters<ClientEvents[Key]>) {
+  emitToAllClients: EmitSignature<ClientEvents> = (event, ...args) => {
+    let allEmittersHadListeners = true;
     this.clients.forEach((client) => {
-      client.emitter.emit(eventName, ...data);
+      allEmittersHadListeners &&= client.emitter.emit(event, ...args);
     });
-  }
+    return allEmittersHadListeners;
+  };
 
 
 

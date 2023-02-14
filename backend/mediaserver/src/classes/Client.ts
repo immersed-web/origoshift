@@ -12,7 +12,6 @@ import { ClientTransform, ConnectionId, ConnectionIdSchema, JwtUserData, UserRol
 import Venue from './Venue';
 import { NonFilteredEvents } from 'trpc/trpc-utils';
 
-// import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
 
 export type ClientEvents = NonFilteredEvents<{
   'clientTransforms': (transforms: Record<ConnectionId, ClientTransform>) => void
@@ -60,7 +59,6 @@ export default class Client {
     this.jwtUserData = jwtUserData;
     this.emitter = new TypedEmitter();
   }
-  // customProperties: ClientProperties = {};
 
   private venueId?: Uuid;
   setVenue(venueId: Uuid | undefined){

@@ -98,11 +98,21 @@ export function hasAtLeastSecurityLevel(role: UserRole, minimumUserRole: UserRol
 export const UserRoleSchema = z.enum(roleHierarchy);
 export type UserRole = z.TypeOf<typeof UserRoleSchema>;
 
+//Here we are creating Opaque type for the different types of id's. This is to prevent acidentally using ids for the wrong type of object.
 export const UuidSchema = z.string().uuid();
 export type Uuid = z.TypeOf<typeof UuidSchema>;
 
-export const ConnectionIdSchema = z.string().uuid().brand<'ConnectionId'>();
+export const ConnectionIdSchema = UuidSchema.brand<'ConnectionId'>();
 export type ConnectionId = z.TypeOf<typeof ConnectionIdSchema>;
+
+export const UserIdSchema = UuidSchema.brand<'UserId'>();
+export type UserId = z.TypeOf<typeof UserIdSchema>;
+
+export const VenueIdSchema = UuidSchema.brand<'VenueId'>();
+export type VenueId = z.TypeOf<typeof VenueIdSchema>;
+
+export const VrSpaceIdSchema = UuidSchema.brand<'VrSpaceId'>();
+export type VrSpaceId = z.TypeOf<typeof VrSpaceIdSchema>;
 
 export const JwtUserDataSchema = z.object({
   uuid: UuidSchema,

@@ -142,6 +142,7 @@ app.ws<JwtUserData>('/*', {
     if(!client){
       throw Error('a disconnecting client was not in client list! Something is astray!');
     }
+    client.unload();
     clientConnections.delete(ws);
 
     let activeSockets = connectedUsers.get(userData.uuid)!;

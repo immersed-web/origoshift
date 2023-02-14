@@ -1,6 +1,13 @@
+import debug from 'debug';
+debug.enable('Client*');
+
 import { randomUUID } from 'crypto';
 import type {types as soupTypes} from 'mediasoup';
 import { TypedEmitter } from 'tiny-typed-emitter';
+
+const Log = debug('Client');
+const LogErr = Log.extend('ERROR');
+const LogWarn = Log.extend('WARNING');
 // import {types as soupClientTypes} from 'mediasoup-client';
 // import { ClientProperties, ClientState, ProducerInfo } from 'shared-types/CustomTypes';
 // import { createMessage, createRequest, createResponse, Request, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
@@ -16,6 +23,15 @@ import { NonFilteredEvents } from 'trpc/trpc-utils';
 export type ClientEvents = NonFilteredEvents<{
   'clientTransforms': (transforms: Record<ConnectionId, ClientTransform>) => void
 }>
+
+type PublicClientState = {
+  connectionId: ConnectionId,
+  userId: Uuid,
+  userName: string,
+  transform?: ClientTransform,
+  readonly role: UserRole,
+  currentVenueId?: Uuid
+}
 interface ConstructorParams {
   connectionId?: Uuid,
   // ws: SocketWrapper,
@@ -46,6 +62,8 @@ export default class Client {
     return this.jwtUserData.role;
   }
 
+  transform: ClientTransform | undefined;
+
   rtpCapabilities?: soupTypes.RtpCapabilities;
   receiveTransport?: soupTypes.WebRtcTransport;
   sendTransport?: soupTypes.WebRtcTransport;
@@ -55,9 +73,27 @@ export default class Client {
   emitter: TypedEmitter<ClientEvents>;
 
   constructor({connectionId = randomUUID(), jwtUserData}: ConstructorParams){
+    Log('Creating Client with connectionId: ', connectionId);
     this.connectionId = ConnectionIdSchema.parse(connectionId);
     this.jwtUserData = jwtUserData;
     this.emitter = new TypedEmitter();
+  }
+
+  // NOTE: It's important we release all references here!
+  unload() {
+    Log(`unloading client ${this.connectionId} `);
+    this.leaveCurrentVenue();
+  }
+
+  getPublicState(): PublicClientState{
+    return {
+      connectionId: this.connectionId,
+      userId: this.userId,
+      userName: this.userName,
+      role: this.role,
+      currentVenueId: this.getVenue()?.venueId,
+      transform: this.transform,
+    };
   }
 
   private venueId?: Uuid;

@@ -73,9 +73,17 @@ export default class Client {
       return undefined;
     }
   }
+  /**
+   * @returns boolean indicating if the client was in a venue in the first place. So calling this function when not in a venue will simply do nothing and return false.
+   */
   leaveCurrentVenue() {
     const venue = this.getVenue();
-    venue?.removeClient(this);
+    if(!venue) {
+      return false;
+      // throw Error('cant leave a venue if you are not in one!');
+    }
+    venue.removeClient(this);
+    return true;
   }
 
 

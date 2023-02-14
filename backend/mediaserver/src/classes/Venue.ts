@@ -88,7 +88,7 @@ export default class Venue {
         worker = getMediasoupWorker();
       }
       const router = await worker.createRouter(mediasoupConfig.router);
-      const venue = new Venue(dbResponse.uuid, dbResponse, router);
+      const venue = new Venue(dbResponse, router);
       return venue;
     } catch (e) {
       LogErr('failed to load venue');
@@ -98,6 +98,17 @@ export default class Venue {
 
   static venueIsLoaded(params: {venueId: Uuid}){
     return Venue.venues.has(params.venueId);
+  }
+
+  static getLoadedVenues(){
+    const obj: Record<Uuid, {venueId: Uuid, name: string}> = {};
+    for(const [key, venue] of Venue.venues.entries()){
+      obj[key] = {
+        name: venue.prismaData.name,
+        venueId: venue.venueId,
+      };
+    }
+    return obj;
   }
 
   static getVenue(params:{uuid?: Uuid}) {
@@ -116,7 +127,10 @@ export default class Venue {
   }
 
 
-  uuid: Uuid;
+  // uuid: Uuid;
+  get venueId() {
+    return this.prismaData.uuid;
+  }
   router: soupTypes.Router;
   vrSpace: VRSpace;
   prismaData: VenueResponse;
@@ -127,19 +141,18 @@ export default class Venue {
 
   private clients: Map<Uuid, Client> = new Map();
 
-  private constructor(uuid = randomUUID(), prismaData: VenueResponse, router: soupTypes.Router){
-    this.uuid = uuid;
+  private constructor(prismaData: VenueResponse, router: soupTypes.Router){
     this.router = router;
     this.prismaData = prismaData;
 
     this.vrSpace = new VRSpace(this, prismaData.virtualSpace);
 
-    const venueAlreadyLoaded = Venue.venues.has(this.uuid);
+    const venueAlreadyLoaded = Venue.venues.has(this.venueId);
     if(venueAlreadyLoaded){
       throw new Error('Venue with that uuid already loaded');
     }
 
-    Venue.venues.set(this.uuid, this);
+    Venue.venues.set(this.venueId, this);
   }
 
   /**
@@ -148,7 +161,7 @@ export default class Venue {
    */
   addClient ( client : Client){
     this.clients.set(client.connectionId, client);
-    client.setVenue(this.uuid);
+    client.setVenue(this.venueId);
   }
 
   /**
@@ -166,10 +179,10 @@ export default class Venue {
 
   // NOTE: It's important we release all references here!
   unload() {
-    Log(`unload venue ${this.uuid} `);
+    Log(`unload venue ${this.venueId} `);
     this.router.close();
     // this.cameras.forEach(room => room.destroy());
-    Venue.venues.delete(this.uuid);
+    Venue.venues.delete(this.venueId);
     this.vrSpace.unload();
   }
 

@@ -1,8 +1,6 @@
 import { UuidSchema } from 'schemas';
 import { z } from 'zod';
 import { middleware, procedure as p, moderatorP, router } from '../trpc/trpc';
-import { TypedEmitter } from 'tiny-typed-emitter';
-import { attachFilteredEmitter, FilteredEvents } from '../trpc/trpc-utils';
 import Venue from '../classes/Venue';
 import prismaClient from '../modules/prismaClient';
 import { TRPCError } from '@trpc/server';
@@ -29,7 +27,7 @@ export const venueRouter = router({
   loadVenue: moderatorP.input(z.object({uuid: z.string().uuid()})).mutation(({input}) => {
     Venue.loadVenue(input.uuid);
   }),
-  listMyRouters: moderatorP.query(async ({ctx}) => {
+  listMyVenues: moderatorP.query(async ({ctx}) => {
     const dbResponse = await prismaClient.venue.findMany({
       where: {
         ownerId: ctx.uuid
@@ -41,6 +39,9 @@ export const venueRouter = router({
     });
     return dbResponse;
   }),
+  listLoadedVenue: p.query(({ctx}) => {
+    return Venue.getLoadedVenues();
+  }),
   joinVenue: p.input(
     z.object({
       uuid: UuidSchema
@@ -49,6 +50,11 @@ export const venueRouter = router({
     ctx.client.leaveCurrentVenue();
     const venue = Venue.getVenue({uuid: input.uuid});
     venue.addClient(ctx.client);
+  }),
+  leaveCurrentVenue: p.query(({ctx}) => {
+    if(!ctx.client.leaveCurrentVenue()){
+      throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'cant leave if not in a venue.. Duh!'});
+    }
   })
 });
 

@@ -1,7 +1,9 @@
 <template>
   <div class="m-6">
     <div class="grid grid-flow-col gap-4 auto-cols-min">
-      <XButton @click="testGreeting">
+      <XButton
+        @click="testGreeting"
+      >
         Greet
       </XButton>
       <XButton
@@ -19,20 +21,14 @@
       >
         Create a new venue!!!
       </XButton>
-      <XButton @click="async () => ownedVenues = await getClient().venue.listMyRouters.query()">
+      <XButton @click="async () => ownedVenues = await getClient().venue.listMyVenues.query()">
         List my venues
       </XButton>
-      <XButton
-        @click="getClient().venue.loadVenue.mutate({uuid: venueId})"
-        class=""
-      >
-        Load venue
+      <XButton @click="async () => loadedVenues = await getClient().venue.listLoadedVenue.query()">
+        List loaded venues
       </XButton>
-      <XButton
-        @click="getClient().venue.joinVenue.mutate({uuid: venueId})"
-        class=""
-      >
-        Join venue
+      <XButton @click="async () => await getClient().venue.leaveCurrentVenue.query()">
+        Leave current venue
       </XButton>
     </div>
 
@@ -48,11 +44,41 @@
           :key="venue.uuid"
         >
           <p>{{ venue.name }}</p>
-          <XButton @click="async () => await getClient().venue.loadVenue.mutate({uuid: venue.uuid})">
+          <XButton
+            size="xs"
+            @click="async () => await getClient().venue.loadVenue.mutate({uuid: venue.uuid})"
+          >
             Load
           </XButton>
-          <XButton @click="async () => await getClient().venue.deleteVenue.mutate({uuid: venue.uuid})">
+          <XButton
+            size="xs"
+            class="ml-2"
+            @click="async () => await getClient().venue.joinVenue.mutate({uuid: venue.uuid})"
+          >
+            Join
+          </XButton>
+          <XButton
+            class="ml-2"
+            color="red"
+            size="xs"
+            @click="async () => await getClient().venue.deleteVenue.mutate({uuid: venue.uuid})"
+          >
             Ta bort
+          </XButton>
+        </div>
+      </div>
+      <div>
+        <div
+          v-for="venue in loadedVenues"
+          :key="venue.venueId"
+        >
+          <p>{{ venue.name }}</p>
+          <XButton
+            size="xs"
+            class="ml-2"
+            @click="async () => await getClient().venue.joinVenue.mutate({uuid: venue.venueId})"
+          >
+            Join
           </XButton>
         </div>
       </div>
@@ -72,7 +98,8 @@ import { getClient, startGuestClient, startLoggedInClient } from '@/modules/trpc
 
 const venueId = ref<string>('');
 
-const ownedVenues = ref<Awaited<ReturnType<typeof client.venue.listMyRouters.query>>>([]);
+const ownedVenues = ref<Awaited<ReturnType<typeof client.venue.listLoadedVenue.query>>>();
+const loadedVenues = ref<Awaited<ReturnType<typeof client.venue.listLoadedVenue.query>>>({});
 
 const health = ref<string>('');
 const greeting = ref<string>('');
@@ -82,7 +109,7 @@ let client: Awaited<ReturnType<typeof getClient>>;
 const subToHeartBeat = () => getClient().heartbeatSub.subscribe(undefined, {
   onData(heartbeat){console.log(heartbeat);},
 });
-const testGreeting = async () => console.log(await getClient().greeting.query());
+const testGreeting = async () => { greeting.value = await getClient().greeting.query(); console.log(greeting.value);};
 onMounted(async () => {
   await startGuestClient();
   client = getClient();

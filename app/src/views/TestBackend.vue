@@ -30,6 +30,9 @@
       <XButton @click="async () => await getClient().venue.leaveCurrentVenue.query()">
         Leave current venue
       </XButton>
+      <XButton @click="startTransformStream">
+        Start transform stream
+      </XButton>
     </div>
 
     <div class="grid grid-cols-3 gap-4 p-6 m-6">
@@ -90,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 // import { loginWithAutoToken, autoGuestToken, latestGuestJwtToken } from '@/modules/authClient';
 // import type { AppRouter } from 'mediaserver';
 // import { createTRPCProxyClient, wsLink, createWSClient } from '@trpc/client';
@@ -98,7 +101,7 @@ import { getClient, startGuestClient, startLoggedInClient } from '@/modules/trpc
 
 const venueId = ref<string>('');
 
-const ownedVenues = ref<Awaited<ReturnType<typeof client.venue.listLoadedVenue.query>>>();
+const ownedVenues = ref<Awaited<ReturnType<typeof client.venue.listMyVenues.query>>>([]);
 const loadedVenues = ref<Awaited<ReturnType<typeof client.venue.listLoadedVenue.query>>>({});
 
 const health = ref<string>('');
@@ -110,6 +113,19 @@ const subToHeartBeat = () => getClient().heartbeatSub.subscribe(undefined, {
   onData(heartbeat){console.log(heartbeat);},
 });
 const testGreeting = async () => { greeting.value = await getClient().greeting.query(); console.log(greeting.value);};
+
+let stopTransformStream: () => void;
+function startTransformStream() {
+  if(stopTransformStream) stopTransformStream();
+  const subscription = getClient().vr.transforms.clientTransformsSub.subscribe(undefined, {
+    onData(data) {
+      positionData.value = data;
+    },
+  });
+  const intv = setInterval(async () => await getClient().vr.transforms.updateTransform.mutate(({position: [Math.random(),Math.random(),Math.random()], orientation: [Math.random(),Math.random(),Math.random(),Math.random()]})), 200);
+  stopTransformStream = () => {clearInterval(intv); subscription.unsubscribe();};
+}
+
 onMounted(async () => {
   await startGuestClient();
   client = getClient();
@@ -134,6 +150,12 @@ onMounted(async () => {
 
   greeting.value = await client.greeting.query();
   health.value = await client.health.query();
+});
+
+onBeforeUnmount(() => {
+  if(stopTransformStream){
+    stopTransformStream();
+  }
 });
 
 </script>

@@ -16,7 +16,7 @@ const LogWarn = Log.extend('WARNING');
 // import { checkPermission } from '../modules/utilFns';
 
 
-import { ClientTransform, ConnectionId, ConnectionIdSchema, JwtUserData, UserRole, Uuid, VenueId } from 'schemas';
+import { ClientTransform, ClientTransforms, ConnectionId, ConnectionIdSchema, JwtUserData, UserRole, Uuid, VenueId } from 'schemas';
 import Venue from './Venue';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
 
@@ -29,7 +29,7 @@ export type ClientVenueEvents = FilteredEvents<{
 }>
 
 export type ClientVrEvents = NonFilteredEvents<{
-  'clientTransforms': (transforms: Record<ConnectionId, ClientTransform>) => void
+  'clientTransforms': (transforms: ClientTransforms) => void
 }>
 
 type PublicClientState = {

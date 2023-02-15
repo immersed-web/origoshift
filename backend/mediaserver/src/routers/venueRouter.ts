@@ -25,8 +25,9 @@ export const venueRouter = router({
     });
     return dbResponse;
   }),
-  loadVenue: moderatorP.input(z.object({uuid: z.string().uuid()})).mutation(({input}) => {
-    Venue.loadVenue(input.uuid);
+  loadVenue: moderatorP.input(z.object({uuid: z.string().uuid()})).mutation(async ({input}) => {
+    const venue = await Venue.loadVenue(input.uuid);
+    return venue.venueId;
   }),
   subVenueUnloaded: p.subscription(({ctx}) => {
     attachEmitter(ctx.client.venueEvents, 'venueWasUnloaded');

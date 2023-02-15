@@ -17,7 +17,7 @@ export type FilteredEvents<E extends {[K in keyof E]: (p: any) => void}, FilterT
 export function attachEmitter<E extends ListenerSignature<E>, K extends keyof E>(emitter: TypedEmitter<E>, event: K){
   return observable<EventArgument<E, typeof event>>(emit => {
     const onEvent  = (data: EventArgument<E,typeof event>): void => {
-      console.log('emitter triggered');
+      // console.log('emitter triggered');
       emit.next(data);
     };
 

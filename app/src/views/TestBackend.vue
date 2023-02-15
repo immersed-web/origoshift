@@ -41,6 +41,14 @@
         <p>greeting: {{ greeting }}</p>
         <p>venueId: {{ venueId }}</p>
         <p>connection: {{ connectionId }}</p>
+        <p>slider: {{ slider }}</p>
+        <XSlider
+          :min="1"
+          :max="200"
+          label="Slide me"
+          :model-value="slider"
+          @update:modelValue="onSlide"
+        />
       </div>
       <div>
         <div
@@ -99,20 +107,28 @@ import { onBeforeUnmount, onMounted, ref } from 'vue';
 // import type { AppRouter } from 'mediaserver';
 // import { createTRPCProxyClient, wsLink, createWSClient } from '@trpc/client';
 import { getClient, startGuestClient, startLoggedInClient } from '@/modules/trpcClient';
-import type { ConnectionId } from 'schemas';
+import type { ClientTransform, ConnectionId } from 'schemas';
 
 const venueId = ref<string>('');
 const connectionId = ref<ConnectionId>();
 
-const ownedVenues = ref<Awaited<ReturnType<typeof client.venue.listMyVenues.query>>>([]);
-const loadedVenues = ref<Awaited<ReturnType<typeof client.venue.listLoadedVenues.query>>>({});
+const ownedVenues = ref<Awaited<ReturnType<ReturnType<typeof getClient>['venue']['listMyVenues']['query']>>>([]);
+const loadedVenues = ref<Awaited<ReturnType<ReturnType<typeof getClient>['venue']['listLoadedVenues']['query']>>>({});
 
 const health = ref<string>('');
 const greeting = ref<string>('');
 const positionData = ref({});
+const slider = ref<number>(0);
 
-let client: Awaited<ReturnType<typeof getClient>>;
-const subToHeartBeat = () => getClient().heartbeatSub.subscribe(undefined, {
+function onSlide(evt: number) {
+  slider.value = evt;
+  getClient().vr.transforms.updateTransform.mutate({
+    position: [slider.value, 0, 0],
+    orientation: [0,0,0,0],
+  });
+}
+
+const subToHeartBeat = () => getClient().subHeartBeat.subscribe(undefined, {
   onData(heartbeat){console.log(heartbeat);},
 });
 const testGreeting = async () => { greeting.value = await getClient().greeting.query(); console.log(greeting.value);};
@@ -120,18 +136,27 @@ const testGreeting = async () => { greeting.value = await getClient().greeting.q
 let stopTransformStream: () => void;
 function startTransformStream() {
   if(stopTransformStream) stopTransformStream();
-  const subscription = getClient().vr.transforms.clientTransformsSub.subscribe(undefined, {
+  const subscription = getClient().vr.transforms.subClientTransforms.subscribe(undefined, {
     onData(data) {
+      console.log('received transform data!', data);
       positionData.value = data;
+      for(const [k, t] of Object.entries(data) as [ConnectionId, ClientTransform][]){
+        if(k !== connectionId.value){
+          slider.value = t.position[0];
+        }
+      }
     },
   });
-  const intv = setInterval(async () => await getClient().vr.transforms.updateTransform.mutate(({position: [Math.random(),Math.random(),Math.random()], orientation: [Math.random(),Math.random(),Math.random(),Math.random()]})), 200);
-  stopTransformStream = () => {clearInterval(intv); subscription.unsubscribe();};
+  // const intv = setInterval(async () => await getClient().vr.transforms.updateTransform.mutate(({position: [Math.random(),Math.random(),Math.random()], orientation: [Math.random(),Math.random(),Math.random(),Math.random()]})), 200);
+  stopTransformStream = () => {
+    // clearInterval(intv);
+    subscription.unsubscribe();
+  };
 }
 
 onMounted(async () => {
   await startGuestClient();
-  client = getClient();
+  const client = getClient();
   connectionId.value = await client.getConnectionId.query();
   console.log(connectionId.value);
 

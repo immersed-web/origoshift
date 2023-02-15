@@ -33,7 +33,7 @@ export default () => {
 
     // Component functions
     initInterpolationBuffer: function () {
-      this.interpolationBuffer = new InterpolationBuffer(undefined, 1);
+      this.interpolationBuffer = new InterpolationBuffer(undefined, 0.2);
       const interpolationBuffer = this.interpolationBuffer;
       this.el.addEventListener('moveTo', function (e) {
         // console.log('Moving remote avatar', data.id, e.detail.position);

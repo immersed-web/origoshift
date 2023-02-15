@@ -10,6 +10,7 @@ import { TRPCError } from '@trpc/server';
 export const vrRouter = router({
   transforms: router({
     updateTransform: p.input(ClientTransformSchema).mutation(({input, ctx}) =>{
+      console.log('transform received:', input);
       const venue = ctx.client.getVenue();
       if(!venue){
         throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You are not in a venue. You shouldnt send transform data!'});
@@ -29,7 +30,7 @@ export const vrRouter = router({
     getClientTransforms: procedure.query(() => {
       return 'NOT IMPLEMENTED YET' as const;
     }),
-    clientTransformsSub: p.subscription(({ctx}) => {
+    subClientTransforms: p.subscription(({ctx}) => {
       const venue = ctx.client.getVenue();
       if(!venue){
         throw new TRPCError({code: 'PRECONDITION_FAILED', message: ' Not ina venue. Not possible'});

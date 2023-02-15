@@ -9,10 +9,9 @@ const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { ConnectionId, JwtUserData, JwtUserDataSchema } from 'schemas';
+import { ConnectionId, JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
-import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
 import Client from './classes/Client';
 
 type MyWebsocketType = WebSocket<JwtUserData>;

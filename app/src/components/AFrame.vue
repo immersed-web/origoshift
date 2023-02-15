@@ -47,7 +47,7 @@
         <a-camera
           look-controls
           wasd-controls="acceleration:100;"
-          emit-move="intervals: 100 1000"
+          emit-move="intervals: 40 500"
           position="0 2 0"
           @move0="cameraMoveFast"
           @move1="cameraMoveSlow"
@@ -74,27 +74,49 @@ import 'aframe';
 import type { Entity } from 'aframe';
 import { ref, onMounted } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
-import { startGuestClient  } from '@/modules/trpcClient';
-import type { ClientTransform } from 'schemas';
+import { getClient, startLoggedInClient  } from '@/modules/trpcClient';
+import type { ConnectionId, ClientTransform, ClientTransforms } from 'schemas';
 
 // Server, Client, etc.
-let client : Awaited<ReturnType<typeof startGuestClient>>;
-const selfId = ref('');
-const remoteAvatarsData = ref({});
+let client :ReturnType<typeof getClient>;
+const selfId = ref<ConnectionId>();
+const remoteAvatarsData = ref<ClientTransforms>({});
 const avatars = ref<Entity>();
 
 onMounted(async () => {
-  client = await startGuestClient();
-  selfId.value = await client.vr.transforms.getSelfId.query();
-  console.log('Client', client, selfId.value);
-  const sub = client.vr.transforms.clientTransformsSub.subscribe(undefined, {
+  // client = await startGuestClient();
+  await startLoggedInClient('superadmin', 'bajskorv');
+  client = getClient();
+
+  selfId.value = await client.getConnectionId.query();
+  const myVenues = await client.venue.listMyVenues.query();
+  console.log('myVenues:', myVenues);
+  const uuid = myVenues[0].uuid;
+  try{
+
+    const loadedId = await client.venue.loadVenue.mutate({uuid});
+  } catch(e){
+    console.warn('was already loaded');
+  }
+  await client.venue.joinVenue.mutate({uuid});
+  // console.log('Client', client, selfId.value);
+  const sub = client.vr.transforms.subClientTransforms.subscribe(undefined, {
     onData(data){
-      remoteAvatarsData.value = data;
-      for(const key in data){
-        handleRemoteAvatarData(key, data[key]);
+      console.log(data);
+      const k = Object.keys(data);
+      // remoteAvatarsData.value = data;
+      for(const [key, transform] of Object.entries(data) as [ConnectionId, ClientTransform][]){
+        remoteAvatarsData.value[key] = transform;
+        handleRemoteAvatarData(key, transform);
       }
     },
   });
+
+  client.venue.subClientAddedOrRemoved.subscribe(undefined, {onData(data) {
+    if(!data.added){
+      delete remoteAvatarsData.value[data.client.connectionId];
+    }
+  }});
 
   // Clear clients on C key down
   window.addEventListener('keydown', (event) => {
@@ -106,7 +128,7 @@ onMounted(async () => {
 });
 
 async function clearClients() {
-  await client.vr.transforms.clearTransforms.mutate();
+  // await client.vr.transforms..mutate();
 }
 
 // Handle single remote client data, called on subscription update

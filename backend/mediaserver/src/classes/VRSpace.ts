@@ -13,7 +13,7 @@ export class VrSpace {
   sendPendingTransforms = throttle(() => {
     this.emitToAllClients('clientTransforms', this.pendingTransforms);
     this.pendingTransforms = {};
-  }, 200, {
+  }, 10, {
     trailing: true
   });
 

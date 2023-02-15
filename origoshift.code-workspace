@@ -74,4 +74,71 @@
       "ms-vscode.vscode-typescript-tslint-plugin"
     ]
   },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "dev terminals",
+        "dependsOn": [
+          "App",
+          "Auth",
+          "Mediaserver",
+          "Watcher"
+        ],
+        "problemMatcher": [],
+        "runOptions": {
+          "runOn": "folderOpen"
+        }
+      },
+      {
+        "label": "App",
+        "type": "shell",
+        "command": "bash",
+        "isBackground": true,
+        "options": {
+          "cwd": "${workspaceFolder:app}"
+        },
+        "problemMatcher": [],
+        "presentation": {
+          "group": "dev-servers",
+        },
+      },
+      {
+        "label": "Auth",
+        "type": "shell",
+        "command": "bash",
+        "isBackground": true,
+        "options": {
+          "cwd": "${workspaceFolder:backend}${pathSeparator}auth"
+        },
+        "problemMatcher": [],
+        "presentation": {
+          "group": "dev-servers",
+        },
+      },
+      {
+        "label": "Mediaserver",
+        "type": "shell",
+        "command": "bash",
+        "isBackground": true,
+        "options": {
+          "cwd": "${workspaceFolder:backend}${pathSeparator}mediaserver"
+        },
+        "problemMatcher": [],
+        "presentation": {
+          "group": "dev-servers",
+        },
+      },
+      {
+        "label": "Watcher",
+        "type": "shell",
+        "command": "bash",
+        "isBackground": true,
+        "options": {
+          "cwd": "${workspaceFolder:root}"
+        },
+        "problemMatcher": [],
+      }
+    ]
+  }
 }

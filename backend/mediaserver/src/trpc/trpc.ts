@@ -15,8 +15,18 @@ export const createAuthMiddleware = (userRole: JwtUserData['role']) => {
     }
     return next();
   });
-
 };
+
+export const isInVenueM = middleware(({ctx, next})=> {
+  const venue = ctx.client.getVenue();
+  if(!venue) {
+    throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You have to be added to a venue before performing that action!'});
+  }
+  // const venueId = venue.venueId;
+  return next({ctx: {
+    venue
+  }});
+});
 
 export const superadminP = procedure.use(createAuthMiddleware('superadmin'));
 export const adminP = procedure.use(createAuthMiddleware('admin'));

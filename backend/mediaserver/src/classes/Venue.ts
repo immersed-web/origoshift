@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 // import { GatheringState } from 'shared-types/CustomTypes';
 // import { createMessage } from 'shared-types/MessageTypes';
 import mediasoupConfig from '../mediasoupConfig';
@@ -14,17 +13,14 @@ const LogWarn = Log.extend('WARNING');
 LogWarn.log = (args) => coloredLogger.bgYellow.warn(args);
 LogErr.log = (args) => coloredLogger.bgRed.error(args);
 
-// import Client from './Client';
 import {types as soupTypes} from 'mediasoup';
-import { Uuid } from 'schemas';
+import { Uuid, VenueId } from 'schemas';
 
 import prisma, {Prisma} from '../modules/prismaClient';
 
-// import Room from './Room';
-import Client, { type ClientEvents } from './Client';
-import { VRSpace } from './VRSpace';
-import { EmitSignature } from 'trpc/trpc-utils';
-// import { valueIsAlreadyTaken } from '../modules/utilFns';
+import Client  from './Client';
+import { VrSpace } from './VRSpace';
+// import { FilteredEvents } from 'trpc/trpc-utils';
 
 
 const venueWithIncludes = Prisma.validator<Prisma.VenueArgs>()({
@@ -39,6 +35,8 @@ const venueWithIncludes = Prisma.validator<Prisma.VenueArgs>()({
 });
 type VenueResponse = Prisma.VenueGetPayload<typeof venueWithIncludes>
 
+// export type VenueEvents = FilteredEvents<{
+// }>
 
 
 export default class Venue {
@@ -129,10 +127,10 @@ export default class Venue {
 
   // uuid: Uuid;
   get venueId() {
-    return this.prismaData.uuid;
+    return this.prismaData.uuid as VenueId;
   }
   router: soupTypes.Router;
-  vrSpace: VRSpace;
+  vrSpace: VrSpace;
   prismaData: VenueResponse;
 
 
@@ -145,7 +143,7 @@ export default class Venue {
     this.router = router;
     this.prismaData = prismaData;
 
-    this.vrSpace = new VRSpace(this, prismaData.virtualSpace);
+    this.vrSpace = new VrSpace(this, prismaData.virtualSpace, this.clients);
 
     const venueAlreadyLoaded = Venue.venues.has(this.venueId);
     if(venueAlreadyLoaded){
@@ -162,6 +160,7 @@ export default class Venue {
   addClient ( client : Client){
     this.clients.set(client.connectionId, client);
     client.setVenue(this.venueId);
+    this.emitToAllClients('clientAddedOrRemoved', {connectionId: client.connectionId, added: true}, client.connectionId);
   }
 
   /**
@@ -175,11 +174,13 @@ export default class Venue {
     if(!this.clients.size){
       this.unload();
     }
+    this.emitToAllClients('clientAddedOrRemoved', {connectionId: client.connectionId, added: false}, client.connectionId);
   }
 
   // NOTE: It's important we release all references here!
   unload() {
     Log(`unload venue ${this.venueId} `);
+    this.emitToAllClients('venueWasUnloaded', this.venueId);
     this.router.close();
     // this.cameras.forEach(room => room.destroy());
     Venue.venues.delete(this.venueId);
@@ -215,10 +216,10 @@ export default class Venue {
     return client;
   }
 
-  emitToAllClients: EmitSignature<ClientEvents> = (event, ...args) => {
+  emitToAllClients: Client['venueEvents']['emit'] = (event, ...args) => {
     let allEmittersHadListeners = true;
     this.clients.forEach((client) => {
-      allEmittersHadListeners &&= client.emitter.emit(event, ...args);
+      allEmittersHadListeners &&= client.venueEvents.emit(event, ...args);
     });
     return allEmittersHadListeners;
   };

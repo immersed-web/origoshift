@@ -2,9 +2,9 @@ import { router, procedure } from '../trpc/trpc';
 import { soupRouter } from './soupRouter';
 import { vrRouter } from './vrRouter';
 import { venueRouter } from './venueRouter';
-import { observable } from '@trpc/server/observable';
+import { observable, Observer } from '@trpc/server/observable';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { z } from 'zod';
+import { any, z } from 'zod';
 import { attachEmitter } from '../trpc/trpc-utils';
 
 const appRouterEvents = new TypedEmitter<{
@@ -12,11 +12,13 @@ const appRouterEvents = new TypedEmitter<{
 }>();
 setInterval(() => appRouterEvents.emit('heartbeat', `heartBeat at ${Date.now()}`), 5000);
 
+const observers: Observer<any, unknown>[] = [];
+
 export const appRouter = router({
   health: procedure.query(({ctx}) => {
     return 'Yooo! I\'m healthy' as const;
   }),
-  heartbeatSub: procedure.subscription(({ctx}) => {
+  subHeartBeat: procedure.subscription(({ctx}) => {
     console.log('heartbeat subscription requested by:', ctx.username);
     // return observable<string>((emit) => {
     //   const handler = (msg: string) => emit.next(msg);
@@ -31,6 +33,20 @@ export const appRouter = router({
       return () => clearInterval(intv);
     });
     return o;
+  }),
+  testSubCompletable: procedure.subscription(({ctx}) => {
+    return observable<'test'>((emit) => {
+      observers.push(emit);
+      const intv = setInterval(() => {
+        console.log('emitting test');
+        emit.next('test');
+
+      }, 1000);
+      return () => clearInterval(intv);
+    });
+  }),
+  clearObservers: procedure.mutation(({ctx}) => {
+    observers.forEach(obs => obs.complete());
   }),
   getMe: procedure.query(({ctx}) => {
     return {

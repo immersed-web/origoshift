@@ -1,4 +1,4 @@
-import {observable} from '@trpc/server/observable';
+import {observable, Observer} from '@trpc/server/observable';
 import { ListenerSignature, TypedEmitter } from 'tiny-typed-emitter';
 
 //Internal utility types
@@ -29,7 +29,7 @@ export function attachEmitter<E extends ListenerSignature<E>, K extends keyof E>
 }
 
 export function attachFilteredEmitter<E extends ListenerSignature<E>, K extends keyof E, FilterType>(emitter: TypedEmitter<E>, event: K, filter: FilterType){
-  return observable<EventArgument<E, typeof event>>(emit => {
+  const myObservable = observable<EventArgument<E, typeof event>>(emit => {
     const onEvent  = (data: EventArgument<E,typeof event>, triggerId: FilterType): void => {
       if(triggerId === filter){
         // console.log('skipping because emitter is filtered');
@@ -44,4 +44,5 @@ export function attachFilteredEmitter<E extends ListenerSignature<E>, K extends 
       emitter.off(event, onEvent as E[typeof event]);
     };
   });
+  return myObservable;
 }

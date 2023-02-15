@@ -9,7 +9,7 @@ const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { JwtUserData, JwtUserDataSchema } from 'schemas';
+import { ConnectionId, JwtUserData, JwtUserDataSchema } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
 import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
@@ -60,6 +60,7 @@ if(stdin && stdin.isTTY){
 export type Context = JwtUserData & {
   // uuid: JwtUserData['uuid']
   // jwt: JwtUserData
+  connectionId: ConnectionId,
   client: Client
 }
 
@@ -132,7 +133,7 @@ app.ws<JwtUserData>('/*', {
     }
     console.log('new client:', client);
 
-    const context: Context = {...jwtUserData, client};
+    const context: Context = {...jwtUserData, client, connectionId: client.connectionId };
     onSocketOpen(ws, context);
   },
   close: (ws, code, msg) => {

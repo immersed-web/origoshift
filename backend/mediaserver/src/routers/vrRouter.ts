@@ -34,7 +34,7 @@ export const vrRouter = router({
       if(!venue){
         throw new TRPCError({code: 'PRECONDITION_FAILED', message: ' Not ina venue. Not possible'});
       }
-      return attachEmitter(ctx.client.emitter, 'clientTransforms');
+      return attachEmitter(ctx.client.vrEvents, 'clientTransforms');
       // return attachEmitter(venue.vrSpace.emitter, 'transforms');
     })
   })

@@ -1,10 +1,11 @@
 import { UuidSchema } from 'schemas';
 import { z } from 'zod';
-import { middleware, procedure as p, moderatorP, router } from '../trpc/trpc';
+import { procedure as p, moderatorP, router, isInVenueM } from '../trpc/trpc';
 import Venue from '../classes/Venue';
 import prismaClient from '../modules/prismaClient';
 import { TRPCError } from '@trpc/server';
 import type {} from 'database';
+import { attachEmitter, attachFilteredEmitter } from '../trpc/trpc-utils';
 
 export const venueRouter = router({
   createNewVenue: moderatorP.input(z.object({
@@ -27,6 +28,9 @@ export const venueRouter = router({
   loadVenue: moderatorP.input(z.object({uuid: z.string().uuid()})).mutation(({input}) => {
     Venue.loadVenue(input.uuid);
   }),
+  subVenueUnloaded: p.subscription(({ctx}) => {
+    attachEmitter(ctx.client.venueEvents, 'venueWasUnloaded');
+  }),
   listMyVenues: moderatorP.query(async ({ctx}) => {
     const dbResponse = await prismaClient.venue.findMany({
       where: {
@@ -39,7 +43,10 @@ export const venueRouter = router({
     });
     return dbResponse;
   }),
-  listLoadedVenue: p.query(({ctx}) => {
+  subClientAddedOrRemoved: p.subscription(({ctx}) => {
+    return attachFilteredEmitter(ctx.client.venueEvents, 'clientAddedOrRemoved', ctx.connectionId);
+  }),
+  listLoadedVenues: p.query(({ctx}) => {
     return Venue.getLoadedVenues();
   }),
   joinVenue: p.input(

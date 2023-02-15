@@ -8,6 +8,7 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 const Log = debug('Client');
 const LogErr = Log.extend('ERROR');
 const LogWarn = Log.extend('WARNING');
+
 // import {types as soupClientTypes} from 'mediasoup-client';
 // import { ClientProperties, ClientState, ProducerInfo } from 'shared-types/CustomTypes';
 // import { createMessage, createRequest, createResponse, Request, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
@@ -15,12 +16,19 @@ const LogWarn = Log.extend('WARNING');
 // import { checkPermission } from '../modules/utilFns';
 
 
-import { ClientTransform, ConnectionId, ConnectionIdSchema, JwtUserData, UserRole, Uuid } from 'schemas';
+import { ClientTransform, ConnectionId, ConnectionIdSchema, JwtUserData, UserRole, Uuid, VenueId } from 'schemas';
 import Venue from './Venue';
-import { NonFilteredEvents } from 'trpc/trpc-utils';
+import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
 
 
-export type ClientEvents = NonFilteredEvents<{
+export type ClientVenueEvents = FilteredEvents<{
+  'clientAddedOrRemoved': (data: {connectionId: ConnectionId, added: boolean}) => void,
+}, ConnectionId>
+& NonFilteredEvents<{
+  'venueWasUnloaded': (venueId: VenueId) => void,
+}>
+
+export type ClientVrEvents = NonFilteredEvents<{
   'clientTransforms': (transforms: Record<ConnectionId, ClientTransform>) => void
 }>
 
@@ -70,13 +78,15 @@ export default class Client {
   consumers: Map<Uuid, soupTypes.Consumer> = new Map();
   producers: Map<Uuid, soupTypes.Producer> = new Map();
 
-  emitter: TypedEmitter<ClientEvents>;
+  venueEvents: TypedEmitter<ClientVenueEvents>;
+  vrEvents: TypedEmitter<ClientVrEvents>;
 
   constructor({connectionId = randomUUID(), jwtUserData}: ConstructorParams){
     Log('Creating Client with connectionId: ', connectionId);
     this.connectionId = ConnectionIdSchema.parse(connectionId);
     this.jwtUserData = jwtUserData;
-    this.emitter = new TypedEmitter();
+    this.venueEvents = new TypedEmitter();
+    this.vrEvents = new TypedEmitter();
   }
 
   // NOTE: It's important we release all references here!

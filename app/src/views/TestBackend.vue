@@ -24,7 +24,7 @@
       <XButton @click="async () => ownedVenues = await getClient().venue.listMyVenues.query()">
         List my venues
       </XButton>
-      <XButton @click="async () => loadedVenues = await getClient().venue.listLoadedVenue.query()">
+      <XButton @click="async () => loadedVenues = await getClient().venue.listLoadedVenues.query()">
         List loaded venues
       </XButton>
       <XButton @click="async () => await getClient().venue.leaveCurrentVenue.query()">
@@ -102,7 +102,7 @@ import { getClient, startGuestClient, startLoggedInClient } from '@/modules/trpc
 const venueId = ref<string>('');
 
 const ownedVenues = ref<Awaited<ReturnType<typeof client.venue.listMyVenues.query>>>([]);
-const loadedVenues = ref<Awaited<ReturnType<typeof client.venue.listLoadedVenue.query>>>({});
+const loadedVenues = ref<Awaited<ReturnType<typeof client.venue.listLoadedVenues.query>>>({});
 
 const health = ref<string>('');
 const greeting = ref<string>('');
@@ -131,22 +131,9 @@ onMounted(async () => {
   client = getClient();
   const connection = await client.getMe.query();
   console.log(connection);
-  // client.venue.createNewVenue.mutate({name: 'TestVenue'});
-  const sub = client.vr.transforms.clientTransformsSub.subscribe(undefined, {
-    onData(data){
-      console.log(data);
-      positionData.value = data;
-      // for(const key in data){
-      //   console.log(data[key]);
-      // }
-    },
-  });
-  // setInterval(async () => {
 
-  //   const randomPos: ClientTransform['position'] = [Math.random(),Math.random(),Math.random()];
-  //   const randomRot: ClientTransform['orientation'] = [Math.random(),Math.random(),Math.random(),Math.random()];
-  //   await client.vr.transforms.updateTransform.mutate({orientation: randomRot, position: randomPos});
-  // }, 50);
+  // client.testSubCompletable.subscribe(undefined, {onData(data){console.log(data);}});
+  // setTimeout(() => client.clearObservers.mutate(), 7000);
 
   greeting.value = await client.greeting.query();
   health.value = await client.health.query();

@@ -92,11 +92,19 @@
       },
       {
         "label": "App",
+        "icon": {
+          "id": "heart",
+          "color": "terminal.ansiRed"
+        },
         "type": "shell",
         "command": "bash",
+        // "args": [
+        //   "-c",
+        //   "pnpm dev"
+        // ],
         "isBackground": true,
         "options": {
-          "cwd": "${workspaceFolder:app}"
+          "cwd": "${workspaceFolder:app}",
         },
         "problemMatcher": [],
         "presentation": {
@@ -105,8 +113,16 @@
       },
       {
         "label": "Auth",
+        "icon": {
+          "id": "key",
+          "color": "terminal.ansiCyan"
+        },
         "type": "shell",
         "command": "bash",
+        // "args": [
+        //   "-c",
+        //   "pnpm dev"
+        // ],
         "isBackground": true,
         "options": {
           "cwd": "${workspaceFolder:backend}${pathSeparator}auth"
@@ -118,8 +134,16 @@
       },
       {
         "label": "Mediaserver",
+        "icon": {
+          "id": "radio-tower",
+          "color": "terminal.ansiMagenta"
+        },
         "type": "shell",
         "command": "bash",
+        // "args": [
+        //   "-c",
+        //   "pnpm dev"
+        // ],
         "isBackground": true,
         "options": {
           "cwd": "${workspaceFolder:backend}${pathSeparator}mediaserver"
@@ -131,8 +155,12 @@
       },
       {
         "label": "Watcher",
+        "icon": {
+          "id": "combine",
+          "color": "terminal.ansiYellow"
+        },
         "type": "shell",
-        "command": "bash",
+        "command": "pnpm -r -parallel build:watch",
         "isBackground": true,
         "options": {
           "cwd": "${workspaceFolder:root}"

@@ -131,13 +131,13 @@ app.ws<JwtUserData>('/*', {
     } else {
       connectedUsers.set(jwtUserData.uuid, [ws]);
     }
-    console.log('new client:', client);
+    // console.log('new client:', client.getPublicState());
 
     const context: Context = {...jwtUserData, client, connectionId: client.connectionId };
     onSocketOpen(ws, context);
   },
   close: (ws, code, msg) => {
-    console.log('socket diconnected:', ws.getUserData());
+    // console.log('socket diconnected:', ws.getUserData());
     const userData = ws.getUserData();
     const client = clientConnections.get(ws);
     if(!client){

@@ -1,4 +1,4 @@
-import { UuidSchema } from 'schemas';
+import { UuidSchema, VenueIdSchema } from 'schemas';
 import { z } from 'zod';
 import { procedure as p, moderatorP, router, isInVenueM } from '../trpc/trpc';
 import Venue from '../classes/Venue';
@@ -51,9 +51,10 @@ export const venueRouter = router({
   }),
   joinVenue: p.input(
     z.object({
-      uuid: UuidSchema
+      uuid: VenueIdSchema
     })
   ).mutation(({input, ctx}) => {
+    console.log('request received to join venue:', input.uuid);
     ctx.client.leaveCurrentVenue();
     const venue = Venue.getVenue({uuid: input.uuid});
     venue.addClient(ctx.client);

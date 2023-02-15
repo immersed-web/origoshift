@@ -40,6 +40,7 @@
         <p>health: {{ health }}</p>
         <p>greeting: {{ greeting }}</p>
         <p>venueId: {{ venueId }}</p>
+        <p>connection: {{ connectionId }}</p>
       </div>
       <div>
         <div
@@ -98,8 +99,10 @@ import { onBeforeUnmount, onMounted, ref } from 'vue';
 // import type { AppRouter } from 'mediaserver';
 // import { createTRPCProxyClient, wsLink, createWSClient } from '@trpc/client';
 import { getClient, startGuestClient, startLoggedInClient } from '@/modules/trpcClient';
+import type { ConnectionId } from 'schemas';
 
 const venueId = ref<string>('');
+const connectionId = ref<ConnectionId>();
 
 const ownedVenues = ref<Awaited<ReturnType<typeof client.venue.listMyVenues.query>>>([]);
 const loadedVenues = ref<Awaited<ReturnType<typeof client.venue.listLoadedVenues.query>>>({});
@@ -129,8 +132,14 @@ function startTransformStream() {
 onMounted(async () => {
   await startGuestClient();
   client = getClient();
-  const connection = await client.getMe.query();
-  console.log(connection);
+  connectionId.value = await client.getConnectionId.query();
+  console.log(connectionId.value);
+
+  client.venue.subClientAddedOrRemoved.subscribe(undefined, {
+    onData(data){
+      console.log(data);
+    },
+  });
 
   // client.testSubCompletable.subscribe(undefined, {onData(data){console.log(data);}});
   // setTimeout(() => client.clearObservers.mutate(), 7000);

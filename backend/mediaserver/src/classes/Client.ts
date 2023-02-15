@@ -22,7 +22,7 @@ import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
 
 
 export type ClientVenueEvents = FilteredEvents<{
-  'clientAddedOrRemoved': (data: {connectionId: ConnectionId, added: boolean}) => void,
+  'clientAddedOrRemoved': (data: {client: ReturnType<Client['getPublicState']>, added: boolean}) => void,
 }, ConnectionId>
 & NonFilteredEvents<{
   'venueWasUnloaded': (venueId: VenueId) => void,
@@ -87,6 +87,9 @@ export default class Client {
     this.jwtUserData = jwtUserData;
     this.venueEvents = new TypedEmitter();
     this.vrEvents = new TypedEmitter();
+    // this.venueEvents.on('clientAddedOrRemoved', (data, filter) => console.log('client emitter triggered. data:',data, 'filter:', filter));
+
+    // this.venueEvents.emit('clientAddedOrRemoved', {client: this.getPublicState(), added: true}, this.connectionId);
   }
 
   // NOTE: It's important we release all references here!

@@ -2,16 +2,17 @@
 // import { createMessage } from 'shared-types/MessageTypes';
 import mediasoupConfig from '../mediasoupConfig';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
-import { Console2 } from 'debug-color2';
+// import { Console2 } from 'debug-color2';
 
-const coloredLogger = new Console2();
+// const coloredLogger = new Console2();
 import debug from 'debug';
+debug.enable('Venue*');
 
 const Log = debug('Venue');
 const LogErr = Log.extend('ERROR');
 const LogWarn = Log.extend('WARNING');
-LogWarn.log = (args) => coloredLogger.bgYellow.warn(args);
-LogErr.log = (args) => coloredLogger.bgRed.error(args);
+// LogWarn.log = (args) => coloredLogger.bgYellow.warn(args);
+// LogErr.log = (args) => coloredLogger.bgRed.error(args);
 
 import {types as soupTypes} from 'mediasoup';
 import { Uuid, VenueId } from 'schemas';
@@ -158,15 +159,21 @@ export default class Venue {
    * @param client the client instance to add to the venue
    */
   addClient ( client : Client){
+    Log('Client added to venue:', this.prismaData.name);
+    console.log('Client added to venue:', this.prismaData.name);
+    // console.log('clients before add: ',this.clients);
     this.clients.set(client.connectionId, client);
+    // console.log('clients after add: ',this.clients);
     client.setVenue(this.venueId);
-    this.emitToAllClients('clientAddedOrRemoved', {connectionId: client.connectionId, added: true}, client.connectionId);
+    this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
   }
 
   /**
    * Removes the client from the venue. Also automatically unloads the venue if it becomes empty
    */
   removeClient (client: Client) {
+    Log('Gonna remove client from venue:', this.prismaData.name);
+    console.log('Gonna remove client from venue:', this.prismaData.name);
     // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states
     this.clients.delete(client.connectionId);
     client.setVenue(undefined);
@@ -174,7 +181,7 @@ export default class Venue {
     if(!this.clients.size){
       this.unload();
     }
-    this.emitToAllClients('clientAddedOrRemoved', {connectionId: client.connectionId, added: false}, client.connectionId);
+    this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
   }
 
   // NOTE: It's important we release all references here!
@@ -217,8 +224,12 @@ export default class Venue {
   }
 
   emitToAllClients: Client['venueEvents']['emit'] = (event, ...args) => {
+    Log('emitting to all clients:', args);
+    console.log(`emitting ${event} to all clients:`, args);
+    // console.log('Clients are:', this.clients);
     let allEmittersHadListeners = true;
     this.clients.forEach((client) => {
+      console.log('emitting to client: ', client.userName);
       allEmittersHadListeners &&= client.venueEvents.emit(event, ...args);
     });
     return allEmittersHadListeners;

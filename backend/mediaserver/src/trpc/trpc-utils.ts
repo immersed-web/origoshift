@@ -32,10 +32,10 @@ export function attachFilteredEmitter<E extends ListenerSignature<E>, K extends 
   const myObservable = observable<EventArgument<E, typeof event>>(emit => {
     const onEvent  = (data: EventArgument<E,typeof event>, triggerId: FilterType): void => {
       if(triggerId === filter){
-        // console.log('skipping because emitter is filtered');
+        console.log('skipping because emitter is filtered');
         return;
       }
-      // console.log('emitter triggered');
+      // console.log('emitter triggered:', event);
       emit.next(data);
     };
 

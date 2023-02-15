@@ -48,10 +48,8 @@ export const appRouter = router({
   clearObservers: procedure.mutation(({ctx}) => {
     observers.forEach(obs => obs.complete());
   }),
-  getMe: procedure.query(({ctx}) => {
-    return {
-      connectionId: ctx.client.connectionId
-    };
+  getConnectionId: procedure.query(({ctx}) => {
+    return ctx.client.connectionId;
   }),
   greeting: procedure.query(({ctx}) => `Hello ${ctx.username}!`),
   venue: venueRouter,

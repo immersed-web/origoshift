@@ -6,7 +6,7 @@ import Venue from './Venue';
 import { types as soupTypes } from 'mediasoup';
 // import type { RtpParameters } from 'mediasoup/node/lib/types';
 import { Request, createMessage, RequestSubjects, SuccessResponseTo } from 'shared-types/MessageTypes';
-import { hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
+import { hasAtLeastSecurityLevel } from 'schemas';
 import debug from 'debug';
 const roomLog = debug('Room');
 const roomError = debug('Room:ERROR');

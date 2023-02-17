@@ -1,13 +1,13 @@
-import debug from 'debug';
-debug.enable('Client*');
-
 import { randomUUID } from 'crypto';
 import type {types as soupTypes} from 'mediasoup';
 import { TypedEmitter } from 'tiny-typed-emitter';
+import { Log } from 'debug-level';
 
-const Log = debug('Client');
-const LogErr = Log.extend('ERROR');
-const LogWarn = Log.extend('WARNING');
+const log = new Log('Client');
+
+process.env.DEBUG = 'Client*, ' + process.env.DEBUG;
+log.enable(process.env.DEBUG);
+
 
 // import {types as soupClientTypes} from 'mediasoup-client';
 // import { ClientProperties, ClientState, ProducerInfo } from 'shared-types/CustomTypes';
@@ -82,11 +82,12 @@ export default class Client {
   vrEvents: TypedEmitter<ClientVrEvents>;
 
   constructor({connectionId = randomUUID(), jwtUserData}: ConstructorParams){
-    Log('Creating Client with connectionId: ', connectionId);
+    log.info('Creating Client with connectionId: ', connectionId);
     this.connectionId = ConnectionIdSchema.parse(connectionId);
     this.jwtUserData = jwtUserData;
     this.venueEvents = new TypedEmitter();
     this.vrEvents = new TypedEmitter();
+    this.vrEvents.on('clientTransforms', ()=> log.info(`${this.userName} received a clientTransform`));
     // this.venueEvents.on('clientAddedOrRemoved', (data, filter) => console.log('client emitter triggered. data:',data, 'filter:', filter));
 
     // this.venueEvents.emit('clientAddedOrRemoved', {client: this.getPublicState(), added: true}, this.connectionId);
@@ -94,7 +95,7 @@ export default class Client {
 
   // NOTE: It's important we release all references here!
   unload() {
-    Log(`unloading client ${this.connectionId} `);
+    log.info(`unloading client ${ this.userName } ${this.connectionId} `);
     this.leaveCurrentVenue();
   }
 

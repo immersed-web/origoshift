@@ -4,12 +4,22 @@ import Venue from './Venue';
 import {throttle} from 'lodash';
 import Client from './Client';
 
+import { Log } from 'debug-level';
+
+const log = new Log('VrSpace');
+
+process.env.DEBUG = 'VrSpace*, ' + process.env.DEBUG;
+log.enable(process.env.DEBUG);
+
 export class VrSpace {
   private venue: Venue;
   private prismaData: VirtualSpace;
   private clients: Venue['clients'];
 
-  // emitter = new TypedEmitter<VREvents>();
+  // TODO:
+  // * Save/load scene model & navmesh model
+  // * Save/load avatar pieces. Should vr spaces allow to use different sets of avatar pieces?
+
   sendPendingTransforms = throttle(() => {
     this.emitToAllClients('clientTransforms', this.pendingTransforms);
     this.pendingTransforms = {};
@@ -27,6 +37,7 @@ export class VrSpace {
   emitToAllClients: Client['vrEvents']['emit'] = (event, ...args) => {
     let allEmittersHadListeners = true;
     this.clients.forEach(c => allEmittersHadListeners &&= c.vrEvents.emit(event, ...args));
+    log.warn('not all emitters had attached listeners');
     return allEmittersHadListeners;
   };
 

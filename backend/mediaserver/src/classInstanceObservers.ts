@@ -1,3 +1,5 @@
+import Client from 'classes/Client';
+import { TypedEmitter } from 'tiny-typed-emitter';
 import Venue from './classes/Venue';
 
 // @ts-expect-error: We allow reading private field here
@@ -21,4 +23,27 @@ export default (clientList: Map<any, any>) => {
   }
 
   console.log('totalNrOf:', totalNrOf);
+};
+
+export const printClientListeners = (clientList: Map<unknown, Client>) => {
+  const printObj: Record<string, unknown> = {};
+  for(const client of clientList.values()){
+    const clientObj: Record<string, unknown> = {};
+    const emitters: [string, TypedEmitter][] = [
+      ['venuEvents', client.venueEvents],
+      ['vrEvents', client.vrEvents],
+    ];
+    // const  = Object.getOwnPropertyNames(client);
+    for(const [emitterName, emitter] of emitters) {
+      // let nrListeners = 0;
+      const emitterObj: Record<string, number> = {};
+      for(const type of emitter.eventNames()){
+        // nrListeners += emitter.listenerCount(type);
+        emitterObj[type] = emitter.listenerCount(type);
+      }
+      clientObj[emitterName] = emitterObj;
+    }
+    printObj[client.connectionId] = clientObj;
+  }
+  console.log(printObj);
 };

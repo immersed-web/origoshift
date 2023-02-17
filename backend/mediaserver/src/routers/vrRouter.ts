@@ -1,40 +1,42 @@
 import { ClientTransformSchema } from 'schemas';
-// import { z } from 'zod';
-import { middleware, procedure as p, procedure, router } from '../trpc/trpc';
+import { procedure as p, router } from '../trpc/trpc';
 import { attachEmitter } from '../trpc/trpc-utils';
 import { TRPCError } from '@trpc/server';
 
+import { logger, Log } from 'debug-level';
 
+// const log = logger('VrRouter');
+const loog = new Log('Teest', {
+  namespaces: '-Teest'
+});
+
+// log.enable('VrRouter*');
+
+// const Log = debug('VrRouter');
 
 
 export const vrRouter = router({
   transforms: router({
     updateTransform: p.input(ClientTransformSchema).mutation(({input, ctx}) =>{
-      console.log('transform received:', input);
+      loog.log('transform received:', input);
       const venue = ctx.client.getVenue();
       if(!venue){
         throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You are not in a venue. You shouldnt send transform data!'});
       }
+      ctx.client.transform = input;
       const vrSpace = venue.vrSpace;
       vrSpace.pendingTransforms[ctx.client.connectionId] = input;
       vrSpace.sendPendingTransforms();
 
     }),
-    // clearTransforms: p.mutation(({input, ctx}) =>{
-
-    //   // ee.emit('transforms', clientTransforms, '');
-    // }),
-    getSelfId: procedure.query(({ctx}) => {
+    getSelfId: p.query(({ctx}) => {
       return ctx.uuid;
     }),
-    getClientTransforms: procedure.query(() => {
+    getClientTransforms: p.query(() => {
       return 'NOT IMPLEMENTED YET' as const;
     }),
     subClientTransforms: p.subscription(({ctx}) => {
-      const venue = ctx.client.getVenue();
-      if(!venue){
-        throw new TRPCError({code: 'PRECONDITION_FAILED', message: ' Not ina venue. Not possible'});
-      }
+      console.log(`${ctx.username} requested started subscription to transforms`);
       return attachEmitter(ctx.client.vrEvents, 'clientTransforms');
       // return attachEmitter(venue.vrSpace.emitter, 'transforms');
     })

@@ -6,9 +6,9 @@ import Client from './Client';
 
 import { Log } from 'debug-level';
 
-const log = new Log('VrSpace');
+const log = new Log('VR:Space');
 
-process.env.DEBUG = 'VrSpace*, ' + process.env.DEBUG;
+process.env.DEBUG = 'VR:Space*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 export class VrSpace {
@@ -36,8 +36,14 @@ export class VrSpace {
 
   emitToAllClients: Client['vrEvents']['emit'] = (event, ...args) => {
     let allEmittersHadListeners = true;
-    this.clients.forEach(c => allEmittersHadListeners &&= c.vrEvents.emit(event, ...args));
-    log.warn('not all emitters had attached listeners');
+    this.clients.forEach(c => {
+      const hadEmitter = c.vrEvents.emit(event, ...args);
+      allEmittersHadListeners &&= hadEmitter;
+      log.debug(`emitted ${event} to ${c.username} (${c.connectionId}), had listener(s): ${hadEmitter}`);
+    });
+    if(!allEmittersHadListeners){
+      log.warn('not all emitters had attached listeners');
+    }
     return allEmittersHadListeners;
   };
 

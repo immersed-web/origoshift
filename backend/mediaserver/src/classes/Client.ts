@@ -63,7 +63,7 @@ export default class Client {
   get userId(): Uuid {
     return this.jwtUserData.uuid;
   }
-  get userName(): string{
+  get username(): string{
     return this.jwtUserData.username;
   }
   get role (): UserRole {
@@ -87,7 +87,7 @@ export default class Client {
     this.jwtUserData = jwtUserData;
     this.venueEvents = new TypedEmitter();
     this.vrEvents = new TypedEmitter();
-    this.vrEvents.on('clientTransforms', ()=> log.info(`${this.userName} received a clientTransform`));
+    this.vrEvents.on('clientTransforms', ()=> log.info(`${this.username} received a clientTransform`));
     // this.venueEvents.on('clientAddedOrRemoved', (data, filter) => console.log('client emitter triggered. data:',data, 'filter:', filter));
 
     // this.venueEvents.emit('clientAddedOrRemoved', {client: this.getPublicState(), added: true}, this.connectionId);
@@ -95,7 +95,7 @@ export default class Client {
 
   // NOTE: It's important we release all references here!
   unload() {
-    log.info(`unloading client ${ this.userName } ${this.connectionId} `);
+    log.info(`unloading client ${ this.username } ${this.connectionId} `);
     this.leaveCurrentVenue();
   }
 
@@ -103,7 +103,7 @@ export default class Client {
     return {
       connectionId: this.connectionId,
       userId: this.userId,
-      userName: this.userName,
+      userName: this.username,
       role: this.role,
       currentVenueId: this.getVenue()?.venueId,
       transform: this.transform,

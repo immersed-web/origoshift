@@ -3,12 +3,12 @@ import { procedure as p, router } from '../trpc/trpc';
 import { attachEmitter } from '../trpc/trpc-utils';
 import { TRPCError } from '@trpc/server';
 
-import { logger, Log } from 'debug-level';
+import { Log } from 'debug-level';
 
-// const log = logger('VrRouter');
-const loog = new Log('Teest', {
-  namespaces: '-Teest'
-});
+const log = new Log('VR:Router');
+
+process.env.DEBUG = 'VR:Router*, ' + process.env.DEBUG;
+// log.enable(process.env.DEBUG);
 
 // log.enable('VrRouter*');
 
@@ -18,7 +18,8 @@ const loog = new Log('Teest', {
 export const vrRouter = router({
   transforms: router({
     updateTransform: p.input(ClientTransformSchema).mutation(({input, ctx}) =>{
-      loog.log('transform received:', input);
+      log.debug(`transform received from ${ctx.username} (${ctx.connectionId})`);
+      log.debug(input);
       const venue = ctx.client.getVenue();
       if(!venue){
         throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You are not in a venue. You shouldnt send transform data!'});
@@ -36,7 +37,7 @@ export const vrRouter = router({
       return 'NOT IMPLEMENTED YET' as const;
     }),
     subClientTransforms: p.subscription(({ctx}) => {
-      console.log(`${ctx.username} requested started subscription to transforms`);
+      console.log(`${ctx.username} started subscription to transforms`);
       return attachEmitter(ctx.client.vrEvents, 'clientTransforms');
       // return attachEmitter(venue.vrSpace.emitter, 'transforms');
     })

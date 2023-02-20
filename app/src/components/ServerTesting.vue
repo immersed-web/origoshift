@@ -43,7 +43,7 @@
             class="ml-2"
             color="red"
             size="xs"
-            @click="async () => await getClient().venue.deleteVenue.mutate({uuid: venue.uuid})"
+            @click="async () => await client.venue.deleteVenue.mutate({uuid: venue.uuid})"
           >
             Ta bort
           </XButton>
@@ -75,7 +75,7 @@
           </XButton>
         </div>
       </div>
-      <XButton @click="async () => await getClient().venue.leaveCurrentVenue.query()">
+      <XButton @click="async () => await client.venue.leaveCurrentVenue.query()">
         Leave current venue
       </XButton>
       <!-- <XButton @click="startTransformStream">
@@ -87,13 +87,10 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-// import { loginWithAutoToken, autoGuestToken, latestGuestJwtToken } from '@/modules/authClient';
-// import type { AppRouter } from 'mediaserver';
-// import { createTRPCProxyClient, wsLink, createWSClient } from '@trpc/client';
-import { getClient, startGuestClient, startLoggedInClient } from '@/modules/trpcClient';
+import { client, startGuestClient, startLoggedInClient, type RouterOutputs } from '@/modules/trpcClient';
 import type { ClientTransform, ConnectionId } from 'schemas';
 import { useClientStore } from '@/stores/clientStore';
-import { getHashes } from 'crypto';
+import type { Unsubscribable } from '@trpc/server/observable';
 
 // Stores
 const clientStore = useClientStore();
@@ -102,8 +99,8 @@ const clientStore = useClientStore();
 const venueId = ref<string>('');
 const connectionId = ref<ConnectionId>();
 
-const ownedVenues = ref<Awaited<ReturnType<ReturnType<typeof getClient>['venue']['listMyVenues']['query']>>>([]);
-const loadedVenues = ref<Awaited<ReturnType<ReturnType<typeof getClient>['venue']['listLoadedVenues']['query']>>>({});
+const ownedVenues = ref<RouterOutputs['venue']['listMyVenues']>([]);
+const loadedVenues = ref<RouterOutputs['venue']['listLoadedVenues']>({});
 
 const health = ref<string>('');
 const greeting = ref<string>('');
@@ -119,54 +116,56 @@ const loginAsAdmin = async () => {
 };
 
 const getVenuesAll = async () => {
-  clientStore.venuesAll = await getClient().venue.listMyVenues.query();
+  clientStore.venuesAll = await client.value.venue.listMyVenues.query();
 };
 
 const getVenuesLoaded = async () => {
-  clientStore.venuesLoaded = await getClient().venue.listLoadedVenues.query();
+  clientStore.venuesLoaded = await client.value.venue.listLoadedVenues.query();
 };
 
 const loadVenue = async (uuid: string) => {
-  await getClient().venue.loadVenue.mutate({uuid});
+  await client.value.venue.loadVenue.mutate({uuid});
   getVenuesLoaded();
 };
 
 const createVenue = async () => {
-  await getClient().venue.createNewVenue.mutate({name: `venue-${Math.trunc(Math.random() * 1000)}`});
+  await client.value.venue.createNewVenue.mutate({name: `venue-${Math.trunc(Math.random() * 1000)}`});
   getVenuesAll();
 };
 
 function onSlide(evt: number) {
   slider.value = evt;
-  getClient().vr.transforms.updateTransform.mutate({
+  client.value.vr.transforms.updateTransform.mutate({
     position: [slider.value, 0, 0],
     orientation: [0,0,0,0],
   });
 }
 
-const subToHeartBeat = () => getClient().subHeartBeat.subscribe(undefined, {
+const subToHeartBeat = () => client.value.subHeartBeat.subscribe(undefined, {
   onData(heartbeat){
     clientStore.heartbeat = heartbeat;
   },
 });
 
 const getHealth = async () => {
-  clientStore.health = await getClient().health.query();
+  clientStore.health = await client.value.health.query();
 };
 
 const getGreeting = async () => {
-  clientStore.greeting = await getClient().greeting.query();
+  clientStore.greeting = await client.value.greeting.query();
 };
 
 const joinVenue = async (uuid: string) => {
-  await getClient().venue.joinVenue.mutate({uuid});
-  startTransformStream();
+  await client.value.venue.joinVenue.mutate({uuid});
+  startTransformSubscription();
 };
 
-let stopTransformStream: () => void;
-function startTransformStream() {
-  if(stopTransformStream) stopTransformStream();
-  const subscription = getClient().vr.transforms.subClientTransforms.subscribe(undefined, {
+let transformSubscription: Unsubscribable | undefined = undefined;
+function startTransformSubscription() {
+  if(transformSubscription){
+    transformSubscription.unsubscribe();
+  }
+  transformSubscription = client.value.vr.transforms.subClientTransforms.subscribe(undefined, {
     onData(data) {
       console.log('received transform data!', data);
       clientStore.positionData = data;
@@ -177,39 +176,25 @@ function startTransformStream() {
       }
     },
   });
-  // const intv = setInterval(async () => await getClient().vr.transforms.updateTransform.mutate(({position: [Math.random(),Math.random(),Math.random()], orientation: [Math.random(),Math.random(),Math.random(),Math.random()]})), 200);
-  stopTransformStream = () => {
-    // clearInterval(intv);
-    subscription.unsubscribe();
-  };
 }
 
 onMounted(async () => {
-  await startGuestClient();
-  const client = getClient();
-
-  connectionId.value = await client.getConnectionId.query();
+  connectionId.value = await client.value.getConnectionId.query();
   console.log(connectionId.value);
 
-  client.venue.subClientAddedOrRemoved.subscribe(undefined, {
+  client.value.venue.subClientAddedOrRemoved.subscribe(undefined, {
     onData(data){
       console.log(data);
     },
   });
 
-  // client.testSubCompletable.subscribe(undefined, {onData(data){console.log(data);}});
-  // setTimeout(() => client.clearObservers.mutate(), 7000);
-
   getHealth();
   getGreeting();
   subToHeartBeat();
-
 });
 
 onBeforeUnmount(() => {
-  if(stopTransformStream){
-    stopTransformStream();
-  }
+  transformSubscription?.unsubscribe();
 });
 
 </script>

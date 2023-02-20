@@ -162,7 +162,7 @@ export default class Venue {
    * @param client the client instance to add to the venue
    */
   addClient ( client : Client){
-    log.info(`Client ${client.userName} added to the venue ${this.prismaData.name}`);
+    log.info(`Client ${client.username} added to the venue ${this.prismaData.name}`);
     // console.log('clients before add: ',this.clients);
     this.clients.set(client.connectionId, client);
     // console.log('clients after add: ',this.clients);
@@ -174,7 +174,7 @@ export default class Venue {
    * Removes the client from the venue. Also automatically unloads the venue if it becomes empty
    */
   removeClient (client: Client) {
-    log.info(`removing ${client.userName} from the venue ${this.prismaData.name}`);
+    log.info(`removing ${client.username} from the venue ${this.prismaData.name}`);
     // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states
     this.clients.delete(client.connectionId);
     client.setVenue(undefined);
@@ -219,11 +219,11 @@ export default class Venue {
     log.info(`emitting ${event} to all clients`);
     let allEmittersHadListeners = true;
     this.clients.forEach((client) => {
-      log.debug('emitting to client: ', client.userName);
+      log.debug('emitting to client: ', client.username);
       allEmittersHadListeners &&= client.venueEvents.emit(event, ...args);
     });
     if(!allEmittersHadListeners){
-      log.warn(`at least one client ditnt have any listener registered for the ${event} event type`);
+      log.warn(`at least one client didnt have any listener registered for the ${event} event type`);
     }
     return allEmittersHadListeners;
   };

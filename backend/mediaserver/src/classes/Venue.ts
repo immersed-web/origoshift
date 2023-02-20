@@ -98,7 +98,7 @@ export default class Venue {
     this.vrSpace.unload();
   }
 
-  static venueIsLoaded(params: {venueId: Uuid}){
+  static venueIsLoaded(params: {venueId: VenueId}){
     return Venue.venues.has(params.venueId);
   }
 
@@ -327,36 +327,36 @@ export default class Venue {
   //   return foundRoom;
   // }
 
-  // async createWebRtcTransport() {
-  //   const transport = await this.router.createWebRtcTransport(mediasoupConfig.webRtcTransport);
+  async createWebRtcTransport() {
+    const transport = await this.router.createWebRtcTransport(mediasoupConfig.webRtcTransport);
 
-  //   // const { listenIps, enableUdp, enableTcp, preferUdp, initialAvailableOutgoingBitrate } = mediasoupConfig.webRtcTransport;
-  //   // const transport = await this.router.createWebRtcTransport({
-  //   //   listenIps,
-  //   //   enableUdp,
-  //   //   preferUdp,
-  //   //   enableTcp,
-  //   //   initialAvailableOutgoingBitrate,
-  //   // });
+    // const { listenIps, enableUdp, enableTcp, preferUdp, initialAvailableOutgoingBitrate } = mediasoupConfig.webRtcTransport;
+    // const transport = await this.router.createWebRtcTransport({
+    //   listenIps,
+    //   enableUdp,
+    //   preferUdp,
+    //   enableTcp,
+    //   initialAvailableOutgoingBitrate,
+    // });
 
-  //   if(mediasoupConfig.maxIncomingBitrate){
-  //     try{
-  //       await transport.setMaxIncomingBitrate(mediasoupConfig.maxIncomingBitrate);
-  //     } catch (e){
-  //       Log('failed to set maximum incoming bitrate');
-  //     }
-  //   }
+    if(mediasoupConfig.maxIncomingBitrate){
+      try{
+        await transport.setMaxIncomingBitrate(mediasoupConfig.maxIncomingBitrate);
+      } catch (e){
+        log.error('failed to set maximum incoming bitrate');
+      }
+    }
 
-  //   transport.on('dtlsstatechange', (dtlsState: soupTypes.DtlsState) => {
-  //     if(dtlsState === 'closed'){
-  //       Log('---transport close--- transport with id ' + transport.id + ' closed');
-  //       transport.close();
-  //     }
-  //   });
+    transport.on('dtlsstatechange', (dtlsState: soupTypes.DtlsState) => {
+      if(dtlsState === 'closed'){
+        log.info('---transport close--- transport with id ' + transport.id + ' closed');
+        transport.close();
+      }
+    });
 
-  //   // TODO: Why not work anymore????
-  //   // transport.on('close', () => gatheringLog('---transport close--- transport with id ' + transport.id + ' closed'));
+    // TODO: Why not work anymore????
+    // transport.on('close', () => gatheringLog('---transport close--- transport with id ' + transport.id + ' closed'));
 
-  //   return transport;
-  // }
+    return transport;
+  }
 }

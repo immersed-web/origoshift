@@ -93,11 +93,6 @@ const router: mediasoupTypes.RouterOptions = {
 
 const webRtcTransport: mediasoupTypes.WebRtcTransportOptions = {
   listenIps,
-  // listenIps: [
-  //   { ip: ip.address(), announcedIp: listenIp },
-  //   // { ip: "192.168.42.68", announcedIp: null },
-  //   // { ip: '10.10.23.101', announcedIp: null },
-  // ],
   enableUdp: true,
   enableTcp: true,
   preferUdp: true,
@@ -114,6 +109,9 @@ export interface MediasoupConfig {
   },
   router: mediasoupTypes.RouterOptions;
   webRtcTransport: mediasoupTypes.WebRtcTransportOptions;
+  /**
+   * max bitrate allowed per transport
+   */
   maxIncomingBitrate: number;
   // numWorkers: number;
 }

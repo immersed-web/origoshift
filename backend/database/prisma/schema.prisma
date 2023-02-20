@@ -19,17 +19,40 @@ model Session {
   expiresAt DateTime
 }
 
+enum Role {
+  gunnar
+  superadmin
+  admin
+  moderator
+  user
+  guest
+}
+
+model User {
+  uuid          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  updatedAt     DateTime @updatedAt
+  username      String   @unique
+  password      String
+  role          Role     @default(user)
+  ownedVenues   Venue[]
+  allowedVenues Venue[]  @relation("allowedUsers")
+  bannedVenues  Venue[]  @relation("blacklistedUsers")
+}
+
 model Venue {
-  uuid           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name           String       @unique
-  startTime      DateTime
-  settings       Json
-  virtualSpace   VirtualSpace @relation(fields: [virtualSpaceId], references: [uuid])
-  virtualSpaceId String       @unique @db.Uuid
-  owner          User         @relation(fields: [ownerId], references: [uuid], onDelete: Cascade)
-  ownerId        String       @db.Uuid
-  allowedUsers   User[]       @relation("allowedUsers")
-  cameras        Camera[]
+  uuid             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String       @unique
+  startTime        DateTime
+  settings         Json
+  virtualSpace     VirtualSpace @relation(fields: [virtualSpaceId], references: [uuid])
+  virtualSpaceId   String       @unique @db.Uuid
+  owner            User         @relation(fields: [ownerId], references: [uuid], onDelete: Cascade)
+  ownerId          String       @db.Uuid
+  whitelistedUsers User[]       @relation("allowedUsers")
+  blackListedUsers User[]       @relation("blacklistedUsers")
+  cameras          Camera[]
+
+  @@unique([ownerId, uuid])
 }
 
 model VirtualSpace {
@@ -47,31 +70,4 @@ model Camera {
   settings Json
 
   @@unique([name, venueId]) // We allow duplicate camera names as long as they are at different venues
-}
-
-// model Role {
-//   id    Int    @id @default(autoincrement())
-//   // uuid String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-//   role  String @unique
-//   users User[]
-// }
-enum Role {
-  gunnar
-  superadmin
-  admin
-  moderator
-  user
-  guest
-}
-
-model User {
-  uuid          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  updatedAt     DateTime @updatedAt
-  username      String   @unique
-  password      String
-  // role      Role?    @relation(fields: [roleId], references: [id])
-  // roleId    Int?
-  role          Role     @default(user)
-  ownedVenues   Venue[]
-  allowedVenues Venue[]  @relation("allowedUsers")
 }

@@ -146,3 +146,6 @@ export const ClientInfoSchema = z.object({
 })
 
 export type ClientInfo = z.TypeOf<typeof ClientInfoSchema>;
+
+
+export * as mediasoupSchemas from './mediasoupSchemas';

@@ -1,10 +1,10 @@
-import { UuidSchema, VenueIdSchema } from 'schemas';
+import { hasAtLeastSecurityLevel, VenueIdSchema } from 'schemas';
 import { z } from 'zod';
 import { procedure as p, moderatorP, router, isInVenueM } from '../trpc/trpc';
 import Venue from '../classes/Venue';
 import prismaClient from '../modules/prismaClient';
 import { TRPCError } from '@trpc/server';
-import type {} from 'database';
+import type { Prisma } from 'database';
 import { attachEmitter, attachFilteredEmitter } from '../trpc/trpc-utils';
 
 export const venueRouter = router({
@@ -14,14 +14,24 @@ export const venueRouter = router({
     const venueId = await Venue.createNewVenue(input.name, ctx.uuid);
     return venueId;
   }),
-  deleteVenue: moderatorP.input(z.object({uuid: z.string().uuid()})).mutation(async ({ctx, input}) => {
-    if(Venue.venueIsLoaded({venueId: input.uuid})){
+  deleteVenue: moderatorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
+    if(Venue.venueIsLoaded({venueId: input.venueId})){
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'Cant delete a venue when its loaded. Unload it first!'});
     }
-    const dbResponse = await prismaClient.venue.delete({
-      where: {
-        uuid: input.uuid
+    let where: Prisma.VenueWhereUniqueInput = {
+      ownerId_uuid: {
+        ownerId: ctx.uuid,
+        uuid: input.venueId,
       }
+    };
+    if(hasAtLeastSecurityLevel(ctx.role, 'admin')){
+      where = {
+        uuid: input.venueId
+      };
+    }
+
+    const dbResponse = await prismaClient.venue.delete({
+      where
     });
     return dbResponse;
   }),
@@ -52,15 +62,13 @@ export const venueRouter = router({
   }),
   joinVenue: p.input(
     z.object({
-      uuid: VenueIdSchema
+      venueId: VenueIdSchema
     })
   ).mutation(({input, ctx}) => {
-    console.log('request received to join venue:', input.uuid);
-    ctx.client.leaveCurrentVenue();
-    const venue = Venue.getVenue({uuid: input.uuid});
-    venue.addClient(ctx.client);
+    console.log('request received to join venue:', input.venueId);
+    ctx.client.joinVenue(input.venueId);
   }),
-  leaveCurrentVenue: p.query(({ctx}) => {
+  leaveCurrentVenue: p.use(isInVenueM).query(({ctx}) => {
     if(!ctx.client.leaveCurrentVenue()){
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'cant leave if not in a venue.. Duh!'});
     }

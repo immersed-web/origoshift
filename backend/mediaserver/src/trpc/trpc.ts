@@ -17,6 +17,11 @@ export const createAuthMiddleware = (userRole: JwtUserData['role']) => {
   });
 };
 
+export const superadminP = procedure.use(createAuthMiddleware('superadmin'));
+export const adminP = procedure.use(createAuthMiddleware('admin'));
+export const moderatorP = procedure.use(createAuthMiddleware('moderator'));
+export const userP = procedure.use(createAuthMiddleware('user'));
+
 export const isInVenueM = middleware(({ctx, next})=> {
   const venue = ctx.client.getVenue();
   if(!venue) {
@@ -27,8 +32,3 @@ export const isInVenueM = middleware(({ctx, next})=> {
     venue
   }});
 });
-
-export const superadminP = procedure.use(createAuthMiddleware('superadmin'));
-export const adminP = procedure.use(createAuthMiddleware('admin'));
-export const moderatorP = procedure.use(createAuthMiddleware('moderator'));
-export const userP = procedure.use(createAuthMiddleware('user'));

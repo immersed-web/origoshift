@@ -43,7 +43,7 @@
             class="ml-2"
             color="red"
             size="xs"
-            @click="async () => await client.venue.deleteVenue.mutate({uuid: venue.uuid})"
+            @click="async () => await client.venue.deleteVenue.mutate({venueId: venue.uuid})"
           >
             Ta bort
           </XButton>
@@ -155,8 +155,8 @@ const getGreeting = async () => {
   clientStore.greeting = await client.value.greeting.query();
 };
 
-const joinVenue = async (uuid: string) => {
-  await client.value.venue.joinVenue.mutate({uuid});
+const joinVenue = async (venueId: string) => {
+  await client.value.venue.joinVenue.mutate({venueId});
   startTransformSubscription();
 };
 

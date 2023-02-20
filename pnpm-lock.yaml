@@ -197,6 +197,7 @@ importers:
       shared-modules: workspace:*
       shared-types: workspace:*
       tiny-typed-emitter: ^2.1.0
+      tozod: ^3.0.0
       ts-jest: ^27.0.7
       ts-node: ^10.4.0
       tsconfig-paths: ^3.12.0
@@ -217,6 +218,7 @@ importers:
       shared-modules: link:../../packages/shared-modules
       shared-types: link:../../packages/shared-types
       tiny-typed-emitter: 2.1.0
+      tozod: 3.0.0_zod@3.20.2
       uWebSockets.js: github.com/uNetworking/uWebSockets.js/42c9c0d5d31f46ca4115dc75672b0037ec970f28
       uuid: 8.3.2
       zod: 3.20.2

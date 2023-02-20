@@ -32,6 +32,15 @@ export type ClientVrEvents = NonFilteredEvents<{
   'clientTransforms': (transforms: ClientTransforms) => void
 }>
 
+export type ClientSoupEvents = NonFilteredEvents<{
+  // 'onProducer': ()
+  'transportClosed': (transportId: Uuid) => void
+  'consumerPausedOrResumed': (data: {consumerId: Uuid, wasPaused: boolean}) => void
+  'producerPausedOrResumed': (data: {producerId: Uuid, wasPaused: boolean}) => void
+  'consumerClosed': (consumerId: Uuid) => void
+  'producerClosed': (producerId: Uuid) => void
+}>
+
 type PublicClientState = {
   connectionId: ConnectionId,
   userId: Uuid,
@@ -80,22 +89,29 @@ export default class Client {
 
   venueEvents: TypedEmitter<ClientVenueEvents>;
   vrEvents: TypedEmitter<ClientVrEvents>;
+  soupEvents: TypedEmitter<ClientSoupEvents>;
 
   constructor({connectionId = randomUUID(), jwtUserData}: ConstructorParams){
     log.info('Creating Client with connectionId: ', connectionId);
     this.connectionId = ConnectionIdSchema.parse(connectionId);
     this.jwtUserData = jwtUserData;
+
     this.venueEvents = new TypedEmitter();
     this.vrEvents = new TypedEmitter();
-    this.vrEvents.on('clientTransforms', ()=> log.info(`${this.username} received a clientTransform`));
-    // this.venueEvents.on('clientAddedOrRemoved', (data, filter) => console.log('client emitter triggered. data:',data, 'filter:', filter));
+    this.soupEvents = new TypedEmitter();
 
-    // this.venueEvents.emit('clientAddedOrRemoved', {client: this.getPublicState(), added: true}, this.connectionId);
+    // this.vrEvents.on('clientTransforms', ()=> log.info(`${this.username} received a clientTransform`));
+
+    // this.venueEvents.on('clientAddedOrRemoved', (data, filter) => console.log('client emitter triggered. data:',data, 'filter:', filter));
   }
 
   // NOTE: It's important we release all references here!
   unload() {
     log.info(`unloading client ${ this.username } ${this.connectionId} `);
+    this.consumers.forEach(c => c.close());
+    this.producers.forEach(p => p.close());
+    this.sendTransport?.close();
+    this.receiveTransport?.close();
     this.leaveCurrentVenue();
   }
 
@@ -111,8 +127,12 @@ export default class Client {
   }
 
   private venueId?: Uuid;
+  /**
+   * **WARNING**: You should never need to call this funciton, since the venue instance calls this for you when it adds a client to itself.
+   */
   setVenue(venueId: Uuid | undefined){
     this.venueId = venueId;
+    // this.getVenue()?.createWebRtcTransport();
   }
   getVenue() {
     try{
@@ -123,6 +143,15 @@ export default class Client {
       return undefined;
     }
   }
+
+  async joinVenue(venueId: VenueId) {
+    this.leaveCurrentVenue();
+    const venue = Venue.getVenue({uuid: venueId});
+    venue.addClient(this);
+    this.sendTransport = await venue.createWebRtcTransport();
+    this.receiveTransport = await venue.createWebRtcTransport();
+  }
+
   /**
    * @returns boolean indicating if the client was in a venue in the first place. So calling this function when not in a venue will simply do nothing and return false.
    */
@@ -132,10 +161,54 @@ export default class Client {
       return false;
       // throw Error('cant leave a venue if you are not in one!');
     }
+    this.closeAllProducers();
+    this.closeAllConsumers();
+    this.closeAllTransports();
     venue.removeClient(this);
     return true;
   }
 
+  closeAllTransports() {
+    if(this.sendTransport){
+      this.sendTransport.close();
+      this.soupEvents.emit('transportClosed', this.sendTransport.id);
+      this.sendTransport = undefined;
+    }
+    if(this.receiveTransport){
+      this.receiveTransport.close();
+      this.soupEvents.emit('transportClosed', this.receiveTransport.id);
+      this.receiveTransport = undefined;
+    }
+  }
+
+  closeAllProducers = () => {
+    const producerArray = Array.from(this.producers.entries());
+    for(const [producerKey, producer] of producerArray){
+      producer.close();
+      this.soupEvents.emit('producerClosed', producer.id);
+      // const closeProducersMsg = createMessage('notifyCloseEvent', {
+      //   objectType: 'producer',
+      //   objectId: producerKey,
+      // });
+      // this.send(closeProducersMsg);
+      this.producers.delete(producerKey);
+    }
+    // this.room?.broadcastRoomState('a client closed all their producers');
+  };
+
+  closeAllConsumers = () => {
+    const consumerArray = Array.from(this.consumers.entries());
+    for(const [consumerKey, consumer] of consumerArray){
+      consumer.close();
+      this.soupEvents.emit('consumerClosed', consumer.id);
+      // const closeConsumerMsg = createMessage('notifyCloseEvent', {
+      //   objectType: 'consumer',
+      //   objectId: consumerKey,
+      // });
+      // this.send(closeConsumerMsg);
+      this.consumers.delete(consumerKey);
+    }
+  };
 
   // private roomId?: string;
   // setRoom(roomId: string | undefined){
@@ -1022,32 +1095,6 @@ export default class Client {
   //   return roomId;
   // }
 
-  // closeAndNotifyAllProducers = () => {
-  //   const producerArray = Array.from(this.producers.entries());
-  //   for(const [producerKey, producer] of producerArray){
-  //     producer.close();
-  //     const closeProducersMsg = createMessage('notifyCloseEvent', {
-  //       objectType: 'producer',
-  //       objectId: producerKey,
-  //     });
-  //     this.send(closeProducersMsg);
-  //     this.producers.delete(producerKey);
-  //   }
-  //   this.room?.broadcastRoomState('a client closed all their producers');
-  // };
-
-  // closeAndNotifyAllConsumers = () => {
-  //   const consumerArray = Array.from(this.consumers.entries());
-  //   for(const [consumerKey, consumer] of consumerArray){
-  //     consumer.close();
-  //     const closeConsumerMsg = createMessage('notifyCloseEvent', {
-  //       objectType: 'consumer',
-  //       objectId: consumerKey,
-  //     });
-  //     this.send(closeConsumerMsg);
-  //     this.consumers.delete(consumerKey);
-  //   }
-  // };
 
   // closeAndNotifyConsumer(consumerId: string){
   //   const consumer = this.consumers.get(consumerId);

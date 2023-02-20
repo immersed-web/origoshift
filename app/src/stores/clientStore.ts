@@ -10,10 +10,10 @@ export const useClientStore = defineStore('client', {
     heartbeat: '',
     venuesAll: [] as Awaited<ReturnType<ReturnType<typeof getClient>['venue']['listMyVenues']['query']>>,
     venuesLoaded: {} as Awaited<ReturnType<ReturnType<typeof getClient>['venue']['listLoadedVenues']['query']>>,
-    positionData: {}
+    positionData: {},
   }),
   getters: {
   },
   actions: {
-  }
-})
+  },
+});

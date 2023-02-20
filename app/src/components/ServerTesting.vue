@@ -81,9 +81,7 @@
       <!-- <XButton @click="startTransformStream">
         Subscribe to transforms
       </XButton> -->
-
     </div>
-
   </div>
 </template>
 
@@ -98,7 +96,7 @@ import { useClientStore } from '@/stores/clientStore';
 import { getHashes } from 'crypto';
 
 // Stores
-const clientStore = useClientStore()
+const clientStore = useClientStore();
 
 // Server
 const venueId = ref<string>('');
@@ -113,30 +111,30 @@ const positionData = ref({});
 const slider = ref<number>(0);
 
 const loginAsAdmin = async () => {
-  await startLoggedInClient('superadmin', 'bajskorv')
+  await startLoggedInClient('superadmin', 'bajskorv');
   subToHeartBeat();
   getGreeting();
   getVenuesAll();
-  getVenuesLoaded()
-}
+  getVenuesLoaded();
+};
 
 const getVenuesAll = async () => {
-  clientStore.venuesAll = await getClient().venue.listMyVenues.query()
-}
+  clientStore.venuesAll = await getClient().venue.listMyVenues.query();
+};
 
 const getVenuesLoaded = async () => {
-  clientStore.venuesLoaded = await getClient().venue.listLoadedVenues.query()
-}
+  clientStore.venuesLoaded = await getClient().venue.listLoadedVenues.query();
+};
 
 const loadVenue = async (uuid: string) => {
-  await getClient().venue.loadVenue.mutate({uuid})
-  getVenuesLoaded()
-}
+  await getClient().venue.loadVenue.mutate({uuid});
+  getVenuesLoaded();
+};
 
 const createVenue = async () => {
-  await getClient().venue.createNewVenue.mutate({name: `venue-${Math.trunc(Math.random() * 1000)}`})
-  getVenuesAll()
-}
+  await getClient().venue.createNewVenue.mutate({name: `venue-${Math.trunc(Math.random() * 1000)}`});
+  getVenuesAll();
+};
 
 function onSlide(evt: number) {
   slider.value = evt;
@@ -161,9 +159,9 @@ const getGreeting = async () => {
 };
 
 const joinVenue = async (uuid: string) => {
-  await getClient().venue.joinVenue.mutate({uuid})
-  startTransformStream()
-}
+  await getClient().venue.joinVenue.mutate({uuid});
+  startTransformStream();
+};
 
 let stopTransformStream: () => void;
 function startTransformStream() {
@@ -202,9 +200,9 @@ onMounted(async () => {
   // client.testSubCompletable.subscribe(undefined, {onData(data){console.log(data);}});
   // setTimeout(() => client.clearObservers.mutate(), 7000);
 
-  getHealth()
-  getGreeting()
-  subToHeartBeat()
+  getHealth();
+  getGreeting();
+  subToHeartBeat();
 
 });
 

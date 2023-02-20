@@ -1,18 +1,10 @@
-// import { GatheringState } from 'shared-types/CustomTypes';
-// import { createMessage } from 'shared-types/MessageTypes';
 import mediasoupConfig from '../mediasoupConfig';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
-// import { Console2 } from 'debug-color2';
+import { Log } from 'debug-level';
 
-// const coloredLogger = new Console2();
-import debug from 'debug';
-debug.enable('Venue*');
-
-const Log = debug('Venue');
-const LogErr = Log.extend('ERROR');
-const LogWarn = Log.extend('WARNING');
-// LogWarn.log = (args) => coloredLogger.bgYellow.warn(args);
-// LogErr.log = (args) => coloredLogger.bgRed.error(args);
+const log = new Log('Venue');
+process.env.DEBUG = 'Venue*, ' + process.env.DEBUG;
+log.enable(process.env.DEBUG);
 
 import {types as soupTypes} from 'mediasoup';
 import { Uuid, VenueId } from 'schemas';
@@ -67,7 +59,7 @@ export default class Venue {
 
       return result.uuid;
     } catch (e){
-      LogErr(e);
+      log.error(e);
       throw e;
     }
   }
@@ -88,11 +80,22 @@ export default class Venue {
       }
       const router = await worker.createRouter(mediasoupConfig.router);
       const venue = new Venue(dbResponse, router);
+      log.info(`loading ${venue.prismaData.name} (${venue.prismaData.uuid})`);
       return venue;
     } catch (e) {
-      LogErr('failed to load venue');
+      log.error('failed to load venue');
       throw e;
     }
+  }
+
+  // NOTE: It's important we release all references here!
+  unload() {
+    log.info(`unloading ${this.prismaData.name} (${this.venueId})`);
+    this.emitToAllClients('venueWasUnloaded', this.venueId);
+    this.router.close();
+    // this.cameras.forEach(room => room.destroy());
+    Venue.venues.delete(this.venueId);
+    this.vrSpace.unload();
   }
 
   static venueIsLoaded(params: {venueId: Uuid}){
@@ -159,8 +162,7 @@ export default class Venue {
    * @param client the client instance to add to the venue
    */
   addClient ( client : Client){
-    Log('Client added to venue:', this.prismaData.name);
-    console.log('Client added to venue:', this.prismaData.name);
+    log.info(`Client ${client.userName} added to the venue ${this.prismaData.name}`);
     // console.log('clients before add: ',this.clients);
     this.clients.set(client.connectionId, client);
     // console.log('clients after add: ',this.clients);
@@ -172,8 +174,7 @@ export default class Venue {
    * Removes the client from the venue. Also automatically unloads the venue if it becomes empty
    */
   removeClient (client: Client) {
-    Log('Gonna remove client from venue:', this.prismaData.name);
-    console.log('Gonna remove client from venue:', this.prismaData.name);
+    log.info(`removing ${client.userName} from the venue ${this.prismaData.name}`);
     // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states
     this.clients.delete(client.connectionId);
     client.setVenue(undefined);
@@ -184,15 +185,6 @@ export default class Venue {
     this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
   }
 
-  // NOTE: It's important we release all references here!
-  unload() {
-    Log(`unload venue ${this.venueId} `);
-    this.emitToAllClients('venueWasUnloaded', this.venueId);
-    this.router.close();
-    // this.cameras.forEach(room => room.destroy());
-    Venue.venues.delete(this.venueId);
-    this.vrSpace.unload();
-  }
 
   // addSender(client: Client){
   //   this.senderClients.set(client.id, client);
@@ -224,14 +216,15 @@ export default class Venue {
   }
 
   emitToAllClients: Client['venueEvents']['emit'] = (event, ...args) => {
-    Log('emitting to all clients:', args);
-    console.log(`emitting ${event} to all clients:`, args);
-    // console.log('Clients are:', this.clients);
+    log.info(`emitting ${event} to all clients`);
     let allEmittersHadListeners = true;
     this.clients.forEach((client) => {
-      console.log('emitting to client: ', client.userName);
+      log.debug('emitting to client: ', client.userName);
       allEmittersHadListeners &&= client.venueEvents.emit(event, ...args);
     });
+    if(!allEmittersHadListeners){
+      log.warn(`at least one client ditnt have any listener registered for the ${event} event type`);
+    }
     return allEmittersHadListeners;
   };
 

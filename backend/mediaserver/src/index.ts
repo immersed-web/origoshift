@@ -1,9 +1,19 @@
-process.env.DEBUG = 'Venue* Room* mediasoup*';
+process.env.DEBUG = 'mediasoup*';
+process.env.DEBUG = 'uWebSockets*, ' + process.env.DEBUG;
+
+import { Log } from 'debug-level';
+Log.options({
+  // level: 'DEBUG',
+  // splitLine: false,
+});
+const logUws = new Log('uWebSockets');
+logUws.enable(process.env.DEBUG);
+console.log('logUws enabled: ',logUws.enabled);
 
 import observerLogger from './mediasoupObservers';
 const printSoupStats = observerLogger();
 
-import printClassInstances from './classInstanceObservers';
+import printClassInstances, { printClientListeners } from './classInstanceObservers';
 import uWebSockets, { WebSocket } from 'uWebSockets.js';
 const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import { createWorkers } from './modules/mediasoupWorkers';
@@ -14,7 +24,7 @@ import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
 import Client from './classes/Client';
 
-type MyWebsocketType = WebSocket<JwtUserData>;
+export type MyWebsocketType = WebSocket<JwtUserData>;
 
 // Usually there is one connection per user. But...
 // Privileged users might be allowed to have several connections active simultaneously
@@ -42,17 +52,21 @@ if(stdin && stdin.isTTY){
   stdin.on( 'data', function( key ){
     const asString = key.toString();
     // ctrl-c ( end of text )
-    if ( asString === '\u0003' ) {
-      process.exit();
-    }
-    if(asString === 'm'){
-      printSoupStats();
-    }
-    if(asString === 'c'){
-      printClassInstances(clientConnections);
-    }
+    switch(asString){
+      case '\u0003' :
+        process.exit();
+        break;
+      case 'm':
+        printSoupStats();
+        break;
+      case 'c':
+        printClassInstances(clientConnections);
+        break;
+      case 'e':
+        printClientListeners(clientConnections);
     // write the key to stdout all normal like
     // process.stdout.write( 'bajs' );
+    }
   });
 }
 
@@ -81,13 +95,13 @@ app.ws<JwtUserData>('/*', {
     onSocketMessage(ws, asString);
   },
   upgrade: (res, req, context) => {
-    // console.log('upgrade request received:', req);
+    logUws.debug('upgrade request received:', req);
     try{
       const receivedToken = req.getQuery();
-      // console.log('upgrade request provided this token:', receivedToken);
+      logUws.debug('upgrade request provided this token:', receivedToken);
       const validJwt = verifyJwtToken(receivedToken);
 
-      // console.log('decoded jwt:', validJwt);
+      logUws.debug('decoded jwt:', validJwt);
 
       const userDataOnly = JwtUserDataSchema.parse(validJwt);
 
@@ -106,18 +120,15 @@ app.ws<JwtUserData>('/*', {
       );
     } catch(e){
       const msg = extractMessageFromCatch(e, 'YOU SHALL NOT PASS');
-      console.log('websocket upgrade was canceled / failed:', msg);
+      logUws.info('websocket upgrade was canceled / failed:', msg);
       res.writeStatus('403 Forbidden').end(msg, true);
       return;
     }
   },
   open: (ws) => {
     const jwtUserData = ws.getUserData();
-    // const wsWrapper = new SocketWrapper(ws);
-    console.log('socket opened');
-    // const client = new Client({ws, userData });
+    logUws.info('socket opened');
 
-    // const client: TempClient = {...jwtUserData};
     const client = new Client({jwtUserData});
 
     clientConnections.set(ws, client);
@@ -130,16 +141,17 @@ app.ws<JwtUserData>('/*', {
     } else {
       connectedUsers.set(jwtUserData.uuid, [ws]);
     }
-    // console.log('new client:', client.getPublicState());
+    logUws.debug('new client:', client.getPublicState());
 
     const context: Context = {...jwtUserData, client, connectionId: client.connectionId };
     onSocketOpen(ws, context);
   },
   close: (ws, code, msg) => {
-    // console.log('socket diconnected:', ws.getUserData());
+    logUws.info('socket diconnected:', ws.getUserData());
     const userData = ws.getUserData();
     const client = clientConnections.get(ws);
     if(!client){
+      logUws.error('a disconnecting client was not in client list! Something is astray!');
       throw Error('a disconnecting client was not in client list! Something is astray!');
     }
     client.unload();
@@ -152,12 +164,8 @@ app.ws<JwtUserData>('/*', {
       connectedUsers.delete(userData.uuid);
     }
 
-    // client.onDisconnected();
-    console.log(`client ${client.userName} disconnected. connectionid: ${client.connectionId}`);
     onSocketClose(ws, Buffer.from(msg).toString());
   }
-  //
-
 }).listen(9001, (listenSocket) => {
 
   if (listenSocket) {

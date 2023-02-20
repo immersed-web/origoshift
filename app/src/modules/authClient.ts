@@ -14,7 +14,7 @@ const authEndpoint = axios.create({ baseURL: completeAuthUrl, withCredentials: t
 const handleResponse = async <ReturnType>(apiCall: () => Promise<AxiosResponse<ReturnType>>) => {
   try {
     const response = await apiCall();
-    console.log('user/auth Api response received:', response);
+    // console.log('user/auth Api response received:', response);
     return response.data;
   } catch (e: any) {
     return Promise.reject(Error(e.response.data));
@@ -40,7 +40,10 @@ if(import.meta.hot){
 }
 let activeTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 
-export const getToken = () => latestJwtToken;
+export const getToken = () => {
+  // console.log('token getter called');
+  return latestJwtToken;
+};
 let latestJwtToken: string;
 // let prepopulatedLogin: () => Promise<void>;
 
@@ -69,7 +72,7 @@ const autoFetchJwt = async (assignFn: (receivedToken: string) => void, fetchFn: 
     nrOfRetries = 0;
     const expUnixStamp = new Date(decodedToken.exp * 1000);
     const expInMillis = expUnixStamp.valueOf() - Date.now();
-    console.log('jwtToken expires in (millis):', expInMillis);
+    // console.log('jwtToken expires in (millis):', expInMillis);
     const refetchIn = expInMillis > 2000 ? expInMillis - 1990 : expInMillis * 0.8;
     activeTimeout = setTimeout(() => {
       autoFetchJwt(assignFn, fetchFn, failRecoveryFn);

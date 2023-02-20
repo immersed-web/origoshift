@@ -1,4 +1,5 @@
 import { createTRPCProxyClient, wsLink } from '@trpc/client';
+import type { inferRouterOutputs, inferRouterInputs } from '@trpc/server';
 import { createWSClient } from './customWsLink';
 import type { AppRouter } from 'mediaserver';
 import { guestWithAutoToken, loginWithAutoToken, getToken } from '@/modules/authClient';
@@ -12,6 +13,10 @@ const wsBaseURL = 'ws://localhost:9001';
 
 let wsClient: ReturnType<typeof createWSClient> | undefined;
 let currentClientIsGuest = true;
+
+
+export type RouterOutputs = inferRouterOutputs<AppRouter>
+export type RouterInputs = inferRouterInputs<AppRouter>
 
 type ClientGetter = () => ReturnType<typeof createTRPCProxyClient<AppRouter>>;
 export const getClient: ClientGetter = () => client.value;

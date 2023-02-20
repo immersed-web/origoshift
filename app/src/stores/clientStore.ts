@@ -10,10 +10,10 @@ export const useClientStore = defineStore('client', {
     heartbeat: '',
     venuesAll: [] as RouterOutputs['venue']['listMyVenues'],
     venuesLoaded: {} as RouterOutputs['venue']['listLoadedVenues'],
-    positionData: {}
+    positionData: {},
   }),
   getters: {
   },
   actions: {
-  }
-})
+  },
+});

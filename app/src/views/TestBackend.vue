@@ -1,7 +1,7 @@
 <template>
   <div class="m-6">
     <div class="flex">
-      <ServerTesting class="flex-none"/>
+      <ServerTesting class="flex-none" />
       <div class="flex-1">
         <div class="grid grid-flow-col gap-4 auto-cols-min">
           <!-- <XButton
@@ -99,7 +99,6 @@
               </XButton>
             </div>
           </div> -->
-
         </div>
         <pre>
           {{ clientStore.positionData }}
@@ -120,7 +119,7 @@ import { useClientStore } from '@/stores/clientStore';
 import ServerTesting from '@/components/ServerTesting.vue';
 
 // Stores
-const clientStore = useClientStore()
+const clientStore = useClientStore();
 
 // Server
 const venueId = ref<string>('');
@@ -184,10 +183,10 @@ function onSlide(evt: number) {
 //   health.value = await client.health.query();
 // });
 
-onBeforeUnmount(() => {
-  if(stopTransformStream){
-    stopTransformStream();
-  }
-});
+// onBeforeUnmount(() => {
+//   if(stopTransformStream){
+//     stopTransformStream();
+//   }
+// });
 
 </script>

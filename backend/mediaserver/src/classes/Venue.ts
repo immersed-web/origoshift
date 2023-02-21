@@ -9,28 +9,22 @@ log.enable(process.env.DEBUG);
 import {types as soupTypes} from 'mediasoup';
 import { Uuid, VenueId } from 'schemas';
 
-import prisma, {Prisma} from '../modules/prismaClient';
+import prisma, {Prisma}  from '../modules/prismaClient';
 
 import Client  from './Client';
 import { VrSpace } from './VRSpace';
 // import { FilteredEvents } from 'trpc/trpc-utils';
 
-
-const venueWithIncludes = Prisma.validator<Prisma.VenueArgs>()({
-  include: {
-    allowedUsers: {
+const venueIncludeWhitelistVirtual  = {
+    whitelistedUsers: {
       select: {
         uuid: true
       }
     },
-    virtualSpace: true
-  }
-});
-type VenueResponse = Prisma.VenueGetPayload<typeof venueWithIncludes>
-
-// export type VenueEvents = FilteredEvents<{
-// }>
-
+    virtualSpace: true,
+} satisfies Prisma.VenueInclude
+const args = {include: venueIncludeWhitelistVirtual} satisfies Prisma.VenueArgs;
+type VenueResponse = Prisma.VenueGetPayload<typeof args>
 
 export default class Venue {
   // First some static stuff for global housekeeping
@@ -72,7 +66,7 @@ export default class Venue {
         where: {
           uuid
         },
-        include: venueWithIncludes['include'],
+        include: venueIncludeWhitelistVirtual,
       });
 
       if(!worker){

@@ -1,6 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { mediasoupSchemas } from 'schemas';
-import { ConnectTransportPayloadSchema } from 'schemas/dist/mediasoupSchemas';
+import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema } from 'schemas/mediasoup';
 import { z } from 'zod';
 import { procedure as p, router } from '../trpc/trpc';
 // import { attachFilteredEmitter, FilteredEvents } from '../trpc/trpc-utils';
@@ -28,7 +27,7 @@ export const soupRouter = router({
     }
     await chosenTransport.connect({dtlsParameters});
   }),
-  createProducer: p.input(mediasoupSchemas.CreateProducerPayloadSchema).mutation(async ({ctx, input}) => {
+  createProducer: p.input(CreateProducerPayloadSchema).mutation(async ({ctx, input}) => {
     const client = ctx.client;
 
     if(!client.sendTransport){

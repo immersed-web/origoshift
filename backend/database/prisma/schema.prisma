@@ -29,7 +29,7 @@ enum Role {
 }
 
 model User {
-  uuid          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   updatedAt     DateTime @updatedAt
   username      String   @unique
   password      String
@@ -40,32 +40,32 @@ model User {
 }
 
 model Venue {
-  uuid             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  venueId          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name             String       @unique
   startTime        DateTime
   settings         Json
-  virtualSpace     VirtualSpace @relation(fields: [virtualSpaceId], references: [uuid])
+  virtualSpace     VirtualSpace @relation(fields: [virtualSpaceId], references: [vrId])
   virtualSpaceId   String       @unique @db.Uuid
-  owner            User         @relation(fields: [ownerId], references: [uuid], onDelete: Cascade)
+  owner            User         @relation(fields: [ownerId], references: [userId], onDelete: Cascade)
   ownerId          String       @db.Uuid
   whitelistedUsers User[]       @relation("allowedUsers")
   blackListedUsers User[]       @relation("blacklistedUsers")
   cameras          Camera[]
 
-  @@unique([ownerId, uuid])
+  @@unique([ownerId, venueId])
 }
 
 model VirtualSpace {
-  uuid     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vrId     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   settings Json
   venue    Venue?
 }
 
 model Camera {
-  uuid    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name    String
-  venue   Venue  @relation(fields: [venueId], references: [uuid], onDelete: Cascade)
-  venueId String @db.Uuid
+  cameraId String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name     String
+  venue    Venue  @relation(fields: [venueId], references: [venueId], onDelete: Cascade)
+  venueId  String @db.Uuid
 
   settings Json
 

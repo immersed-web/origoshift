@@ -115,7 +115,7 @@ export const VrSpaceIdSchema = UuidSchema.brand<'VrSpaceId'>();
 export type VrSpaceId = z.TypeOf<typeof VrSpaceIdSchema>;
 
 export const JwtUserDataSchema = z.object({
-  uuid: UuidSchema,
+  userId: UserIdSchema,
   username: z.string(),
   role: UserRoleSchema,
 })
@@ -140,7 +140,7 @@ export type ClientTransform = z.TypeOf<typeof ClientTransformSchema>;
 export type ClientTransforms = Record<ConnectionId, ClientTransform>;
 
 export const ClientInfoSchema = z.object({
-  uuid: z.string().uuid(),
+  userId: UserIdSchema,
   role: UserRoleSchema,
   position: z.optional(ClientTransformSchema)
 })

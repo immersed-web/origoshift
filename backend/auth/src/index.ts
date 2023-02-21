@@ -1,7 +1,7 @@
 import express, { json as parseJsonBody } from 'express';
 import cors from 'cors';
 import { randomUUID } from 'crypto';
-import { createJwt, verifyJwtToken } from 'shared-modules/jwtUtils';
+import { createJwt } from 'shared-modules/jwtUtils';
 // import { UserData } from 'shared-types/CustomTypes';
 import createUserRouter from './userRoutes';
 import {default as Haikunator} from 'haikunator';
@@ -11,7 +11,7 @@ import session from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import prisma from './prismaClient';
 // import createApiRouter from './apiRoutes';
-import { JwtUserData } from 'schemas';
+import { JwtUserData, UserIdSchema } from 'schemas';
 
 const haikunator = new Haikunator({
   adjectives: wordlist.adjectives,
@@ -106,7 +106,7 @@ app.get('/health', (req, res) => {
 app.get('/guest-jwt', (req, res) => {
 
   let haikuName = haikunator.haikunate();
-  const uuid = randomUUID();
+  const userId = UserIdSchema.parse(randomUUID());
   if(req.query && req.query['username']){
     try {
       const requestedName = req.query['username'];
@@ -124,7 +124,7 @@ app.get('/guest-jwt', (req, res) => {
   const guestObject: JwtUserData = {
     username: haikuName,
     role: 'guest',
-    uuid,
+    userId,
   };
   console.log('sending a guest jwt:', guestObject);
   const jwt = createJwt(guestObject, 5);

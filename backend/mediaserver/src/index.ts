@@ -19,7 +19,7 @@ const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { ConnectionId, JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel } from 'schemas';
+import { ConnectionId, JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
 import Client from './classes/Client';
@@ -28,7 +28,7 @@ export type MyWebsocketType = WebSocket<JwtUserData>;
 
 // Usually there is one connection per user. But...
 // Privileged users might be allowed to have several connections active simultaneously
-const connectedUsers: Map<JwtUserData['uuid'], MyWebsocketType[]> = new Map();
+const connectedUsers: Map<UserId, MyWebsocketType[]> = new Map();
 const clientConnections: Map<MyWebsocketType, Client> = new Map();
 
 createWorkers();
@@ -70,10 +70,11 @@ if(stdin && stdin.isTTY){
   });
 }
 
-export type Context = JwtUserData & {
+export type Context = Omit<JwtUserData, 'uuid'> & {
+  userId: UserId
   // uuid: JwtUserData['uuid']
   // jwt: JwtUserData
-  connectionId: ConnectionId,
+  connectionId: ConnectionId
   client: Client
 }
 
@@ -105,7 +106,7 @@ app.ws<JwtUserData>('/*', {
 
       const userDataOnly = JwtUserDataSchema.parse(validJwt);
 
-      const isAlreadyConnected = connectedUsers.has(userDataOnly.uuid);
+      const isAlreadyConnected = connectedUsers.has(userDataOnly.userId);
       if(!hasAtLeastSecurityLevel(userDataOnly.role, 'moderator') && isAlreadyConnected){
         throw Error('already logged in!!!');
       }
@@ -127,6 +128,7 @@ app.ws<JwtUserData>('/*', {
   },
   open: (ws) => {
     const jwtUserData = ws.getUserData();
+    const userId = UserIdSchema.parse(jwtUserData.userId);
     logUws.info('socket opened');
 
     const client = new Client({jwtUserData});
@@ -134,14 +136,14 @@ app.ws<JwtUserData>('/*', {
     clientConnections.set(ws, client);
 
     // Housekeeping our users and connections
-    const wasAlreadyLoggedIn = connectedUsers.has(jwtUserData.uuid);
-    if(wasAlreadyLoggedIn){
-      const activeSockets = connectedUsers.get(jwtUserData.uuid)!;
+    const activeSockets = connectedUsers.get(userId);
+    if(activeSockets){
       activeSockets.push(ws);
     } else {
-      connectedUsers.set(jwtUserData.uuid, [ws]);
+      connectedUsers.set(userId, [ws]);
     }
     logUws.debug('new client:', client.getPublicState());
+
 
     const context: Context = {...jwtUserData, client, connectionId: client.connectionId };
     onSocketOpen(ws, context);
@@ -157,11 +159,13 @@ app.ws<JwtUserData>('/*', {
     client.unload();
     clientConnections.delete(ws);
 
-    let activeSockets = connectedUsers.get(userData.uuid)!;
-    activeSockets = activeSockets.filter(s => s !== ws);
-    if(activeSockets.length === 0){
-      //no active connections. also remove from connectedUsers dictionary
-      connectedUsers.delete(userData.uuid);
+    let activeSockets = connectedUsers.get(userData.userId);
+    if(activeSockets){
+      activeSockets = activeSockets.filter(s => s !== ws);
+      if(activeSockets.length === 0){
+        //no active connections. also remove from connectedUsers dictionary
+        connectedUsers.delete(userData.userId);
+      }
     }
 
     onSocketClose(ws, Buffer.from(msg).toString());

@@ -1,6 +1,5 @@
 import { PrismaClient, Prisma, User } from 'database';
-// import { UserData, UserRole } from 'shared-types/CustomTypes';
-import { UserRole, JwtUserData } from 'schemas';
+import { UserRole, JwtUserData, UserIdSchema } from 'schemas';
 
 const prisma = new PrismaClient();
 
@@ -36,10 +35,11 @@ export function exclude<User, Key extends keyof User>(
 export const users = Object.assign(prisma.user, {
 
   userResponseToUserData(user: User){
+    const {userId, role, username } = user;
     const userData: JwtUserData = {
-      username: user.username,
-      role: user.role,
-      uuid: user.uuid,
+      username,
+      role,
+      userId: UserIdSchema.parse(userId),
       // gathering: user.gathering?.name,
       // allowedRooms: rooms,
       // allowedActions: allowedActions,

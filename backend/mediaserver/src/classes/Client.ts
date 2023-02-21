@@ -70,7 +70,7 @@ export default class Client {
    * Instead, use "connectionId" for that.
    */
   get userId(): Uuid {
-    return this.jwtUserData.uuid;
+    return this.jwtUserData.userId;
   }
   get username(): string{
     return this.jwtUserData.username;

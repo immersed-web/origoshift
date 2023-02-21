@@ -162,7 +162,7 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
   try {
     const result = await prisma.user.update({
       where: {
-        uuid: payload.uuid
+        userId: payload.uuid
       },
       data: userUpdate,
     });
@@ -203,7 +203,7 @@ const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
     }
     const userToDelete = await users.findUserAsUserData({
       where: {
-        uuid: payload.uuid
+        userId: payload.uuid
       }
     });
     if (!userToDelete) {
@@ -215,7 +215,7 @@ const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
     }
     const deletedUser = await users.delete({
       where: {
-        uuid: payload.uuid
+        userId: payload.uuid
       }
     });
 
@@ -282,7 +282,7 @@ const loginUser: RequestHandler = async (req, res) => {
     if (correct) {
       const userData = users.userResponseToUserData(foundUser);
       // console.log('userdata:', userData);
-      req.session.userId = userData.uuid;
+      req.session.userId = userData.userId;
       req.session.user = userData;
       res.status(200).send();
       return;

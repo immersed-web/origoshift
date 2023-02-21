@@ -31,7 +31,7 @@ export const vrRouter = router({
 
     }),
     getSelfId: p.query(({ctx}) => {
-      return ctx.uuid;
+      return ctx.userId;
     }),
     getClientTransforms: p.query(() => {
       return 'NOT IMPLEMENTED YET' as const;

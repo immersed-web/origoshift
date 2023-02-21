@@ -11,7 +11,7 @@ export const venueRouter = router({
   createNewVenue: moderatorP.input(z.object({
     name: z.string()
   })).mutation(async ({input, ctx}) => {
-    const venueId = await Venue.createNewVenue(input.name, ctx.uuid);
+    const venueId = await Venue.createNewVenue(input.name, ctx.userId);
     return venueId;
   }),
   deleteVenue: moderatorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
@@ -19,14 +19,14 @@ export const venueRouter = router({
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'Cant delete a venue when its loaded. Unload it first!'});
     }
     let where: Prisma.VenueWhereUniqueInput = {
-      ownerId_uuid: {
-        ownerId: ctx.uuid,
-        uuid: input.venueId,
+      ownerId_venueId: {
+        ownerId: ctx.userId,
+        venueId: input.venueId,
       }
     };
     if(hasAtLeastSecurityLevel(ctx.role, 'admin')){
       where = {
-        uuid: input.venueId
+        venueId: input.venueId
       };
     }
 
@@ -35,8 +35,8 @@ export const venueRouter = router({
     });
     return dbResponse;
   }),
-  loadVenue: moderatorP.input(z.object({uuid: z.string().uuid()})).mutation(async ({input}) => {
-    const venue = await Venue.loadVenue(input.uuid);
+  loadVenue: moderatorP.input(VenueIdSchema).mutation(async ({input}) => {
+    const venue = await Venue.loadVenue(input);
     return venue.venueId;
   }),
   subVenueUnloaded: p.subscription(({ctx}) => {
@@ -45,10 +45,10 @@ export const venueRouter = router({
   listMyVenues: moderatorP.query(async ({ctx}) => {
     const dbResponse = await prismaClient.venue.findMany({
       where: {
-        ownerId: ctx.uuid
+        ownerId: ctx.userId
       },
       select: {
-        uuid: true,
+        venueId: true,
         name: true,
       }
     });

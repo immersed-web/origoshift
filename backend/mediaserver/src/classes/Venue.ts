@@ -16,13 +16,13 @@ import { VrSpace } from './VRSpace';
 // import { FilteredEvents } from 'trpc/trpc-utils';
 
 const venueIncludeWhitelistVirtual  = {
-    whitelistedUsers: {
-      select: {
-        uuid: true
-      }
-    },
-    virtualSpace: true,
-} satisfies Prisma.VenueInclude
+  whitelistedUsers: {
+    select: {
+      userId: true
+    }
+  },
+  virtualSpace: true,
+} satisfies Prisma.VenueInclude;
 const args = {include: venueIncludeWhitelistVirtual} satisfies Prisma.VenueArgs;
 type VenueResponse = Prisma.VenueGetPayload<typeof args>
 
@@ -37,7 +37,7 @@ export default class Venue {
           name,
           owner: {
             connect: {
-              uuid: owner
+              userId: owner
             }
           },
           settings: {coolSetting: 'aaaww yeeeah'},
@@ -51,20 +51,20 @@ export default class Venue {
         }
       });
 
-      return result.uuid;
+      return result.venueId;
     } catch (e){
       log.error(e);
       throw e;
     }
   }
-  static async loadVenue(uuid: Uuid, worker?: soupTypes.Worker) {
+  static async loadVenue(venueId: VenueId, worker?: soupTypes.Worker) {
     try {
-      if(Venue.venues.has(uuid)){
+      if(Venue.venues.has(venueId)){
         throw new Error('Venue already loaded');
       }
       const dbResponse = await prisma.venue.findUniqueOrThrow({
         where: {
-          uuid
+          venueId
         },
         include: venueIncludeWhitelistVirtual,
       });
@@ -74,7 +74,7 @@ export default class Venue {
       }
       const router = await worker.createRouter(mediasoupConfig.router);
       const venue = new Venue(dbResponse, router);
-      log.info(`loading ${venue.prismaData.name} (${venue.prismaData.uuid})`);
+      log.info(`loading ${venue.prismaData.name} (${venue.prismaData.venueId})`);
       return venue;
     } catch (e) {
       log.error('failed to load venue');
@@ -125,7 +125,7 @@ export default class Venue {
 
   // uuid: Uuid;
   get venueId() {
-    return this.prismaData.uuid as VenueId;
+    return this.prismaData.venueId as VenueId;
   }
   router: soupTypes.Router;
   vrSpace: VrSpace;

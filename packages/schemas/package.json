@@ -16,11 +16,17 @@
       "types": "./dist/mediasoupSchemas.d.ts"
     }
   },
-  "files": ["dist/*"],
+  "files": [
+    "dist/*"
+  ],
   "typesVersions": {
     "*": {
-      "*": ["dist/index.d.ts"],
-      "mediasoup": ["dist/mediasoupSchemas.d.ts"]
+      "*": [
+        "dist/index.d.ts"
+      ],
+      "mediasoup": [
+        "dist/mediasoupSchemas.d.ts"
+      ]
     }
   },
   "scripts": {
@@ -34,12 +40,10 @@
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.8",
     "database": "workspace:*",
-    "jsonwebtoken": "^8.5.1",
-    "tsup": "^6.5.0"
+    "jsonwebtoken": "^8.5.1"
   },
   "dependencies": {
     "tozod": "^3.0.0",
-    "ts-extras": "^0.11.0",
-    "zod": "^3.20.2"
+    "ts-extras": "^0.11.0"
   }
 }

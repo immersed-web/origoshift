@@ -1,5 +1,5 @@
 import { ClientTransformSchema } from 'schemas';
-import { procedure as p, router } from '../trpc/trpc';
+import { moderatorP, procedure as p, router, isVenueOwnerM, isInVenueM } from '../trpc/trpc';
 import { attachEmitter } from '../trpc/trpc-utils';
 import { TRPCError } from '@trpc/server';
 
@@ -29,6 +29,15 @@ export const vrRouter = router({
       vrSpace.pendingTransforms[ctx.client.connectionId] = input;
       vrSpace.sendPendingTransforms();
 
+    }),
+    openVrSpace: moderatorP.use(isVenueOwnerM).mutation(({ctx}) => {
+      ctx.venue.vrSpace.open();
+    }),
+    enterVrSpace: p.use(isInVenueM).mutation(({ctx}) =>{
+      if(!ctx.venue.vrSpace.isOpen){
+        throw new TRPCError({code: 'FORBIDDEN', message: 'The vr space is not opened to user at this point. Very sad!'});
+      }
+      ctx.venue.vrSpace.addClient(ctx.client);
     }),
     getSelfId: p.query(({ctx}) => {
       return ctx.userId;

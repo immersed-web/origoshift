@@ -22,7 +22,7 @@ export const adminP = procedure.use(createAuthMiddleware('admin'));
 export const moderatorP = procedure.use(createAuthMiddleware('moderator'));
 export const userP = procedure.use(createAuthMiddleware('user'));
 
-export const isInVenueM = middleware(({ctx, next})=> {
+const isInsideAVenue = middleware(({ctx, next})=> {
   const venue = ctx.client.getVenue();
   if(!venue) {
     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You have to be added to a venue before performing that action!'});
@@ -31,4 +31,13 @@ export const isInVenueM = middleware(({ctx, next})=> {
   return next({ctx: {
     venue
   }});
+});
+
+export const isInVenueM = isInsideAVenue;
+
+export const isVenueOwnerM = isInsideAVenue.unstable_pipe(({ctx, next}) => {
+  if(ctx.venue.ownerId !== ctx.userId){
+    throw new TRPCError({code: 'FORBIDDEN', message: 'you are not the owner of this venue. Not allowed!'});
+  }
+  return next();
 });

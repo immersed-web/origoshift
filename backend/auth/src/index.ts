@@ -100,9 +100,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// TODO: Right now guests will keep their assigned uuid and haikuname as long as they keep refreshing their token using the old one.
-// But what if we want to allow them to change name? Perhaps the haikuname inside the jwt is only used initially, and then we rely on local storage?
-// We shall see....
 app.get('/guest-jwt', (req, res) => {
 
   let haikuName = haikunator.haikunate();

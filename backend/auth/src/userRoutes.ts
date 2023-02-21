@@ -104,7 +104,7 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
 
 interface UpdateUserRequest extends ExpressReq {
   body: {
-    uuid: string,
+    userId: string,
     role?: UserRole,
     username?: string,
     password?: string,
@@ -162,7 +162,7 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
   try {
     const result = await prisma.user.update({
       where: {
-        userId: payload.uuid
+        userId: payload.userId
       },
       data: userUpdate,
     });

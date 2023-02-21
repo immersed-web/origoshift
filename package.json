@@ -1,8 +1,12 @@
 {
   "dependencies": {
-    "mediasoup": "3",
-    "mediasoup-client": "3",
-    "shared-modules": "workspace:*"
+    "@trpc/client": "^10.12.0",
+    "@trpc/server": "^10.12.0",
+    "mediasoup": "^3.11.10",
+    "mediasoup-client": "^3.6.80",
+    "shared-modules": "workspace:*",
+    "tsup": "^6.6.3",
+    "zod": "^3.20.6"
   },
   "devDependencies": {
     "eslint": "^8.29.0",

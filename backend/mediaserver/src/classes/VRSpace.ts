@@ -1,7 +1,7 @@
 import { VirtualSpace } from 'database';
-import { ClientTransforms } from 'schemas';
+import { ClientTransforms, ConnectionId, VrSpaceId } from 'schemas';
 import Venue from './Venue';
-import {throttle} from 'lodash';
+import {hasIn, throttle} from 'lodash';
 import Client from './Client';
 
 import { Log } from 'debug-level';
@@ -12,9 +12,14 @@ process.env.DEBUG = 'VR:Space*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 export class VrSpace {
+  private _isOpen = false;
   private venue: Venue;
   private prismaData: VirtualSpace;
   private clients: Venue['clients'];
+
+  get vrSpaceId() {
+    return this.prismaData.vrId as VrSpaceId;
+  }
 
   // TODO:
   // * Save/load scene model & navmesh model
@@ -28,11 +33,36 @@ export class VrSpace {
   });
 
   pendingTransforms: ClientTransforms = {};
-  constructor(venue: Venue, vrSpace: VirtualSpace, clients: Venue['clients']){
+  constructor(venue: Venue, vrSpace: VirtualSpace, clients?: Venue['clients']){
     this.venue = venue;
     this.prismaData = vrSpace;
-    this.clients = clients;
+    this.clients = new Map(clients);
   }
+
+  get isOpen(){
+    return this._isOpen;
+  }
+
+  open () {
+    this._isOpen = true;
+  }
+
+  close () {
+    this._isOpen = false;
+  }
+
+  addClient (client: Client){
+    if(!this.isOpen){
+      log.warn(`You tried to add client ${client.username} to the vr space in ${this.venue.name} that isnt open. No bueno!`);
+      return;
+    }
+    this.clients.set(client.connectionId, client);
+  }
+
+  removeClient (connectionId: ConnectionId){
+    return this.clients.delete(connectionId);
+  }
+
 
   emitToAllClients: Client['vrEvents']['emit'] = (event, ...args) => {
     let allEmittersHadListeners = true;

@@ -7,7 +7,7 @@ process.env.DEBUG = 'Venue*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import {types as soupTypes} from 'mediasoup';
-import { Uuid, VenueId } from 'schemas';
+import { ConnectionId, UserId, Uuid, VenueId } from 'schemas';
 
 import prisma, {Prisma}  from '../modules/prismaClient';
 
@@ -127,15 +127,19 @@ export default class Venue {
   get venueId() {
     return this.prismaData.venueId as VenueId;
   }
+  get name() { return this.prismaData.name; }
+  get ownerId() {
+    return this.prismaData.ownerId as UserId;
+  }
   router: soupTypes.Router;
   vrSpace: VrSpace;
-  prismaData: VenueResponse;
+  private prismaData: VenueResponse;
 
 
 
   // private rooms: Map<string, Room> = new Map();
 
-  private clients: Map<Uuid, Client> = new Map();
+  private clients: Map<ConnectionId, Client> = new Map();
 
   private constructor(prismaData: VenueResponse, router: soupTypes.Router){
     this.router = router;
@@ -201,7 +205,7 @@ export default class Venue {
 
 
 
-  getClient (connectionId: string){
+  getClient (connectionId: ConnectionId){
     const client = this.clients.get(connectionId);
     if(!client){
       throw new Error('no client with that id in venue');

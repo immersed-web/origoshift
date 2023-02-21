@@ -1,16 +1,10 @@
 import { randomUUID } from 'crypto';
 import Client from './Client';
-import { RoomProperties, RoomState, ShallowRoomState } from 'shared-types/CustomTypes';
 import { UserRole } from 'schemas';
 import Venue from './Venue';
 import { types as soupTypes } from 'mediasoup';
 // import type { RtpParameters } from 'mediasoup/node/lib/types';
-import { Request, createMessage, RequestSubjects, SuccessResponseTo } from 'shared-types/MessageTypes';
 import { hasAtLeastSecurityLevel } from 'schemas';
-import debug from 'debug';
-const roomLog = debug('Room');
-const roomError = debug('Room:ERROR');
-const roomWarn = debug('Room:WARNING');
 export default class Room {
   // router: soup.Router;
   id: string;
@@ -23,7 +17,7 @@ export default class Room {
       audio: undefined,
     };
   clients: Map<string, Client> = new Map();
-  customProperties: RoomProperties = {};
+  // customProperties: RoomProperties = {};
 
   // private gatheringId: string | undefined = undefined;
   // setGathering(gatheringId: string | undefined) {
@@ -65,7 +59,6 @@ export default class Room {
     this.id = roomId;
     // this.setGathering(gathering.uuid);
     this.roomName = roomName;
-    roomLog('Room created:', this.id);
   }
 
   // addClient(client: Client) {

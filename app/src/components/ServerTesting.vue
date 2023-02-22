@@ -56,9 +56,9 @@
       <div>
         <div
           v-for="venue in clientStore.venuesLoaded"
-          :key="venue.venueId"
+          :key="venue.name"
         >
-          <p>{{ venue.name }}</p>
+          <p>{{ venue.name }}: {{ venue.venueId }}</p>
           <XButton
             size="xs"
             class="ml-2"

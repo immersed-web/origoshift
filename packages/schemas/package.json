@@ -22,10 +22,11 @@
   "typesVersions": {
     "*": {
       "*": [
-        "dist/index.d.ts"
+        "./dist/index.d.ts",
+        "./dist/*"
       ],
       "mediasoup": [
-        "dist/mediasoupSchemas.d.ts"
+        "./dist/mediasoupSchemas.d.ts"
       ]
     }
   },

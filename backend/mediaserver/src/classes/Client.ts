@@ -16,10 +16,10 @@ log.enable(process.env.DEBUG);
 // import { checkPermission } from '../modules/utilFns';
 
 
-import { ClientTransform, ClientTransforms, ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId } from 'schemas';
+import { ClientTransform, ClientTransforms, ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId, CameraId } from 'schemas';
 import Venue from './Venue';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
-import { ConsumerId, ProducerId, TransportId, TransportIdSchema } from 'schemas/mediasoup';
+import { ConsumerId, ProducerId, TransportId } from 'schemas/mediasoup';
 
 
 export type ClientVenueEvents = FilteredEvents<{
@@ -80,6 +80,25 @@ export default class Client {
     return this.jwtUserData.role;
   }
 
+  private currentCameraId?: CameraId;
+  /**
+   * **WARNING**: You should never need to call this function, since the camera instance calls this for you when it adds a client to itself.
+   */
+  _setCamera(cameraId?: CameraId){
+    this.currentCameraId = cameraId;
+  }
+  get currentCamera() {
+    if(!this.currentCameraId) return undefined;
+    if(!this.venue){
+      throw Error('Something is really off! currentCameraId is set but client isnt in a venue! Invalid state!');
+    }
+    const camera = this.venue.cameras.get(this.currentCameraId);
+    if(!camera){
+      throw Error('client had an assigned currentCameraId but that camera was not found in venue. Invalid state!');
+    }
+    return camera;
+  }
+
   transform: ClientTransform | undefined;
 
   rtpCapabilities?: soupTypes.RtpCapabilities;
@@ -91,6 +110,39 @@ export default class Client {
   venueEvents: TypedEmitter<ClientVenueEvents>;
   vrEvents: TypedEmitter<ClientVrEvents>;
   soupEvents: TypedEmitter<ClientSoupEvents>;
+
+  isInVrSpace = false;
+  get vrSpace(){
+    if(this.isInVrSpace){
+      try{
+        if(!this.venueId){
+          // log.error('The client is considered to be part of a vr space without being in a venue. That shouldnt be possible!');
+          throw Error('The client is considered to be part of a vr space without being in a venue. That shouldnt be possible!');
+        }
+        return this.venue?.vrSpace;
+      } catch (e) {
+        console.error(e);
+        return undefined;
+      }
+    }
+  }
+  private venueId?: VenueId;
+  /**
+   * **WARNING**: You should never need to call this function, since the venue instance calls this for you when it adds a client to itself.
+   */
+  _setVenue(venueId: VenueId | undefined){
+    this.venueId = venueId;
+    // this.getVenue()?.createWebRtcTransport();
+  }
+  get venue() {
+    try{
+      if(!this.venueId) return undefined;
+      return Venue.getVenue(this.venueId);
+    } catch (e) {
+      console.error(e);
+      return undefined;
+    }
+  }
 
   constructor({connectionId = ConnectionIdSchema.parse(randomUUID()), jwtUserData}: ConstructorParams){
     log.info('Creating Client with connectionId: ', connectionId);
@@ -127,38 +179,6 @@ export default class Client {
     };
   }
 
-  isInVrSpace = false;
-  get vrSpace(){
-    if(this.isInVrSpace){
-      try{
-        if(!this.venueId){
-          // log.error('The client is considered to be part of a vr space without being in a venue. That shouldnt be possible!');
-          throw Error('The client is considered to be part of a vr space without being in a venue. That shouldnt be possible!');
-        }
-        return this.venue?.vrSpace;
-      } catch (e) {
-        console.error(e);
-        return undefined;
-      }
-    }
-  }
-  private venueId?: VenueId;
-  /**
-   * **WARNING**: You should never need to call this funciton, since the venue instance calls this for you when it adds a client to itself.
-   */
-  setVenue(venueId: VenueId | undefined){
-    this.venueId = venueId;
-    // this.getVenue()?.createWebRtcTransport();
-  }
-  get venue() {
-    try{
-      if(!this.venueId) return undefined;
-      return Venue.getVenue(this.venueId);
-    } catch (e) {
-      console.error(e);
-      return undefined;
-    }
-  }
 
   async joinVenue(venueId: VenueId) {
     this.leaveCurrentVenue();
@@ -168,39 +188,49 @@ export default class Client {
     this.receiveTransport = await venue.createWebRtcTransport();
   }
 
-  joinVrSpace(){
-    // this.camera.removeClient(this);
-    const venue = this.venue;
-    if(!venue){
-      throw Error('cant join vrspace if isnt in a venue!');
-    }
-    venue.vrSpace.addClient(this);
-  }
-
-  // joinCamera(cameraId: CameraId) {
-  //   const camera = this.venue.getCamera(cameraId);
-  //   if(!camera){
-  //     throw Error('no camera with that id exist in the venue');
-  //   }
-  //   camera.addCLient(this);
-  // }
-
   /**
    * @returns boolean indicating if the client was in a venue in the first place. So calling this function when not in a venue will simply do nothing and return false.
    */
   leaveCurrentVenue() {
-    const venue = this.venue;
-    if(!venue) {
+    if(!this.venue) {
       return false;
       // throw Error('cant leave a venue if you are not in one!');
     }
     this.closeAllProducers();
     this.closeAllConsumers();
     this.closeAllTransports();
-    venue.vrSpace.removeClient(this);
+    this.venue.vrSpace.removeClient(this);
     // this.camera.removeClient(this);
-    venue.removeClient(this);
+    this.venue.removeClient(this);
     return true;
+  }
+
+  joinVrSpace(){
+    this.leaveCurrentCamera();
+    if(!this.venue){
+      throw Error('cant join vrspace if isnt in a venue!');
+    }
+    this.venue.vrSpace.addClient(this);
+  }
+  leaveVrSpace() {
+    this.venue?.vrSpace.removeClient(this);
+  }
+
+  joinCamera(cameraId: CameraId) {
+    const camera = this.venue?.cameras.get(cameraId);
+    if(!camera){
+      throw Error('no camera with that id exist in the venue');
+    }
+    camera.addClient(this);
+  }
+  /**
+   * @returns boolean indicating if the client was in a camera in the first place. Calling this function when not in a camera will simply do nothing and return false.
+   */
+  leaveCurrentCamera() {
+    if(!this.currentCamera){
+      return false;
+    }
+    this.currentCamera.removeClient(this);
   }
 
   closeAllTransports() {

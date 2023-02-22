@@ -114,6 +114,9 @@ export type VenueId = z.infer<typeof VenueIdSchema>;
 export const VrSpaceIdSchema = UuidSchema.brand<'VrSpaceId'>();
 export type VrSpaceId = z.infer<typeof VrSpaceIdSchema>;
 
+export const CameraIdSchema = UuidSchema.brand<'CameraId'>();
+export type CameraId = z.infer<typeof CameraIdSchema>;
+
 export const JwtUserDataSchema = z.object({
   userId: UserIdSchema,
   username: z.string(),

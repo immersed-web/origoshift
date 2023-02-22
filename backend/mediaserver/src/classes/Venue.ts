@@ -7,12 +7,14 @@ process.env.DEBUG = 'Venue*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import {types as soupTypes} from 'mediasoup';
-import { ConnectionId, UserId, VenueId } from 'schemas';
+import { ConnectionId, UserId, VenueId, CameraId } from 'schemas';
 
-import prisma, {Prisma}  from '../modules/prismaClient';
+import type { Prisma } from 'database';
+import prisma from '../modules/prismaClient';
 
 import Client  from './Client';
-import { VrSpace } from './VRSpace';
+import VrSpace from './VRSpace';
+import Camera from './Camera';
 // import { FilteredEvents } from 'trpc/trpc-utils';
 
 const venueIncludeWhitelistVirtual  = {
@@ -122,6 +124,7 @@ export default class Venue {
     // }
   }
 
+  private prismaData: VenueResponse;
 
   get venueId() {
     return this.prismaData.venueId as VenueId;
@@ -130,13 +133,11 @@ export default class Venue {
   get ownerId() {
     return this.prismaData.ownerId as UserId;
   }
+
   router: soupTypes.Router;
   vrSpace: VrSpace;
-  private prismaData: VenueResponse;
 
-
-
-  // private rooms: Map<string, Room> = new Map();
+  cameras: Map<CameraId, Camera> = new Map();
 
   private clients: Map<ConnectionId, Client> = new Map();
   get clientList() {
@@ -166,7 +167,7 @@ export default class Venue {
     // console.log('clients before add: ',this.clients);
     this.clients.set(client.connectionId, client);
     // console.log('clients after add: ',this.clients);
-    client.setVenue(this.venueId);
+    client._setVenue(this.venueId);
     this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
   }
 
@@ -177,7 +178,7 @@ export default class Venue {
     log.info(`removing ${client.username} from the venue ${this.prismaData.name}`);
     // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states
     this.clients.delete(client.connectionId);
-    client.setVenue(undefined);
+    client._setVenue(undefined);
 
     if(!this.clients.size){
       this.unload();

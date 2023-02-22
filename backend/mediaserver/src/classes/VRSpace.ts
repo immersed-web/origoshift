@@ -1,7 +1,7 @@
 import { VirtualSpace } from 'database';
-import { ClientTransforms, ConnectionId, VrSpaceId } from 'schemas';
+import { ClientTransforms, VrSpaceId } from 'schemas';
 import Venue from './Venue';
-import {hasIn, throttle} from 'lodash';
+import { throttle} from 'lodash';
 import Client from './Client';
 
 import { Log } from 'debug-level';
@@ -33,10 +33,10 @@ export class VrSpace {
   });
 
   pendingTransforms: ClientTransforms = {};
-  constructor(venue: Venue, vrSpace: VirtualSpace, clients?: Venue['clients']){
+  constructor(venue: Venue, vrSpace: VirtualSpace){
     this.venue = venue;
     this.prismaData = vrSpace;
-    this.clients = new Map(clients);
+    this.clients = new Map();
   }
 
   get isOpen(){
@@ -49,6 +49,9 @@ export class VrSpace {
 
   close () {
     this._isOpen = false;
+    this.clients.forEach(client => {
+      this.removeClient(client);
+    });
   }
 
   addClient (client: Client){
@@ -56,11 +59,15 @@ export class VrSpace {
       log.warn(`You tried to add client ${client.username} to the vr space in ${this.venue.name} that isnt open. No bueno!`);
       return;
     }
+    if(!this.venue.clientList.includes(client.connectionId)){
+      throw Error('must be in the related venue when joining a vr space!');
+    }
     this.clients.set(client.connectionId, client);
+    client.isInVrSpace = true;
   }
 
-  removeClient (connectionId: ConnectionId){
-    return this.clients.delete(connectionId);
+  removeClient (client: Client){
+    return this.clients.delete(client.connectionId);
   }
 
 

@@ -16,11 +16,23 @@ process.env.DEBUG = 'VR:Router*, ' + process.env.DEBUG;
 
 
 export const vrRouter = router({
+  openVrSpace: moderatorP.use(isVenueOwnerM).mutation(({ctx}) => {
+    ctx.venue.vrSpace.open();
+  }),
+  closeVrSpace: moderatorP.use(isVenueOwnerM).mutation(({ctx}) => {
+    ctx.venue.vrSpace.close();
+  }),
+  enterVrSpace: p.use(isInVenueM).mutation(({ctx}) =>{
+    if(!ctx.venue.vrSpace.isOpen){
+      throw new TRPCError({code: 'FORBIDDEN', message: 'The vr space is not opened to users at this point. Very sad!'});
+    }
+    ctx.venue.vrSpace.addClient(ctx.client);
+  }),
   transforms: router({
     updateTransform: p.input(ClientTransformSchema).mutation(({input, ctx}) =>{
       log.debug(`transform received from ${ctx.username} (${ctx.connectionId})`);
       log.debug(input);
-      const venue = ctx.client.getVenue();
+      const venue = ctx.client.venue;
       if(!venue){
         throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You are not in a venue. You shouldnt send transform data!'});
       }
@@ -29,18 +41,6 @@ export const vrRouter = router({
       vrSpace.pendingTransforms[ctx.client.connectionId] = input;
       vrSpace.sendPendingTransforms();
 
-    }),
-    openVrSpace: moderatorP.use(isVenueOwnerM).mutation(({ctx}) => {
-      ctx.venue.vrSpace.open();
-    }),
-    enterVrSpace: p.use(isInVenueM).mutation(({ctx}) =>{
-      if(!ctx.venue.vrSpace.isOpen){
-        throw new TRPCError({code: 'FORBIDDEN', message: 'The vr space is not opened to user at this point. Very sad!'});
-      }
-      ctx.venue.vrSpace.addClient(ctx.client);
-    }),
-    getSelfId: p.query(({ctx}) => {
-      return ctx.userId;
     }),
     getClientTransforms: p.query(() => {
       return 'NOT IMPLEMENTED YET' as const;

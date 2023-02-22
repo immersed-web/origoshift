@@ -188,7 +188,7 @@ const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
 
 interface DeleteUserRequest extends ExpressReq {
   body: {
-    uuid: string
+    userId: string
   }
 }
 const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
@@ -198,12 +198,12 @@ const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
       throw new Error('not allowed');
     }
     const payload = req.body;
-    if (!payload || !payload.uuid) {
-      throw new Error('no uuid provided. cant delete');
+    if (!payload || !payload.userId) {
+      throw new Error('no userId provided. cant delete');
     }
     const userToDelete = await users.findUserAsUserData({
       where: {
-        userId: payload.uuid
+        userId: payload.userId,
       }
     });
     if (!userToDelete) {
@@ -215,7 +215,7 @@ const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
     }
     const deletedUser = await users.delete({
       where: {
-        userId: payload.uuid
+        userId: payload.userId
       }
     });
 

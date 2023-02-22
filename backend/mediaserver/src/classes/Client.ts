@@ -16,9 +16,10 @@ log.enable(process.env.DEBUG);
 // import { checkPermission } from '../modules/utilFns';
 
 
-import { ClientTransform, ClientTransforms, ConnectionId, ConnectionIdSchema, JwtUserData, UserRole, Uuid, VenueId } from 'schemas';
+import { ClientTransform, ClientTransforms, ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId } from 'schemas';
 import Venue from './Venue';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
+import { ConsumerId, ProducerId, TransportId, TransportIdSchema } from 'schemas/mediasoup';
 
 
 export type ClientVenueEvents = FilteredEvents<{
@@ -34,23 +35,23 @@ export type ClientVrEvents = NonFilteredEvents<{
 
 export type ClientSoupEvents = NonFilteredEvents<{
   // 'onProducer': ()
-  'transportClosed': (transportId: Uuid) => void
-  'consumerPausedOrResumed': (data: {consumerId: Uuid, wasPaused: boolean}) => void
-  'producerPausedOrResumed': (data: {producerId: Uuid, wasPaused: boolean}) => void
-  'consumerClosed': (consumerId: Uuid) => void
-  'producerClosed': (producerId: Uuid) => void
+  'transportClosed': (transportId: TransportId) => void
+  'consumerPausedOrResumed': (data: {consumerId: ConsumerId, wasPaused: boolean}) => void
+  'producerPausedOrResumed': (data: {producerId: ProducerId, wasPaused: boolean}) => void
+  'consumerClosed': (consumerId: ConsumerId) => void
+  'producerClosed': (producerId: ProducerId) => void
 }>
 
 type PublicClientState = {
   connectionId: ConnectionId,
-  userId: Uuid,
+  userId: UserId,
   userName: string,
   transform?: ClientTransform,
   readonly role: UserRole,
-  currentVenueId?: Uuid
+  currentVenueId?: VenueId,
 }
 interface ConstructorParams {
-  connectionId?: Uuid,
+  connectionId?: ConnectionId,
   // ws: SocketWrapper,
   jwtUserData: JwtUserData,
 }
@@ -69,7 +70,7 @@ export default class Client {
    * The user's id. Be aware that this doesn't uniquely identify the active connection/session, as the user could run multiple concurrent connections.
    * Instead, use "connectionId" for that.
    */
-  get userId(): Uuid {
+  get userId(): UserId {
     return this.jwtUserData.userId;
   }
   get username(): string{
@@ -84,14 +85,14 @@ export default class Client {
   rtpCapabilities?: soupTypes.RtpCapabilities;
   receiveTransport?: soupTypes.WebRtcTransport;
   sendTransport?: soupTypes.WebRtcTransport;
-  consumers: Map<Uuid, soupTypes.Consumer> = new Map();
-  producers: Map<Uuid, soupTypes.Producer> = new Map();
+  consumers: Map<ConsumerId, soupTypes.Consumer> = new Map();
+  producers: Map<ProducerId, soupTypes.Producer> = new Map();
 
   venueEvents: TypedEmitter<ClientVenueEvents>;
   vrEvents: TypedEmitter<ClientVrEvents>;
   soupEvents: TypedEmitter<ClientSoupEvents>;
 
-  constructor({connectionId = randomUUID(), jwtUserData}: ConstructorParams){
+  constructor({connectionId = ConnectionIdSchema.parse(randomUUID()), jwtUserData}: ConstructorParams){
     log.info('Creating Client with connectionId: ', connectionId);
     this.connectionId = ConnectionIdSchema.parse(connectionId);
     this.jwtUserData = jwtUserData;
@@ -121,23 +122,38 @@ export default class Client {
       userId: this.userId,
       userName: this.username,
       role: this.role,
-      currentVenueId: this.getVenue()?.venueId,
+      currentVenueId: this.venue?.venueId,
       transform: this.transform,
     };
   }
 
-  private venueId?: Uuid;
+  isInVrSpace = false;
+  get vrSpace(){
+    if(this.isInVrSpace){
+      try{
+        if(!this.venueId){
+          // log.error('The client is considered to be part of a vr space without being in a venue. That shouldnt be possible!');
+          throw Error('The client is considered to be part of a vr space without being in a venue. That shouldnt be possible!');
+        }
+        return this.venue?.vrSpace;
+      } catch (e) {
+        console.error(e);
+        return undefined;
+      }
+    }
+  }
+  private venueId?: VenueId;
   /**
    * **WARNING**: You should never need to call this funciton, since the venue instance calls this for you when it adds a client to itself.
    */
-  setVenue(venueId: Uuid | undefined){
+  setVenue(venueId: VenueId | undefined){
     this.venueId = venueId;
     // this.getVenue()?.createWebRtcTransport();
   }
-  getVenue() {
+  get venue() {
     try{
       if(!this.venueId) return undefined;
-      return Venue.getVenue({uuid: this.venueId });
+      return Venue.getVenue(this.venueId);
     } catch (e) {
       console.error(e);
       return undefined;
@@ -146,17 +162,34 @@ export default class Client {
 
   async joinVenue(venueId: VenueId) {
     this.leaveCurrentVenue();
-    const venue = Venue.getVenue({uuid: venueId});
+    const venue = Venue.getVenue(venueId);
     venue.addClient(this);
     this.sendTransport = await venue.createWebRtcTransport();
     this.receiveTransport = await venue.createWebRtcTransport();
   }
 
+  joinVrSpace(){
+    // this.camera.removeClient(this);
+    const venue = this.venue;
+    if(!venue){
+      throw Error('cant join vrspace if isnt in a venue!');
+    }
+    venue.vrSpace.addClient(this);
+  }
+
+  // joinCamera(cameraId: CameraId) {
+  //   const camera = this.venue.getCamera(cameraId);
+  //   if(!camera){
+  //     throw Error('no camera with that id exist in the venue');
+  //   }
+  //   camera.addCLient(this);
+  // }
+
   /**
    * @returns boolean indicating if the client was in a venue in the first place. So calling this function when not in a venue will simply do nothing and return false.
    */
   leaveCurrentVenue() {
-    const venue = this.getVenue();
+    const venue = this.venue;
     if(!venue) {
       return false;
       // throw Error('cant leave a venue if you are not in one!');
@@ -164,6 +197,8 @@ export default class Client {
     this.closeAllProducers();
     this.closeAllConsumers();
     this.closeAllTransports();
+    venue.vrSpace.removeClient(this);
+    // this.camera.removeClient(this);
     venue.removeClient(this);
     return true;
   }
@@ -171,12 +206,12 @@ export default class Client {
   closeAllTransports() {
     if(this.sendTransport){
       this.sendTransport.close();
-      this.soupEvents.emit('transportClosed', this.sendTransport.id);
+      this.soupEvents.emit('transportClosed', this.sendTransport.id as TransportId);
       this.sendTransport = undefined;
     }
     if(this.receiveTransport){
       this.receiveTransport.close();
-      this.soupEvents.emit('transportClosed', this.receiveTransport.id);
+      this.soupEvents.emit('transportClosed', this.receiveTransport.id as TransportId);
       this.receiveTransport = undefined;
     }
   }
@@ -185,7 +220,7 @@ export default class Client {
     const producerArray = Array.from(this.producers.entries());
     for(const [producerKey, producer] of producerArray){
       producer.close();
-      this.soupEvents.emit('producerClosed', producer.id);
+      this.soupEvents.emit('producerClosed', producer.id as ProducerId);
       // const closeProducersMsg = createMessage('notifyCloseEvent', {
       //   objectType: 'producer',
       //   objectId: producerKey,
@@ -200,7 +235,7 @@ export default class Client {
     const consumerArray = Array.from(this.consumers.entries());
     for(const [consumerKey, consumer] of consumerArray){
       consumer.close();
-      this.soupEvents.emit('consumerClosed', consumer.id);
+      this.soupEvents.emit('consumerClosed', consumer.id as ConsumerId);
       // const closeConsumerMsg = createMessage('notifyCloseEvent', {
       //   objectType: 'consumer',
       //   objectId: consumerKey,

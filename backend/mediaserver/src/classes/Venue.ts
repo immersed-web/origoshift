@@ -7,7 +7,7 @@ process.env.DEBUG = 'Venue*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import {types as soupTypes} from 'mediasoup';
-import { ConnectionId, UserId, Uuid, VenueId } from 'schemas';
+import { ConnectionId, UserId, VenueId } from 'schemas';
 
 import prisma, {Prisma}  from '../modules/prismaClient';
 
@@ -28,9 +28,9 @@ type VenueResponse = Prisma.VenueGetPayload<typeof args>
 
 export default class Venue {
   // First some static stuff for global housekeeping
-  private static venues: Map<Uuid, Venue> = new Map();
+  private static venues: Map<VenueId, Venue> = new Map();
 
-  static async createNewVenue(name: string, owner: Uuid){
+  static async createNewVenue(name: string, owner: UserId){
     try {
       const result = await prisma.venue.create({
         data: {
@@ -97,7 +97,7 @@ export default class Venue {
   }
 
   static getLoadedVenues(){
-    const obj: Record<Uuid, {venueId: Uuid, name: string}> = {};
+    const obj: Record<VenueId, {venueId: VenueId, name: string}> = {};
     for(const [key, venue] of Venue.venues.entries()){
       obj[key] = {
         name: venue.prismaData.name,
@@ -107,23 +107,22 @@ export default class Venue {
     return obj;
   }
 
-  static getVenue(params:{uuid?: Uuid}) {
-    if(params.uuid){
-      const venue = Venue.venues.get(params.uuid);
-      if(!venue){
-        throw new Error('No venue with that id is loaded');
-      }
-      return venue;
+  static getVenue(venueId: VenueId) {
+    // if(venueId){
+    const venue = Venue.venues.get(venueId);
+    if(!venue){
+      throw new Error('No venue with that id is loaded');
+    }
+    return venue;
     // }else if(params.name){
     //   throw Error('Please dont implement this. We should strive to use Ids throughout');
     //   // return this.getGatheringFromName(params.name);
-    } else {
-      throw new Error('no id or name provided. Cant get venue! Duuuh!');
-    }
+    // } else {
+    //   throw new Error('no id or name provided. Cant get venue! Duuuh!');
+    // }
   }
 
 
-  // uuid: Uuid;
   get venueId() {
     return this.prismaData.venueId as VenueId;
   }
@@ -140,16 +139,19 @@ export default class Venue {
   // private rooms: Map<string, Room> = new Map();
 
   private clients: Map<ConnectionId, Client> = new Map();
+  get clientList() {
+    return Array.from(this.clients.keys());
+  }
 
   private constructor(prismaData: VenueResponse, router: soupTypes.Router){
     this.router = router;
     this.prismaData = prismaData;
 
-    this.vrSpace = new VrSpace(this, prismaData.virtualSpace, this.clients);
+    this.vrSpace = new VrSpace(this, prismaData.virtualSpace);
 
     const venueAlreadyLoaded = Venue.venues.has(this.venueId);
     if(venueAlreadyLoaded){
-      throw new Error('Venue with that uuid already loaded');
+      throw new Error('Venue with that venueId already loaded');
     }
 
     Venue.venues.set(this.venueId, this);
@@ -183,6 +185,27 @@ export default class Venue {
     this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
   }
 
+  emitToAllClients: Client['venueEvents']['emit'] = (event, ...args) => {
+    log.info(`emitting ${event} to all clients`);
+    let allEmittersHadListeners = true;
+    this.clients.forEach((client) => {
+      log.debug('emitting to client: ', client.username);
+      allEmittersHadListeners &&= client.venueEvents.emit(event, ...args);
+    });
+    if(!allEmittersHadListeners){
+      log.warn(`at least one client didnt have any listener registered for the ${event} event type`);
+    }
+    return allEmittersHadListeners;
+  };
+
+  // Hpefully well never have to uncomment and use this function. for security we aim to not expose the raw clients outside the venue instance
+  // getClient (connectionId: ConnectionId){
+  //   const client = this.clients.get(connectionId);
+  //   if(!client){
+  //     throw new Error('no client with that id in venue');
+  //   }
+  //   return client;
+  // }
 
   // addSender(client: Client){
   //   this.senderClients.set(client.id, client);
@@ -205,26 +228,7 @@ export default class Venue {
 
 
 
-  getClient (connectionId: ConnectionId){
-    const client = this.clients.get(connectionId);
-    if(!client){
-      throw new Error('no client with that id in venue');
-    }
-    return client;
-  }
 
-  emitToAllClients: Client['venueEvents']['emit'] = (event, ...args) => {
-    log.info(`emitting ${event} to all clients`);
-    let allEmittersHadListeners = true;
-    this.clients.forEach((client) => {
-      log.debug('emitting to client: ', client.username);
-      allEmittersHadListeners &&= client.venueEvents.emit(event, ...args);
-    });
-    if(!allEmittersHadListeners){
-      log.warn(`at least one client didnt have any listener registered for the ${event} event type`);
-    }
-    return allEmittersHadListeners;
-  };
 
 
 

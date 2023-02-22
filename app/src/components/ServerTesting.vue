@@ -23,27 +23,20 @@
       <div>
         <div
           v-for="venue in clientStore.venuesAll"
-          :key="venue.uuid"
+          :key="venue.venueId"
         >
           <p>{{ venue.name }}</p>
           <XButton
             size="xs"
-            @click="loadVenue(venue.uuid)"
+            @click="loadVenue(venue.venueId)"
           >
             Load
           </XButton>
-          <!-- <XButton
-            size="xs"
-            class="ml-2"
-            @click="async () => await getClient().venue.joinVenue.mutate({uuid: venue.uuid})"
-          >
-            Join
-          </XButton> -->
           <XButton
             class="ml-2"
             color="red"
             size="xs"
-            @click="async () => await client.venue.deleteVenue.mutate({venueId: venue.uuid})"
+            @click="async () => await client.venue.deleteVenue.mutate({venueId: venue.venueId})"
           >
             Ta bort
           </XButton>
@@ -75,6 +68,14 @@
           </XButton>
         </div>
       </div>
+      <XButton
+        @click="async () => await client.vr.openVrSpace.mutate()"
+      >
+        OpenVr
+      </XButton>
+      <XButton @click="async () => await client.vr.enterVrSpace.mutate()">
+        Enter vrSpace
+      </XButton>
       <XButton @click="async () => await client.venue.leaveCurrentVenue.query()">
         Leave current venue
       </XButton>
@@ -87,10 +88,11 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { client, startGuestClient, startLoggedInClient, type RouterOutputs } from '@/modules/trpcClient';
+import { client, startLoggedInClient, type RouterOutputs } from '@/modules/trpcClient';
 import type { ClientTransform, ConnectionId } from 'schemas';
 import { useClientStore } from '@/stores/clientStore';
 import type { Unsubscribable } from '@trpc/server/observable';
+// import type {  } from '@trpc/server/observable';
 
 // Stores
 const clientStore = useClientStore();
@@ -123,8 +125,8 @@ const getVenuesLoaded = async () => {
   clientStore.venuesLoaded = await client.value.venue.listLoadedVenues.query();
 };
 
-const loadVenue = async (uuid: string) => {
-  await client.value.venue.loadVenue.mutate({uuid});
+const loadVenue = async (venueId: string) => {
+  await client.value.venue.loadVenue.mutate({venueId: venueId});
   getVenuesLoaded();
 };
 

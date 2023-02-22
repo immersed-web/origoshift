@@ -1,9 +1,10 @@
 import { TRPCError } from '@trpc/server';
-import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema } from 'schemas/mediasoup';
+import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId } from 'schemas/mediasoup';
 import { z } from 'zod';
 import { procedure as p, router } from '../trpc/trpc';
+// import { Producer as SoupProducer } from 'mediasoup/node/lib/Producer';
+// import '../augmentedMediasoup';
 // import { attachFilteredEmitter, FilteredEvents } from '../trpc/trpc-utils';
-
 
 export const soupRouter = router({
   getRouterRTPCapabilities: p.query(() => {
@@ -40,10 +41,10 @@ export const soupRouter = router({
     const producer = await client.sendTransport.produce({ kind, rtpParameters, appData});
     producer.on('transportclose', () => {
       console.log(`transport for producer ${producer.id} was closed`);
-      client.producers.delete(producer.id);
-      client.soupEvents.emit('producerClosed', producer.id);
+      client.producers.delete(producer.id as ProducerId);
+      client.soupEvents.emit('producerClosed', producer.id as ProducerId);
     });
-    client.producers.set(producer.id, producer);
+    client.producers.set(producer.id as ProducerId, producer);
 
     return producer.id;
   }),

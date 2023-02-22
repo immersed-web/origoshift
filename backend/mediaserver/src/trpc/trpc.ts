@@ -23,7 +23,7 @@ export const moderatorP = procedure.use(createAuthMiddleware('moderator'));
 export const userP = procedure.use(createAuthMiddleware('user'));
 
 const isInsideAVenue = middleware(({ctx, next})=> {
-  const venue = ctx.client.getVenue();
+  const venue = ctx.client.venue;
   if(!venue) {
     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You have to be added to a venue before performing that action!'});
   }

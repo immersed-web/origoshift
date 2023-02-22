@@ -2,6 +2,16 @@ import { z } from "zod";
 import type {types as soupTypes } from 'mediasoup'
 import { UuidSchema } from "index";
 
+
+export const ProducerIdSchema = UuidSchema.brand('ProducerId')
+export type ProducerId = z.infer<typeof ProducerIdSchema>
+
+export const ConsumerIdSchema = UuidSchema.brand('ConsumerId')
+export type ConsumerId = z.infer<typeof ConsumerIdSchema>
+
+export const TransportIdSchema = UuidSchema.brand('TransportId')
+export type TransportId = z.infer<typeof TransportIdSchema>
+
 const DtlsFingerprintSchema = z.object({
   value: z.string(),
   algorithm: z.string()
@@ -12,7 +22,7 @@ const DtlsParametersSchema = z.object({
 }).passthrough() satisfies z.ZodType<soupTypes.DtlsParameters>
 
 export const ConnectTransportPayloadSchema = z.object({
-  transportId: UuidSchema,
+  transportId: TransportIdSchema,
   dtlsParameters: DtlsParametersSchema
 })
 
@@ -48,7 +58,7 @@ const RtpParametersSchema = z.object({
 
 
 export const CreateProducerPayloadSchema  = z.object({
-  transportId: UuidSchema,
+  transportId: TransportIdSchema,
   kind: MediaKindSchema,
   rtpParameters: RtpParametersSchema,
   producerInfo: ProducerInfoSchema,

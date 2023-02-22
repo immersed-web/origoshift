@@ -92,50 +92,50 @@ export function hasAtLeastSecurityLevel(role: UserRole, minimumUserRole: UserRol
 //   guest: z.literal('guest'),
 // });
 
-// type InferredRole = z.TypeOf<typeof zodifiedRoleEnun>;
+// type InferredRole = z.infer<typeof zodifiedRoleEnun>;
 //
 // const UserRoleSchema = z.enum(possibleUserRoles);
 export const UserRoleSchema = z.enum(roleHierarchy);
-export type UserRole = z.TypeOf<typeof UserRoleSchema>;
+export type UserRole = z.infer<typeof UserRoleSchema>;
 
 //Here we are creating Opaque type for the different types of id's. This is to prevent acidentally using ids for the wrong type of object.
 export const UuidSchema = z.string().uuid();
-export type Uuid = z.TypeOf<typeof UuidSchema>;
+export type Uuid = z.infer<typeof UuidSchema>;
 
 export const ConnectionIdSchema = UuidSchema.brand<'ConnectionId'>();
-export type ConnectionId = z.TypeOf<typeof ConnectionIdSchema>;
+export type ConnectionId = z.infer<typeof ConnectionIdSchema>;
 
 export const UserIdSchema = UuidSchema.brand<'UserId'>();
-export type UserId = z.TypeOf<typeof UserIdSchema>;
+export type UserId = z.infer<typeof UserIdSchema>;
 
 export const VenueIdSchema = UuidSchema.brand<'VenueId'>();
-export type VenueId = z.TypeOf<typeof VenueIdSchema>;
+export type VenueId = z.infer<typeof VenueIdSchema>;
 
 export const VrSpaceIdSchema = UuidSchema.brand<'VrSpaceId'>();
-export type VrSpaceId = z.TypeOf<typeof VrSpaceIdSchema>;
+export type VrSpaceId = z.infer<typeof VrSpaceIdSchema>;
 
 export const JwtUserDataSchema = z.object({
   userId: UserIdSchema,
   username: z.string(),
   role: UserRoleSchema,
 })
-export type JwtUserData = z.TypeOf<typeof JwtUserDataSchema>;
+export type JwtUserData = z.infer<typeof JwtUserDataSchema>;
 
 export const JwtPayloadSchema = jwtDefaultPayload.merge(JwtUserDataSchema)
-export type JwtPayload = z.TypeOf<typeof JwtPayloadSchema>;
+export type JwtPayload = z.infer<typeof JwtPayloadSchema>;
 
 // export const UserDataSchema = z.object({
 //   jwtToken: z.string(),
 //   decodedJwt: JwtPayloadSchema,
 // })
-// export type UserData = z.TypeOf<typeof UserDataSchema>
+// export type UserData = z.infer<typeof UserDataSchema>
 
 export const ClientTransformSchema = z.object({
   position: z.tuple([z.number(), z.number(), z.number()]),
   orientation: z.tuple([z.number(), z.number(), z.number(), z.number()])
 })
 
-export type ClientTransform = z.TypeOf<typeof ClientTransformSchema>;
+export type ClientTransform = z.infer<typeof ClientTransformSchema>;
 
 export type ClientTransforms = Record<ConnectionId, ClientTransform>;
 
@@ -145,7 +145,4 @@ export const ClientInfoSchema = z.object({
   position: z.optional(ClientTransformSchema)
 })
 
-export type ClientInfo = z.TypeOf<typeof ClientInfoSchema>;
-
-
-export * as mediasoupSchemas from './mediasoupSchemas';
+export type ClientInfo = z.infer<typeof ClientInfoSchema>;

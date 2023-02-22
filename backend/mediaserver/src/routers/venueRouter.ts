@@ -35,8 +35,8 @@ export const venueRouter = router({
     });
     return dbResponse;
   }),
-  loadVenue: moderatorP.input(VenueIdSchema).mutation(async ({input}) => {
-    const venue = await Venue.loadVenue(input);
+  loadVenue: moderatorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input}) => {
+    const venue = await Venue.loadVenue(input.venueId);
     return venue.venueId;
   }),
   subVenueUnloaded: p.subscription(({ctx}) => {

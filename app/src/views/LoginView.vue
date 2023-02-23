@@ -25,7 +25,6 @@
 
 // Imports
 import { useRouter } from 'vue-router';
-import { client, startLoggedInClient } from '@/modules/trpcClient';
 import { useClientStore } from '@/stores/clientStore';
 
 // Router
@@ -36,13 +35,8 @@ const clientStore = useClientStore();
 
 // View / components functionality
 const loginAsAdmin = async () => {
-  await startLoggedInClient('superadmin', 'bajskorv');
-  await getClientState();
-  router.push({name: 'home'});
-};
-
-const getClientState = async () => {
-  clientStore.clientState = await client.value.getClientState.query();
+  await clientStore.loginAsAdmin();
+  router.push({name: 'userHome'});
 };
 
 

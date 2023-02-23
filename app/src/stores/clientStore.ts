@@ -5,6 +5,7 @@ import type { RouterOutputs } from '@/modules/trpcClient';
 
 export const useClientStore = defineStore('client', {
   state: () => ({
+    clientState: {} as RouterOutputs['getClientState'],
     greeting: '',
     health: '',
     heartbeat: '',

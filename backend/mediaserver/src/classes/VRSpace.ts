@@ -48,6 +48,10 @@ export default class VrSpace {
     });
   }
 
+  getPublicState() {
+    return 'NOT IMPLEMENTED YET';
+  }
+
   addClient (client: Client){
     if(!this.isOpen){
       log.warn(`You tried to add client ${client.username} to the vr space in ${this.venue.name} that isnt open. No bueno!`);

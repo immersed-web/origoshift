@@ -28,6 +28,9 @@ export const vrRouter = router({
     }
     ctx.venue.vrSpace.addClient(ctx.client);
   }),
+  getState: p.use(isInVenueM).query(({ctx}) => {
+    ctx.venue.vrSpace.getPublicState();
+  }),
   transforms: router({
     updateTransform: p.input(ClientTransformSchema).mutation(({input, ctx}) =>{
       log.debug(`transform received from ${ctx.username} (${ctx.connectionId})`);

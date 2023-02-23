@@ -48,6 +48,9 @@ export const appRouter = router({
   clearObservers: procedure.mutation(({ctx}) => {
     observers.forEach(obs => obs.complete());
   }),
+  getClientState: procedure.query(({ctx}) => {
+    return ctx.client.getPublicState();
+  }),
   getConnectionId: procedure.query(({ctx}) => {
     return ctx.client.connectionId;
   }),

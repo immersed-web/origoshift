@@ -1,14 +1,10 @@
-process.env.DEBUG = 'mediasoup*';
+// process.env.DEBUG = 'mediasoup*';
 process.env.DEBUG = 'uWebSockets*, ' + process.env.DEBUG;
 
 import { Log } from 'debug-level';
-Log.options({
-  // level: 'DEBUG',
-  // splitLine: false,
-});
 const logUws = new Log('uWebSockets');
 logUws.enable(process.env.DEBUG);
-console.log('logUws enabled: ',logUws.enabled);
+// console.log('logUws enabled: ',logUws.enabled);
 
 import observerLogger from './mediasoupObservers';
 const printSoupStats = observerLogger();
@@ -143,8 +139,8 @@ app.ws<JwtUserData>('/*', {
     onSocketOpen(ws, context);
   },
   close: (ws, code, msg) => {
-    logUws.info('socket diconnected:', ws.getUserData());
     const userData = ws.getUserData();
+    logUws.info(`socket diconnected ${userData.username} (${userData.userId})`);
     const client = clientConnections.get(ws);
     if(!client){
       logUws.error('a disconnecting client was not in client list! Something is astray!');

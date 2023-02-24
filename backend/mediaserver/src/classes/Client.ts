@@ -95,6 +95,8 @@ export class Client {
     return camera;
   }
 
+  private _socketClosed = false;
+
   transform: ClientTransform | undefined;
 
   rtpCapabilities?: soupTypes.RtpCapabilities;
@@ -160,6 +162,7 @@ export class Client {
   // NOTE: It's important we release all references here!
   unload() {
     log.info(`unloading client ${ this.username } ${this.connectionId} `);
+    this._socketClosed = true;
     this.consumers.forEach(c => c.close());
     this.producers.forEach(p => p.close());
     this.sendTransport?.close();
@@ -179,6 +182,11 @@ export class Client {
   }
 
   _notifyClientStateUpdated() {
+    if(this._socketClosed){
+      log.info('skipped emitting to client because socket was already closed');
+      return;
+    }
+    log.info(`emitting clientState for ${this.username} (${this.userId})`);
     this.clientEvents.emit('clientState', this.getPublicState());
   }
 

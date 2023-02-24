@@ -155,6 +155,7 @@ export class Client {
     this.connectionId = ConnectionIdSchema.parse(connectionId);
     this.jwtUserData = jwtUserData;
 
+    this.clientEvents = new TypedEmitter();
     this.venueEvents = new TypedEmitter();
     this.vrEvents = new TypedEmitter();
     this.soupEvents = new TypedEmitter();

@@ -8,6 +8,7 @@
     "tsup": "^6.6.3",
     "zod": "^3.20.6"
   },
+  "packageManager": "pnpm@7.27.1",
   "devDependencies": {
     "eslint": "^8.29.0",
     "typescript": "^4.9.3"

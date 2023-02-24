@@ -22,7 +22,7 @@ import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import { JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
-import { Client } from 'classes/InternalClasses';
+import { Client } from './classes/InternalClasses';
 import { Context } from 'trpc/trpc';
 
 export type MyWebsocketType = WebSocket<JwtUserData>;

@@ -2,7 +2,7 @@ import { hasAtLeastSecurityLevel, VenueIdSchema } from 'schemas';
 import { z } from 'zod';
 import { procedure as p, moderatorP, router, isInVenueM } from '../trpc/trpc';
 // import Venue from '../classes/Venue';
-import { Venue } from 'classes/InternalClasses';
+import { Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
 import { TRPCError } from '@trpc/server';
 import type { Prisma } from 'database';

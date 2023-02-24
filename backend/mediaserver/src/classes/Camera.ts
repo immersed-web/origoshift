@@ -1,7 +1,7 @@
 
 import { randomUUID } from 'crypto';
 import { Log } from 'debug-level';
-import  prisma from 'modules/prismaClient';
+import  prisma from '../modules/prismaClient';
 import type { Prisma, Camera as PrismaCamera } from 'database';
 import type { CameraId } from 'schemas';
 import type {Venue, Client} from './InternalClasses';

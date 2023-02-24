@@ -72,7 +72,6 @@ const router = useRouter();
 const clientStore = useClientStore();
 
 // View / components functionality
-
 const username = ref('superadmin');
 const password = ref('bajskorv');
 const error = ref('');

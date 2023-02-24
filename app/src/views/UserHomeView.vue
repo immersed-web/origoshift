@@ -38,12 +38,8 @@
 </template>
 
 <script setup lang="ts">
-// import { onMounted } from 'vue';
-
-// import { client } from '@/modules/trpcClient';
 import VenueThumb from '@/components/VenueThumb.vue';
 import { useClientStore } from '@/stores/clientStore';
-
 
 // Stores
 const clientStore = useClientStore();

@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="hero min-h-screen bg-base-200">
-      <div class="hero-content flex-col lg:flex-row-reverse">
+    <div class="min-h-screen hero bg-base-200">
+      <div class="flex-col gap-10 hero-content lg:flex-row-reverse">
         <div class="text-center lg:text-left">
           <h1 class="text-5xl font-bold">
             Välkommen till OrigoShift
@@ -10,7 +10,7 @@
             Logga in för att delta i kulturevenemang i VR/360.
           </p>
         </div>
-        <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
+        <div class="flex-shrink-0 w-full max-w-sm shadow-2xl card bg-base-100">
           <form
             class="card-body"
             @submit.prevent="login"
@@ -43,7 +43,7 @@
             >
               {{ error }}
             </div>
-            <div class="form-control mt-6">
+            <div class="mt-6 form-control">
               <button
                 type="submit"
                 class="btn btn-primary"

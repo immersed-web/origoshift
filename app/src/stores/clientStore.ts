@@ -25,7 +25,13 @@ export const useClientStore = defineStore('client', {
     },
     async loginAsAdmin () {
       await startLoggedInClient('superadmin', 'bajskorv');
-      await this.updateClientState();
+      this.clientState = await client.value.getClientState.query();
+      client.value.subClientState.subscribe(undefined, {
+        onData: (clientState) => {
+          this.clientState = clientState;
+        },
+      });
+      // await this.updateClientState();
       await this.queryVenuesAll();
       // await this.queryVenuesLoaded();
       return this.clientState;

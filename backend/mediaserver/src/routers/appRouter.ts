@@ -49,10 +49,13 @@ export const appRouter = router({
     observers.forEach(obs => obs.complete());
   }),
   getClientState: procedure.query(({ctx}) => {
-    // const state = ctx.client.getPublicState();
+    return ctx.client.getPublicState();
     // return state.role;
-    return ctx.client.connectionId;
+    // return ctx.client.connectionId;
     // return 'Test' as const;
+  }),
+  subClientState: procedure.subscription(({ctx}) => {
+    return attachEmitter(ctx.client.clientEvents, 'clientState');
   }),
   getConnectionId: procedure.query(({ctx}) => {
     return ctx.role;

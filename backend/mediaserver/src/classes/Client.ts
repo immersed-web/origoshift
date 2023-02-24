@@ -22,6 +22,10 @@ import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
 import { ConsumerId, ProducerId, TransportId } from 'schemas/mediasoup';
 
 
+export type ClientEvents = NonFilteredEvents<{
+  'clientState': (clientState: PublicClientState) => void
+}>
+
 export type ClientVenueEvents = FilteredEvents<{
   'clientAddedOrRemoved': (data: {client: ReturnType<Client['getPublicState']>, added: boolean}) => void,
 }, ConnectionId>
@@ -43,12 +47,12 @@ export type ClientSoupEvents = NonFilteredEvents<{
 }>
 
 export type PublicClientState = {
-  connectionId: string,
-  userId: string,
+  connectionId: ConnectionId,
+  userId: UserId,
   userName: string,
   transform?: ClientTransform,
   role: UserRole,
-  currentVenueId?: string,
+  currentVenueId?: VenueId,
 }
 interface ConstructorParams {
   connectionId?: ConnectionId,
@@ -107,6 +111,7 @@ export class Client {
   consumers: Map<ConsumerId, soupTypes.Consumer> = new Map();
   producers: Map<ProducerId, soupTypes.Producer> = new Map();
 
+  clientEvents: TypedEmitter<ClientEvents>;
   venueEvents: TypedEmitter<ClientVenueEvents>;
   vrEvents: TypedEmitter<ClientVrEvents>;
   soupEvents: TypedEmitter<ClientSoupEvents>;
@@ -180,6 +185,10 @@ export class Client {
     };
   }
 
+  _notifyClientStateUpdated() {
+    this.clientEvents.emit('clientState', this.getPublicState());
+  }
+
 
   async joinVenue(venueId: VenueId) {
     this.leaveCurrentVenue();
@@ -187,6 +196,7 @@ export class Client {
     venue.addClient(this);
     this.sendTransport = await venue.createWebRtcTransport();
     this.receiveTransport = await venue.createWebRtcTransport();
+    this._notifyClientStateUpdated();
   }
 
   /**
@@ -203,6 +213,7 @@ export class Client {
     this.venue.vrSpace.removeClient(this);
     // this.camera.removeClient(this);
     this.venue.removeClient(this);
+    this._notifyClientStateUpdated();
     return true;
   }
 
@@ -212,9 +223,11 @@ export class Client {
       throw Error('cant join vrspace if isnt in a venue!');
     }
     this.venue.vrSpace.addClient(this);
+    this._notifyClientStateUpdated();
   }
   leaveVrSpace() {
     this.venue?.vrSpace.removeClient(this);
+    this._notifyClientStateUpdated();
   }
 
   joinCamera(cameraId: CameraId) {
@@ -223,6 +236,7 @@ export class Client {
       throw Error('no camera with that id exist in the venue');
     }
     camera.addClient(this);
+    this._notifyClientStateUpdated();
   }
   /**
    * @returns boolean indicating if the client was in a camera in the first place. Calling this function when not in a camera will simply do nothing and return false.
@@ -232,6 +246,7 @@ export class Client {
       return false;
     }
     this.currentCamera.removeClient(this);
+    this._notifyClientStateUpdated();
   }
 
   closeAllTransports() {

@@ -86,8 +86,6 @@ const clientStore = useClientStore();
 
 // Server, Client, etc.
 // let client :ReturnType<typeof getClient>;
-const selfId = ref<ConnectionId>();
-const clientTransforms = ref<ClientTransforms>({});
 const avatars = ref<Entity>();
 
 onMounted(async () => {
@@ -97,8 +95,10 @@ onMounted(async () => {
   client.value.venue.subClientAddedOrRemoved.subscribe(undefined, {
     onData(data){
       console.log(data);
+      if(!data.added){
+        delete clientStore.clientTransforms[data.client.connectionId];
+      }
       // Object.keys(data).forEach(id => {
-
       // }
 
     },

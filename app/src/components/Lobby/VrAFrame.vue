@@ -1,77 +1,83 @@
 <template>
-  <div>
-    A-frame
-    <a-scene cursor="rayOrigin: mouse">
-      <a-assets @loaded="onLoaded">
-        <img
-          id="groundTexture"
-          src="https://cdn.aframe.io/a-painter/images/floor.jpg"
-        >
-        <a-asset-item
-          id="venue-asset"
-          src="/models/venue/venue/scene.gltf"
-        />
-        <a-asset-item
-          id="venue_navmesh-asset"
-          src="/models/venue/venue_navmesh/scene.gltf"
-        />
-        <a-asset-item
-          id="dungeon-asset"
-          src="/models/dungeon/dungeon.gltf"
-        />
-        <a-asset-item
-          id="dungeon_navmesh-asset"
-          src="/models/dungeon/navmesh.gltf"
-        />
-        <a-asset-item
-          id="hallway-asset"
-          src="/models/hallway/scene.gltf"
-        />
-      </a-assets>
+  <a-scene
+    cursor="rayOrigin: mouse"
+    ref="scene"
+  >
+    <a-assets @loaded="onLoaded">
+      <img
+        id="groundTexture"
+        src="https://cdn.aframe.io/a-painter/images/floor.jpg"
+      >
+      <a-asset-item
+        id="venue-asset"
+        src="/models/venue/venue/scene.gltf"
+      />
+      <a-asset-item
+        id="venue_navmesh-asset"
+        src="/models/venue/venue_navmesh/scene.gltf"
+      />
+      <a-asset-item
+        id="dungeon-asset"
+        src="/models/dungeon/dungeon.gltf"
+      />
+      <a-asset-item
+        id="dungeon_navmesh-asset"
+        src="/models/dungeon/navmesh.gltf"
+      />
+      <a-asset-item
+        id="hallway-asset"
+        src="/models/hallway/scene.gltf"
+      />
+    </a-assets>
 
-      <a-sky color="#ECECEC" />
+    <a-sky color="#ECECEC" />
 
-      <!-- The model -->
-      <a-entity v-if="loaded">
+    <!-- The model -->
+    <a-entity v-if="loaded">
+      <a-entity
+        id="hallway"
+        gltf-model="#hallway-asset"
+        scale="0.04 0.04 0.04"
+      />
+    </a-entity>
+
+    <!-- Avatar wrapper element -->
+    <a-entity position="2 0 0">
+      <!-- The camera / own avatar -->
+      <!-- The navmesh needs to refer to the actual entity, not only the asset -->
+      <a-camera
+        look-controls
+        wasd-controls="acceleration:100;"
+        emit-move="intervals: 40 500"
+        position="0 2 0"
+        @move0="cameraMoveFast"
+        @move1="cameraMoveSlow"
+        simple-navmesh-constraint="navmesh:#hallway; fall:0.5; height:1.65;"
+      >
         <a-entity
-          id="hallway"
-          gltf-model="#hallway-asset"
-          scale="0.04 0.04 0.04"
+          :text="'value: ' + displayMessage"
+          position="0 0 -1"
+          animation="property: object3D.position.y; to: 0.1; dir: alternate; dur: 500; loop: true"
+        />
+      </a-camera>
+
+      <!-- The avatars -->
+      <a-entity>
+        <RemoteAvatar
+          v-for="[id, transform] in Object.entries(clientStore.clientTransforms).filter(e => e[0] !== clientStore.clientState.connectionId)"
+          :key="id"
+          :id="'avatar-'+id"
+          :transform="transform"
+          :camera-position="cameraPosition"
         />
       </a-entity>
-
-      <!-- Avatar wrapper element -->
-      <a-entity position="2 0 0">
-        <!-- The camera / own avatar -->
-        <!-- The navmesh needs to refer to the actual entity, not only the asset -->
-        <a-camera
-          look-controls
-          wasd-controls="acceleration:100;"
-          emit-move="intervals: 40 500"
-          position="0 2 0"
-          @move0="cameraMoveFast"
-          @move1="cameraMoveSlow"
-          simple-navmesh-constraint="navmesh:#hallway; fall:0.5; height:1.65;"
-        />
-
-        <!-- The avatars -->
-        <a-entity>
-          <RemoteAvatar
-            v-for="[id, transform] in Object.entries(clientStore.clientTransforms).filter(e => e[0] !== clientStore.clientState.connectionId)"
-            :key="id"
-            :id="'avatar-'+id"
-            :transform="transform"
-            :camera-position="cameraPosition"
-          />
-        </a-entity>
-      </a-entity>
-    </a-scene>
-  </div>
+    </a-entity>
+  </a-scene>
 </template>
 
 <script setup lang="ts">
 import 'aframe';
-import type { Entity } from 'aframe';
+import type { Scene } from 'aframe';
 import { ref, onMounted } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import { client } from '@/modules/trpcClient';
@@ -82,8 +88,10 @@ import { useClientStore } from '@/stores/clientStore';
 // Stores
 const clientStore = useClientStore();
 
+// A-frame
+const scene = ref<Scene>();
+
 // Server, Client, etc.
-const avatars = ref<Entity>();
 
 onMounted(async () => {
 
@@ -143,5 +151,8 @@ const cameraPosition = ref([0,0,0] as [number, number, number]);
 function cameraMoveFast (e: CustomEvent<[number, number, number]>){
   cameraPosition.value = e.detail;
 }
+
+// Display message
+const displayMessage = ref('hej');
 
 </script>

@@ -1,15 +1,22 @@
+import { useClientStore } from '@/stores/clientStore';
 import { createRouter, createWebHistory } from 'vue-router';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '',
+      redirect: {name: 'login'},
+    },
+    {
       path: '/login',
       name: 'login',
+      meta: { noAuth: true },
       component:  () => import('../views/LoginView.vue'),
     },
     {
       path: '/user/',
+      meta: { requiresAuth: true },
       children: [
         {
           path: '',
@@ -42,6 +49,19 @@ const router = createRouter({
       component: () => import('../views/TestBackend.vue'),
     },
   ],
+});
+
+router.beforeEach((to, from) => {
+  const clientStore = useClientStore();
+  console.log('Logged in', clientStore.loggedIn, clientStore.clientState);
+
+  if (to.matched.some(record => record.meta.requiresAuth === true) && !clientStore.loggedIn) {
+    console.log(from, to, 'Reroute to login');
+    return { name: 'login' /*, query: { next: to.fullPath } */ };
+  } else if (to.matched.some(record => record.meta.noAuth) && clientStore.loggedIn) {
+    console.log(from, to, 'Reroute to user home');
+    return { name: 'userHome' /*, query: { next: to.fullPath } */ };
+  }
 });
 
 export default router;

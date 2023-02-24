@@ -1,20 +1,57 @@
 <template>
   <div>
     <div class="hero min-h-screen bg-base-200">
-      <div class="hero-content text-center">
-        <div class="max-w-md">
+      <div class="hero-content flex-col lg:flex-row-reverse">
+        <div class="text-center lg:text-left">
           <h1 class="text-5xl font-bold">
             Välkommen till OrigoShift
           </h1>
           <p class="py-6">
-            Logga in för att ta del av kulturevenemang i VR.
+            Logga in för att delta i kulturevenemang i VR/360.
           </p>
-          <button
-            class="btn btn-primary"
-            @click="loginAsAdmin"
+        </div>
+        <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
+          <form
+            class="card-body"
+            @submit.prevent="login"
           >
-            Nu kör vi!
-          </button>
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">E-post</span>
+              </label>
+              <input
+                v-model="username"
+                type="text"
+                placeholder="E-post"
+                class="input input-bordered"
+              >
+            </div>
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Lösenord</span>
+              </label>
+              <input
+                v-model="password"
+                type="password"
+                placeholder="Löesnord"
+                class="input input-bordered"
+              >
+            </div>
+            <div
+              v-if="error"
+              class="alert bg-error"
+            >
+              {{ error }}
+            </div>
+            <div class="form-control mt-6">
+              <button
+                type="submit"
+                class="btn btn-primary"
+              >
+                Logga in
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -26,6 +63,7 @@
 // Imports
 import { useRouter } from 'vue-router';
 import { useClientStore } from '@/stores/clientStore';
+import { ref } from 'vue';
 
 // Router
 const router = useRouter();
@@ -34,9 +72,20 @@ const router = useRouter();
 const clientStore = useClientStore();
 
 // View / components functionality
-const loginAsAdmin = async () => {
-  await clientStore.loginAsAdmin();
-  router.push({name: 'userHome'});
+
+const username = ref('superadmin');
+const password = ref('bajskorv');
+const error = ref('');
+
+const login = async () => {
+  try{
+    await clientStore.login(username.value, password.value);
+    router.push({name: 'userHome'});
+  }
+  catch(e){
+    error.value = e.data;
+  }
+
 };
 
 

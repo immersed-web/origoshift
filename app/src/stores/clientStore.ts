@@ -15,10 +15,13 @@ export const useClientStore = defineStore('client', {
     positionData: {},
   }),
   getters: {
+    loggedIn: (state) => {
+      return !!state.clientState.userId;
+    },
   },
   actions: {
-    async loginAsAdmin () {
-      await startLoggedInClient('superadmin', 'bajskorv');
+    async login (username: string, password: string ) {
+      await startLoggedInClient(username, password);
       await this.updateClientState();
       await this.queryVenuesAll();
       // await this.queryVenuesLoaded();

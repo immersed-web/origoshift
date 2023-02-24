@@ -14,8 +14,12 @@
               <div
                 v-for="venue in clientStore.venuesAll"
                 :key="venue.venueId"
+                class="flex-1"
               >
-                <VenueThumb :venue="venue" />
+                <VenueThumb
+                  :venue="venue"
+                  class="flex-1"
+                />
               </div>
               <div>
                 <button

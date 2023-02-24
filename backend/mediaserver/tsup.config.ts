@@ -6,5 +6,6 @@ export default defineConfig({
   target: 'node18',
   clean: false,
   dts: true,
+  bundle: true,
   onSuccess: 'tsc --emitDeclarationOnly --declaration --declarationMap'
 });

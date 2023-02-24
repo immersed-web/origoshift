@@ -1,9 +1,5 @@
 import axios, { type AxiosResponse } from 'axios';
-// import { NonGuestUserRole, UserData } from 'shared-types/CustomTypes';
-// import { AxiosResponse } from 'axios';
-// import { extractMessageFromCatch } from "shared-modules/utilFns";
 
-// import type { Gathering, GatheringWithRoomsAndUsers, UserWithIncludes } from 'database';
 import type {JwtPayload, JwtUserData } from 'schemas';
 import decodeJwt from 'jwt-decode';
 

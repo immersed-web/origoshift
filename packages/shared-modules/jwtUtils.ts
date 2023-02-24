@@ -2,8 +2,6 @@ import Express from 'express';
 import jwt from 'jsonwebtoken';
 import 'shared-types/augmentedRequest';
 import { JwtPayloadSchema, JwtPayload, JwtUserData } from 'schemas';
-import { z } from 'zod';
-import { Zlib } from 'zlib';
 
 if(!process.env.JWT_ISSUER || !process.env.JWT_AUDIENCE || !process.env.JWT_SECRET){
   throw Error('missing Environment variables for jwt settings!!!');

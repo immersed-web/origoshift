@@ -1,5 +1,5 @@
 import { initTRPC, TRPCError } from '@trpc/server';
-import Client from 'classes/Client';
+import { Client } from 'classes/InternalClasses';
 import { JwtUserData, UserId, ConnectionId, hasAtLeastSecurityLevel } from 'schemas';
 // import type { Context } from 'index';
 

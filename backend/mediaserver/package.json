@@ -9,13 +9,6 @@
       "types": "./dist/routers/appRouter.d.ts"
     }
   },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "dist/routers/appRouter.d.ts"
-      ]
-    }
-  },
   "author": "Gunnar Oledal",
   "license": "ISC",
   "scripts": {

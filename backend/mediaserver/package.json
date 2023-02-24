@@ -14,17 +14,14 @@
   "scripts": {
     "start": "dotenv -e ../../.env node ./dist/index.js",
     "dev": "dotenv -v DEVELOPMENT=true -e ../../.env -- node-dev ./src/index.ts",
-    "build": "tsup",
-    "build:watch": "tsup --watch",
+    "build": "tsup-node --clean",
+    "build:watch": "tsup-node --watch",
     "clean": "tsc --build --clean",
     "test": "jest --watch",
     "test:once": "jest"
   },
   "dependencies": {
-    "@types/lodash": "^4.14.191",
     "database": "workspace:*",
-    "debug": "^4.3.4",
-    "debug-color2": "^1.3.2",
     "debug-level": "3.0.0-1",
     "ip": "^1.1.8",
     "lodash": "^4.17.21",
@@ -34,20 +31,14 @@
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.19.0"
   },
   "devDependencies": {
-    "@ef-carbon/tspm": "^2.2.5",
-    "@types/debug": "^4.1.7",
     "@types/ip": "^1.1.0",
-    "@types/jest": "^27.0.2",
+    "@types/lodash": "^4.14.191",
     "@types/node": "^16.10.9",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.1",
-    "jest": "^27.3.1",
-    "jest-mock-extended": "^2.0.4",
     "node-dev": "^7.4.3",
-    "ts-jest": "^27.0.7",
     "ts-node": "^10.4.0",
-    "tsconfig-paths": "^3.12.0",
     "tscpaths": "^0.0.9"
   }
 }

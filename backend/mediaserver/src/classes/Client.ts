@@ -8,14 +8,6 @@ const log = new Log('Client');
 process.env.DEBUG = 'Client*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-
-// import {types as soupClientTypes} from 'mediasoup-client';
-// import { ClientProperties, ClientState, ProducerInfo } from 'shared-types/CustomTypes';
-// import { createMessage, createRequest, createResponse, Request, RequestSubjects, ResponseTo, SocketMessage, UnknownMessageType } from 'shared-types/MessageTypes';
-// import { extractMessageFromCatch } from 'shared-modules/utilFns';
-// import { checkPermission } from '../modules/utilFns';
-
-
 import { ClientTransform, ClientTransforms, ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId, CameraId } from 'schemas';
 import { getVenue, Venue } from './InternalClasses';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';

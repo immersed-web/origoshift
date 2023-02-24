@@ -1,0 +1,9 @@
+{
+  "fileExtensions": "ts",
+  "excludeRegExp": ["d\\.ts", "gitignore"],
+	"detectiveOptions": {
+		"es6": {
+			"skipTypeImports": true
+		}
+	}
+}

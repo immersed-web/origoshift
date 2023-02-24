@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "@prisma/client": "4",
-    "bcrypt": "^5.0.1",
-    "shared-types": "workspace:*"
+    "bcrypt": "^5.0.1"
   }
 }

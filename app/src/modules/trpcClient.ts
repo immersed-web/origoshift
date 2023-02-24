@@ -23,7 +23,7 @@ export const getClient: ClientGetter = () => client.value;
 
 export const startLoggedInClient = async (username: string, password: string) => {
   if(client.value && !currentClientIsGuest){
-    console.warn('Eeeeeh. You are creating a new trpc-client when there is already one running. Are you suuure you know what you are doing?? I am rather sure you dont wanna do this :-P');
+    console.warn('Eeeeeh. You are creating a new (logged in) trpc-client when there is already one running. Are you suuure you know what you are doing?? I am rather sure you dont wanna do this :-P');
   }
   if(wsClient){
     console.log('closing previous wsLink!');
@@ -64,7 +64,7 @@ const createGuestClient = () => {
 export const startGuestClient = () => {
   console.log('starting guest client');
   if(client.value && currentClientIsGuest){
-    console.warn('Eeeeeh. You are creating a new trpc-client when there is already one running. Are you suuure you know what you are doing?? I am rather sure you dont wanna do this :-P');
+    console.warn('Eeeeeh. You are creating a new  (guest) trpc-client when there is already one running. Are you suuure you know what you are doing?? I am rather sure you dont wanna do this :-P');
   }
   if(wsClient){
     console.log('closing previous wsLink!');
@@ -84,3 +84,7 @@ export const startGuestClient = () => {
 
 const firstClient = createGuestClient();
 export const client: ShallowRef<ReturnType<typeof createTRPCProxyClient<AppRouter>>> = shallowRef<ReturnType<typeof createTRPCProxyClient<AppRouter>>>(firstClient);
+
+const test = async () => {
+  const response = await client.value.getClientState.query();
+};

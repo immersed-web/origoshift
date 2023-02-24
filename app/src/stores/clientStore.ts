@@ -22,6 +22,9 @@ export const useClientStore = defineStore('client', {
   actions: {
     async login (username: string, password: string ) {
       await startLoggedInClient(username, password);
+    },
+    async loginAsAdmin () {
+      await startLoggedInClient('superadmin', 'bajskorv');
       await this.updateClientState();
       await this.queryVenuesAll();
       // await this.queryVenuesLoaded();

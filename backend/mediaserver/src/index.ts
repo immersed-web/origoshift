@@ -19,10 +19,11 @@ const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { ConnectionId, JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema } from 'schemas';
+import { JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
-import Client from './classes/Client';
+import { Client } from 'classes/InternalClasses';
+import { Context } from 'trpc/trpc';
 
 export type MyWebsocketType = WebSocket<JwtUserData>;
 
@@ -70,13 +71,6 @@ if(stdin && stdin.isTTY){
   });
 }
 
-export type Context = Omit<JwtUserData, 'uuid'> & {
-  userId: UserId
-  // uuid: JwtUserData['uuid']
-  // jwt: JwtUserData
-  connectionId: ConnectionId
-  client: Client
-}
 
 const {onSocketOpen, onSocketMessage, onSocketClose} = applyWSHandler<AppRouter, Context>({router: appRouter});
 

@@ -12,9 +12,7 @@ import { ConnectionId, UserId, VenueId, CameraId } from 'schemas';
 import type { Prisma } from 'database';
 import prisma from '../modules/prismaClient';
 
-import Client  from './Client';
-import VrSpace from './VRSpace';
-import Camera from './Camera';
+import { Camera, VrSpace, type Client } from './InternalClasses';
 // import { FilteredEvents } from 'trpc/trpc-utils';
 
 const venueIncludeWhitelistVirtual  = {
@@ -28,7 +26,11 @@ const venueIncludeWhitelistVirtual  = {
 const args = {include: venueIncludeWhitelistVirtual} satisfies Prisma.VenueArgs;
 type VenueResponse = Prisma.VenueGetPayload<typeof args>
 
-export default class Venue {
+export function getVenue(venueId: VenueId){
+  return Venue.getVenue(venueId);
+}
+
+export class Venue {
   // First some static stuff for global housekeeping
   private static venues: Map<VenueId, Venue> = new Map();
 
@@ -62,7 +64,7 @@ export default class Venue {
   static async loadVenue(venueId: VenueId, worker?: soupTypes.Worker) {
     try {
       if(Venue.venues.has(venueId)){
-        throw new Error('Venue already loaded');
+        throw new Error('Venue with that venueId already loaded');
       }
       const dbResponse = await prisma.venue.findUniqueOrThrow({
         where: {
@@ -77,6 +79,8 @@ export default class Venue {
       const router = await worker.createRouter(mediasoupConfig.router);
       const venue = new Venue(dbResponse, router);
       log.info(`loading ${venue.prismaData.name} (${venue.prismaData.venueId})`);
+
+      Venue.venues.set(venue.venueId, venue);
       return venue;
     } catch (e) {
       log.error('failed to load venue');
@@ -150,12 +154,6 @@ export default class Venue {
 
     this.vrSpace = new VrSpace(this, prismaData.virtualSpace);
 
-    const venueAlreadyLoaded = Venue.venues.has(this.venueId);
-    if(venueAlreadyLoaded){
-      throw new Error('Venue with that venueId already loaded');
-    }
-
-    Venue.venues.set(this.venueId, this);
   }
 
   /**

@@ -1,8 +1,9 @@
 import type { VirtualSpace } from 'database';
 import { ClientTransforms, VrSpaceId } from 'schemas';
-import Venue from './Venue';
+// import type Venue from './Venue';
 import { throttle} from 'lodash';
-import Client from './Client';
+// import Client from './Client';
+import type { Client, Venue } from './InternalClasses';
 
 import { Log } from 'debug-level';
 
@@ -11,7 +12,7 @@ const log = new Log('VR:Space');
 process.env.DEBUG = 'VR:Space*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-export default class VrSpace {
+export class VrSpace {
   private _isOpen = false;
   private venue: Venue;
   private prismaData: VirtualSpace;

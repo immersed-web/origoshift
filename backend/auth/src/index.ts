@@ -2,7 +2,6 @@ import express, { json as parseJsonBody } from 'express';
 import cors from 'cors';
 import { randomUUID } from 'crypto';
 import { createJwt } from 'shared-modules/jwtUtils';
-// import { UserData } from 'shared-types/CustomTypes';
 import createUserRouter from './userRoutes';
 import {default as Haikunator} from 'haikunator';
 import wordlist from './haikunator-wordlist';

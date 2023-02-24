@@ -4,7 +4,7 @@ import { vrRouter } from './vrRouter';
 import { venueRouter } from './venueRouter';
 import { observable, Observer } from '@trpc/server/observable';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { any, z } from 'zod';
+import { z } from 'zod';
 import { attachEmitter } from '../trpc/trpc-utils';
 
 const appRouterEvents = new TypedEmitter<{
@@ -49,12 +49,17 @@ export const appRouter = router({
     observers.forEach(obs => obs.complete());
   }),
   getClientState: procedure.query(({ctx}) => {
-    return ctx.client.getPublicState();
+    // const state = ctx.client.getPublicState();
+    // return state.role;
+    return ctx.client.connectionId;
+    // return 'Test' as const;
   }),
   getConnectionId: procedure.query(({ctx}) => {
-    return ctx.client.connectionId;
+    return ctx.role;
+    // return `Hello ${ctx.role}!` as const;
+    // return ctx.client.username;
   }),
-  greeting: procedure.query(({ctx}) => `Hello ${ctx.username}!`),
+  greeting: procedure.query(({ctx}) => `Hello ${ctx.client.username}!`),
   venue: venueRouter,
   soup: soupRouter,
   vr: vrRouter,

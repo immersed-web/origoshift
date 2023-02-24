@@ -17,7 +17,7 @@ log.enable(process.env.DEBUG);
 
 
 import { ClientTransform, ClientTransforms, ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId, CameraId } from 'schemas';
-import Venue from './Venue';
+import { getVenue, Venue } from './InternalClasses';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
 import { ConsumerId, ProducerId, TransportId } from 'schemas/mediasoup';
 
@@ -42,13 +42,13 @@ export type ClientSoupEvents = NonFilteredEvents<{
   'producerClosed': (producerId: ProducerId) => void
 }>
 
-type PublicClientState = {
-  connectionId: ConnectionId,
-  userId: UserId,
+export type PublicClientState = {
+  connectionId: string,
+  userId: string,
   userName: string,
   transform?: ClientTransform,
-  readonly role: UserRole,
-  currentVenueId?: VenueId,
+  role: UserRole,
+  currentVenueId?: string,
 }
 interface ConstructorParams {
   connectionId?: ConnectionId,
@@ -59,7 +59,7 @@ interface ConstructorParams {
  * @class
  * This class represents the backend state of a client connection.
  */
-export default class Client {
+export class Client {
   /**
   * The id of the actual connection. This differs from the userId, as a user could potentially have multiple concurrent active connections
   */
@@ -137,7 +137,8 @@ export default class Client {
   get venue() {
     try{
       if(!this.venueId) return undefined;
-      return Venue.getVenue(this.venueId);
+      return getVenue(this.venueId);
+      // return Venue.getVenue(this.venueId);
     } catch (e) {
       console.error(e);
       return undefined;

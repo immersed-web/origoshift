@@ -1,6 +1,7 @@
-import Client from 'classes/Client';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import Venue from './classes/Venue';
+// import Client from 'classes/Client';
+// import Venue from './classes/Venue';
+import { Client, Venue } from 'classes/InternalClasses';
 
 // @ts-expect-error: We allow reading private field here
 type venueDict = typeof Venue.venues extends Map<infer K, any>?Record<K, number>:never

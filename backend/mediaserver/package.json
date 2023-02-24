@@ -2,17 +2,17 @@
   "name": "mediaserver",
   "version": "1.0.0",
   "description": "mediasoup server for inclubit 2",
-  "main": "./src/routers/appRouter.ts",
-  "types": "./src/routers/appRouter.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/routers/appRouter.d.ts",
   "exports": {
     ".": {
-      "types": "./src/routers/appRouter.ts"
+      "types": "./dist/routers/appRouter.d.ts"
     }
   },
   "typesVersions": {
     "*": {
       "*": [
-        "src/routers/appRouter.ts"
+        "dist/routers/appRouter.d.ts"
       ]
     }
   },
@@ -28,6 +28,8 @@
     "test:once": "jest"
   },
   "dependencies": {
+    "@trpc/client": "^10.12.0",
+    "@trpc/server": "^10.12.0",
     "@types/lodash": "^4.14.191",
     "database": "workspace:*",
     "debug": "^4.3.4",

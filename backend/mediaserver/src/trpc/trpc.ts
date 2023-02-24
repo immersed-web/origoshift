@@ -1,7 +1,15 @@
 import { initTRPC, TRPCError } from '@trpc/server';
-import { JwtUserData, hasAtLeastSecurityLevel } from 'schemas';
-import type { Context } from 'index';
+import Client from 'classes/Client';
+import { JwtUserData, UserId, ConnectionId, hasAtLeastSecurityLevel } from 'schemas';
+// import type { Context } from 'index';
 
+export type Context = JwtUserData & {
+  // userId: UserId
+  // uuid: JwtUserData['uuid']
+  // jwt: JwtUserData
+  connectionId: ConnectionId
+  client: Client
+}
 const trpc = initTRPC.context<Context>().create();
 
 export const middleware = trpc.middleware;

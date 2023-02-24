@@ -1,11 +1,4 @@
-
 import { RequestHandler, Router, Request as ExpressReq } from 'express';
-import prisma from './prismaClient';
-import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { throwIfUnauthorized, hasAtLeastSecurityLevel } from 'shared-modules/authUtils';
-// import { securityLevels } from 'shared-types/CustomTypes';
-import { roleHierarchy } from 'schemas';
-import { isLoggedIn } from './utils';
 
 const index: RequestHandler = (req, res) => {
   res.send({ message: 'this is the auth api route. Here youcan interact with the rooms and gatherings' });

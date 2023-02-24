@@ -4,8 +4,7 @@ import { Log } from 'debug-level';
 import  prisma from 'modules/prismaClient';
 import type { Prisma, Camera as PrismaCamera } from 'database';
 import type { CameraId } from 'schemas';
-import Venue from './Venue';
-import Client from './Client';
+import type {Venue, Client} from './InternalClasses';
 
 const log = new Log('Camera');
 
@@ -13,7 +12,7 @@ process.env.DEBUG = 'Camera*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 
-export default class Camera {
+export class Camera {
   static async createNewCamera(name: string, venue: Venue){
     try {
       const result = await prisma.camera.create({

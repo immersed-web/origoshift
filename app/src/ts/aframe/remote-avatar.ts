@@ -6,7 +6,9 @@ export default () => {
   AFRAME.registerComponent('remote-avatar', {
 
     // Component schema (incoming properties)
-    schema: {},
+    schema: {
+      interpolationTime: {type: 'number', default: 500},
+    },
 
     // Component variables
     interpolationBuffer: undefined as InterpolationBuffer | undefined,
@@ -33,10 +35,10 @@ export default () => {
 
     // Component functions
     initInterpolationBuffer: function () {
-      this.interpolationBuffer = new InterpolationBuffer(undefined, 0.2);
+      this.interpolationBuffer = new InterpolationBuffer(undefined, this.data.interpolationTime / 1000);
       const interpolationBuffer = this.interpolationBuffer;
       this.el.addEventListener('moveTo', function (e) {
-        // console.log('Moving remote avatar', data.id, e.detail.position);
+        // console.log('Moving remote avatar', e.detail.position);
 
         // // Interpolate with buffered-interpolation
         interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(e.detail.position[0], e.detail.position[1], e.detail.position[2]));

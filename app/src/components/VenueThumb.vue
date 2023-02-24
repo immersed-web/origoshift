@@ -25,7 +25,12 @@ const props = defineProps({
 });
 
 const loadAndJoinVenue = async (venueId: string) => {
-  await client.value.venue.loadVenue.mutate({venueId: venueId});
+  try{
+    await client.value.venue.loadVenue.mutate({venueId: venueId});
+  }
+  catch(e){
+    console.log(e);
+  }
   await client.value.venue.joinVenue.mutate({venueId});
   router.push({name: 'userVenue'});
 };

@@ -5,6 +5,6 @@
 </template>
 
 <script setup lang="ts">
-import AFrame from '../components/AFrame.vue';
+import AFrame from '../components/Lobby/AFrame.vue';
 </script>
 

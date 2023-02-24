@@ -170,7 +170,7 @@ function startTransformSubscription() {
   transformSubscription = client.value.vr.transforms.subClientTransforms.subscribe(undefined, {
     onData(data) {
       console.log('received transform data!', data);
-      clientStore.positionData = data;
+      clientStore.clientTransforms = data;
       for(const [k, t] of Object.entries(data) as [ConnectionId, ClientTransform][]){
         if(k !== connectionId.value){
           slider.value = t.position[0];

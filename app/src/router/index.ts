@@ -28,12 +28,12 @@ const router = createRouter({
           name: 'userVenue',
           component:  () => import('../views/UserVenueView.vue'),
         },
+        {
+          path: 'lobby',
+          name: 'lobby',
+          component:  () => import('../views/LobbyView.vue'),
+        },
       ],
-    },
-    {
-      path: '/lobby',
-      name: 'lobby',
-      component:  () => import('../views/LobbyView.vue'),
     },
     {
       path: '/about',

@@ -59,9 +59,11 @@
           ref="avatars"
         >
           <RemoteAvatar
-            v-for="key in Object.keys(remoteAvatarsData).filter(k => k !== selfId)"
-            :key="key"
-            :id="'avatar-'+key"
+            v-for="[id, transform] in Object.entries(clientStore.clientTransforms).filter(e => e[0] !== clientStore.clientState.connectionId)"
+            :key="id"
+            :id="'avatar-'+id"
+            :transform="transform"
+            :camera-position="cameraPosition"
           />
         </a-entity>
       </a-entity>
@@ -72,71 +74,62 @@
 <script setup lang="ts">
 import 'aframe';
 import type { Entity } from 'aframe';
-import { ref, onMounted } from 'vue';
+import { type Ref, ref, onMounted } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
-import { getClient, startLoggedInClient  } from '@/modules/trpcClient';
+import { client, startLoggedInClient  } from '@/modules/trpcClient';
 import type { ConnectionId, ClientTransform, ClientTransforms } from 'schemas';
+import type { Unsubscribable } from '@trpc/server/observable';
+import { useClientStore } from '@/stores/clientStore';
+
+// Stores
+const clientStore = useClientStore();
 
 // Server, Client, etc.
-let client :ReturnType<typeof getClient>;
+// let client :ReturnType<typeof getClient>;
 const selfId = ref<ConnectionId>();
-const remoteAvatarsData = ref<ClientTransforms>({});
+const clientTransforms = ref<ClientTransforms>({});
 const avatars = ref<Entity>();
 
 onMounted(async () => {
-  // client = await startGuestClient();
-  await startLoggedInClient('superadmin', 'bajskorv');
-  client = getClient();
 
-  selfId.value = await client.getConnectionId.query();
-  const myVenues = await client.venue.listMyVenues.query();
-  console.log('myVenues:', myVenues);
-  const uuid = myVenues[0].uuid;
-  try{
+  startTransformSubscription();
 
-    const loadedId = await client.venue.loadVenue.mutate({uuid});
-  } catch(e){
-    console.warn('was already loaded');
-  }
-  await client.venue.joinVenue.mutate({uuid});
-  // console.log('Client', client, selfId.value);
-  const sub = client.vr.transforms.subClientTransforms.subscribe(undefined, {
+  client.value.venue.subClientAddedOrRemoved.subscribe(undefined, {
     onData(data){
       console.log(data);
-      const k = Object.keys(data);
-      // remoteAvatarsData.value = data;
-      for(const [key, transform] of Object.entries(data) as [ConnectionId, ClientTransform][]){
-        remoteAvatarsData.value[key] = transform;
-        handleRemoteAvatarData(key, transform);
-      }
+      // Object.keys(data).forEach(id => {
+
+      // }
+
     },
   });
-
-  client.venue.subClientAddedOrRemoved.subscribe(undefined, {onData(data) {
-    if(!data.added){
-      delete remoteAvatarsData.value[data.client.connectionId];
-    }
-  }});
 
   // Clear clients on C key down
   window.addEventListener('keydown', (event) => {
     if (event.key === 'c') {
-      clearClients();
+      clearClientTransforms();
     }
   });
 
 });
 
-async function clearClients() {
-  // await client.vr.transforms..mutate();
+let transformSubscription: Unsubscribable | undefined = undefined;
+function startTransformSubscription() {
+  if(transformSubscription){
+    transformSubscription.unsubscribe();
+  }
+  transformSubscription = client.value.vr.transforms.subClientTransforms.subscribe(undefined, {
+    onData(data) {
+      clientStore.clientTransforms = {...clientStore.clientTransforms, ...data};
+      // console.log('received transform data!', data, clientStore.clientTransforms);
+    },
+  });
+  console.log('Subscribe to client transforms',transformSubscription);
 }
 
-// Handle single remote client data, called on subscription update
-function handleRemoteAvatarData(id: string, transform : ClientTransform) {
-  const el = avatars.value?.querySelector<Entity>('#avatar-'+id);
-  if(el){
-    el.emit('moveTo', {position: transform.position});
-  }
+async function clearClientTransforms() {
+  clientStore.clientTransforms = {};
+  // await client.vr.transforms..mutate();
 }
 
 // Load a-frame assets
@@ -148,28 +141,19 @@ function onLoaded () {
 
 // Move callbacks
 
-async function cameraMoveSlow (e: CustomEvent<string>){
+async function cameraMoveSlow (e: CustomEvent<[number, number, number]>){
   const positionStr = e.detail;
   // console.log('Camera move slow', positionStr);
   if(client){
-    const position: ClientTransform['position'] = positionStr.split(' ').map(c => parseFloat(c)) as [number, number, number];
+    const position: ClientTransform['position'] = e.detail;
     const randomRot: ClientTransform['orientation'] = [Math.random(),Math.random(),Math.random(),Math.random()];
-    await client.vr.transforms.updateTransform.mutate({orientation: randomRot, position});
+    await client.value.vr.transforms.updateTransform.mutate({orientation: randomRot, position});
   }
 }
 
-function cameraMoveFast (e: CustomEvent<string>){
-  const positionStr = e.detail;
-  // console.log('Camera move fast', positionStr);
-
-  // Update camera (self avatar) position for each local RemoteAvatar
-  // Used to handle distance calculations etc.
-  Object.keys(remoteAvatarsData.value).forEach(id => {
-    const el = avatars.value?.querySelector<Entity>('#avatar-'+id);
-    if(el)
-      el.emit('cameraPosition', {position: positionStr.split(' ')});
-  });
-
+const cameraPosition = ref([0,0,0] as [number, number, number]);
+function cameraMoveFast (e: CustomEvent<[number, number, number]>){
+  cameraPosition.value = e.detail;
 }
 
 </script>

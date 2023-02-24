@@ -4,6 +4,12 @@
       <div class="max-w-md">
         <h1 class="text-5xl font-bold">
           Loaded and joined venue: {{ clientStore.clientState.currentVenueId }}
+          <button
+            class="btn btn-outline btn-primary"
+            @click="openLobby"
+          >
+            Gå in i VR-lobby
+          </button>
         </h1>
       </div>
     </div>
@@ -11,12 +17,13 @@
 </template>
 
 <script setup lang="ts">
-// import { onMounted } from 'vue';
-
-// import { client } from '@/modules/trpcClient';
-// import VenueOverview from '@/components/VenueOverview.vue';
-import { useClientStore } from '@/stores/clientStore';
 import { onMounted } from 'vue';
+import { useClientStore } from '@/stores/clientStore';
+import { useRouter } from 'vue-router';
+import { client } from '@/modules/trpcClient';
+
+// Router
+const router = useRouter();
 
 // Stores
 const clientStore = useClientStore();
@@ -25,6 +32,12 @@ const clientStore = useClientStore();
 onMounted(() => {
   clientStore.updateClientState();
 });
+
+const openLobby = async () => {
+  await client.value.vr.openVrSpace.mutate();
+  await client.value.vr.enterVrSpace.mutate();
+  router.push({name: 'lobby'});
+};
 
 </script>
 

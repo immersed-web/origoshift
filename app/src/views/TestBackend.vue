@@ -21,7 +21,7 @@
           </div>
         </div>
         <pre>
-          {{ clientStore.positionData }}
+          {{ clientStore.clientTransforms }}
         </pre>
       </div>
     </div>

@@ -13,7 +13,7 @@ export default () => {
     finalEmitSent: [false] as boolean[],
     emitPosition: function (i: number, position: string) {
       this.lastEmit[i] = Date.now();
-      this.el.emit('move'+i, position);
+      this.el.emit('move'+i, [this.el.object3D.position.x, this.el.object3D.position.y, this.el.object3D.position.z]);
     },
     init: function () {
       this.intervals = (this.data.intervals as string).split(' ').map(i => parseInt(i));

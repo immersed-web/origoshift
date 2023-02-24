@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
 // import type { ClientTransform, ConnectionId } from 'schemas';
 import { client, startLoggedInClient } from '@/modules/trpcClient';
+import type { ClientTransforms } from 'schemas/*';
 
 export const useClientStore = defineStore('client', {
   state: () => ({
@@ -12,7 +13,7 @@ export const useClientStore = defineStore('client', {
     heartbeat: '',
     venuesAll: [] as RouterOutputs['venue']['listMyVenues'],
     // venuesLoaded: {} as RouterOutputs['venue']['listLoadedVenues'],
-    positionData: {},
+    clientTransforms: {} as ClientTransforms,
   }),
   getters: {
     loggedIn: (state) => {
@@ -22,9 +23,6 @@ export const useClientStore = defineStore('client', {
   actions: {
     async login (username: string, password: string ) {
       await startLoggedInClient(username, password);
-    },
-    async loginAsAdmin () {
-      await startLoggedInClient('superadmin', 'bajskorv');
       this.clientState = await client.value.getClientState.query();
       client.value.subClientState.subscribe(undefined, {
         onData: (clientState) => {

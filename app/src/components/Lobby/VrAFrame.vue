@@ -55,6 +55,7 @@
         simple-navmesh-constraint="navmesh:#hallway; fall:0.5; height:1.65;"
       >
         <a-entity
+          v-if="displayMessage.length"
           :text="'value: ' + displayMessage"
           position="0 0 -1"
           animation="property: object3D.position.y; to: 0.1; dir: alternate; dur: 500; loop: true"
@@ -153,6 +154,6 @@ function cameraMoveFast (e: CustomEvent<[number, number, number]>){
 }
 
 // Display message
-const displayMessage = ref('hej');
+const displayMessage = ref('');
 
 </script>

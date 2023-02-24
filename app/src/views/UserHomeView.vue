@@ -10,7 +10,7 @@
             <h2 class="text-3xl font-bold">
               Dina venues
             </h2>
-            <div class="flex">
+            <div class="flex space-x-2">
               <div
                 v-for="venue in clientStore.venuesAll"
                 :key="venue.venueId"

@@ -17,7 +17,7 @@
 import 'aframe';
 import type { Entity } from 'aframe';
 import type { ClientTransform } from 'schemas/*';
-import { ref, defineProps, type PropType, watch  } from 'vue';
+import { ref, type PropType, watch  } from 'vue';
 
 // Props & emits
 const props = defineProps({

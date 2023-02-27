@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 
-import { defineProps, type PropType } from 'vue';
+import type { PropType } from 'vue';
 import { useRouter } from 'vue-router';
 import { client } from '@/modules/trpcClient';
 import type { RouterOutputs } from '@/modules/trpcClient';

@@ -51,10 +51,10 @@ async function seedDev() {
     }
   })
 
-  const cameraRole: Role = 'camera';
+  const cameraRole: Role = 'sender';
   await prisma.user.create({
     data: {
-      username: 'camera',
+      username: 'sender',
       password: hashedPassword,
       role: cameraRole,
     }

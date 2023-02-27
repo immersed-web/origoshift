@@ -54,7 +54,7 @@ const jwtDefaultPayload: toZod<JWTDefaultPayload> = z.object({
 // TODO: I would really prefer to infer a const literal tuple from the prisma enum.
 // That is. Could we in some way convert/extract a literal tuple from the prisma type and then use z.enum() on it directly
 // Then we could use that extracted literal tuple from prisma instead of defining it manually here. This is redundant and we need to keep them in sync
-export const roleHierarchy = (['gunnar', 'superadmin', 'admin', 'moderator', 'camera', 'user', 'guest'] as const) satisfies Readonly<Role[]>;
+export const roleHierarchy = (['gunnar', 'superadmin', 'admin', 'moderator', 'sender', 'user', 'guest'] as const) satisfies Readonly<Role[]>;
 
 export function throwIfUnauthorized(role: UserRole, minimumUserRole: UserRole) {
   if(!hasAtLeastSecurityLevel(role, minimumUserRole)){

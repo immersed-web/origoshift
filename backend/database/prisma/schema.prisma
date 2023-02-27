@@ -24,6 +24,7 @@ enum Role {
   superadmin
   admin
   moderator
+  camera
   user
   guest
 }

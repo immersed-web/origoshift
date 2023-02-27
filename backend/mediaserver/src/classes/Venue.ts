@@ -48,7 +48,7 @@ export class Venue {
           startTime: new Date(),
           virtualSpace: {
             create: {
-              settings: 'asdas'
+              settings: {cool: 'asdas' },
             }
           }
 

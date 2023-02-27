@@ -51,6 +51,15 @@ async function seedDev() {
     }
   })
 
+  const cameraRole: Role = 'camera';
+  await prisma.user.create({
+    data: {
+      username: 'camera',
+      password: hashedPassword,
+      role: cameraRole,
+    }
+  })
+
 }
 
 if (process.env.DEVELOPMENT) {

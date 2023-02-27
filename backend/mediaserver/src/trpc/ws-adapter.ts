@@ -83,7 +83,7 @@ export function applyWSHandler<TRouter extends AnyRouter, Ctx>(opts: WSHandlerOp
       const msgs: unknown[] = Array.isArray(msgJSON) ? msgJSON : [msgJSON];
       const promises = msgs
         .map((raw) => parseMessage(raw, transformer))
-        .map(msg => handleRequest(ws, msg, ws.send));
+        .map(msg => handleRequest(ws, msg));
       await Promise.all(promises);
     } catch (cause) {
       const error = new TRPCError({
@@ -141,7 +141,7 @@ export function applyWSHandler<TRouter extends AnyRouter, Ctx>(opts: WSHandlerOp
   }
 
 
-  const handleRequest = async (ws: MinimalWSInterface, msg: TRPCClientOutgoingMessage, send: BasicSendFunction) => {
+  const handleRequest = async (ws: MinimalWSInterface, msg: TRPCClientOutgoingMessage) => {
     if(!ws){
       throw new Error('handler was called with undefined websocket instance');
     }

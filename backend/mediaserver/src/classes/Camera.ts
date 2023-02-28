@@ -4,7 +4,7 @@ import { Log } from 'debug-level';
 import  prisma from '../modules/prismaClient';
 import type { Prisma, Camera as PrismaCamera } from 'database';
 import type { CameraId } from 'schemas';
-import type {Venue, Client} from './InternalClasses';
+import type {Venue, UserClient} from './InternalClasses';
 
 const log = new Log('Camera');
 
@@ -71,13 +71,20 @@ export class Camera {
   /**
    * Add a client to the camera. This function also takes care of setting the clients currentCamera field.
    */
-  addClient(client: Client){
+  addClient(client: UserClient){
+    const cc = client.currentCamera;
+    if(cc){
+      cc.removeClient(client);
+    }
     this.clients.set(client.connectionId, client);
     client._setCamera(this.cameraId);
   }
 
-  removeClient(client: Client){
-    this.clients.delete(client.connectionId);
-    client._setCamera();
+  removeClient(client: UserClient){
+    const wasRemoved = this.clients.delete(client.connectionId);
+    if(wasRemoved){
+      client._setCamera();
+    }
+    return wasRemoved;
   }
 }

@@ -1,6 +1,11 @@
+import { Log } from 'debug-level';
+const log = new Log('Venue:Router');
+process.env.DEBUG = 'Venue:Router*, ' + process.env.DEBUG;
+log.enable(process.env.DEBUG);
+
 import { hasAtLeastSecurityLevel, VenueIdSchema } from 'schemas';
 import { z } from 'zod';
-import { procedure as p, moderatorP, router, isInVenueM } from '../trpc/trpc';
+import { procedure as p, moderatorP, router, isInVenueM, senderP, venueAdminP, isBaseClientM, isUserClientM, isSenderClientM } from '../trpc/trpc';
 // import Venue from '../classes/Venue';
 import { Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
@@ -9,13 +14,13 @@ import type { Prisma } from 'database';
 import { attachEmitter, attachFilteredEmitter } from '../trpc/trpc-utils';
 
 export const venueRouter = router({
-  createNewVenue: moderatorP.input(z.object({
+  createNewVenue: venueAdminP.input(z.object({
     name: z.string()
   })).mutation(async ({input, ctx}) => {
     const venueId = await Venue.createNewVenue(input.name, ctx.userId);
     return venueId;
   }),
-  deleteVenue: moderatorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
+  deleteVenue: venueAdminP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
     if(Venue.venueIsLoaded({venueId: input.venueId})){
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'Cant delete a venue when its loaded. Unload it first!'});
     }
@@ -36,11 +41,11 @@ export const venueRouter = router({
     });
     return dbResponse;
   }),
-  loadVenue: moderatorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input}) => {
+  loadVenue: venueAdminP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input}) => {
     const venue = await Venue.loadVenue(input.venueId);
     return venue.venueId;
   }),
-  subVenueUnloaded: p.subscription(({ctx}) => {
+  subVenueUnloaded: p.use(isBaseClientM).subscription(({ctx}) => {
     attachEmitter(ctx.client.venueEvents, 'venueWasUnloaded');
   }),
   listMyVenues: moderatorP.query(async ({ctx}) => {
@@ -55,21 +60,26 @@ export const venueRouter = router({
     });
     return dbResponse;
   }),
-  subClientAddedOrRemoved: p.subscription(({ctx}) => {
+  subClientAddedOrRemoved: p.use(isUserClientM).subscription(({ctx}) => {
     return attachFilteredEmitter(ctx.client.venueEvents, 'clientAddedOrRemoved', ctx.connectionId);
   }),
   listLoadedVenues: p.query(({ctx}) => {
     return Venue.getLoadedVenues();
   }),
-  joinVenue: p.input(
+  joinVenue: p.use(isUserClientM).input(
     z.object({
       venueId: VenueIdSchema
     })
   ).mutation(({input, ctx}) => {
-    console.log('request received to join venue:', input.venueId);
+    log.info('request received to join venue:', input.venueId);
     ctx.client.joinVenue(input.venueId);
   }),
-  leaveCurrentVenue: p.use(isInVenueM).query(({ctx}) => {
+  joinVenueAsSender: senderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
+    .mutation(({ctx, input}) =>{
+      log.info('request received to join venue as sender:', input.venueId);
+      ctx.client.joinVenue(input.venueId);
+    }),
+  leaveCurrentVenue: p.use(isInVenueM).use(isBaseClientM).query(({ctx}) => {
     if(!ctx.client.leaveCurrentVenue()){
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'cant leave if not in a venue.. Duh!'});
     }

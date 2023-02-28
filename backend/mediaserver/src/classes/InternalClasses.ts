@@ -1,4 +1,9 @@
+export * from './Connection';
+export * from './BaseClient';
+export * from './UserClient';
+export * from './SenderClient';
+
 export * from './Venue';
-export * from './Client';
+
 export * from './Camera';
 export * from './VrSpace';

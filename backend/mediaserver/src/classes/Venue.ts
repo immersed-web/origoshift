@@ -12,7 +12,7 @@ import { ConnectionId, UserId, VenueId, CameraId } from 'schemas';
 import type { Prisma } from 'database';
 import prisma from '../modules/prismaClient';
 
-import { Camera, VrSpace, type Client } from './InternalClasses';
+import { Camera, VrSpace, type UserClient, SenderClient  } from './InternalClasses';
 // import { FilteredEvents } from 'trpc/trpc-utils';
 
 const venueIncludeWhitelistVirtual  = {
@@ -26,9 +26,9 @@ const venueIncludeWhitelistVirtual  = {
 const args = {include: venueIncludeWhitelistVirtual} satisfies Prisma.VenueArgs;
 type VenueResponse = Prisma.VenueGetPayload<typeof args>
 
-export function getVenue(venueId: VenueId){
-  return Venue.getVenue(venueId);
-}
+// export function getVenue(venueId: VenueId){
+//   return Venue.getVenue(venueId);
+// }
 
 export class Venue {
   // First some static stuff for global housekeeping
@@ -143,9 +143,15 @@ export class Venue {
 
   cameras: Map<CameraId, Camera> = new Map();
 
-  private clients: Map<ConnectionId, Client> = new Map();
+  private clients: Map<ConnectionId, UserClient> = new Map();
   get clientList() {
     return Array.from(this.clients.keys());
+  }
+
+  private senderClients: Map<ConnectionId, SenderClient> = new Map();
+
+  get _isEmpty() {
+    return this.clients.size === 0 && this.senderClients.size === 0;
   }
 
   private constructor(prismaData: VenueResponse, router: soupTypes.Router){
@@ -160,7 +166,7 @@ export class Venue {
    * adds a client to this venues collection of clients. Also takes care of assigning the venue inside the client itself
    * @param client the client instance to add to the venue
    */
-  addClient ( client : Client){
+  addClient ( client : UserClient){
     log.info(`Client ${client.username} added to the venue ${this.prismaData.name}`);
     // console.log('clients before add: ',this.clients);
     this.clients.set(client.connectionId, client);
@@ -171,20 +177,29 @@ export class Venue {
 
   /**
    * Removes the client from the venue. Also automatically unloads the venue if it becomes empty
+   * Also removes the client from camera or a vrSpace if its inside one
    */
-  removeClient (client: Client) {
-    log.info(`removing ${client.username} from the venue ${this.prismaData.name}`);
-    // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states
+  removeClient (client: UserClient) {
+    log.info(`removing ${client.username} (${client.connectionId}) from the venue ${this.prismaData.name}`);
+    // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states?
+    const camera = client.currentCamera;
+    if(camera){
+      camera.removeClient(client);
+    }
+    const vrSpace = client.vrSpace;
+    if(vrSpace){
+      vrSpace.removeClient(client);
+    }
     this.clients.delete(client.connectionId);
     client._setVenue(undefined);
 
-    if(!this.clients.size){
+    if(this._isEmpty){
       this.unload();
     }
     this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
   }
 
-  emitToAllClients: Client['venueEvents']['emit'] = (event, ...args) => {
+  emitToAllClients: UserClient['venueEvents']['emit'] = (event, ...args) => {
     log.info(`emitting ${event} to all clients`);
     let allEmittersHadListeners = true;
     this.clients.forEach((client) => {
@@ -197,7 +212,33 @@ export class Venue {
     return allEmittersHadListeners;
   };
 
-  // Hpefully well never have to uncomment and use this function. for security we aim to not expose the raw clients outside the venue instance
+  /**
+   * Adds a senderClient to the venue. senderClients are distinct from normal clients in that
+   * their only role is to send media to the server. The server can instruct connected senderClients to start or stop media producers.
+   * The server is then responsible for linking the producers from senderCLients to the server Camera instances
+   */
+  addSenderClient (senderClient : SenderClient){
+    log.info(`SenderClient ${senderClient.username} (${senderClient.connectionId}) added to the venue ${this.prismaData.name}`);
+    // console.log('clients before add: ',this.clients);
+    // const senderClient = new SenderClient(client);
+    this.senderClients.set(senderClient.connectionId, senderClient);
+    // console.log('clients after add: ',this.clients);
+    senderClient._setVenue(this.venueId);
+    // this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
+  }
+
+  removeSenderClient (senderClient: SenderClient) {
+    log.info(`SenderClient ${senderClient.username} (${senderClient.connectionId}) removed from the venue ${this.prismaData.name}`);
+    this.senderClients.delete(senderClient.connectionId);
+    senderClient._setVenue(undefined);
+
+    if(this._isEmpty){
+      this.unload();
+    }
+    // this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
+  }
+
+  // Hopefully well never have to uncomment and use this function. for security we aim to not directly expose the raw clients outside the venue instance
   // getClient (connectionId: ConnectionId){
   //   const client = this.clients.get(connectionId);
   //   if(!client){
@@ -205,31 +246,6 @@ export class Venue {
   //   }
   //   return client;
   // }
-
-  // addSender(client: Client){
-  //   this.senderClients.set(client.id, client);
-  //   this.broadCastGatheringState();
-  // }
-
-  // removeSender(client: Client){
-  //   this.senderClients.delete(client.id);
-  //   this.broadCastGatheringState();
-  // }
-
-  // getSender (clientId: string){
-  //   const client = this.senderClients.get(clientId);
-  //   if(!client){
-  //     throw new Error('no client with that id in gathering');
-  //   }
-  //   return client;
-  // }
-
-
-
-
-
-
-
 
   // getRtpCapabilities(): soupTypes.RtpCapabilities {
   //   return this.router.rtpCapabilities;

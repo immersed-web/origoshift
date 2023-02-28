@@ -81,8 +81,9 @@ const login = async () => {
     await clientStore.login(username.value, password.value);
     router.push({name: 'userHome'});
   }
-  catch(e){
-    error.value = e.data;
+  catch(e: unknown){
+    console.error(e);
+    error.value = e.message;
   }
 
 };

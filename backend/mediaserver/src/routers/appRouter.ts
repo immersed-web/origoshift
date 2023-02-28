@@ -1,4 +1,4 @@
-import { router, procedure } from '../trpc/trpc';
+import { router, procedure, isUserClientM } from '../trpc/trpc';
 import { soupRouter } from './soupRouter';
 import { vrRouter } from './vrRouter';
 import { venueRouter } from './venueRouter';
@@ -48,21 +48,21 @@ export const appRouter = router({
   clearObservers: procedure.mutation(({ctx}) => {
     observers.forEach(obs => obs.complete());
   }),
-  getClientState: procedure.query(({ctx}) => {
+  getClientState: procedure.use(isUserClientM).query(({ctx}) => {
     return ctx.client.getPublicState();
     // return state.role;
     // return ctx.client.connectionId;
     // return 'Test' as const;
   }),
-  subClientState: procedure.subscription(({ctx}) => {
-    return attachEmitter(ctx.client.clientEvents, 'clientState');
+  subClientState: procedure.use(isUserClientM).subscription(({ctx}) => {
+    return attachEmitter(ctx.client.userEvents, 'clientState');
   }),
   getConnectionId: procedure.query(({ctx}) => {
     return ctx.role;
     // return `Hello ${ctx.role}!` as const;
     // return ctx.client.username;
   }),
-  greeting: procedure.query(({ctx}) => `Hello ${ctx.client.username}!`),
+  greeting: procedure.query(({ctx}) => `Hello ${ctx.username}!`),
   venue: venueRouter,
   soup: soupRouter,
   vr: vrRouter,

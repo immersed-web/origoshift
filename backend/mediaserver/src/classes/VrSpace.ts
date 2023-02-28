@@ -3,7 +3,7 @@ import { ClientTransforms, VrSpaceId } from 'schemas';
 // import type Venue from './Venue';
 import { throttle} from 'lodash';
 // import Client from './Client';
-import type { Client, Venue } from './InternalClasses';
+import type { UserClient, Venue } from './InternalClasses';
 
 import { Log } from 'debug-level';
 
@@ -53,7 +53,7 @@ export class VrSpace {
     return 'NOT IMPLEMENTED YET';
   }
 
-  addClient (client: Client){
+  addClient (client: UserClient){
     if(!this.isOpen){
       log.warn(`You tried to add client ${client.username} to the vr space in ${this.venue.name} that isnt open. No bueno!`);
       return;
@@ -65,7 +65,7 @@ export class VrSpace {
     client.isInVrSpace = true;
   }
 
-  removeClient (client: Client){
+  removeClient (client: UserClient){
     client.isInVrSpace = false;
     return this.clients.delete(client.connectionId);
   }
@@ -77,7 +77,7 @@ export class VrSpace {
     trailing: true
   });
 
-  emitToAllClients: Client['vrEvents']['emit'] = (event, ...args) => {
+  emitToAllClients: UserClient['vrEvents']['emit'] = (event, ...args) => {
     let allEmittersHadListeners = true;
     this.clients.forEach(c => {
       const hadEmitter = c.vrEvents.emit(event, ...args);

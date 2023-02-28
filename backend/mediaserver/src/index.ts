@@ -18,15 +18,15 @@ import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import { JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
-import { Client } from './classes/InternalClasses';
+import { Connection, SenderClient, UserClient } from './classes/InternalClasses';
 import { Context } from 'trpc/trpc';
 
-export type MyWebsocketType = WebSocket<JwtUserData>;
+export type MyWebsocketType = WebSocket<WSUserData>;
 
 // Usually there is one connection per user. But...
 // Privileged users might be allowed to have several connections active simultaneously
 const connectedUsers: Map<UserId, MyWebsocketType[]> = new Map();
-const clientConnections: Map<MyWebsocketType, Client> = new Map();
+const clientConnections: Map<MyWebsocketType, Connection> = new Map();
 
 createWorkers();
 
@@ -73,7 +73,8 @@ const {onSocketOpen, onSocketMessage, onSocketClose} = applyWSHandler<AppRouter,
 
 const app = uWebSockets.App();
 
-app.ws<JwtUserData>('/*', {
+type WSUserData = { jwtUserData: JwtUserData, sender: boolean}
+app.ws<WSUserData>('/*', {
 
   /* There are many common helper features */
   idleTimeout: 64,
@@ -86,9 +87,14 @@ app.ws<JwtUserData>('/*', {
     onSocketMessage(ws, asString);
   },
   upgrade: (res, req, context) => {
-    logUws.debug('upgrade request received:', req);
+    logUws.debug('upgrade request received');
     try{
-      const receivedToken = req.getQuery();
+      const url = new URL(`http://localhost?${req.getQuery()}`);
+      const receivedToken = url.searchParams.get('token');
+      const isSender = url.searchParams.has('sender');
+      if(!receivedToken){
+        throw Error('no token found in search query');
+      }
       logUws.debug('upgrade request provided this token:', receivedToken);
       const validJwt = verifyJwtToken(receivedToken);
 
@@ -101,8 +107,11 @@ app.ws<JwtUserData>('/*', {
         throw Error('already logged in!!!');
       }
 
-      res.upgrade<JwtUserData>(
-        userDataOnly,
+      res.upgrade<WSUserData>(
+        {
+          jwtUserData: userDataOnly,
+          sender: isSender,
+        },
         /* Spell these correctly */
         req.getHeader('sec-websocket-key'),
         req.getHeader('sec-websocket-protocol'),
@@ -111,19 +120,25 @@ app.ws<JwtUserData>('/*', {
       );
     } catch(e){
       const msg = extractMessageFromCatch(e, 'YOU SHALL NOT PASS');
-      logUws.info('websocket upgrade was canceled / failed:', msg);
+      logUws.error('websocket upgrade was canceled / failed:', msg);
       res.writeStatus('403 Forbidden').end(msg, true);
       return;
     }
   },
   open: (ws) => {
-    const jwtUserData = ws.getUserData();
-    const userId = UserIdSchema.parse(jwtUserData.userId);
+    const userData = ws.getUserData();
+    const isSender = userData.sender;
+    const userId = UserIdSchema.parse(userData.jwtUserData.userId);
     logUws.info('socket opened');
 
-    const client = new Client({jwtUserData});
+    const connection = new Connection({jwtUserData: userData.jwtUserData });
+    if(isSender){
+      connection.client = new SenderClient({ connectionId: connection.connectionId, jwtUserData: userData.jwtUserData });
+    } else {
+      connection.client = new UserClient({ connectionId: connection.connectionId, jwtUserData: userData.jwtUserData });
+    }
 
-    clientConnections.set(ws, client);
+    clientConnections.set(ws, connection);
 
     // Housekeeping our users and connections
     const activeSockets = connectedUsers.get(userId);
@@ -132,29 +147,29 @@ app.ws<JwtUserData>('/*', {
     } else {
       connectedUsers.set(userId, [ws]);
     }
-    logUws.debug('new client:', client.getPublicState());
+    logUws.debug('new client:', connection.jwtUserData);
 
 
-    const context: Context = {...jwtUserData, client, connectionId: client.connectionId };
+    const context: Context = {...userData.jwtUserData, connectionId: connection.connectionId, connection };
     onSocketOpen(ws, context);
   },
   close: (ws, code, msg) => {
     const userData = ws.getUserData();
-    logUws.info(`socket diconnected ${userData.username} (${userData.userId})`);
-    const client = clientConnections.get(ws);
-    if(!client){
+    logUws.info(`socket diconnected ${userData.jwtUserData.username} (${userData.jwtUserData.userId})`);
+    const connection = clientConnections.get(ws);
+    if(!connection){
       logUws.error('a disconnecting client was not in client list! Something is astray!');
       throw Error('a disconnecting client was not in client list! Something is astray!');
     }
-    client.unload();
+    connection.client?.unload();
     clientConnections.delete(ws);
 
-    let activeSockets = connectedUsers.get(userData.userId);
+    let activeSockets = connectedUsers.get(userData.jwtUserData.userId);
     if(activeSockets){
       activeSockets = activeSockets.filter(s => s !== ws);
       if(activeSockets.length === 0){
         //no active connections. also remove from connectedUsers dictionary
-        connectedUsers.delete(userData.userId);
+        connectedUsers.delete(userData.jwtUserData.userId);
       }
     }
 

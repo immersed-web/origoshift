@@ -1,8 +1,11 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
-// import Client from 'classes/Client';
-// import Venue from './classes/Venue';
-import { Client, Venue } from './classes/InternalClasses';
+import { Connection, SenderClient, UserClient, Venue } from './classes/InternalClasses';
 
+import { Log } from 'debug-level';
+const log = new Log('ClassObserver');
+process.env.DEBUG = 'ClassObserver*, ' + process.env.DEBUG;
+log.enable(process.env.DEBUG);
+//
 // @ts-expect-error: We allow reading private field here
 type venueDict = typeof Venue.venues extends Map<infer K, any>?Record<K, number>:never
 
@@ -26,14 +29,29 @@ export default (clientList: Map<any, any>) => {
   console.log('totalNrOf:', totalNrOf);
 };
 
-export const printClientListeners = (clientList: Map<unknown, Client>) => {
+export const printClientListeners = (clientList: Map<unknown, Connection>) => {
   const printObj: Record<string, unknown> = {};
-  for(const client of clientList.values()){
+  for(const connection of clientList.values()){
+    const client = connection.client;
+    if(!client){
+      log.warn(`connection ${connection.connectionId} (${connection.jwtUserData.username}) didnt have a client created/referenced`);
+      continue;
+    }
     const clientObj: Record<string, unknown> = {};
-    const emitters: [string, TypedEmitter][] = [
-      ['venuEvents', client.venueEvents],
-      ['vrEvents', client.vrEvents],
-    ];
+    let emitters: [string, TypedEmitter][];
+    if(client instanceof UserClient){
+      emitters = [
+        ['venuEvents', client.venueEvents],
+        ['vrEvents', client.vrEvents],
+      ];
+    } else if(client instanceof SenderClient){
+      emitters = [
+        ['senderEvents', client.senderEvents],
+      ];
+    } else {
+      log.warn('Not matching client instance type when trying to print listener stats');
+      continue;
+    }
     // const  = Object.getOwnPropertyNames(client);
     for(const [emitterName, emitter] of emitters) {
       // let nrListeners = 0;
@@ -44,7 +62,7 @@ export const printClientListeners = (clientList: Map<unknown, Client>) => {
       }
       clientObj[emitterName] = emitterObj;
     }
-    printObj[client.connectionId] = clientObj;
+    printObj[connection.connectionId] = clientObj;
   }
   console.log(printObj);
 };

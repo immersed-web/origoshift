@@ -4,15 +4,15 @@ process.env.DEBUG = 'VR:Router*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import { ClientTransformSchema } from 'schemas';
-import { procedure as p, router, isVenueOwnerM, isUserClientM, venueAdminP, userInVenueP } from '../trpc/trpc';
+import { procedure as p, router, isVenueOwnerM, isUserClientM, userInVenueP, currentVenueAdminP } from '../trpc/trpc';
 import { attachEmitter } from '../trpc/trpc-utils';
 import { TRPCError } from '@trpc/server';
 
 export const vrRouter = router({
-  openVrSpace: venueAdminP.use(isVenueOwnerM).mutation(({ctx}) => {
+  openVrSpace: currentVenueAdminP.use(isVenueOwnerM).mutation(({ctx}) => {
     ctx.venue.vrSpace.open();
   }),
-  closeVrSpace: venueAdminP.use(isVenueOwnerM).mutation(({ctx}) => {
+  closeVrSpace: currentVenueAdminP.use(isVenueOwnerM).mutation(({ctx}) => {
     ctx.venue.vrSpace.close();
   }),
   enterVrSpace: userInVenueP.mutation(({ctx}) =>{

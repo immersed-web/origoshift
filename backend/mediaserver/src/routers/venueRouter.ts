@@ -5,7 +5,7 @@ log.enable(process.env.DEBUG);
 
 import { hasAtLeastSecurityLevel, VenueIdSchema } from 'schemas';
 import { z } from 'zod';
-import { procedure as p, moderatorP, router, isInVenueM, senderP, venueAdminP, isUserClientM, isSenderClientM } from '../trpc/trpc';
+import { procedure as p, moderatorP, router, isInVenueM, senderP, isUserClientM, isSenderClientM } from '../trpc/trpc';
 // import Venue from '../classes/Venue';
 import { Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
@@ -14,13 +14,13 @@ import type { Prisma } from 'database';
 import { attachEmitter, attachFilteredEmitter } from '../trpc/trpc-utils';
 
 export const venueRouter = router({
-  createNewVenue: venueAdminP.input(z.object({
+  createNewVenue: moderatorP.input(z.object({
     name: z.string()
   })).mutation(async ({input, ctx}) => {
     const venueId = await Venue.createNewVenue(input.name, ctx.userId);
     return venueId;
   }),
-  deleteVenue: venueAdminP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
+  deleteVenue: moderatorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
     if(Venue.venueIsLoaded({venueId: input.venueId})){
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'Cant delete a venue when its loaded. Unload it first!'});
     }
@@ -41,8 +41,8 @@ export const venueRouter = router({
     });
     return dbResponse;
   }),
-  loadVenue: venueAdminP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input}) => {
-    const venue = await Venue.loadVenue(input.venueId);
+  loadVenue: moderatorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input, ctx}) => {
+    const venue = await Venue.loadVenue(input.venueId, ctx.userId);
     return venue.venueId;
   }),
   subVenueUnloaded: p.subscription(({ctx}) => {

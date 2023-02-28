@@ -1,6 +1,7 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import { SenderClient, UserClient } from '../classes/InternalClasses';
 import { JwtUserData, ConnectionId, hasAtLeastSecurityLevel } from 'schemas';
+import { z } from 'zod';
 // import type { Context } from 'index';
 
 export type Context = JwtUserData & {
@@ -97,6 +98,6 @@ export const isVenueOwnerM = isInVenueM.unstable_pipe(({ctx, next}) => {
   return next();
 });
 
-export const venueAdminP = moderatorP.use(isUserClientM).use(isVenueOwnerM);
+export const currentVenueAdminP = moderatorP.use(isUserClientM).use(isVenueOwnerM);
 
 export const userInVenueP = procedure.use(isUserClientM).use(isInVenueM);

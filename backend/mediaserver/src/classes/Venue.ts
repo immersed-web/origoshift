@@ -61,14 +61,17 @@ export class Venue {
       throw e;
     }
   }
-  static async loadVenue(venueId: VenueId, worker?: soupTypes.Worker) {
+  static async loadVenue(venueId: VenueId, ownerId: UserId, worker?: soupTypes.Worker) {
     try {
       if(Venue.venues.has(venueId)){
         throw new Error('Venue with that venueId already loaded');
       }
       const dbResponse = await prisma.venue.findUniqueOrThrow({
         where: {
-          venueId
+          ownerId_venueId: {
+            venueId,
+            ownerId
+          }
         },
         include: venueIncludeWhitelistVirtual,
       });

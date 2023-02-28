@@ -18,7 +18,7 @@ import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import { JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
-import { Connection, SenderClient, UserClient } from './classes/InternalClasses';
+import { SenderClient, UserClient } from './classes/InternalClasses';
 import { Context } from 'trpc/trpc';
 
 export type MyWebsocketType = WebSocket<WSUserData>;
@@ -26,7 +26,7 @@ export type MyWebsocketType = WebSocket<WSUserData>;
 // Usually there is one connection per user. But...
 // Privileged users might be allowed to have several connections active simultaneously
 const connectedUsers: Map<UserId, MyWebsocketType[]> = new Map();
-const clientConnections: Map<MyWebsocketType, Connection> = new Map();
+const clientConnections: Map<MyWebsocketType, UserClient | SenderClient> = new Map();
 
 createWorkers();
 
@@ -131,14 +131,17 @@ app.ws<WSUserData>('/*', {
     const userId = UserIdSchema.parse(userData.jwtUserData.userId);
     logUws.info('socket opened');
 
-    const connection = new Connection({jwtUserData: userData.jwtUserData });
+    // const connection = new Connection({jwtUserData: userData.jwtUserData });
+    let client: UserClient | SenderClient;
     if(isSender){
-      connection.client = new SenderClient({ connectionId: connection.connectionId, jwtUserData: userData.jwtUserData });
+      // connection.client = new SenderClient({ connectionId: connection.connectionId, jwtUserData: userData.jwtUserData });
+      client = new SenderClient({ jwtUserData: userData.jwtUserData });
     } else {
-      connection.client = new UserClient({ connectionId: connection.connectionId, jwtUserData: userData.jwtUserData });
+      // connection.client = new UserClient({ connectionId: connection.connectionId, jwtUserData: userData.jwtUserData });
+      client = new UserClient({ jwtUserData: userData.jwtUserData });
     }
 
-    clientConnections.set(ws, connection);
+    clientConnections.set(ws, client);
 
     // Housekeeping our users and connections
     const activeSockets = connectedUsers.get(userId);
@@ -147,21 +150,21 @@ app.ws<WSUserData>('/*', {
     } else {
       connectedUsers.set(userId, [ws]);
     }
-    logUws.debug('new client:', connection.jwtUserData);
+    logUws.debug('new client:', client.jwtUserData);
 
 
-    const context: Context = {...userData.jwtUserData, connectionId: connection.connectionId, connection };
+    const context: Context = {...userData.jwtUserData, connectionId: client.connectionId, client};
     onSocketOpen(ws, context);
   },
   close: (ws, code, msg) => {
     const userData = ws.getUserData();
     logUws.info(`socket diconnected ${userData.jwtUserData.username} (${userData.jwtUserData.userId})`);
-    const connection = clientConnections.get(ws);
-    if(!connection){
+    const client = clientConnections.get(ws);
+    if(!client){
       logUws.error('a disconnecting client was not in client list! Something is astray!');
       throw Error('a disconnecting client was not in client list! Something is astray!');
     }
-    connection.client?.unload();
+    client.unload();
     clientConnections.delete(ws);
 
     let activeSockets = connectedUsers.get(userData.jwtUserData.userId);
@@ -176,7 +179,6 @@ app.ws<WSUserData>('/*', {
     onSocketClose(ws, Buffer.from(msg).toString());
   }
 }).listen(9001, (listenSocket) => {
-
   if (listenSocket) {
     console.log('listenSocket:' ,listenSocket);
     console.log('Listening to port 9001');

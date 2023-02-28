@@ -47,7 +47,8 @@ export class UserClient extends BaseClient {
   }
 
   unload() {
-    super.unload();
+    this._socketClosed = true;
+    log.info(`unloading user client ${ this.username } ${this.connectionId} `);
     this.leaveCurrentVenue();
   }
 
@@ -130,7 +131,7 @@ export class UserClient extends BaseClient {
       return false;
       // throw Error('cant leave a venue if you are not in one!');
     }
-    super.leaveCurrentVenue();
+    super.teardownMediasoupObjects();
     this.venue.removeClient(this);
     this._notifyClientStateUpdated('user client left a venue');
     return true;

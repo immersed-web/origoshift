@@ -1,5 +1,5 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { Connection, SenderClient, UserClient, Venue } from './classes/InternalClasses';
+import { SenderClient, UserClient, Venue } from './classes/InternalClasses';
 
 import { Log } from 'debug-level';
 const log = new Log('ClassObserver');
@@ -29,14 +29,9 @@ export default (clientList: Map<any, any>) => {
   console.log('totalNrOf:', totalNrOf);
 };
 
-export const printClientListeners = (clientList: Map<unknown, Connection>) => {
+export const printClientListeners = (clientList: Map<unknown, UserClient | SenderClient>) => {
   const printObj: Record<string, unknown> = {};
-  for(const connection of clientList.values()){
-    const client = connection.client;
-    if(!client){
-      log.warn(`connection ${connection.connectionId} (${connection.jwtUserData.username}) didnt have a client created/referenced`);
-      continue;
-    }
+  for(const client of clientList.values()){
     const clientObj: Record<string, unknown> = {};
     let emitters: [string, TypedEmitter][];
     if(client instanceof UserClient){
@@ -62,7 +57,7 @@ export const printClientListeners = (clientList: Map<unknown, Connection>) => {
       }
       clientObj[emitterName] = emitterObj;
     }
-    printObj[connection.connectionId] = clientObj;
+    printObj[client.connectionId] = clientObj;
   }
   console.log(printObj);
 };

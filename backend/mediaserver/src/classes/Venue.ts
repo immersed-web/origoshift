@@ -134,6 +134,7 @@ export class Venue {
     return this.prismaData.venueId as VenueId;
   }
   get name() { return this.prismaData.name; }
+  // TODO: We probably want to be able to have many owners for a venue in the future
   get ownerId() {
     return this.prismaData.ownerId as UserId;
   }

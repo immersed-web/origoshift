@@ -1,5 +1,5 @@
 import { initTRPC, TRPCError } from '@trpc/server';
-import { Connection, SenderClient, UserClient } from '../classes/InternalClasses';
+import { SenderClient, UserClient } from '../classes/InternalClasses';
 import { JwtUserData, ConnectionId, hasAtLeastSecurityLevel } from 'schemas';
 // import type { Context } from 'index';
 
@@ -8,8 +8,8 @@ export type Context = JwtUserData & {
   // uuid: JwtUserData['uuid']
   // jwt: JwtUserData
   connectionId: ConnectionId
-  // client: UserClient
-  connection: Connection
+  client: UserClient | SenderClient
+  // connection: Connection
 }
 const trpc = initTRPC.context<Context>().create();
 
@@ -34,53 +34,53 @@ export const userP = procedure.use(createAuthMiddleware('user'));
 
 
 
-export const isBaseClientM = middleware(({ctx, next}) =>{
-  const c = ctx.connection.client;
-  if(!c){
-    throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'no backend client instance created. One needs to be created to do most stuff.'});
-  }
-  return next({
-    ctx: {
-      client: c
-    }
-  });
-});
+// export const isBaseClientM = middleware(({ctx, next}) =>{
+//   const c = ctx.client;
+//   if(!c){
+//     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'no backend client instance created. One needs to be created to do most stuff.'});
+//   }
+//   return next({
+//     ctx: {
+//       client: c
+//     }
+//   });
+// });
 
 export const isUserClientM = middleware(({ctx, next}) =>{
-  const c = ctx.connection.client;
-  if(!c){
-    throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'no backend client instance created. One needs to be created to do most stuff.'});
-  }
-  if(!(c instanceof UserClient)){
+  // const c = ctx.client;
+  // if(!c){
+  //   throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'no backend client instance created. One needs to be created to do most stuff.'});
+  // }
+  if(!(ctx.client instanceof UserClient)){
     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You must be a user client (not a sender client) to perform that action'});
   }
   return next({
     ctx: {
-      client: c
+      client: ctx.client
     }
   });
 });
 
 export const isSenderClientM = middleware(({ctx, next}) =>{
-  const c = ctx.connection.client;
-  if(!c){
-    throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'no backend client instance created. One needs to be created to do most stuff.'});
-  }
-  if(!(c instanceof SenderClient)){
+  // const c = ctx.client;
+  // if(!c){
+  //   throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'no backend client instance created. One needs to be created to do most stuff.'});
+  // }
+  if(!(ctx.client instanceof SenderClient)){
     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You must be a sender client (not a user client) to perform that action'});
   }
   return next({
     ctx: {
-      client: c
+      client: ctx.client
     }
   });
 });
 
 export const isInVenueM = middleware(({ctx, next})=> {
-  if(!ctx.connection.client){
-    throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You must have a backend client instance created before attempting something like that'});
-  }
-  const venue = ctx.connection.client.venue;
+  // if(!ctx.client){
+  //   throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You must have a backend client instance created before attempting something like that'});
+  // }
+  const venue = ctx.client.venue;
   if(!venue) {
     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You have to be added to a venue before performing that action!'});
   }

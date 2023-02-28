@@ -1,4 +1,3 @@
-export * from './Connection';
 export * from './BaseClient';
 export * from './UserClient';
 export * from './SenderClient';

@@ -3,15 +3,16 @@ const log = new Log('BaseClient');
 process.env.DEBUG = 'BaseClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { ConnectionId, JwtUserData, UserId, UserRole, VenueId } from 'schemas';
+import { ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
 import { ConsumerId, ProducerId, TransportId  } from 'schemas/mediasoup';
 import { UserClient, Venue } from './InternalClasses';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
+import { randomUUID } from 'crypto';
 
 interface ConstructorParams {
-  connectionId: ConnectionId,
+  connectionId?: ConnectionId,
   // ws: SocketWrapper,
   jwtUserData: JwtUserData,
 }
@@ -37,7 +38,7 @@ export type ClientVenueEvents = FilteredEvents<{
  */
 export class BaseClient {
 
-  constructor({connectionId, jwtUserData}: ConstructorParams) {
+  constructor({connectionId = ConnectionIdSchema.parse(randomUUID()), jwtUserData}: ConstructorParams) {
     this.connectionId = connectionId;
     this.jwtUserData =jwtUserData;
     this.soupEvents = new TypedEmitter();
@@ -95,20 +96,22 @@ export class BaseClient {
   }
 
   // NOTE: It's important we release all references here!
-  unload() {
-    log.info(`unloading base client ${ this.username } ${this.connectionId} `);
-    this._socketClosed = true;
-    this.teardownMediasoupObjects();
-  }
+  // unload() {
+  //   // log.info(`unloading base client ${ this.username } ${this.connectionId} `);
+  //   this._socketClosed = true;
 
-  leaveCurrentVenue() {
-    if(!this.venue) {
-      return false;
-      // throw Error('cant leave a venue if you are not in one!');
-    }
-    this.teardownMediasoupObjects();
-    return true;
-  }
+  //   // This will call the extending class's leave function if called from descendant
+  //   this.teardownMediasoupObjects();
+  // }
+
+  // leaveCurrentVenue() {
+  //   if(!this.venue) {
+  //     return false;
+  //     // throw Error('cant leave a venue if you are not in one!');
+  //   }
+  //   this.teardownMediasoupObjects();
+  //   return true;
+  // }
 
   /**
    * closes all mediasoup related object and instances.

@@ -22,6 +22,13 @@ export class SenderClient extends BaseClient {
     this.senderEvents = new TypedEmitter();
   }
 
+  unload() {
+    this._socketClosed = true;
+    log.info(`unloading sender client ${ this.username } ${this.connectionId} `);
+    // super.unload();
+    this.leaveCurrentVenue();
+  }
+
   async joinVenue(venueId: VenueId){
     this.leaveCurrentVenue();
     const venue = Venue.getVenue(venueId);
@@ -36,7 +43,7 @@ export class SenderClient extends BaseClient {
       return false;
       // throw Error('cant leave a venue if you are not in one!');
     }
-    super.leaveCurrentVenue();
+    super.teardownMediasoupObjects();
     this.venue.removeSenderClient(this);
     // this._notifyClientStateUpdated('user client left a venue');
     return true;

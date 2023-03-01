@@ -25,8 +25,9 @@ export const useClientStore = defineStore('client', {
       await startLoggedInClient(username, password);
       this.clientState = await client.value.getClientState.query();
       client.value.subClientState.subscribe(undefined, {
-        onData: (clientState) => {
-          this.clientState = clientState;
+        onData: (data) => {
+          console.log(`clientState received. Reason: ${data.reason}`);
+          this.clientState = data.clientState;
         },
       });
       // await this.updateClientState();

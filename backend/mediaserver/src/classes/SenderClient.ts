@@ -19,6 +19,9 @@ export class SenderClient extends BaseClient {
 
   constructor(...args: ConstructorParameters<typeof BaseClient>){
     super(...args);
+    log.info(`Creating sender client ${this.username} (${this.connectionId})`);
+    log.debug('prismaData:', this.prismaData);
+
     this.senderEvents = new TypedEmitter();
   }
 

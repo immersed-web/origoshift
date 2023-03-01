@@ -1,10 +1,10 @@
 // process.env.DEBUG = 'mediasoup*';
-process.env.DEBUG = 'uWebSockets*, ' + process.env.DEBUG;
-
 import { Log } from 'debug-level';
 const logUws = new Log('uWebSockets');
-logUws.enable(process.env.DEBUG);
-// console.log('logUws enabled: ',logUws.enabled);
+process.env.DEBUG = 'uWebSockets*, ' + process.env.DEBUG;
+const log = new Log('Index');
+process.env.DEBUG = 'Index*, ' + process.env.DEBUG;
+log.enable(process.env.DEBUG);
 
 import observerLogger from './mediasoupObservers';
 const printSoupStats = observerLogger();
@@ -18,7 +18,7 @@ import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import { JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
-import { SenderClient, UserClient } from './classes/InternalClasses';
+import { loadUserPrismaData, SenderClient, UserClient } from './classes/InternalClasses';
 import { Context } from 'trpc/trpc';
 
 export type MyWebsocketType = WebSocket<WSUserData>;
@@ -73,7 +73,7 @@ const {onSocketOpen, onSocketMessage, onSocketClose} = applyWSHandler<AppRouter,
 
 const app = uWebSockets.App();
 
-type WSUserData = { jwtUserData: JwtUserData, sender: boolean}
+type WSUserData = { jwtUserData: JwtUserData, sender: boolean, prismaData?: Awaited<ReturnType<typeof loadUserPrismaData>>}
 app.ws<WSUserData>('/*', {
 
   /* There are many common helper features */
@@ -88,6 +88,13 @@ app.ws<WSUserData>('/*', {
   },
   upgrade: (res, req, context) => {
     logUws.debug('upgrade request received');
+    const upgradeState = {
+      aborted: false,
+    };
+    const secWebSocketKey = req.getHeader('sec-websocket-key');
+    const secWebSocketProtocol = req.getHeader('sec-websocket-protocol');
+    const secWebSocketExtensions = req.getHeader('sec-websocket-extensions');
+    let wsUserData: WSUserData;
     try{
       const url = new URL(`http://localhost?${req.getQuery()}`);
       const receivedToken = url.searchParams.get('token');
@@ -106,24 +113,49 @@ app.ws<WSUserData>('/*', {
       if(!hasAtLeastSecurityLevel(userDataOnly.role, 'moderator') && isAlreadyConnected){
         throw Error('already logged in!!!');
       }
-
-      res.upgrade<WSUserData>(
-        {
-          jwtUserData: userDataOnly,
-          sender: isSender,
-        },
-        /* Spell these correctly */
-        req.getHeader('sec-websocket-key'),
-        req.getHeader('sec-websocket-protocol'),
-        req.getHeader('sec-websocket-extensions'),
-        context
-      );
+      wsUserData = {
+        jwtUserData: userDataOnly,
+        sender: isSender,
+      };
     } catch(e){
       const msg = extractMessageFromCatch(e, 'YOU SHALL NOT PASS');
       logUws.error('websocket upgrade was canceled / failed:', msg);
       res.writeStatus('403 Forbidden').end(msg, true);
       return;
     }
+    const wait = (millis?: number) => new Promise<void>((resolve) => setTimeout(resolve, millis));
+    const upgradeMe = async () => {
+      // TODO: Why do we need to wrap this execution in a timeout (the wait-function)? Without it we have invalid access to the res object
+      await wait();
+      let dbResponse: Awaited<ReturnType<typeof loadUserPrismaData>> | undefined = undefined;
+      if(wsUserData.jwtUserData.role !== 'guest'){
+        try {
+          dbResponse = await loadUserPrismaData(wsUserData.jwtUserData.userId);
+          wsUserData.prismaData = dbResponse;
+        } catch(e) {
+          log.error('Failed to fetch userdata from database');
+        }
+      }
+      log.debug('loaded userdata from db: ', dbResponse);
+      if(upgradeState.aborted){
+        logUws.error('upgrade was cancelled by client');
+        return;
+      }
+      res.upgrade<WSUserData>(
+        wsUserData,
+        /* Spell these correctly */
+        secWebSocketKey,
+        secWebSocketProtocol,
+        secWebSocketExtensions,
+        // req.getHeader('sec-websocket-key'),
+        // req.getHeader('sec-websocket-protocol'),
+        // req.getHeader('sec-websocket-extensions'),
+        context
+      );
+    };
+    upgradeMe();
+
+    res.onAborted(() => upgradeState.aborted = true);
   },
   open: (ws) => {
     const userData = ws.getUserData();
@@ -132,13 +164,12 @@ app.ws<WSUserData>('/*', {
     logUws.info('socket opened');
 
     // const connection = new Connection({jwtUserData: userData.jwtUserData });
+
     let client: UserClient | SenderClient;
     if(isSender){
-      // connection.client = new SenderClient({ connectionId: connection.connectionId, jwtUserData: userData.jwtUserData });
-      client = new SenderClient({ jwtUserData: userData.jwtUserData });
+      client = new SenderClient({ jwtUserData: userData.jwtUserData, prismaData: userData.prismaData });
     } else {
-      // connection.client = new UserClient({ connectionId: connection.connectionId, jwtUserData: userData.jwtUserData });
-      client = new UserClient({ jwtUserData: userData.jwtUserData });
+      client = new UserClient({ jwtUserData: userData.jwtUserData, prismaData: userData.prismaData });
     }
 
     clientConnections.set(ws, client);
@@ -155,6 +186,9 @@ app.ws<WSUserData>('/*', {
 
     const context: Context = {...userData.jwtUserData, connectionId: client.connectionId, client};
     onSocketOpen(ws, context);
+  },
+  drain: (ws) => {
+    log.warn('WebSocket backpressure: ' + ws.getBufferedAmount());
   },
   close: (ws, code, msg) => {
     const userData = ws.getUserData();

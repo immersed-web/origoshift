@@ -40,11 +40,19 @@ export class UserClient extends BaseClient {
 
   constructor(...args: ConstructorParameters<typeof BaseClient>){
     super(...args);
-    log.info('Creating user client with connectionId: ', this.connectionId);
+    log.info(`Creating user client ${this.username} (${this.connectionId})`);
+    log.debug('prismaData:', this.prismaData);
+
 
     this.userEvents = new TypedEmitter();
     this.vrEvents = new TypedEmitter();
   }
+
+  transform: ClientTransform | undefined;
+
+
+  userEvents: TypedEmitter<UserEvents>;
+  vrEvents: TypedEmitter<UserVrEvents>;
 
   unload() {
     this._socketClosed = true;
@@ -70,13 +78,6 @@ export class UserClient extends BaseClient {
     }
     return camera;
   }
-
-
-  transform: ClientTransform | undefined;
-
-
-  userEvents: TypedEmitter<UserEvents>;
-  vrEvents: TypedEmitter<UserVrEvents>;
 
   isInVrSpace = false;
   get vrSpace(){

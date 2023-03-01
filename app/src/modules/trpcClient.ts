@@ -12,7 +12,7 @@ const wsBaseURL = 'ws://localhost:9001';
 
 
 let wsClient: ReturnType<typeof createWSClient> | undefined;
-let currentClientType: 'guest' | 'user' | 'sender' = 'guest';
+let currentClientType: 'guest' | 'user' | 'sender' | undefined;
 
 function buildConnectionUrl(token:string, connectAsSender?: boolean){
   if(connectAsSender){
@@ -84,6 +84,7 @@ const createGuestClient = () => {
     ],
   });
 
+  currentClientType = 'guest';
   return client;
 };
 
@@ -98,7 +99,6 @@ export const startGuestClient = () => {
     wsClient.getConnection().close();
   }
   client.value = createGuestClient();
-  currentClientType = 'guest';
 };
 
 // const subscribeToEndpoint = <P extends {

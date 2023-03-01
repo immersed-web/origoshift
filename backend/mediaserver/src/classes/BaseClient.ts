@@ -10,12 +10,9 @@ import { UserClient, Venue } from './InternalClasses';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
 import { randomUUID } from 'crypto';
+import { Prisma, userDeselectPassword, userSelectAll } from 'database';
+import prismaClient from '../modules/prismaClient';
 
-interface ConstructorParams {
-  connectionId?: ConnectionId,
-  // ws: SocketWrapper,
-  jwtUserData: JwtUserData,
-}
 
 export type ClientSoupEvents = NonFilteredEvents<{
   // 'onProducer': ()
@@ -32,17 +29,45 @@ export type ClientVenueEvents = FilteredEvents<{
   'venueWasUnloaded': (venueId: VenueId) => void,
 }>
 
+const userQuery = {
+  select: {
+    ...userSelectAll,
+    ...userDeselectPassword
+  }
+} satisfies Prisma.UserArgs;
+type UserResponse = Prisma.UserGetPayload<typeof userQuery>
+interface ClientConstructorParams {
+  connectionId?: ConnectionId,
+  // ws: SocketWrapper,
+  jwtUserData: JwtUserData,
+  prismaData?: UserResponse
+}
+
+export async function loadUserPrismaData(userId: UserId){
+  const response = await prismaClient.user.findUniqueOrThrow({
+    where: {
+      userId
+    },
+    select: {
+      ...userSelectAll,
+      ...userDeselectPassword,
+    }
+  });
+  // return response === null ? undefined : response;
+  return response;
+}
 /**
  * @class
  * Base class for backend state of client connection. You should probably not use the base class directly.
  */
 export class BaseClient {
-
-  constructor({connectionId = ConnectionIdSchema.parse(randomUUID()), jwtUserData}: ConstructorParams) {
+  constructor({connectionId = ConnectionIdSchema.parse(randomUUID()), jwtUserData, prismaData}: ClientConstructorParams) {
     this.connectionId = connectionId;
-    this.jwtUserData =jwtUserData;
+    this.jwtUserData = jwtUserData;
+    this.prismaData = prismaData;
     this.soupEvents = new TypedEmitter();
     this.venueEvents = new TypedEmitter();
+
   }
 
   protected _socketClosed = false;
@@ -51,7 +76,7 @@ export class BaseClient {
   * The id of the actual connection. This differs from the userId, as a user could potentially have multiple concurrent active connections
   */
   connectionId: ConnectionId;
-
+  prismaData?: UserResponse;
   jwtUserData: JwtUserData;
   /**
    * The user's id. Be aware that this doesn't uniquely identify the active connection/session, as the user could run multiple concurrent connections.

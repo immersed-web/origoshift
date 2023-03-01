@@ -1,3 +1,8 @@
+import { Log } from 'debug-level';
+const log = new Log('AppRouter');
+process.env.DEBUG = 'AppRouter*, ' + process.env.DEBUG;
+log.enable(process.env.DEBUG);
+
 import { router, procedure, isUserClientM } from '../trpc/trpc';
 import { soupRouter } from './soupRouter';
 import { vrRouter } from './vrRouter';

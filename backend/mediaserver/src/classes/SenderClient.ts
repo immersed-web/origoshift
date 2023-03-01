@@ -4,7 +4,7 @@ import { BaseClient, Venue } from './InternalClasses';
 
 
 import { Log } from 'debug-level';
-import { VenueId } from 'schemas/*';
+import { VenueId } from 'schemas';
 const log = new Log('SenderClient');
 process.env.DEBUG = 'SenderClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);

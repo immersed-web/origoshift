@@ -1,7 +1,6 @@
 import { z } from "zod";
 import type {types as soupTypes } from 'mediasoup'
-import { UuidSchema } from "index";
-
+const UuidSchema = z.string().uuid();
 
 export const ProducerIdSchema = UuidSchema.brand('ProducerId')
 export type ProducerId = z.infer<typeof ProducerIdSchema>

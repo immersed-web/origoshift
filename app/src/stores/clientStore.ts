@@ -3,7 +3,7 @@ import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
 // import type { ClientTransform, ConnectionId } from 'schemas';
 import { client, startLoggedInClient } from '@/modules/trpcClient';
-import type { ClientTransforms } from 'schemas/*';
+import type { ClientTransforms } from 'schemas';
 
 export const useClientStore = defineStore('client', {
   state: () => ({

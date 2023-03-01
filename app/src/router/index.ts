@@ -1,5 +1,14 @@
 import { useClientStore } from '@/stores/clientStore';
+import type { UserRole } from 'schemas';
 import { createRouter, createWebHistory } from 'vue-router';
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    noAuth?: boolean
+    requiresAuth?: boolean
+    requiredRole?: UserRole
+  }
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,6 +45,12 @@ const router = createRouter({
       ],
     },
     {
+      name: 'camera',
+      path: '/camera',
+      meta: { requiredRole: 'sender'},
+      component: () => import('@/views/Camera.vue'),
+    },
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting
@@ -55,7 +70,14 @@ router.beforeEach((to, from) => {
   const clientStore = useClientStore();
   console.log('Logged in', clientStore.loggedIn, clientStore.clientState);
 
-  if (to.matched.some(record => record.meta.requiresAuth === true) && !clientStore.loggedIn) {
+  if (to.matched.some(record => {
+    if(!record.meta.requiredRole) return;
+    // TODO: WHYYYYY cant we import this function from the schemas package!!!
+    // return hasAtLeastSecurityLevel(clientStore.clientState.role, record.meta.requiredRole);
+  })) {
+    console.log(from, to, 'Reroute to login');
+    return { name: 'login' /*, query: { next: to.fullPath } */ };
+  } else if (to.matched.some(record => record.meta.requiresAuth === true) && !clientStore.loggedIn) {
     console.log(from, to, 'Reroute to login');
     return { name: 'login' /*, query: { next: to.fullPath } */ };
   } else if (to.matched.some(record => record.meta.noAuth) && clientStore.loggedIn) {

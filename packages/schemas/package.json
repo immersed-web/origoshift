@@ -22,8 +22,7 @@
   "typesVersions": {
     "*": {
       "*": [
-        "./dist/index.d.ts",
-        "./dist/*"
+        "./dist/index.d.ts"
       ],
       "mediasoup": [
         "./dist/mediasoupSchemas.d.ts"
@@ -31,8 +30,8 @@
     }
   },
   "scripts": {
-    "build": "tsup",
-    "build:watch": "tsup --watch",
+    "build": "tsup-node",
+    "build:watch": "tsup-node --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

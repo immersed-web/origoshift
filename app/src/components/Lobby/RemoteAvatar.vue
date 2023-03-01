@@ -16,7 +16,7 @@
 
 import 'aframe';
 import type { Entity } from 'aframe';
-import type { ClientTransform } from 'schemas/*';
+import type { ClientTransform } from 'schemas';
 import { ref, type PropType, watch  } from 'vue';
 
 // Props & emits

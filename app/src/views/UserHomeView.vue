@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="hero min-h-screen bg-base-200">
-      <div class="hero-content text-center">
+    <div class="min-h-screen hero bg-base-200">
+      <div class="text-center hero-content">
         <div class="max-w-md">
           <h1 class="text-5xl font-bold">
             Välkommen {{ clientStore.clientState.userName }}
@@ -27,6 +27,12 @@
                   @click="createVenue"
                 >
                   Skapa en ny venue
+                </button>
+                <button
+                  class="btn btn-outline btn-primary"
+                  @click="$router.push({name: 'camera'})"
+                >
+                  Gå till kamera-vy
                 </button>
               </div>
             </div>

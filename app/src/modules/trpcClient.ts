@@ -1,14 +1,20 @@
-import { createTRPCProxyClient, wsLink } from '@trpc/client';
+import { createTRPCProxyClient, TRPCClientError, wsLink} from '@trpc/client';
 import type { inferRouterOutputs, inferRouterInputs } from '@trpc/server';
 import { createWSClient } from './customWsLink';
 import type { AppRouter } from 'mediaserver';
-import { guestWithAutoToken, loginWithAutoToken, getToken } from '@/modules/authClient';
+import { guestAutoToken, loginWithAutoToken, getToken } from '@/modules/authClient';
 import type {} from 'zod';
 
 import { shallowRef, type ShallowRef } from 'vue';
 
 
 const wsBaseURL = 'ws://localhost:9001';
+
+export function isTRPCClientError(
+  cause: unknown,
+): cause is TRPCClientError<AppRouter> {
+  return cause instanceof TRPCClientError;
+}
 
 
 let wsClient: ReturnType<typeof createWSClient> | undefined;
@@ -74,7 +80,7 @@ export const startLoggedInClient = async (username: string, password: string) =>
 
 const createGuestClient = () => {
   console.log('creating guest client');
-  guestWithAutoToken();
+  guestAutoToken();
   wsClient = createWSClient({
     url: () => buildConnectionUrl(getToken()),
   });

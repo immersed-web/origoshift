@@ -109,8 +109,11 @@ app.ws<WSUserData>('/*', {
 
       const userDataOnly = JwtUserDataSchema.parse(validJwt);
 
+      if(isSender && !hasAtLeastSecurityLevel(userDataOnly.role, 'sender')){
+        throw Error('must at least have sender role to do that...');
+      }
       const isAlreadyConnected = connectedUsers.has(userDataOnly.userId);
-      if(!hasAtLeastSecurityLevel(userDataOnly.role, 'moderator') && isAlreadyConnected){
+      if(!hasAtLeastSecurityLevel(userDataOnly.role, 'sender') && isAlreadyConnected){
         throw Error('already logged in!!!');
       }
       wsUserData = {

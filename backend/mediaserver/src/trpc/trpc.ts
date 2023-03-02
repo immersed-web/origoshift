@@ -27,31 +27,16 @@ export const createAuthMiddleware = (userRole: JwtUserData['role']) => {
   });
 };
 
-export const superadminP = procedure.use(createAuthMiddleware('superadmin'));
-export const adminP = procedure.use(createAuthMiddleware('admin'));
-export const moderatorP = procedure.use(createAuthMiddleware('moderator'));
-export const senderP = procedure.use(createAuthMiddleware('sender'));
-export const userP = procedure.use(createAuthMiddleware('user'));
+export const atLeastSuperadminP = procedure.use(createAuthMiddleware('superadmin'));
+export const atLeastAdminP = procedure.use(createAuthMiddleware('admin'));
+export const atLeastModeratorP = procedure.use(createAuthMiddleware('moderator'));
+export const atLeastSenderP = procedure.use(createAuthMiddleware('sender'));
+export const atLeastUserP = procedure.use(createAuthMiddleware('user'));
 
 
 
-// export const isBaseClientM = middleware(({ctx, next}) =>{
-//   const c = ctx.client;
-//   if(!c){
-//     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'no backend client instance created. One needs to be created to do most stuff.'});
-//   }
-//   return next({
-//     ctx: {
-//       client: c
-//     }
-//   });
-// });
 
 export const isUserClientM = middleware(({ctx, next}) =>{
-  // const c = ctx.client;
-  // if(!c){
-  //   throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'no backend client instance created. One needs to be created to do most stuff.'});
-  // }
   if(!(ctx.client instanceof UserClient)){
     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You must be a user client (not a sender client) to perform that action'});
   }
@@ -63,10 +48,6 @@ export const isUserClientM = middleware(({ctx, next}) =>{
 });
 
 export const isSenderClientM = middleware(({ctx, next}) =>{
-  // const c = ctx.client;
-  // if(!c){
-  //   throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'no backend client instance created. One needs to be created to do most stuff.'});
-  // }
   if(!(ctx.client instanceof SenderClient)){
     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You must be a sender client (not a user client) to perform that action'});
   }
@@ -78,14 +59,10 @@ export const isSenderClientM = middleware(({ctx, next}) =>{
 });
 
 export const isInVenueM = middleware(({ctx, next})=> {
-  // if(!ctx.client){
-  //   throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You must have a backend client instance created before attempting something like that'});
-  // }
   const venue = ctx.client.venue;
   if(!venue) {
     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You have to be added to a venue before performing that action!'});
   }
-  // const venueId = venue.venueId;
   return next({ctx: {
     venue
   }});
@@ -98,6 +75,6 @@ export const isVenueOwnerM = isInVenueM.unstable_pipe(({ctx, next}) => {
   return next();
 });
 
-export const currentVenueAdminP = moderatorP.use(isUserClientM).use(isVenueOwnerM);
+export const currentVenueAdminP = atLeastModeratorP.use(isUserClientM).use(isVenueOwnerM);
 
 export const userInVenueP = procedure.use(isUserClientM).use(isInVenueM);

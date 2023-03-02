@@ -1,5 +1,6 @@
 import { useClientStore } from '@/stores/clientStore';
-import type { UserRole } from 'schemas';
+import { useSenderStore } from '@/stores/senderStore';
+import { hasAtLeastSecurityLevel, type UserRole } from 'schemas';
 import { createRouter, createWebHistory } from 'vue-router';
 
 declare module 'vue-router' {
@@ -7,6 +8,7 @@ declare module 'vue-router' {
     noAuth?: boolean
     requiresAuth?: boolean
     requiredRole?: UserRole
+    loginRedirect?: string
   }
 }
 
@@ -47,8 +49,15 @@ const router = createRouter({
     {
       name: 'camera',
       path: '/camera',
-      meta: { requiredRole: 'sender'},
-      component: () => import('@/views/Camera.vue'),
+      children: [
+        {
+          name: 'cameraLogin', path: 'login', component: () => import('@/components/LoginBox.vue'),
+        },
+        {
+          name: 'cameraHome', path: '', component: () => import('@/views/CameraView.vue'),
+          meta: { requiredRole: 'sender', loginRedirect: 'cameraLogin'},
+        },
+      ],
     },
     {
       path: '/about',
@@ -70,18 +79,19 @@ router.beforeEach((to, from) => {
   const clientStore = useClientStore();
   console.log('Logged in', clientStore.loggedIn, clientStore.clientState);
 
-  if (to.matched.some(record => {
-    if(!record.meta.requiredRole) return;
-    // TODO: WHYYYYY cant we import this function from the schemas package!!!
-    // return hasAtLeastSecurityLevel(clientStore.clientState.role, record.meta.requiredRole);
-  })) {
-    console.log(from, to, 'Reroute to login');
+  // const clientStore = useSenderStore();
+  // if (to.meta.requiredRole) {
+  //   if(!clientStore.clientState. || !hasAtLeastSecurityLevel(clientStore.clientState.role, to.meta.requiredRole)){
+  //     console.log('Reroute to login', from, to);
+  //     return { name: 'cameraLogin' /*, query: { next: to.fullPath } */ };
+  //   }
+  // }
+
+  if (to.meta.requiresAuth && !clientStore.loggedIn) {
+    console.log('Reroute to login', from, to);
     return { name: 'login' /*, query: { next: to.fullPath } */ };
-  } else if (to.matched.some(record => record.meta.requiresAuth === true) && !clientStore.loggedIn) {
-    console.log(from, to, 'Reroute to login');
-    return { name: 'login' /*, query: { next: to.fullPath } */ };
-  } else if (to.matched.some(record => record.meta.noAuth) && clientStore.loggedIn) {
-    console.log(from, to, 'Reroute to user home');
+  } else if (to.meta.noAuth && clientStore.loggedIn) {
+    console.log('Reroute to login', from, to);
     return { name: 'userHome' /*, query: { next: to.fullPath } */ };
   }
 });

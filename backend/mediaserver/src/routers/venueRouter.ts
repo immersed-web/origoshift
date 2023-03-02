@@ -5,7 +5,7 @@ log.enable(process.env.DEBUG);
 
 import { hasAtLeastSecurityLevel, VenueIdSchema } from 'schemas';
 import { z } from 'zod';
-import { procedure as p, moderatorP, router, isInVenueM, senderP, isUserClientM, isSenderClientM } from '../trpc/trpc';
+import { procedure as p, atLeastModeratorP, router, isInVenueM, atLeastSenderP, isUserClientM, isSenderClientM } from '../trpc/trpc';
 // import Venue from '../classes/Venue';
 import { Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
@@ -14,13 +14,13 @@ import type { Prisma } from 'database';
 import { attachEmitter, attachFilteredEmitter } from '../trpc/trpc-utils';
 
 export const venueRouter = router({
-  createNewVenue: moderatorP.input(z.object({
+  createNewVenue: atLeastModeratorP.input(z.object({
     name: z.string()
   })).mutation(async ({input, ctx}) => {
     const venueId = await Venue.createNewVenue(input.name, ctx.userId);
     return venueId;
   }),
-  deleteVenue: moderatorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
+  deleteVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
     if(Venue.venueIsLoaded({venueId: input.venueId})){
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'Cant delete a venue when its loaded. Unload it first!'});
     }
@@ -41,14 +41,14 @@ export const venueRouter = router({
     });
     return dbResponse;
   }),
-  loadVenue: moderatorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input, ctx}) => {
+  loadVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input, ctx}) => {
     const venue = await Venue.loadVenue(input.venueId, ctx.userId);
     return venue.venueId;
   }),
   subVenueUnloaded: p.subscription(({ctx}) => {
     attachEmitter(ctx.client.venueEvents, 'venueWasUnloaded');
   }),
-  listMyVenues: moderatorP.query(async ({ctx}) => {
+  listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
     const dbResponse = await prismaClient.venue.findMany({
       where: {
         ownerId: ctx.userId
@@ -74,7 +74,7 @@ export const venueRouter = router({
     log.info('request received to join venue:', input.venueId);
     ctx.client.joinVenue(input.venueId);
   }),
-  joinVenueAsSender: senderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
+  joinVenueAsSender: atLeastSenderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
     .mutation(({ctx, input}) =>{
       log.info('request received to join venue as sender:', input.venueId);
       ctx.client.joinVenue(input.venueId);

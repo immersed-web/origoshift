@@ -310,6 +310,10 @@ const logoutUser: RequestHandler = async (req, res) => {
       }
     });
   }
+  const projectName = process.env.EXPOSED_PROJECT_NAME;
+  if(projectName){
+    res.clearCookie(projectName);
+  }
   res.status(200).send();
 };
 

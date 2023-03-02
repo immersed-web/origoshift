@@ -1,7 +1,7 @@
 import express, { json as parseJsonBody } from 'express';
 import cors from 'cors';
 import { randomUUID } from 'crypto';
-import { createJwt } from 'shared-modules/jwtUtils';
+import { createJwt, verifyJwtToken } from 'shared-modules/jwtUtils';
 import createUserRouter from './userRoutes';
 import {default as Haikunator} from 'haikunator';
 import wordlist from './haikunator-wordlist';
@@ -80,7 +80,7 @@ app.use(session({
     secure: cookieSecure,
     maxAge: 7 * 24 * 60 * 60 * 1000 // ms
   },
-  name: 'origoshift',
+  name: process.env.EXPOSED_PROJECT_NAME,
   resave: false,
   saveUninitialized: false,
   store: prismaSessionStore
@@ -102,7 +102,26 @@ app.get('/health', (req, res) => {
 app.get('/guest-jwt', (req, res) => {
 
   let haikuName = haikunator.haikunate();
-  const userId = UserIdSchema.parse(randomUUID());
+  let userId = UserIdSchema.parse(randomUUID());
+  if(req.query && req.query['prevToken']){
+    try {
+
+      const previousToken = req.query['prevToken'];
+      if(typeof previousToken !== 'string'){
+        throw new Error('the old token you provided was invalid! Please stop this madness😥😥');
+      }
+      const decoded = verifyJwtToken(previousToken);
+      if(decoded.role !== 'guest'){
+        throw new Error('only guests can refresh tokens using the previous one');
+      }
+      userId = decoded.userId;
+      haikuName = decoded.username;
+    } catch(e){
+      console.error((e as Error).message);
+      res.status(400).send('no bueno! The old token you gave was no good');
+      return;
+    }
+  }
   if(req.query && req.query['username']){
     try {
       const requestedName = req.query['username'];

@@ -7,7 +7,7 @@ import type { ClientTransforms } from 'schemas';
 
 export const useClientStore = defineStore('client', {
   state: () => ({
-    clientState: {} as RouterOutputs['getClientState'],
+    clientState: {} as RouterOutputs['user']['getClientState'],
     greeting: '',
     health: '',
     heartbeat: '',
@@ -23,8 +23,8 @@ export const useClientStore = defineStore('client', {
   actions: {
     async login (username: string, password: string ) {
       await startLoggedInClient(username, password);
-      this.clientState = await client.value.getClientState.query();
-      client.value.subClientState.subscribe(undefined, {
+      this.clientState = await client.value.user.getClientState.query();
+      client.value.user.subClientState.subscribe(undefined, {
         onData: (data) => {
           console.log(`clientState received. Reason: ${data.reason}`);
           this.clientState = data.clientState;
@@ -47,7 +47,7 @@ export const useClientStore = defineStore('client', {
     },
     // TODO: Should be replaced by subscription
     async updateClientState () {
-      this.clientState = await client.value.getClientState.query();
+      this.clientState = await client.value.user.getClientState.query();
     },
   },
 });

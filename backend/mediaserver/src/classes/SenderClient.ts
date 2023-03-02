@@ -25,6 +25,13 @@ export class SenderClient extends BaseClient {
     this.senderEvents = new TypedEmitter();
   }
 
+  getPublicState(){
+    return {
+      userId: this.userId,
+
+    };
+  }
+
   unload() {
     this._socketClosed = true;
     log.info(`unloading sender client ${ this.username } ${this.connectionId} `);

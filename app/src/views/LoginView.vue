@@ -64,6 +64,7 @@
 import { useRouter } from 'vue-router';
 import { useClientStore } from '@/stores/clientStore';
 import { ref } from 'vue';
+import { isTRPCClientError } from '@/modules/trpcClient';
 
 // Router
 const router = useRouter();
@@ -83,7 +84,11 @@ const login = async () => {
   }
   catch(e: unknown){
     console.error(e);
-    error.value = e.message;
+    if(isTRPCClientError(e)){
+      error.value = e.message;
+    }else if(e instanceof Error){
+      error.value = e.message;
+    }
   }
 
 };

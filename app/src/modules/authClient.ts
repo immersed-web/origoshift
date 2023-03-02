@@ -3,7 +3,7 @@ import axios, { type AxiosResponse } from 'axios';
 import type {JwtPayload, JwtUserData } from 'schemas';
 import decodeJwt from 'jwt-decode';
 
-const completeAuthUrl = `${import.meta.env.VITE_AUTH_URL}${import.meta.env.VITE_AUTH_PORT}${import.meta.env.VITE_AUTH_PATH}`;
+const completeAuthUrl = `${import.meta.env.EXPOSED_AUTH_URL}${import.meta.env.EXPOSED_AUTH_PORT}${import.meta.env.EXPOSED_AUTH_PATH}`;
 console.log('authUrl: ', completeAuthUrl);
 const authEndpoint = axios.create({ baseURL: completeAuthUrl, withCredentials: true });
 
@@ -26,7 +26,7 @@ export const login = async (username: string, password: string) => {
     // return response.data;
     return Promise.resolve();
   } catch (e: any) {
-    return Promise.reject(e.response);
+    return Promise.reject(Error(e.response.data));
   }
 };
 
@@ -44,8 +44,6 @@ let latestJwtToken: string;
 // let prepopulatedLogin: () => Promise<void>;
 
 
-// TODO: As of now all works fine AS LONG AS clients autofetches and gets a new token before the current is expired.
-// BUT. If autofetch is running and for some reason the old token is expired, the autofetch will just keep trying and fail. Very sad indeed!
 let nrOfRetries = 0;
 const autoFetchJwt = async (assignFn: (receivedToken: string) => void, fetchFn: () => Promise<string>, failRecoveryFn?: () => Promise<string>) => {
   if(activeTimeout){
@@ -85,24 +83,18 @@ const autoFetchJwt = async (assignFn: (receivedToken: string) => void, fetchFn: 
   }
 };
 
-// export let latestGuestJwtToken: string | undefined = undefined;
-export const guestWithAutoToken =  async () => {
+export const guestAutoToken =  async () => {
   await autoFetchJwt(
     (token) => {latestJwtToken = token;},
-    async () => {
-      let prevUName = undefined;
-      if(latestJwtToken){
-        const decoded = decodeJwt<JwtPayload>(latestJwtToken);
-        if(decoded.role === 'guest'){
-          prevUName = decoded.username;
-        }
-      }
-      return await guestJwt(prevUName);
-    },
-    async () => {return await guestJwt();},
+    async () => await guestJwt({previousToken: latestJwtToken}),
+    async () => await guestJwt(),
   );
 
   return latestJwtToken;
+};
+
+export const userAutoToken = async (assignFn: (receivedToken: string) => void) => {
+  return await autoFetchJwt(assignFn, getJwt);
 };
 
 /**
@@ -115,7 +107,7 @@ export const loginWithAutoToken = async (username: string, password: string) => 
   // prepopulatedLogin = () => login(username, password);
   await login(username, password);
 
-  await autoFetchJwt((token) => {latestJwtToken = token;}, getJwt);
+  await userAutoToken(t => latestJwtToken = t);
   return latestJwtToken;
 };
 
@@ -124,9 +116,17 @@ export const loginWithAutoToken = async (username: string, password: string) => 
 // export const updateUser = (payload: { uuid: string, username?: string, password?: string, gathering?: string, role?: NonGuestUserRole }) => handleResponse<Omit<UserWithIncludes, 'password'>>(() => authEndpoint.post('update', payload));
 // export const getUsers = (payload: Record<string, unknown>) => handleResponse<Omit<UserWithIncludes, 'password'>[]>(() => authEndpoint.post('get-users', payload));
 
-export const guestJwt = (requestedUsername?: string) => handleResponse<string>(() => requestedUsername?authEndpoint.get(`/guest-jwt?username=${requestedUsername}`):authEndpoint.get('/guest-jwt'));
+export const guestJwt = (params?: {requestedUsername?: string, previousToken?: string}) => {
+  if(params?.previousToken){
+    return handleResponse<string>(() =>authEndpoint.get(`/guest-jwt?prevToken=${params.previousToken}`));
+  }
+  if(params?.requestedUsername){
+    return handleResponse<string>(() =>authEndpoint.get(`/guest-jwt?username=${params.requestedUsername}`));
+  }
+  return handleResponse<string>(() =>authEndpoint.get('/guest-jwt'));
+};
 export const getJwt = () => handleResponse<string>(() => authEndpoint.get('user/jwt'));
 export const getMe = () => handleResponse<JwtUserData>(() => authEndpoint.get('/user/me'));
 export const logout = () => {
-  handleResponse<void>(() => authEndpoint.get('user/logout'));
+  return handleResponse<void>(() => authEndpoint.get('user/logout'));
 };

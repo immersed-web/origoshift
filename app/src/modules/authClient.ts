@@ -83,18 +83,31 @@ const autoFetchJwt = async (assignFn: (receivedToken: string) => void, fetchFn: 
   }
 };
 
-export const guestAutoToken =  async () => {
-  await autoFetchJwt(
-    (token) => {latestJwtToken = token;},
+export const guestAutoToken =  async (assignFn?: (receivedToken: string) => void) => {
+  const combinedAssigner = (t: string) => {
+    if(assignFn){
+      assignFn(t);
+    }
+    latestJwtToken = t;
+  };
+  return await autoFetchJwt(
+    combinedAssigner,
     async () => await guestJwt({previousToken: latestJwtToken}),
     async () => await guestJwt(),
   );
 
-  return latestJwtToken;
+  // return latestJwtToken;
 };
 
-export const userAutoToken = async (assignFn: (receivedToken: string) => void) => {
-  return await autoFetchJwt(assignFn, getJwt);
+export const userAutoToken = async (assignFn?: (receivedToken: string) => void) => {
+
+  const combinedAssigner = (t: string) => {
+    if(assignFn){
+      assignFn(t);
+    }
+    latestJwtToken = t;
+  };
+  return await autoFetchJwt(combinedAssigner, getJwt);
 };
 
 /**
@@ -128,5 +141,6 @@ export const guestJwt = (params?: {requestedUsername?: string, previousToken?: s
 export const getJwt = () => handleResponse<string>(() => authEndpoint.get('user/jwt'));
 export const getMe = () => handleResponse<JwtUserData>(() => authEndpoint.get('/user/me'));
 export const logout = () => {
+  clearTimeout(activeTimeout);
   return handleResponse<void>(() => authEndpoint.get('user/logout'));
 };

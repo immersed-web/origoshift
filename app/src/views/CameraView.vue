@@ -41,6 +41,8 @@ const error = ref<Error>();
 onBeforeMount(async () => {
   if(authStore.hasCookie){
     await authStore.restoreFromSession();
+  } else {
+    authStore.autoGuest();
   }
 });
 

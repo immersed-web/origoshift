@@ -143,12 +143,15 @@ export class UserClient extends BaseClient {
     if(!this.venue){
       throw Error('cant join vrspace if isnt in a venue!');
     }
+    if(!this.venue.vrSpace){
+      throw Error('cant join vrspace if the venue doesnt have one!');
+    }
     this.venue.vrSpace.addClient(this);
     this._notifyClientStateUpdated('user client joined vrSpace');
   }
 
   leaveVrSpace() {
-    if(this.venue?.vrSpace.removeClient(this)){
+    if(this.venue?.vrSpace?.removeClient(this)){
       this._notifyClientStateUpdated('user client left vrSpace');
     }
   }

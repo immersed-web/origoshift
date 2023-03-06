@@ -68,6 +68,17 @@ export const isInVenueM = middleware(({ctx, next})=> {
   }});
 });
 
+export const currentVenueHasVrSpace = isInVenueM.unstable_pipe(({ctx, next}) => {
+  if(!ctx.venue.vrSpace){
+    throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'the venue doesnt have a vr space. Now cry!'});
+  }
+  return next({
+    ctx: {
+      vrSpace: ctx.venue.vrSpace,
+    }
+  });
+});
+
 export const isVenueOwnerM = isInVenueM.unstable_pipe(({ctx, next}) => {
   if(ctx.venue.ownerId !== ctx.userId){
     throw new TRPCError({code: 'FORBIDDEN', message: 'you are not the owner of this venue. Not allowed!'});

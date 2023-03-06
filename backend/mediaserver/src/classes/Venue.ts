@@ -117,7 +117,7 @@ export class Venue {
     this.router.close();
     // this.cameras.forEach(room => room.destroy());
     Venue.venues.delete(this.venueId);
-    this.vrSpace.unload();
+    this.vrSpace?.unload();
   }
 
   static venueIsLoaded(params: {venueId: VenueId}){
@@ -162,7 +162,7 @@ export class Venue {
   }
 
   router: soupTypes.Router;
-  vrSpace: VrSpace;
+  vrSpace?: VrSpace;
 
   cameras: Map<CameraId, Camera> = new Map();
 
@@ -180,8 +180,9 @@ export class Venue {
   private constructor(prismaData: VenueResponse, router: soupTypes.Router){
     this.router = router;
     this.prismaData = prismaData;
-
-    this.vrSpace = new VrSpace(this, prismaData.virtualSpace);
+    if(prismaData.virtualSpace){
+      this.vrSpace = new VrSpace(this, prismaData.virtualSpace);
+    }
 
   }
 

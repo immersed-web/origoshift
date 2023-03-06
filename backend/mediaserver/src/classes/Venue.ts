@@ -46,14 +46,33 @@ export class Venue {
           },
           settings: {coolSetting: 'aaaww yeeeah'},
           startTime: new Date(),
-          virtualSpace: {
-            create: {
-              settings: {cool: 'asdas' },
-            }
-          }
-
         }
       });
+
+      // prisma.virtualSpace.create({
+      //   data: {
+      //     virtualSpace3DModel: {
+      //       create: {
+      //         scale: 1,
+      //         modelUrl: 'google.com',
+      //         navmeshUrl: 'google.se'
+      //       }
+      //     },
+      //     settings: {
+      //       cool: 'asdfasdf',
+      //     },
+      //     venue: {
+      //       connect: result,
+      //     }
+      //   }
+      // });
+
+
+      // const venue = await prisma.venue.findFirst({
+      //   where: {
+      //     name: 'Hello'
+      //   }
+      // });
 
       return result.venueId;
     } catch (e){

@@ -1,6 +1,6 @@
 <template>
-  <div class="hero min-h-screen bg-base-200">
-    <div class="hero-content text-center">
+  <div class="min-h-screen hero bg-base-200">
+    <div class="text-center hero-content">
       <div class="max-w-md">
         <h1 class="text-5xl font-bold">
           Loaded and joined venue: {{ clientStore.clientState.currentVenueId }}
@@ -27,7 +27,7 @@
 import { onMounted } from 'vue';
 import { useClientStore } from '@/stores/clientStore';
 import { useRouter } from 'vue-router';
-import { client } from '@/modules/trpcClient';
+import { clientOrThrow } from '@/modules/trpcClient';
 
 // Router
 const router = useRouter();
@@ -41,8 +41,8 @@ onMounted(() => {
 });
 
 const openLobby = async () => {
-  await client.value.vr.openVrSpace.mutate();
-  await client.value.vr.enterVrSpace.mutate();
+  await clientOrThrow.value.vr.openVrSpace.mutate();
+  await clientOrThrow.value.vr.enterVrSpace.mutate();
   router.push({name: 'lobby'});
 };
 

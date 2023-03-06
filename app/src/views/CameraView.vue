@@ -31,11 +31,12 @@
 
 <script setup lang="ts">
 import LoginBox from '@/components/LoginBox.vue';
-import { startSenderClient} from '@/modules/trpcClient';
 import { getMe } from '@/modules/authClient';
 import { useAuthStore } from '@/stores/authStore';
+import { useConnectionStore } from '@/stores/connectionStore';
 import { onBeforeMount, ref } from 'vue';
 const authStore = useAuthStore();
+const connectionStore = useConnectionStore();
 
 const error = ref<Error>();
 onBeforeMount(async () => {

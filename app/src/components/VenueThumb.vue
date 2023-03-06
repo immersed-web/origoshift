@@ -13,7 +13,7 @@
 
 import type { PropType } from 'vue';
 import { useRouter } from 'vue-router';
-import { client } from '@/modules/trpcClient';
+import { clientOrThrow } from '@/modules/trpcClient';
 import type { RouterOutputs } from '@/modules/trpcClient';
 
 // Router
@@ -26,12 +26,12 @@ const props = defineProps({
 
 const loadAndJoinVenue = async (venueId: string) => {
   try{
-    await client.value.venue.loadVenue.mutate({venueId: venueId});
+    await clientOrThrow.value.venue.loadVenue.mutate({venueId: venueId});
   }
   catch(e){
     console.log(e);
   }
-  await client.value.venue.joinVenue.mutate({venueId});
+  await clientOrThrow.value.venue.joinVenue.mutate({venueId});
   router.push({name: 'userVenue'});
 };
 

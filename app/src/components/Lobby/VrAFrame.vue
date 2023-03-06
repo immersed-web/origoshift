@@ -81,7 +81,7 @@ import 'aframe';
 import type { Scene } from 'aframe';
 import { ref, onMounted } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
-import { client } from '@/modules/trpcClient';
+import { clientOrThrow } from '@/modules/trpcClient';
 import type { ClientTransform } from 'schemas';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { useClientStore } from '@/stores/clientStore';
@@ -98,7 +98,7 @@ onMounted(async () => {
 
   startTransformSubscription();
 
-  client.value.venue.subClientAddedOrRemoved.subscribe(undefined, {
+  clientOrThrow.value.venue.subClientAddedOrRemoved.subscribe(undefined, {
     onData(data){
       console.log(data);
       if(!data.added){
@@ -121,7 +121,7 @@ function startTransformSubscription() {
   if(transformSubscription){
     transformSubscription.unsubscribe();
   }
-  transformSubscription = client.value.vr.transforms.subClientTransforms.subscribe(undefined, {
+  transformSubscription = clientOrThrow.value.vr.transforms.subClientTransforms.subscribe(undefined, {
     onData(data) {
       clientStore.clientTransforms = {...clientStore.clientTransforms, ...data};
       // console.log('received transform data!', data, clientStore.clientTransforms);
@@ -141,10 +141,10 @@ function onLoaded () {
 
 async function cameraMoveSlow (e: CustomEvent<[number, number, number]>){
   // console.log('Camera move slow', positionStr);
-  if(client){
+  if(clientOrThrow){
     const position: ClientTransform['position'] = e.detail;
     const randomRot: ClientTransform['orientation'] = [Math.random(),Math.random(),Math.random(),Math.random()];
-    await client.value.vr.transforms.updateTransform.mutate({orientation: randomRot, position});
+    await clientOrThrow.value.vr.transforms.updateTransform.mutate({orientation: randomRot, position});
   }
 }
 

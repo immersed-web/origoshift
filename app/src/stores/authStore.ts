@@ -44,6 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isGuest = computed(() => userData.value?.role === 'guest');
   const userId = computed(() => userData.value?.userId);
   const username = computed(() => userData.value?.username);
+  const role = computed(() => userData.value?.role);
   const isLoggedIn = computed(() => !!userId.value);
   async function autoGuest() {
     await guestAutoToken((t) => token.value = t);
@@ -76,6 +77,7 @@ export const useAuthStore = defineStore('auth', () => {
     userData,
     isGuest,
     userId,
+    role,
     username,
     autoGuest,
     restoreFromSession,

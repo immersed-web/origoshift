@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
-import {  client, startSenderClient, type RouterOutputs } from '@/modules/trpcClient';
+import {clientOrThrow, type RouterOutputs } from '@/modules/trpcClient';
+import { useAuthStore } from './authStore';
+import { useConnectionStore } from './connectionStore';
 
 export const useSenderStore = defineStore('sender', {
   state: () => ({
@@ -12,8 +14,11 @@ export const useSenderStore = defineStore('sender', {
   },
   actions: {
     async login (username: string, password: string ) {
-      await startSenderClient(username, password);
-      this.clientState = await client.value.sender.getClientState.query();
+      const auth = useAuthStore();
+      await auth.login(username, password);
+      const connection = useConnectionStore();
+      connection.createSenderClient();
+      this.clientState = await clientOrThrow.value.sender.getClientState.query();
       // client.value.sender.subClientState.subscribe(undefined, {
       //   onData: (data) => {
       //     console.log(`clientState received. Reason: ${data.reason}`);

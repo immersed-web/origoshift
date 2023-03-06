@@ -12,7 +12,7 @@
             </h2>
             <div class="flex space-x-2">
               <div
-                v-for="venue in clientStore.venuesAll"
+                v-for="venue in myVenues"
                 :key="venue.venueId"
                 class="flex-1"
               >
@@ -45,14 +45,24 @@
 
 <script setup lang="ts">
 import VenueThumb from '@/components/VenueThumb.vue';
+import { clientOrThrow, type RouterOutputs } from '@/modules/trpcClient';
 import { useClientStore } from '@/stores/clientStore';
+import { onBeforeMount, ref } from 'vue';
 
 // Stores
 const clientStore = useClientStore();
 
+const myVenues = ref<RouterOutputs['venue']['listMyVenues']>();
+onBeforeMount(async () => {
+  myVenues.value = await clientOrThrow.value.venue.listMyVenues.query();
+});
+
 // View functionality
-function createVenue () {
-  clientStore.createVenue();
+async function createVenue () {
+  await clientOrThrow.value.venue.createNewVenue.mutate({name: `venue-${Math.trunc(Math.random() * 1000)}`});
+  myVenues.value = await clientOrThrow.value.venue.listMyVenues.query();
+
+  // clientStore.createVenue();
 }
 
 </script>

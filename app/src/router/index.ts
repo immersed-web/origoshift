@@ -1,14 +1,18 @@
+import { useAuthStore } from '@/stores/authStore';
 import { useClientStore } from '@/stores/clientStore';
-import { useSenderStore } from '@/stores/senderStore';
+import { useConnectionStore } from '@/stores/connectionStore';
+// import { useSenderStore } from '@/stores/senderStore';
 import { hasAtLeastSecurityLevel, type UserRole } from 'schemas';
 import { createRouter, createWebHistory } from 'vue-router';
 
 declare module 'vue-router' {
   interface RouteMeta {
-    noAuth?: boolean
-    requiresAuth?: boolean
+    // noAuth?: boolean
+    // requiresAuth?: boolean
+    requiredConnection?: 'sender' | 'user'
     requiredRole?: UserRole
-    loginRedirect?: string
+    afterLoginRedirect?: string
+    loginNeededRedirect?: 'cameraLogin' | 'login'
   }
 }
 
@@ -22,12 +26,11 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      meta: { noAuth: true },
       component:  () => import('../views/LoginView.vue'),
     },
     {
       path: '/user/',
-      meta: { requiresAuth: true },
+      meta: { requiredRole: 'user', loginNeededRedirect: 'login', requiredConnection: 'user' },
       children: [
         {
           path: '',
@@ -47,15 +50,15 @@ const router = createRouter({
       ],
     },
     {
+      name: 'cameraLogin', path: '/camera/login', component: () => import('@/components/LoginBox.vue'),
+    },
+    {
       name: 'camera',
       path: '/camera',
+      meta: { requiredRole: 'sender', requiredConnection: 'sender', loginNeededRedirect: 'cameraLogin'},
       children: [
         {
-          name: 'cameraLogin', path: 'login', component: () => import('@/components/LoginBox.vue'),
-        },
-        {
           name: 'cameraHome', path: '', component: () => import('@/views/CameraView.vue'),
-          meta: { requiredRole: 'sender', loginRedirect: 'cameraLogin'},
         },
       ],
     },
@@ -75,24 +78,32 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, from) => {
-  const clientStore = useClientStore();
-  console.log('Logged in', clientStore.loggedIn, clientStore.clientState);
+router.beforeEach(async (to, from) => {
+  const connectionStore = useConnectionStore();
+  const authStore = useAuthStore();
+  if (to.meta.requiredRole) {
+    // if not logged in we can try to restore from session
+    if(!authStore.isLoggedIn && authStore.hasCookie) {
+      await authStore.restoreFromSession();
+    }
 
-  // const clientStore = useSenderStore();
-  // if (to.meta.requiredRole) {
-  //   if(!clientStore.clientState. || !hasAtLeastSecurityLevel(clientStore.clientState.role, to.meta.requiredRole)){
-  //     console.log('Reroute to login', from, to);
-  //     return { name: 'cameraLogin' /*, query: { next: to.fullPath } */ };
-  //   }
-  // }
+    if(!authStore.role || !hasAtLeastSecurityLevel(authStore.role, to.meta.requiredRole)){
+      console.log('Reroute to login', from, to);
+      return { name: to.meta.loginNeededRedirect || 'login'  /*, query: { next: to.fullPath } */ };
+    }
+  }
+  if(to.meta.requiredConnection) {
 
-  if (to.meta.requiresAuth && !clientStore.loggedIn) {
-    console.log('Reroute to login', from, to);
-    return { name: 'login' /*, query: { next: to.fullPath } */ };
-  } else if (to.meta.noAuth && clientStore.loggedIn) {
-    console.log('Reroute to login', from, to);
-    return { name: 'userHome' /*, query: { next: to.fullPath } */ };
+    if(!authStore.isLoggedIn){
+      throw Error('eeeeh. You are not logged but you shouldnt reach this code without being logged in. Something is wrooong');
+    }
+    if(!connectionStore.connected){
+      if(to.meta.requiredConnection === 'user'){
+        connectionStore.createUserClient();
+      } else {
+        connectionStore.createSenderClient();
+      }
+    }
   }
 });
 

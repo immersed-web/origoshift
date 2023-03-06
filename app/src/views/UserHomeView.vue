@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div class="flex flex-col">
+    <LoggedInHeader class="flex-none" />
     <div class="min-h-screen hero bg-base-200">
       <div class="text-center hero-content">
         <div class="max-w-md">
@@ -44,6 +45,7 @@
 </template>
 
 <script setup lang="ts">
+import LoggedInHeader from '@/components/user/LoggedInHeader.vue';
 import VenueThumb from '@/components/VenueThumb.vue';
 import { clientOrThrow, type RouterOutputs } from '@/modules/trpcClient';
 import { useClientStore } from '@/stores/clientStore';

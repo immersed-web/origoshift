@@ -46,8 +46,6 @@ model Venue {
   startTime        DateTime
   settings         Json
   virtualSpace     VirtualSpace?
-  // virtualSpace     VirtualSpace? @relation(fields: [virtualSpaceId], references: [vrId])
-  // virtualSpaceId   String?       @unique @db.Uuid
   owner            User          @relation(fields: [ownerId], references: [userId], onDelete: Cascade)
   ownerId          String        @db.Uuid
   whitelistedUsers User[]        @relation("allowedUsers")

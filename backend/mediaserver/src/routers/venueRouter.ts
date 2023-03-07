@@ -49,6 +49,7 @@ export const venueRouter = router({
     attachEmitter(ctx.client.venueEvents, 'venueWasUnloaded');
   }),
   listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
+    // TODO: get directly from the client instance as it loads db data when created
     const dbResponse = await prismaClient.venue.findMany({
       where: {
         ownerId: ctx.userId
@@ -60,6 +61,9 @@ export const venueRouter = router({
     });
     return dbResponse;
   }),
+  listAllowedVenues: p.query(({ctx}) => {
+    return ctx.client.allowedVenues;
+  }),
   subClientAddedOrRemoved: p.use(isUserClientM).subscription(({ctx}) => {
     return attachFilteredEmitter(ctx.client.venueEvents, 'clientAddedOrRemoved', ctx.connectionId);
   }),
@@ -70,14 +74,14 @@ export const venueRouter = router({
     z.object({
       venueId: VenueIdSchema
     })
-  ).mutation(({input, ctx}) => {
+  ).mutation(async ({input, ctx}) => {
     log.info('request received to join venue:', input.venueId);
-    ctx.client.joinVenue(input.venueId);
+    await ctx.client.joinVenue(input.venueId);
   }),
   joinVenueAsSender: atLeastSenderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
-    .mutation(({ctx, input}) =>{
+    .mutation(async ({ctx, input}) =>{
       log.info('request received to join venue as sender:', input.venueId);
-      ctx.client.joinVenue(input.venueId);
+      await ctx.client.joinVenue(input.venueId);
     }),
   leaveCurrentVenue: p.use(isInVenueM).query(({ctx}) => {
     if(!ctx.client.leaveCurrentVenue()){

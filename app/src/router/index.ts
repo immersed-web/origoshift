@@ -78,6 +78,9 @@ const router = createRouter({
         {
           name: 'cameraHome', path: '', component: () => import('@/views/camera/CameraView.vue'),
         },
+        {
+          name: 'cameraPickVenue', path: 'choose-venue', component: () => import('@/views/camera/VenuePickView.vue'),
+        },
       ],
     },
     {
@@ -97,7 +100,7 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from) => {
-  console.log('beforeEach: ', to, from);
+  // console.log('beforeEach: ', to, from);
   const connectionStore = useConnectionStore();
   const clientStore = useClientStore();
   const authStore = useAuthStore();

@@ -16,6 +16,7 @@
     <pre>
         Permission state: {{ permissionState }}
         Video info: {{ videoInfo }}
+        Mediasoup device loaded: {{ deviceLoaded }}
   </pre>
     <select
       v-model="pickedVideoInput"
@@ -53,8 +54,19 @@
 
 <script setup lang="ts">
 import LoggedInHeader from '@/components/layout/LoggedInHeader.vue';
-import { getMe } from '@/modules/authClient';
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
+import { clientOrThrow } from '@/modules/trpcClient';
+import { soupDevice } from '@/modules/mediasoup';
+
+onMounted(async () =>{
+  const routerRtpCapabilities = await clientOrThrow.value.soup.getRouterRTPCapabilities.query();
+  console.log(routerRtpCapabilities);
+  soupDevice.load({ routerRtpCapabilities});
+  deviceLoaded.value = soupDevice.loaded;
+  // soupDevice.createSendTransport({})
+});
+
+const deviceLoaded = ref<boolean>(false);
 
 const videoTag = ref<HTMLVideoElement>();
 
@@ -67,10 +79,10 @@ const audioDevices = computed(() => {
 });
 
 const pickedAudioInput = shallowRef<MediaDeviceInfo>();
-watch(pickedAudioInput, (pickedDevice) => startAudio(pickedDevice));
+watch(pickedAudioInput, (pickedDevice) => startAudio(pickedDevice!));
 
 const pickedVideoInput = shallowRef<MediaDeviceInfo>();
-watch(pickedVideoInput, (pickedDevice) => startVideo(pickedDevice));
+watch(pickedVideoInput, (pickedDevice) => startVideo(pickedDevice!));
 
 const audioTrack = shallowRef<MediaStreamTrack>();
 async function startAudio(audioDevice: MediaDeviceInfo){

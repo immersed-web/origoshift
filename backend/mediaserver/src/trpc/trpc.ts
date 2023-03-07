@@ -18,7 +18,7 @@ export const middleware = trpc.middleware;
 export const router = trpc.router;
 export const procedure = trpc.procedure;
 
-export const createAuthMiddleware = (userRole: JwtUserData['role']) => {
+const createAuthMiddleware = (userRole: JwtUserData['role']) => {
   return middleware(({ctx, next}) => {
     if(!hasAtLeastSecurityLevel(ctx.role, userRole)){
       throw new TRPCError({code: 'UNAUTHORIZED', message: 'Du saknar behörighet! Vi uppskattar INTE dina försök att kringå dina befogenheter!'});

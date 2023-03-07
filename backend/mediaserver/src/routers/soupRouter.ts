@@ -1,19 +1,24 @@
 import { TRPCError } from '@trpc/server';
 import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId } from 'schemas/mediasoup';
 import { z } from 'zod';
-import { procedure as p, router } from '../trpc/trpc';
+import { isInVenueM, procedure as p, router } from '../trpc/trpc';
 // import { Producer as SoupProducer } from 'mediasoup/node/lib/Producer';
 // import '../augmentedMediasoup';
 // import { attachFilteredEmitter, FilteredEvents } from '../trpc/trpc-utils';
 
+const clientInVenueP = p.use(isInVenueM);
+
 export const soupRouter = router({
-  getRouterRTPCapabilities: p.query(() => {
+  getRouterRTPCapabilities: clientInVenueP.query(({ctx}) => {
+
+    const caps = ctx.venue.router.rtpCapabilities;
+    return caps;
+    // return 'Not implemented yet' as const;
+  }),
+  setRTPCapabilities: clientInVenueP.query(() => {
     return 'Not implemented yet' as const;
   }),
-  setRTPCapabilities: p.query(() => {
-    return 'Not implemented yet' as const;
-  }),
-  connectTransport: p.input(ConnectTransportPayloadSchema).mutation(async ({ctx, input}) => {
+  connectTransport: clientInVenueP.input(ConnectTransportPayloadSchema).mutation(async ({ctx, input}) => {
     const client = ctx.client;
     const transportId = input.transportId;
     const dtlsParameters = input.dtlsParameters;
@@ -28,7 +33,7 @@ export const soupRouter = router({
     }
     await chosenTransport.connect({dtlsParameters});
   }),
-  createProducer: p.input(CreateProducerPayloadSchema).mutation(async ({ctx, input}) => {
+  createProducer: clientInVenueP.input(CreateProducerPayloadSchema).mutation(async ({ctx, input}) => {
     const client = ctx.client;
 
     if(!client.sendTransport){
@@ -48,10 +53,10 @@ export const soupRouter = router({
 
     return producer.id;
   }),
-  closeProducer: p.input(z.object({producerId:z.string().uuid()})).mutation(({input, ctx}) => {
+  closeProducer: clientInVenueP.input(z.object({producerId:z.string().uuid()})).mutation(({input, ctx}) => {
     return 'Not implemented yet' as const;
   }),
-  onProducerClosed: p.input(z.string().uuid()).subscription(({input, ctx}) => {
+  onProducerClosed: clientInVenueP.input(z.string().uuid()).subscription(({input, ctx}) => {
     return 'Not implemented yet' as const;
     // return attachFilteredEmitter(ee, 'producerClosed', ctx.uuid);
   })

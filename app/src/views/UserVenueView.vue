@@ -1,29 +1,22 @@
 <template>
-  <div class="flex flex-col">
-    <LoggedInHeader class="flex-none" />
-    <div class="min-h-screen hero bg-base-200">
-      <div class="text-center hero-content">
-        <div class="max-w-md">
-          <h1 class="text-5xl font-bold">
-            Loaded and joined venue: {{ clientStore.clientState.currentVenueId }}
-          </h1>
-          <div class="flex space-x-2">
-            <button
-              class="btn btn-primary"
-              @click="openLobby"
-            >
-              Gå in i VR-lobby
-            </button>
-            <button
-              class="btn btn-primary"
-            >
-              Gå in i 360
-            </button>
-          </div>
-        </div>
-      </div>
+  <LoggedInLayout>
+    <h1 class="text-5xl font-bold">
+      Loaded and joined venue: {{ clientStore.clientState.currentVenueId }}
+    </h1>
+    <div class="flex space-x-2">
+      <button
+        class="btn btn-primary"
+        @click="openLobby"
+      >
+        Gå in i VR-lobby
+      </button>
+      <button
+        class="btn btn-primary"
+      >
+        Gå in i 360
+      </button>
     </div>
-  </div>
+  </LoggedInLayout>
 </template>
 
 <script setup lang="ts">
@@ -31,7 +24,7 @@ import { onMounted } from 'vue';
 import { useClientStore } from '@/stores/clientStore';
 import { useRouter } from 'vue-router';
 import { clientOrThrow } from '@/modules/trpcClient';
-import LoggedInHeader from '@/components/user/LoggedInHeader.vue';
+import LoggedInLayout from '@/components/layout/LoggedInLayout.vue';
 
 // Router
 const router = useRouter();

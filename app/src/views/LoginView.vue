@@ -9,6 +9,29 @@
           <p class="py-6">
             Logga in för att delta i kulturevenemang i VR/360.
           </p>
+          <div>
+            <h2>Login för fuskare</h2>
+            <div class="space-x-2">
+              <button
+                @click="loginDetails('user1','123')"
+                class="btn btn-primary btn-outline"
+              >
+                User
+              </button>
+              <button
+                @click="loginDetails('sender','123')"
+                class="btn btn-primary btn-outline"
+              >
+                Sender
+              </button>
+              <button
+                @click="loginDetails('superadmin','bajskorv')"
+                class="btn btn-primary btn-outline"
+              >
+                Superadmin
+              </button>
+            </div>
+          </div>
         </div>
         <div class="flex-shrink-0 w-full max-w-sm shadow-2xl card bg-base-100">
           <form
@@ -116,6 +139,11 @@ const login = async () => {
 
 };
 
+const loginDetails = (un: string, pwd: string) => {
+  username.value = un;
+  password.value = pwd;
+  login();
+};
 
 </script>
 

@@ -64,15 +64,19 @@
 import { useRouter } from 'vue-router';
 // import { useClientStore } from '@/stores/clientStore';
 import { ref } from 'vue';
-import { isTRPCClientError } from '@/modules/trpcClient';
 import { useAuthStore } from '@/stores/authStore';
 
 // Router
 const router = useRouter();
+const fromRoute = router.currentRoute.value.redirectedFrom;
 
 // Stores
 // const clientStore = useClientStore();
 const authStore = useAuthStore();
+
+const props = defineProps<{
+  redirectAfterLogin?: string
+}>();
 
 // View / components functionality
 const username = ref('superadmin');
@@ -83,13 +87,17 @@ const login = async () => {
   try{
     // await clientStore.login(username.value, password.value);
     await authStore.login(username.value, password.value);
-    router.push({name: 'userHome'});
+    if(props.redirectAfterLogin){
+      router.push({name: props.redirectAfterLogin});
+    } else if(fromRoute){
+      router.push(fromRoute);
+    } else {
+      router.push('/');
+    }
   }
   catch(e: unknown){
     console.error(e);
-    if(isTRPCClientError(e)){
-      error.value = e.message;
-    }else if(e instanceof Error){
+    if(e instanceof Error){
       error.value = e.message;
     }
   }

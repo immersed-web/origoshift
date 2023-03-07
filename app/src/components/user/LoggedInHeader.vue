@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-primary text-base-100 p-4 flex">
+  <div class="flex p-4 bg-primary text-base-100">
     <div class="">
       Client state: {{ clientStore.clientState }}
     </div>
@@ -25,7 +25,8 @@ const clientStore = useClientStore();
 
 const logout = async () => {
   await authStore.logout();
-  router.push({name: 'userHome'});
+  console.log('was logged out');
+  router.push({path: '/', force: true});
 };
 
 </script>

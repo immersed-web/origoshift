@@ -1,5 +1,4 @@
 import { useAuthStore } from '@/stores/authStore';
-import { useClientStore } from '@/stores/clientStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 // import { useSenderStore } from '@/stores/senderStore';
 import { hasAtLeastSecurityLevel, type UserRole } from 'schemas';
@@ -21,7 +20,7 @@ const router = createRouter({
   routes: [
     {
       path: '',
-      redirect: {name: 'login'},
+      redirect: {name: 'userHome'},
     },
     {
       path: '/login',
@@ -50,7 +49,7 @@ const router = createRouter({
       ],
     },
     {
-      name: 'cameraLogin', path: '/camera/login', component: () => import('@/components/LoginBox.vue'),
+      name: 'cameraLogin', path: '/camera/login', component: () => import('@/views/LoginView.vue'),
     },
     {
       name: 'camera',
@@ -58,7 +57,7 @@ const router = createRouter({
       meta: { requiredRole: 'sender', requiredConnection: 'sender', loginNeededRedirect: 'cameraLogin'},
       children: [
         {
-          name: 'cameraHome', path: '', component: () => import('@/views/CameraView.vue'),
+          name: 'cameraHome', path: '', component: () => import('@/views/camera/CameraView.vue'),
         },
       ],
     },
@@ -79,6 +78,7 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from) => {
+  console.log('beforeEach: ', to, from);
   const connectionStore = useConnectionStore();
   const authStore = useAuthStore();
   if (to.meta.requiredRole) {

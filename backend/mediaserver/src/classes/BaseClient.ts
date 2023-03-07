@@ -77,7 +77,15 @@ export class BaseClient {
   */
   connectionId: ConnectionId;
   prismaData?: UserResponse;
+  get allowedVenues(){
+    if(!this.prismaData){
+      return [];
+    }
+    return [...this.prismaData.allowedVenues, ...this.prismaData.ownedVenues];
+  }
+
   jwtUserData: JwtUserData;
+
   /**
    * The user's id. Be aware that this doesn't uniquely identify the active connection/session, as the user could run multiple concurrent connections.
    * Instead, use "connectionId" for that.

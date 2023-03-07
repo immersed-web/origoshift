@@ -62,7 +62,6 @@ export function throwIfUnauthorized(role: UserRole, minimumUserRole: UserRole) {
   }
 }
 
-// TODO: Make sure this function isnt hackable by providing strings that isnt part of the roleHierarchy array
 export function hasAtLeastSecurityLevel(role: UserRole, minimumUserRole: UserRole) {
   if(!role){
     // return false;

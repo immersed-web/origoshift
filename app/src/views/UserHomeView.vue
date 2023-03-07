@@ -13,6 +13,7 @@
           :key="venue.venueId"
         >
           <VenueThumb
+            @joined="$router.push({name: 'userVenue'})"
             :venue="venue"
           />
         </div>
@@ -39,6 +40,7 @@
 import LoggedInLayout from '@/components/layout/LoggedInLayout.vue';
 import VenueThumb from '@/components/VenueThumb.vue';
 import { clientOrThrow, type RouterOutputs } from '@/modules/trpcClient';
+import type router from '@/router';
 import { useClientStore } from '@/stores/clientStore';
 import { onBeforeMount, ref } from 'vue';
 

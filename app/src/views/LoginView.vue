@@ -65,10 +65,12 @@ import { useRouter } from 'vue-router';
 // import { useClientStore } from '@/stores/clientStore';
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
+import { hasAtLeastSecurityLevel, type UserRole } from 'schemas';
 
 // Router
 const router = useRouter();
 const fromRoute = router.currentRoute.value.redirectedFrom;
+console.log('redirected from', fromRoute);
 
 // Stores
 // const clientStore = useClientStore();
@@ -87,12 +89,22 @@ const login = async () => {
   try{
     // await clientStore.login(username.value, password.value);
     await authStore.login(username.value, password.value);
+    // console.log('Login as role', authStore.role);
     if(props.redirectAfterLogin){
+      // console.log('redirectAfterLogin', props.redirectAfterLogin);
       router.push({name: props.redirectAfterLogin});
-    } else if(fromRoute){
+    } else if(fromRoute && fromRoute.path !== '/'){
+      // console.log('fromRoute', fromRoute);
       router.push(fromRoute);
     } else {
-      router.push('/');
+      // console.log('Regular login', authStore.role);
+      if(authStore.role && hasAtLeastSecurityLevel(authStore.role, 'admin')){
+        router.push({name: 'adminHome'});
+      }
+      else {
+        router.push({name: 'userHome'});
+      }
+
     }
   }
   catch(e: unknown){

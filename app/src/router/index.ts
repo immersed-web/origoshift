@@ -50,6 +50,17 @@ const router = createRouter({
       ],
     },
     {
+      path: '/admin/',
+      meta: { requiredRole: 'admin', loginNeededRedirect: 'login', requiredConnection: 'user' },
+      children: [
+        {
+          path: '',
+          name: 'adminHome',
+          component:  () => import('../views/AdminHomeView.vue'),
+        },
+      ],
+    },
+    {
       name: 'cameraLogin', path: '/camera/login', component: () => import('@/views/LoginView.vue'),
     },
     {

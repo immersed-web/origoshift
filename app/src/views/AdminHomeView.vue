@@ -7,7 +7,23 @@
       <h2 class="text-3xl font-bold">
         Mina event
       </h2>
-      <VenueList />
+      <div class="flex space-x-2">
+        <VenueList />
+        <div>
+          <button
+            class="btn btn-outline btn-primary"
+            @click="createVenue"
+          >
+            Skapa ett nytt event
+          </button>
+          <button
+            class="btn btn-outline btn-primary"
+            @click="$router.push({name: 'camera'})"
+          >
+            Gå till kamera-vy
+          </button>
+        </div>
+      </div>
     </div>
   </LoggedInLayout>
 </template>
@@ -36,4 +52,3 @@ async function createVenue () {
 }
 
 </script>
-

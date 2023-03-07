@@ -47,7 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
   const username = computed(() => userData.value?.username);
   const role = computed(() => userData.value?.role);
   const isLoggedIn = computed(() => !!userId.value);
-  const homeRoute = computed(() => role.value && hasAtLeastSecurityLevel(role.value, 'admin') ? 'adminHome' : 'userHome');
+  const routePrefix = computed(() => role.value && hasAtLeastSecurityLevel(role.value, 'admin') ? 'admin' : 'user');
   async function autoGuest() {
     await guestAutoToken((t) => token.value = t);
   }
@@ -85,6 +85,6 @@ export const useAuthStore = defineStore('auth', () => {
     restoreFromSession,
     logout,
     login,
-    homeRoute,
+    routePrefix,
   };
 });

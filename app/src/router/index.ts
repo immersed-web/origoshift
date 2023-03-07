@@ -60,6 +60,11 @@ const router = createRouter({
           name: 'adminHome',
           component:  () => import('../views/AdminHomeView.vue'),
         },
+        {
+          path: 'venue',
+          name: 'adminVenue',
+          component:  () => import('../views/AdminVenueView.vue'),
+        },
       ],
     },
     {

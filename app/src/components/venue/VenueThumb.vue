@@ -15,9 +15,11 @@ import type { PropType } from 'vue';
 import { useRouter } from 'vue-router';
 import { clientOrThrow } from '@/modules/trpcClient';
 import type { RouterOutputs } from '@/modules/trpcClient';
+import { useAuthStore } from '@/stores/authStore';
 
-// Router
+// Use imports
 const router = useRouter();
+const authStore = useAuthStore();
 
 // Props & emits
 const props = defineProps({
@@ -32,7 +34,7 @@ const loadAndJoinVenue = async (venueId: string) => {
     console.log(e);
   }
   await clientOrThrow.value.venue.joinVenue.mutate({venueId});
-  router.push({name: 'userVenue'});
+  router.push({name: authStore.routePrefix + 'Venue'});
 };
 
 </script>

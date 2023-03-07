@@ -58,7 +58,7 @@
 </style>
 
 <script setup lang="ts">
-import LoggedInHeader from '@/components/user/LoggedInHeader.vue';
+import LoggedInHeader from '@/components/layout/LoggedInHeader.vue';
 import { getMe } from '@/modules/authClient';
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
 

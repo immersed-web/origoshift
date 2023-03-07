@@ -25,7 +25,7 @@
           </button>
           <button
             class="btn btn-outline btn-primary"
-            @click="$router.push({name: 'camera'})"
+            @click="$router.push({path: '/camera'})"
           >
             Gå till kamera-vy
           </button>

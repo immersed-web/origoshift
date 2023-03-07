@@ -72,7 +72,11 @@ export function hasAtLeastSecurityLevel(role: UserRole, minimumUserRole: UserRol
     throw new Error('no minimum userRole provided for auth check!');
   }
   const clientSecurityLevel = roleHierarchy.indexOf(role);
-  return clientSecurityLevel <= roleHierarchy.indexOf(minimumUserRole)
+  if(clientSecurityLevel < 0) throw Error('invalid role provided');
+  const minimumRoleLevel = roleHierarchy.indexOf(minimumUserRole);
+  if(minimumRoleLevel < 0) throw Error('invalid minimum role provided');
+
+  return clientSecurityLevel <= minimumRoleLevel
 }
 
 // type RoleSet = Set<Role>;

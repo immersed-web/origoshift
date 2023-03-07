@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { logout as authLogout, login as authLogin, userAutoToken, guestAutoToken } from '@/modules/authClient';
+import { hasAtLeastSecurityLevel } from 'schemas';
 import jwtDecode from 'jwt-decode';
 import type { JwtPayload } from 'schemas';
 import { computed, ref } from 'vue';
@@ -46,6 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
   const username = computed(() => userData.value?.username);
   const role = computed(() => userData.value?.role);
   const isLoggedIn = computed(() => !!userId.value);
+  const homeRoute = computed(() => role.value && hasAtLeastSecurityLevel(role.value, 'admin') ? 'adminHome' : 'userHome');
   async function autoGuest() {
     await guestAutoToken((t) => token.value = t);
   }
@@ -83,5 +85,6 @@ export const useAuthStore = defineStore('auth', () => {
     restoreFromSession,
     logout,
     login,
+    homeRoute,
   };
 });

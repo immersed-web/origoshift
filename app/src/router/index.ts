@@ -20,7 +20,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '',
+      path: '/',
       redirect: {name: 'userHome'},
     },
     {
@@ -31,6 +31,7 @@ const router = createRouter({
     {
       path: '/user/',
       meta: { requiredRole: 'user', loginNeededRedirect: 'login', requiredConnection: 'user' },
+      component:  () => import('@/layouts/LoggedInLayout.vue'),
       children: [
         {
           path: '',
@@ -46,6 +47,18 @@ const router = createRouter({
           path: 'lobby',
           name: 'lobby',
           component:  () => import('../views/LobbyView.vue'),
+        },
+      ],
+    },
+    {
+      path: '/admin/',
+      meta: { requiredRole: 'admin', loginNeededRedirect: 'login', requiredConnection: 'user' },
+      component:  () => import('@/layouts/LoggedInLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'adminHome',
+          component:  () => import('../views/AdminHomeView.vue'),
         },
       ],
     },
@@ -86,6 +99,11 @@ router.beforeEach(async (to, from) => {
   const connectionStore = useConnectionStore();
   const clientStore = useClientStore();
   const authStore = useAuthStore();
+
+  if(to.path === '/' && authStore.role){
+    return { name: hasAtLeastSecurityLevel(authStore.role, 'admin') ? 'adminHome' : 'userHome'};
+  }
+
   if (to.meta.requiredRole) {
     // if not logged in we can try to restore from session
     if(!authStore.isLoggedIn && authStore.hasCookie) {

@@ -2,7 +2,7 @@
   <div class="navbar bg-primary text-white">
     <div class="flex-1">
       <RouterLink
-        to="/"
+        :to="{name: authStore.homeRoute}"
         class="btn btn-ghost normal-case text-xl"
       >
         OrigoShift
@@ -25,7 +25,7 @@
           class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
         >
           <li>
-            <RouterLink to="/">
+            <RouterLink :to="{name: authStore.homeRoute}">
               @{{ clientStore.clientState.userName }}
             </RouterLink>
           </li>
@@ -49,10 +49,12 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useClientStore } from '@/stores/clientStore';
 
+// Use imports
 const router = useRouter();
-
 const authStore = useAuthStore();
 const clientStore = useClientStore();
+
+// Components stuff
 
 const logout = async () => {
   await authStore.logout();

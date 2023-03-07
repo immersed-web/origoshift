@@ -16,6 +16,7 @@
     <pre>
         Permission state: {{ permissionState }}
         Video info: {{ videoInfo }}
+        Mediasoup device loaded: {{ deviceLoaded }}
   </pre>
     <select
       v-model="pickedVideoInput"
@@ -60,8 +61,12 @@ import { soupDevice } from '@/modules/mediasoup';
 onMounted(async () =>{
   const routerRtpCapabilities = await clientOrThrow.value.soup.getRouterRTPCapabilities.query();
   console.log(routerRtpCapabilities);
-  // soupDevice.load({ routerRtpCapabilities});
+  soupDevice.load({ routerRtpCapabilities});
+  deviceLoaded.value = soupDevice.loaded;
+  // soupDevice.createSendTransport({})
 });
+
+const deviceLoaded = ref<boolean>(false);
 
 const videoTag = ref<HTMLVideoElement>();
 

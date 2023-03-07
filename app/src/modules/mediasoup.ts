@@ -1,5 +1,5 @@
-import mediasoup from 'mediasoup-client';
-export const soupDevice = new mediasoup.Device();
+import {Device} from 'mediasoup-client';
+export const soupDevice = new Device();
 
 // loadDevice(){
 //   soupDevice.load()

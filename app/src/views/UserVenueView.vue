@@ -1,5 +1,5 @@
 <template>
-  <LoggedInLayout>
+  <div>
     <h1 class="text-5xl font-bold">
       Loaded and joined venue: {{ clientStore.clientState.currentVenueId }}
     </h1>
@@ -16,7 +16,7 @@
         Gå in i 360
       </button>
     </div>
-  </LoggedInLayout>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -24,7 +24,7 @@ import { onMounted } from 'vue';
 import { useClientStore } from '@/stores/clientStore';
 import { useRouter } from 'vue-router';
 import { clientOrThrow } from '@/modules/trpcClient';
-import LoggedInLayout from '@/components/layout/LoggedInLayout.vue';
+import LoggedInLayout from '@/layouts/LoggedInLayout.vue';
 
 // Router
 const router = useRouter();

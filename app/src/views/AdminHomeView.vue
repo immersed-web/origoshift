@@ -1,5 +1,5 @@
 <template>
-  <LoggedInLayout>
+  <div>
     <h1 class="text-5xl font-bold">
       Välkommen {{ clientStore.clientState.userName }}
     </h1>
@@ -16,20 +16,22 @@
           >
             Skapa ett nytt event
           </button>
-          <button
-            class="btn btn-outline btn-primary"
-            @click="$router.push({name: 'camera'})"
-          >
-            Gå till kamera-vy
-          </button>
         </div>
       </div>
     </div>
-  </LoggedInLayout>
+    <pre>{{ myVenues }}</pre>
+    <pre>{{ loadedVenues }}</pre>
+    <button
+      class="btn btn-outline btn-primary"
+      @click="$router.push({name: 'camera'})"
+    >
+      Gå till kamera-vy
+    </button>
+  </div>
 </template>
 
 <script setup lang="ts">
-import LoggedInLayout from '@/components/layout/LoggedInLayout.vue';
+import LoggedInLayout from '@/layouts/LoggedInLayout.vue';
 import VenueList from '@/components/venue/VenueList.vue';
 import { clientOrThrow, type RouterOutputs } from '@/modules/trpcClient';
 import { useClientStore } from '@/stores/clientStore';
@@ -41,6 +43,11 @@ const clientStore = useClientStore();
 const myVenues = ref<RouterOutputs['venue']['listMyVenues']>();
 onBeforeMount(async () => {
   myVenues.value = await clientOrThrow.value.venue.listMyVenues.query();
+});
+
+const loadedVenues = ref<RouterOutputs['venue']['listLoadedVenues']>();
+onBeforeMount(async () => {
+  loadedVenues.value = await clientOrThrow.value.venue.listLoadedVenues.query();
 });
 
 // View functionality

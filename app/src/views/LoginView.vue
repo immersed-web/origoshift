@@ -121,6 +121,7 @@ const login = async () => {
       router.push(fromRoute);
     } else {
       // console.log('Regular login', authStore.role);
+      // router.push('/');
       if(authStore.role && hasAtLeastSecurityLevel(authStore.role, 'admin')){
         router.push({name: 'adminHome'});
       }

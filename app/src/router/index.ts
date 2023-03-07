@@ -1,5 +1,6 @@
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
+import { useClientStore } from '@/stores/clientStore';
 // import { useSenderStore } from '@/stores/senderStore';
 import { hasAtLeastSecurityLevel, type UserRole } from 'schemas';
 import { createRouter, createWebHistory } from 'vue-router';
@@ -80,6 +81,7 @@ const router = createRouter({
 router.beforeEach(async (to, from) => {
   console.log('beforeEach: ', to, from);
   const connectionStore = useConnectionStore();
+  const clientStore = useClientStore();
   const authStore = useAuthStore();
   if (to.meta.requiredRole) {
     // if not logged in we can try to restore from session
@@ -100,6 +102,7 @@ router.beforeEach(async (to, from) => {
     if(!connectionStore.connected){
       if(to.meta.requiredConnection === 'user'){
         connectionStore.createUserClient();
+        clientStore.updateClientState();
       } else {
         connectionStore.createSenderClient();
       }

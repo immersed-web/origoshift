@@ -5,53 +5,47 @@
   >
     Kamera-vy!
   </div>
-  <div class="m-6 btn-group">
-    <button
-      class="btn btn-primary"
-      @click="getMe()"
-    >
-      Get me
-    </button>
-    <button
-      v-if="permissionState !== 'granted'"
-      @click="requestPermission"
-      class="btn"
-    >
-      Request camera access
-    </button>
-  </div>
-  <pre>
-    Permission state: {{ permissionState }}
-    Video info: {{ videoInfo }}
+  <button
+    v-if="permissionState !== 'granted'"
+    @click="requestPermission"
+    class="btn"
+  >
+    Request camera access
+  </button>
+  <div v-else>
+    <pre>
+        Permission state: {{ permissionState }}
+        Video info: {{ videoInfo }}
   </pre>
-  <select
-    v-model="pickedVideoInput"
-    class="select select-primary"
-  >
-    <option
-      v-for="(device, key) in videoDevices"
-      :key="key"
-      :value="device"
+    <select
+      v-model="pickedVideoInput"
+      class="select select-primary"
     >
-      {{ device.label }}
-    </option>
-  </select>
-  <select
-    v-model="pickedAudioInput"
-    class="select select-primary"
-  >
-    <option
-      v-for="(device, key) in audioDevices"
-      :key="key"
-      :value="device"
+      <option
+        v-for="(device, key) in videoDevices"
+        :key="key"
+        :value="device"
+      >
+        {{ device.label }}
+      </option>
+    </select>
+    <select
+      v-model="pickedAudioInput"
+      class="select select-primary"
     >
-      {{ device.label }}
-    </option>
-  </select>
-  <video
-    autoplay
-    ref="videoTag"
-  />
+      <option
+        v-for="(device, key) in audioDevices"
+        :key="key"
+        :value="device"
+      >
+        {{ device.label }}
+      </option>
+    </select>
+    <video
+      autoplay
+      ref="videoTag"
+    />
+  </div>
 </template>
 
 <style>

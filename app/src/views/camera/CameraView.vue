@@ -33,7 +33,7 @@
       :key="key"
       :value="device"
     >
-      {{ device.label }} ({{ device.deviceId }})
+      {{ device.label }}
     </option>
   </select>
   <select
@@ -45,7 +45,7 @@
       :key="key"
       :value="device"
     >
-      {{ device.label }} ({{ device.deviceId }})
+      {{ device.label }}
     </option>
   </select>
   <video
@@ -78,12 +78,18 @@ watch(pickedAudioInput, (pickedDevice) => startAudio(pickedDevice));
 const pickedVideoInput = shallowRef<MediaDeviceInfo>();
 watch(pickedVideoInput, (pickedDevice) => startVideo(pickedDevice));
 
-function startAudio(audioDevice: MediaDeviceInfo){
-  navigator.mediaDevices.getUserMedia({
+const audioTrack = shallowRef<MediaStreamTrack>();
+async function startAudio(audioDevice: MediaDeviceInfo){
+  const audioStream = await navigator.mediaDevices.getUserMedia({
     audio: {
-      deviceId: audioDevice.deviceId,
+      deviceId: {
+        exact: audioDevice.deviceId,
+      },
     },
   });
+  console.log(audioStream);
+  audioTrack.value = audioStream.getAudioTracks()[0];
+
 }
 const videoTrack = shallowRef<MediaStreamTrack>();
 const videoInfo = computed(() => {

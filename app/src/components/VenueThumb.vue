@@ -4,7 +4,7 @@
       class="btn btn-primary"
       @click="loadAndJoinVenue(props.venue.venueId)"
     >
-      {{ props.venue?.name }}
+      {{ props.venue.name }}
     </button>
   </div>
 </template>

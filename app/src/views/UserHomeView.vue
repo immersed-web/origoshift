@@ -5,7 +5,7 @@
     </h1>
     <div>
       <h2 class="text-3xl font-bold">
-        Dina venues
+        Mina event
       </h2>
       <div class="flex space-x-2">
         <div
@@ -21,7 +21,7 @@
             class="btn btn-outline btn-primary"
             @click="createVenue"
           >
-            Skapa en ny venue
+            Skapa ett nytt event
           </button>
           <button
             class="btn btn-outline btn-primary"

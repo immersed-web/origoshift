@@ -1,51 +1,42 @@
 <template>
-  <div class="flex flex-col">
-    <LoggedInHeader class="flex-none" />
-    <div class="min-h-screen hero bg-base-200">
-      <div class="text-center hero-content">
-        <div class="max-w-md">
-          <h1 class="text-5xl font-bold">
-            Välkommen {{ clientStore.clientState.userName }}
-          </h1>
-          <div>
-            <h2 class="text-3xl font-bold">
-              Dina venues
-            </h2>
-            <div class="flex space-x-2">
-              <div
-                v-for="venue in myVenues"
-                :key="venue.venueId"
-                class="flex-1"
-              >
-                <VenueThumb
-                  :venue="venue"
-                  class="flex-1"
-                />
-              </div>
-              <div>
-                <button
-                  class="btn btn-outline btn-primary"
-                  @click="createVenue"
-                >
-                  Skapa en ny venue
-                </button>
-                <button
-                  class="btn btn-outline btn-primary"
-                  @click="$router.push({name: 'camera'})"
-                >
-                  Gå till kamera-vy
-                </button>
-              </div>
-            </div>
-          </div>
+  <LoggedInLayout>
+    <h1 class="text-5xl font-bold">
+      Välkommen {{ clientStore.clientState.userName }}
+    </h1>
+    <div>
+      <h2 class="text-3xl font-bold">
+        Dina venues
+      </h2>
+      <div class="flex space-x-2">
+        <div
+          v-for="venue in myVenues"
+          :key="venue.venueId"
+        >
+          <VenueThumb
+            :venue="venue"
+          />
+        </div>
+        <div>
+          <button
+            class="btn btn-outline btn-primary"
+            @click="createVenue"
+          >
+            Skapa en ny venue
+          </button>
+          <button
+            class="btn btn-outline btn-primary"
+            @click="$router.push({name: 'camera'})"
+          >
+            Gå till kamera-vy
+          </button>
         </div>
       </div>
     </div>
-  </div>
+  </LoggedInLayout>
 </template>
 
 <script setup lang="ts">
-import LoggedInHeader from '@/components/user/LoggedInHeader.vue';
+import LoggedInLayout from '@/components/layout/LoggedInLayout.vue';
 import VenueThumb from '@/components/VenueThumb.vue';
 import { clientOrThrow, type RouterOutputs } from '@/modules/trpcClient';
 import { useClientStore } from '@/stores/clientStore';

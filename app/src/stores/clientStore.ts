@@ -20,6 +20,9 @@ export const useClientStore = defineStore('client', {
     loggedIn: (state) => {
       return !!state.clientState.userId;
     },
+    initials: (state) => {
+      return state.clientState.userName ? state.clientState.userName.split(' ').map(n => n[0]).join('') : '';
+    },
   },
   actions: {
     async initConnection() {

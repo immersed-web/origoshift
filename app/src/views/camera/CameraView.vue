@@ -142,6 +142,7 @@ async function startVideo(videoDevice: MediaDeviceInfo){
   });
   console.log(stream);
   const producerInfo: ProducerInfo = {
+    deviceId: pickedVideoInput.value?.deviceId,
     isPaused: false,
   };
 
@@ -150,6 +151,9 @@ async function startVideo(videoDevice: MediaDeviceInfo){
   videoTag.value!.play();
   sendTransport.value?.produce({
     track: videoTrack.value,
+    encodings: [{
+      maxBitrate: 25_000_000,
+    }],
     appData: {
       producerInfo,
     },

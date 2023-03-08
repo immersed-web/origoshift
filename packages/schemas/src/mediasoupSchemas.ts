@@ -30,6 +30,7 @@ export const ConnectTransportPayloadSchema = z.object({
 })
 
 export const ProducerInfoSchema = z.object({
+  deviceId: z.string().optional(),
   isPaused: z.boolean()
 })
 export type ProducerInfo = z.TypeOf<typeof ProducerInfoSchema>

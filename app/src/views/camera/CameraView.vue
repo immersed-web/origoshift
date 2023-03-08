@@ -56,14 +56,34 @@
 import LoggedInHeader from '@/components/layout/LoggedInHeader.vue';
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
 import { clientOrThrow } from '@/modules/trpcClient';
-import { soupDevice } from '@/modules/mediasoup';
+import { soupDevice, attachTransportEvents } from '@/modules/mediasoup';
+import type {types as soupTypes } from 'mediasoup-client';
+import type { ProducerId, ProducerInfo } from 'schemas/mediasoup';
+
+const sendTransport = shallowRef<soupTypes.Transport>();
 
 onMounted(async () =>{
+  clientOrThrow.value.soup.subSoupObjectClosed.subscribe(undefined, {
+    onData(data) {
+      console.log(data);
+    },
+  });
   const routerRtpCapabilities = await clientOrThrow.value.soup.getRouterRTPCapabilities.query();
   console.log(routerRtpCapabilities);
-  soupDevice.load({ routerRtpCapabilities});
+  await soupDevice.load({ routerRtpCapabilities});
   deviceLoaded.value = soupDevice.loaded;
-  // soupDevice.createSendTransport({})
+  clientOrThrow.value.soup.setRTPCapabilities.mutate({
+    rtpCapabilities: soupDevice.rtpCapabilities,
+  });
+  const transportOptions = await clientOrThrow.value.soup.createSendTransport.mutate();
+  sendTransport.value = soupDevice.createSendTransport(transportOptions);
+  attachTransportEvents(sendTransport.value, async (connectData) => {
+    await clientOrThrow.value.soup.connectTransport.mutate(connectData);
+  },
+  async (produceData) => {
+    const producerId = await clientOrThrow.value.soup.createProducer.mutate(produceData);
+    return producerId as ProducerId;
+  });
 });
 
 const deviceLoaded = ref<boolean>(false);
@@ -121,10 +141,19 @@ async function startVideo(videoDevice: MediaDeviceInfo){
     },
   });
   console.log(stream);
+  const producerInfo: ProducerInfo = {
+    isPaused: false,
+  };
 
   videoTrack.value = await stream.getVideoTracks()[0];
   videoTag.value!.srcObject = stream;
   videoTag.value!.play();
+  sendTransport.value?.produce({
+    track: videoTrack.value,
+    appData: {
+      producerInfo,
+    },
+  });
 }
 
 const permissionState = ref();

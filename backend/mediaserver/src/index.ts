@@ -1,4 +1,4 @@
-// process.env.DEBUG = 'mediasoup*';
+process.env.DEBUG = 'mediasoup*';
 import { Log } from 'debug-level';
 const logUws = new Log('uWebSockets');
 process.env.DEBUG = 'uWebSockets*, ' + process.env.DEBUG;

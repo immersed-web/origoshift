@@ -43,8 +43,8 @@ export class SenderClient extends BaseClient {
     this.leaveCurrentVenue();
     const venue = Venue.getVenue(venueId);
     venue.addSenderClient(this);
-    this.sendTransport = await venue.createWebRtcTransport();
-    this.receiveTransport = await venue.createWebRtcTransport();
+    // await this.createWebRtcTransport('send');
+    // await this.createWebRtcTransport('receive');
     // this._notifyClientStateUpdated('user client joined venue');
   }
 

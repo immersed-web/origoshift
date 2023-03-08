@@ -5,6 +5,7 @@ log.enable(process.env.DEBUG);
 
 import { ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
+import type { types as soupClientTypes } from 'mediasoup-client';
 import { ConsumerId, ProducerId, TransportId  } from 'schemas/mediasoup';
 import { UserClient, Venue } from './InternalClasses';
 import { TypedEmitter } from 'tiny-typed-emitter';
@@ -13,14 +14,18 @@ import { randomUUID } from 'crypto';
 import { Prisma, userDeselectPassword, userSelectAll } from 'database';
 import prismaClient from '../modules/prismaClient';
 
+type SoupObjectClosePayload =
+      {type: 'transport', id: TransportId }
+      | {type: 'producer', id: ProducerId }
+      | {type: 'consumer', id: ConsumerId }
 
 export type ClientSoupEvents = NonFilteredEvents<{
-  // 'onProducer': ()
-  'transportClosed': (transportId: TransportId) => void
+  'soupObjectClosed': (data: SoupObjectClosePayload & { reason: string}) => void
+  // 'transportClosed': (transportId: TransportId) => void
   'consumerPausedOrResumed': (data: {consumerId: ConsumerId, wasPaused: boolean}) => void
   'producerPausedOrResumed': (data: {producerId: ProducerId, wasPaused: boolean}) => void
-  'consumerClosed': (consumerId: ConsumerId) => void
-  'producerClosed': (producerId: ProducerId) => void
+  // 'consumerClosed': (consumerId: ConsumerId) => void
+  // 'producerClosed': (producerId: ProducerId) => void
 }>
 export type ClientVenueEvents = FilteredEvents<{
   'clientAddedOrRemoved': (data: {client: ReturnType<UserClient['getPublicState']>, added: boolean}) => void,
@@ -156,15 +161,55 @@ export class BaseClient {
     return true;
   }
 
+  async createWebRtcTransport(direction: 'send' | 'receive'){
+    log.info(`creating (${direction}) webrtcTransport`);
+    if(!this.venue) {
+      throw Error('must be in a venue in order to create transport');
+    }
+    const transport = await this.venue.createWebRtcTransport();
+    if(!transport){
+      throw new Error('failed to create transport!!');
+    }
+    transport.addListener('routerclose', () => {
+      log.info('transport event: router closed');
+      this.soupEvents.emit('soupObjectClosed', {type: 'transport', id: transport.id as TransportId, reason: 'router was closed'});
+      // this.send(createMessage('notifyCloseEvent', {
+      //   objectType: 'transport',
+      //   objectId: transport.id,
+      // }));
+    });
+    if(direction == 'receive'){
+      this.receiveTransport = transport;
+      this.receiveTransport.addListener('routerclose', ()=> {
+        this.receiveTransport = undefined;
+      });
+    } else {
+      this.sendTransport = transport;
+      this.sendTransport.addListener('routerclose',()=> {
+        this.sendTransport = undefined;
+      });
+    }
+    const { id, iceParameters, dtlsParameters } = transport;
+    const iceCandidates = <soupClientTypes.IceCandidate[]>transport.iceCandidates;
+    const transportOptions: soupClientTypes.TransportOptions = {
+      id,
+      iceParameters,
+      iceCandidates,
+      dtlsParameters,
+    };
+    return transportOptions;
+  }
+
   closeAllTransports() {
     if(this.sendTransport){
       this.sendTransport.close();
-      this.soupEvents.emit('transportClosed', this.sendTransport.id as TransportId);
+      // this.soupEvents.emit('transportClosed', this.sendTransport.id as TransportId);
+      this.soupEvents.emit('soupObjectClosed', {type: 'transport', id: this.sendTransport.id as TransportId, reason: 'closing all transports for client'});
       this.sendTransport = undefined;
     }
     if(this.receiveTransport){
       this.receiveTransport.close();
-      this.soupEvents.emit('transportClosed', this.receiveTransport.id as TransportId);
+      this.soupEvents.emit('soupObjectClosed', {type: 'transport', id: this.receiveTransport.id as TransportId, reason: 'closing all transports for client'});
       this.receiveTransport = undefined;
     }
   }
@@ -173,12 +218,7 @@ export class BaseClient {
     const producerArray = Array.from(this.producers.entries());
     for(const [producerKey, producer] of producerArray){
       producer.close();
-      this.soupEvents.emit('producerClosed', producer.id as ProducerId);
-      // const closeProducersMsg = createMessage('notifyCloseEvent', {
-      //   objectType: 'producer',
-      //   objectId: producerKey,
-      // });
-      // this.send(closeProducersMsg);
+      this.soupEvents.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'closing all producers for client'});
       this.producers.delete(producerKey);
     }
     // this.room?.broadcastRoomState('a client closed all their producers');
@@ -188,12 +228,7 @@ export class BaseClient {
     const consumerArray = Array.from(this.consumers.entries());
     for(const [consumerKey, consumer] of consumerArray){
       consumer.close();
-      this.soupEvents.emit('consumerClosed', consumer.id as ConsumerId);
-      // const closeConsumerMsg = createMessage('notifyCloseEvent', {
-      //   objectType: 'consumer',
-      //   objectId: consumerKey,
-      // });
-      // this.send(closeConsumerMsg);
+      this.soupEvents.emit('soupObjectClosed', {type: 'consumer', id: consumer.id as ConsumerId, reason: 'closing all consumers for client'});
       this.consumers.delete(consumerKey);
     }
   };

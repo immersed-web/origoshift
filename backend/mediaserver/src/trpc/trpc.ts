@@ -89,3 +89,5 @@ export const isVenueOwnerM = isInVenueM.unstable_pipe(({ctx, next}) => {
 export const currentVenueAdminP = atLeastModeratorP.use(isUserClientM).use(isVenueOwnerM);
 
 export const userInVenueP = procedure.use(isUserClientM).use(isInVenueM);
+
+export const clientInVenueP = procedure.use(isInVenueM);

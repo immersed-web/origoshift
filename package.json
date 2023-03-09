@@ -10,6 +10,7 @@
   },
   "packageManager": "pnpm@7.27.1",
   "devDependencies": {
+    "database": "workspace:^1.0.0",
     "eslint": "^8.29.0",
     "typescript": "^4.9.3"
   }

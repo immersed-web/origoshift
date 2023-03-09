@@ -70,20 +70,20 @@ export const venueRouter = router({
   listLoadedVenues: p.query(({ctx}) => {
     return Venue.getLoadedVenues();
   }),
-  joinVenue: p.use(isUserClientM).input(
+  joinVenue: p.input(
     z.object({
       venueId: VenueIdSchema
     })
   ).mutation(async ({input, ctx}) => {
-    log.info('request received to join venue:', input.venueId);
+    log.info(`request received to join venue as ${ctx.client.clientType}:`, input.venueId);
     await ctx.client.joinVenue(input.venueId);
   }),
-  joinVenueAsSender: atLeastSenderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
-    .mutation(async ({ctx, input}) =>{
-      log.info('request received to join venue as sender:', input.venueId);
-      await ctx.client.joinVenue(input.venueId);
-    }),
-  leaveCurrentVenue: p.use(isInVenueM).query(({ctx}) => {
+  // joinVenueAsSender: atLeastSenderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
+  //   .mutation(async ({ctx, input}) =>{
+  //     log.info('request received to join venue as sender:', input.venueId);
+  //     await ctx.client.joinVenue(input.venueId);
+  //   }),
+  leaveCurrentVenue: p.use(isInVenueM).mutation(({ctx}) => {
     if(!ctx.client.leaveCurrentVenue()){
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'cant leave if not in a venue.. Duh!'});
     }

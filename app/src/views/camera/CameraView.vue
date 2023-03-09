@@ -55,35 +55,63 @@
 <script setup lang="ts">
 import LoggedInHeader from '@/components/layout/LoggedInHeader.vue';
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
-import { clientOrThrow } from '@/modules/trpcClient';
+import { clientOrThrow, isTRPCClientError } from '@/modules/trpcClient';
 import { soupDevice, attachTransportEvents } from '@/modules/mediasoup';
 import type {types as soupTypes } from 'mediasoup-client';
 import type { ProducerId, ProducerInfo } from 'schemas/mediasoup';
+import { useVenueStore } from '@/stores/venueStore';
+import { useRouter } from 'vue-router';
 
+const venueStore = useVenueStore();
+const router = useRouter();
 const sendTransport = shallowRef<soupTypes.Transport>();
 
 onMounted(async () =>{
-  clientOrThrow.value.soup.subSoupObjectClosed.subscribe(undefined, {
-    onData(data) {
-      console.log(data);
-    },
-  });
-  const routerRtpCapabilities = await clientOrThrow.value.soup.getRouterRTPCapabilities.query();
-  console.log(routerRtpCapabilities);
-  await soupDevice.load({ routerRtpCapabilities});
-  deviceLoaded.value = soupDevice.loaded;
-  clientOrThrow.value.soup.setRTPCapabilities.mutate({
-    rtpCapabilities: soupDevice.rtpCapabilities,
-  });
-  const transportOptions = await clientOrThrow.value.soup.createSendTransport.mutate();
-  sendTransport.value = soupDevice.createSendTransport(transportOptions);
-  attachTransportEvents(sendTransport.value, async (connectData) => {
-    await clientOrThrow.value.soup.connectTransport.mutate(connectData);
-  },
-  async (produceData) => {
-    const producerId = await clientOrThrow.value.soup.createProducer.mutate(produceData);
-    return producerId as ProducerId;
-  });
+  const tryToJoin = async () => {
+    try {
+      if(!venueStore.currentVenueId){
+        router.replace({name: 'cameraPickVenue'});
+        return;
+      }
+      await venueStore.joinVenue(venueStore.currentVenueId);
+      clientOrThrow.value.soup.subSoupObjectClosed.subscribe(undefined, {
+        onData(data) {
+          console.log(data);
+        },
+      });
+      const routerRtpCapabilities = await clientOrThrow.value.soup.getRouterRTPCapabilities.query();
+      console.log(routerRtpCapabilities);
+      await soupDevice.load({ routerRtpCapabilities});
+      deviceLoaded.value = soupDevice.loaded;
+      clientOrThrow.value.soup.setRTPCapabilities.mutate({
+        rtpCapabilities: soupDevice.rtpCapabilities,
+      });
+      const transportOptions = await clientOrThrow.value.soup.createSendTransport.mutate();
+      sendTransport.value = soupDevice.createSendTransport(transportOptions);
+
+      attachTransportEvents(sendTransport.value,
+        async (connectData) => {
+          await clientOrThrow.value.soup.connectTransport.mutate(connectData);
+        },
+        async (produceData) => {
+          const producerId = await clientOrThrow.value.soup.createProducer.mutate(produceData);
+          return producerId as ProducerId;
+        });
+      // await clientOrThrow.value.venue.loadVenue.mutate({venueId: venue.venueId});
+      // await clientOrThrow.value.venue.joinVenueAsSender.mutate({venueId: venue.venueId});
+    } catch(e) {
+      if(isTRPCClientError(e)){
+        console.error(e.message);
+      } else if (e instanceof Error){
+        console.error(e.message);
+      }
+      setTimeout(() => {
+        tryToJoin();
+      }, 5000);
+    }
+  };
+  tryToJoin();
+
 });
 
 const deviceLoaded = ref<boolean>(false);

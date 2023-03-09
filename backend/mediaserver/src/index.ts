@@ -1,4 +1,4 @@
-process.env.DEBUG = 'mediasoup*';
+// process.env.DEBUG = 'mediasoup*';
 import { Log } from 'debug-level';
 const logUws = new Log('uWebSockets');
 process.env.DEBUG = 'uWebSockets*, ' + process.env.DEBUG;
@@ -15,7 +15,7 @@ const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema } from 'schemas';
+import { JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema, ClientType } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
 import { loadUserPrismaData, SenderClient, UserClient } from './classes/InternalClasses';
@@ -73,7 +73,7 @@ const {onSocketOpen, onSocketMessage, onSocketClose} = applyWSHandler<AppRouter,
 
 const app = uWebSockets.App();
 
-type WSUserData = { jwtUserData: JwtUserData, sender: boolean, prismaData?: Awaited<ReturnType<typeof loadUserPrismaData>>}
+type WSUserData = { jwtUserData: JwtUserData, clientType: ClientType, prismaData?: Awaited<ReturnType<typeof loadUserPrismaData>>}
 app.ws<WSUserData>('/*', {
 
   /* There are many common helper features */
@@ -99,6 +99,7 @@ app.ws<WSUserData>('/*', {
       const url = new URL(`http://localhost?${req.getQuery()}`);
       const receivedToken = url.searchParams.get('token');
       const isSender = url.searchParams.has('sender');
+      const clientType: ClientType = isSender? 'sender' : 'client';
       if(!receivedToken){
         throw Error('no token found in search query');
       }
@@ -118,7 +119,7 @@ app.ws<WSUserData>('/*', {
       }
       wsUserData = {
         jwtUserData: userDataOnly,
-        sender: isSender,
+        clientType,
       };
     } catch(e){
       const msg = extractMessageFromCatch(e, 'YOU SHALL NOT PASS');
@@ -162,14 +163,14 @@ app.ws<WSUserData>('/*', {
   },
   open: (ws) => {
     const userData = ws.getUserData();
-    const isSender = userData.sender;
+    const clientType = userData.clientType;
     const userId = UserIdSchema.parse(userData.jwtUserData.userId);
     logUws.info('socket opened');
 
     // const connection = new Connection({jwtUserData: userData.jwtUserData });
 
     let client: UserClient | SenderClient;
-    if(isSender){
+    if(clientType === 'sender'){
       client = new SenderClient({ jwtUserData: userData.jwtUserData, prismaData: userData.prismaData });
     } else {
       client = new UserClient({ jwtUserData: userData.jwtUserData, prismaData: userData.prismaData });

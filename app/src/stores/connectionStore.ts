@@ -2,6 +2,7 @@ import { clientOrThrow, createTrpcClient, wsClient } from '@/modules/trpcClient'
 import type { CreateTRPCProxyClient } from '@trpc/client';
 import type { AppRouter } from 'mediaserver';
 import { defineStore } from 'pinia';
+import type { ClientType } from 'schemas';
 import { ref, shallowRef, type ShallowRef } from 'vue';
 import { useAuthStore } from './authStore';
 
@@ -17,6 +18,7 @@ import { useAuthStore } from './authStore';
 export const useConnectionStore = defineStore('connection', () => {
   const authStore = useAuthStore();
   const connected = ref(false);
+  const connectionType = ref<ClientType>();
 
   // createTrpcClient(() => authStore.tokenOrThrow, 'user');
   // Not possible at the moment because of unnamed exported types
@@ -38,6 +40,7 @@ export const useConnectionStore = defineStore('connection', () => {
       console.error('Trying to create client when not logged in. Ignoring!');
     }
     createTrpcClient(() => authStore.tokenOrThrow, 'sender');
+    connectionType.value = 'sender';
     _initConnection();
   }
 
@@ -46,12 +49,14 @@ export const useConnectionStore = defineStore('connection', () => {
       console.error('Trying to create client when not logged in. Ignoring!');
     }
     createTrpcClient(() => authStore.tokenOrThrow, 'user');
+    connectionType.value = 'client';
     _initConnection();
   }
 
   return {
     // client,
     connected,
+    connectionType,
     createSenderClient,
     createUserClient,
   };

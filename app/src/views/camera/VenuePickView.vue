@@ -13,11 +13,14 @@
 </template>
 <script lang="ts" setup>
 import { clientOrThrow, isTRPCClientError, type RouterOutputs } from '@/modules/trpcClient';
+import { useVenueStore } from '@/stores/venueStore';
+import type { VenueId } from 'schemas';
 import { onBeforeMount, ref } from 'vue';
 import { useRouter } from 'vue-router';
 type Venue = RouterOutputs['venue']['listAllowedVenues'][number];
 
 
+const venueStore = useVenueStore();
 const router = useRouter();
 const venues = ref<Venue[]>();
 
@@ -29,8 +32,10 @@ function tryToJoinAndEnterCamera(venue: Venue){
 
   const tryToJoin = async () => {
     try {
-      await clientOrThrow.value.venue.loadVenue.mutate({venueId: venue.venueId});
-      await clientOrThrow.value.venue.joinVenueAsSender.mutate({venueId: venue.venueId});
+      venueStore.currentVenueId = venue.venueId as VenueId;
+      // await venueStore.joinVenue(venue.venueId as VenueId);
+      // await clientOrThrow.value.venue.loadVenue.mutate({venueId: venue.venueId});
+      // await clientOrThrow.value.venue.joinVenueAsSender.mutate({venueId: venue.venueId});
       router.push({name: 'cameraHome'});
     } catch(e) {
       if(isTRPCClientError(e)){

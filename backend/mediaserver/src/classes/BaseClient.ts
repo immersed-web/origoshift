@@ -3,7 +3,7 @@ const log = new Log('BaseClient');
 process.env.DEBUG = 'BaseClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId } from 'schemas';
+import { ClientType, ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
 import type { types as soupClientTypes } from 'mediasoup-client';
 import { ConsumerId, ProducerId, TransportId  } from 'schemas/mediasoup';
@@ -72,8 +72,9 @@ export class BaseClient {
     this.prismaData = prismaData;
     this.soupEvents = new TypedEmitter();
     this.venueEvents = new TypedEmitter();
-
   }
+
+  // readonly clientType: ClientType = 'client';
 
   protected _socketClosed = false;
 
@@ -173,6 +174,11 @@ export class BaseClient {
     transport.addListener('routerclose', () => {
       log.info('transport event: router closed');
       this.soupEvents.emit('soupObjectClosed', {type: 'transport', id: transport.id as TransportId, reason: 'router was closed'});
+      if(direction == 'receive'){
+        this.receiveTransport = undefined;
+      } else {
+        this.sendTransport = undefined;
+      }
       // this.send(createMessage('notifyCloseEvent', {
       //   objectType: 'transport',
       //   objectId: transport.id,
@@ -180,15 +186,13 @@ export class BaseClient {
     });
     if(direction == 'receive'){
       this.receiveTransport = transport;
-      this.receiveTransport.addListener('routerclose', ()=> {
-        this.receiveTransport = undefined;
-      });
     } else {
       this.sendTransport = transport;
-      this.sendTransport.addListener('routerclose',()=> {
-        this.sendTransport = undefined;
-      });
     }
+    return this.getTransportOptions(transport);
+  }
+
+  private getTransportOptions(transport: soupTypes.WebRtcTransport){
     const { id, iceParameters, dtlsParameters } = transport;
     const iceCandidates = <soupClientTypes.IceCandidate[]>transport.iceCandidates;
     const transportOptions: soupClientTypes.TransportOptions = {

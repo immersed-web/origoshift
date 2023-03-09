@@ -6,7 +6,7 @@ log.enable(process.env.DEBUG);
 import { TRPCError } from '@trpc/server';
 import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId, RtpCapabilitiesSchema } from 'schemas/mediasoup';
 import { z } from 'zod';
-import { clientInVenueP, router } from '../trpc/trpc';
+import { procedure as p, clientInVenueP, router } from '../trpc/trpc';
 import { attachEmitter } from '../trpc/trpc-utils';
 // import { Producer as SoupProducer } from 'mediasoup/node/lib/Producer';
 // import '../augmentedMediasoup';
@@ -74,7 +74,7 @@ export const soupRouter = router({
     return 'Not implemented yet' as const;
     // return attachFilteredEmitter(ee, 'producerClosed', ctx.uuid);
   }),
-  subSoupObjectClosed: clientInVenueP.subscription(({ctx}) => {
+  subSoupObjectClosed: p.subscription(({ctx}) => {
     return attachEmitter(ctx.client.soupEvents, 'soupObjectClosed');
     // return 'Not implemented yet' as const;
   })

@@ -58,7 +58,7 @@ export class VrSpace {
       log.warn(`You tried to add client ${client.username} to the vr space in ${this.venue.name} that isnt open. No bueno!`);
       return;
     }
-    if(!this.venue.clientList.includes(client.connectionId)){
+    if(!this.venue.clientIds.includes(client.connectionId)){
       throw Error('must be in the related venue when joining a vr space!');
     }
     this.clients.set(client.connectionId, client);

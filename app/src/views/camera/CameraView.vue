@@ -1,52 +1,57 @@
 <template>
   <LoggedInHeader />
-  <div
-    class="m-6 text-6xl"
-  >
-    Kamera-vy!
+  <div v-if="!venueStore.currentVenue">
+    Waiting for venue {{ senderStore.savedVenueId }} to get loaded...
   </div>
-  <button
-    v-if="permissionState !== 'granted'"
-    @click="requestPermission"
-    class="btn"
-  >
-    Request camera access
-  </button>
-  <div v-else>
-    <pre>
+  <template v-else>
+    <div
+      class="m-6 text-6xl"
+    >
+      Kamera-vy!
+    </div>
+    <button
+      v-if="permissionState !== 'granted'"
+      @click="requestPermission"
+      class="btn"
+    >
+      Request camera access
+    </button>
+    <div v-else>
+      <pre>
         Permission state: {{ permissionState }}
         Video info: {{ videoInfo }}
         Mediasoup device loaded: {{ deviceLoaded }}
   </pre>
-    <select
-      v-model="pickedVideoInput"
-      class="select select-primary"
-    >
-      <option
-        v-for="(device, key) in videoDevices"
-        :key="key"
-        :value="device"
+      <select
+        v-model="pickedVideoInput"
+        class="select select-primary"
       >
-        {{ device.label }}
-      </option>
-    </select>
-    <select
-      v-model="pickedAudioInput"
-      class="select select-primary"
-    >
-      <option
-        v-for="(device, key) in audioDevices"
-        :key="key"
-        :value="device"
+        <option
+          v-for="(device, key) in videoDevices"
+          :key="key"
+          :value="device"
+        >
+          {{ device.label }}
+        </option>
+      </select>
+      <select
+        v-model="pickedAudioInput"
+        class="select select-primary"
       >
-        {{ device.label }}
-      </option>
-    </select>
-    <video
-      autoplay
-      ref="videoTag"
-    />
-  </div>
+        <option
+          v-for="(device, key) in audioDevices"
+          :key="key"
+          :value="device"
+        >
+          {{ device.label }}
+        </option>
+      </select>
+      <video
+        autoplay
+        ref="videoTag"
+      />
+    </div>
+  </template>
 </template>
 
 <style>
@@ -61,53 +66,31 @@ import type {types as soupTypes } from 'mediasoup-client';
 import type { ProducerId, ProducerInfo } from 'schemas/mediasoup';
 import { useVenueStore } from '@/stores/venueStore';
 import { useRouter } from 'vue-router';
-import { pack, unpack } from 'msgpackr';
-import superjson from 'superjson';
+import { useSenderStore } from '@/stores/senderStore';
 
+const senderStore = useSenderStore();
 const venueStore = useVenueStore();
 const router = useRouter();
 const sendTransport = shallowRef<soupTypes.Transport>();
-const testThing = {
-  yo: 'asdasd',
-  aNUmber: 123,
-  aList: [
-    'nkljasd', 'jajaja',
-  ],
-};
-console.log(testThing);
-const packed = pack(testThing);
-console.log('packed:', packed);
-const stringifiedPacked = JSON.stringify({id: 1, jsonrpc: '2.0', result: packed});
-console.log('stringifiedPacked:', stringifiedPacked);
-const parsedStringifiedPacked = JSON.parse(stringifiedPacked);
-console.log('parsedStringifiedPacked', parsedStringifiedPacked);
-const unpackedParsedStringifiedPacked = unpack(parsedStringifiedPacked);
-console.log('unpackedParsedStringifiedPacked', unpackedParsedStringifiedPacked);
-
-// const unpacked = unpack(packed);
-
-// console.log(unpacked);
-
-const packedSuperjson = superjson.serialize(testThing);
-const unpackedSuperjson = superjson.deserialize(packedSuperjson);
-console.log(unpackedSuperjson);
 
 onMounted(async () =>{
   const tryToJoin = async () => {
     try {
-      if(!venueStore.currentVenueId){
+      if(!senderStore.savedVenueId){
         router.replace({name: 'cameraPickVenue'});
         return;
       }
-      await venueStore.joinVenue(venueStore.currentVenueId);
+      await venueStore.joinVenue(senderStore.savedVenueId);
       clientOrThrow.value.soup.subSoupObjectClosed.subscribe(undefined, {
         onData(data) {
           console.log(data);
         },
       });
-      const routerRtpCapabilities = await clientOrThrow.value.soup.getRouterRTPCapabilities.query();
-      console.log(routerRtpCapabilities);
-      await soupDevice.load({ routerRtpCapabilities});
+      if(!soupDevice.loaded){
+        const routerRtpCapabilities = await clientOrThrow.value.soup.getRouterRTPCapabilities.query();
+        console.log(routerRtpCapabilities);
+        await soupDevice.load({ routerRtpCapabilities});
+      }
       deviceLoaded.value = soupDevice.loaded;
       clientOrThrow.value.soup.setRTPCapabilities.mutate({
         rtpCapabilities: soupDevice.rtpCapabilities,

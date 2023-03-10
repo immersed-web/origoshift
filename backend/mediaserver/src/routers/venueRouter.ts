@@ -77,6 +77,7 @@ export const venueRouter = router({
   ).mutation(async ({input, ctx}) => {
     log.info(`request received to join venue as ${ctx.client.clientType}:`, input.venueId);
     await ctx.client.joinVenue(input.venueId);
+    return ctx.client.venue?.getPublicState();
   }),
   // joinVenueAsSender: atLeastSenderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
   //   .mutation(async ({ctx, input}) =>{

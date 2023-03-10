@@ -3,11 +3,13 @@ import type { VenueId } from 'schemas';
 import { ref } from 'vue';
 
 export const useSenderStore = defineStore('sender', () => {
-  const savedVenueId = ref<VenueId>();
+  const savedPickedVenueId = ref<VenueId>();
+  const savedPickedDeviceId = ref<string>();
 
 
   return {
-    savedVenueId,
+    savedPickedVenueId,
+    savedPickedDeviceId,
   };
 },
 {

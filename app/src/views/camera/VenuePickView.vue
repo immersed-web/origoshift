@@ -33,7 +33,7 @@ function tryToJoinAndEnterCamera(venue: Venue){
 
   const tryToJoin = async () => {
     try {
-      senderStore.savedVenueId = venue.venueId as VenueId;
+      senderStore.savedPickedVenueId = venue.venueId as VenueId;
       router.push({name: 'cameraHome'});
     } catch(e) {
       if(isTRPCClientError(e)){

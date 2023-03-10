@@ -1,7 +1,7 @@
 <template>
   <LoggedInHeader />
   <div v-if="!venueStore.currentVenue">
-    Waiting for venue {{ senderStore.savedVenueId }} to get loaded...
+    Waiting for venue {{ senderStore.savedPickedVenueId }} to get loaded...
   </div>
   <template v-else>
     <div
@@ -76,11 +76,11 @@ const sendTransport = shallowRef<soupTypes.Transport>();
 onMounted(async () =>{
   const tryToJoin = async () => {
     try {
-      if(!senderStore.savedVenueId){
+      if(!senderStore.savedPickedVenueId){
         router.replace({name: 'cameraPickVenue'});
         return;
       }
-      await venueStore.joinVenue(senderStore.savedVenueId);
+      await venueStore.joinVenue(senderStore.savedPickedVenueId);
       clientOrThrow.value.soup.subSoupObjectClosed.subscribe(undefined, {
         onData(data) {
           console.log(data);

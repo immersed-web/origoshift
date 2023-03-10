@@ -1,16 +1,17 @@
 import { defineStore } from 'pinia';
 // import type { RouterOutputs } from '@/modules/trpcClient';
 import { ref } from 'vue';
-// import type { Venue } from 'database';
+import type { Venue } from 'database';
 import type { VenueId } from 'schemas';
 import { clientOrThrow } from '@/modules/trpcClient';
 // import { useConnectionStore } from '@/stores/connectionStore';
 
-// type Venue = Simplify<RouterOutputs['venue']['listAllowedVenues'][number]>
+// type Venue =RouterOutputs['venue']['listAllowedVenues'][number];
 export const useVenueStore = defineStore('venue', () => {
   console.log('VENUESTORE USE FUNCTION TRIGGERED');
   // const connection = useConnectionStore();
   const currentVenueId = ref<VenueId>();
+  const currentVenue = ref<Venue>();
 
   // if(currentVenueId.value) {
   //   console.log('venueStore loaded with saved venueId. Will try to join!');
@@ -39,6 +40,7 @@ export const useVenueStore = defineStore('venue', () => {
 
   return {
     currentVenueId,
+    currentVenue,
     joinVenue,
     leaveVenue,
     // joinVenueAsSender,

@@ -61,10 +61,36 @@ import type {types as soupTypes } from 'mediasoup-client';
 import type { ProducerId, ProducerInfo } from 'schemas/mediasoup';
 import { useVenueStore } from '@/stores/venueStore';
 import { useRouter } from 'vue-router';
+import { pack, unpack } from 'msgpackr';
+import superjson from 'superjson';
 
 const venueStore = useVenueStore();
 const router = useRouter();
 const sendTransport = shallowRef<soupTypes.Transport>();
+const testThing = {
+  yo: 'asdasd',
+  aNUmber: 123,
+  aList: [
+    'nkljasd', 'jajaja',
+  ],
+};
+console.log(testThing);
+const packed = pack(testThing);
+console.log('packed:', packed);
+const stringifiedPacked = JSON.stringify({id: 1, jsonrpc: '2.0', result: packed});
+console.log('stringifiedPacked:', stringifiedPacked);
+const parsedStringifiedPacked = JSON.parse(stringifiedPacked);
+console.log('parsedStringifiedPacked', parsedStringifiedPacked);
+const unpackedParsedStringifiedPacked = unpack(parsedStringifiedPacked);
+console.log('unpackedParsedStringifiedPacked', unpackedParsedStringifiedPacked);
+
+// const unpacked = unpack(packed);
+
+// console.log(unpacked);
+
+const packedSuperjson = superjson.serialize(testThing);
+const unpackedSuperjson = superjson.deserialize(packedSuperjson);
+console.log(unpackedSuperjson);
 
 onMounted(async () =>{
   const tryToJoin = async () => {

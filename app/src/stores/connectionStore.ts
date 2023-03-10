@@ -22,10 +22,10 @@ export const useConnectionStore = defineStore('connection', () => {
 
   // createTrpcClient(() => authStore.tokenOrThrow, 'user');
   // Not possible at the moment because of unnamed exported types
-  // const client: ShallowRef<CreateTRPCProxyClient<AppRouter>> = shallowRef(clientOrThrow);
+  const client: ShallowRef<CreateTRPCProxyClient<AppRouter>> = shallowRef(clientOrThrow);
 
   // _initConnection();
-  function _initConnection () {
+  async function _initConnection () {
     // client.value.subHeartBeat.subscribe(undefined, {onData(data){connected.value = true;}, onStopped(){ connected.value = false;}, onComplete(){connected.value = false;}});
     if(!wsClient){
       throw Error('must create a trpc client (and thus implicitly a wsClient) before accessing the ws connection');
@@ -33,6 +33,9 @@ export const useConnectionStore = defineStore('connection', () => {
     const ws = wsClient.getConnection();
     ws.addEventListener('open', () => connected.value = true);
     ws.addEventListener('close', () => connected.value = false);
+
+    const greetingResponse = await client.value.greeting.query();
+    console.log('greeting response: ', greetingResponse);
   }
 
   function createSenderClient(){
@@ -48,13 +51,13 @@ export const useConnectionStore = defineStore('connection', () => {
     if(!authStore.isLoggedIn){
       console.error('Trying to create client when not logged in. Ignoring!');
     }
-    createTrpcClient(() => authStore.tokenOrThrow, 'user');
+    createTrpcClient(() => authStore.tokenOrThrow, 'client');
     connectionType.value = 'client';
     _initConnection();
   }
 
   return {
-    // client,
+    client,
     connected,
     connectionType,
     createSenderClient,

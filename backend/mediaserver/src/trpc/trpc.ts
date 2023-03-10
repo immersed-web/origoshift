@@ -2,6 +2,8 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import { SenderClient, UserClient } from '../classes/InternalClasses';
 import { JwtUserData, ConnectionId, hasAtLeastSecurityLevel } from 'schemas';
 import { z } from 'zod';
+import { pack, unpack } from 'msgpackr';
+import superjson from 'superjson';
 // import type { Context } from 'index';
 
 export type Context = JwtUserData & {
@@ -12,7 +14,13 @@ export type Context = JwtUserData & {
   client: UserClient | SenderClient
   // connection: Connection
 }
-const trpc = initTRPC.context<Context>().create();
+const trpc = initTRPC.context<Context>().create({
+  transformer: superjson,
+  // transformer: {
+  //   serialize: pack,
+  //   deserialize: unpack,
+  // }
+});
 
 export const middleware = trpc.middleware;
 export const router = trpc.router;

@@ -26,6 +26,7 @@
     "ip": "^1.1.8",
     "lodash": "^4.17.21",
     "schemas": "workspace:*",
+    "superjson": "^1.12.2",
     "tiny-typed-emitter": "^2.1.0",
     "tozod": "^3.0.0",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.19.0"

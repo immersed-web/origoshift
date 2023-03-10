@@ -1,4 +1,4 @@
-import type { AnyRouter, ProcedureType, inferRouterError } from '@trpc/server';
+import type { AnyRouter, ProcedureType, inferRouterError, DataTransformer } from '@trpc/server';
 import { type Operation, type TRPCLink, TRPCClientError, type TRPCClientRuntime } from '@trpc/client';
 import { type Observer, type UnsubscribeFn, observable } from '@trpc/server/observable';
 import type {
@@ -15,6 +15,7 @@ import type {
 // import { Operation, TRPCLink } from './types';
 
 export interface WebSocketClientOptions {
+  transformer: DataTransformer
   url: string | (() => string);
   WebSocket?: typeof WebSocket;
   retryDelayMs?: typeof retryDelay;
@@ -29,6 +30,7 @@ export function createWSClient(opts: WebSocketClientOptions) {
     retryDelayMs: retryDelayFn = retryDelay,
     onOpen,
     onClose,
+    transformer,
   } = opts;
   /* istanbul ignore next */
   if (!WebSocketImpl) {
@@ -72,10 +74,11 @@ export function createWSClient(opts: WebSocketClientOptions) {
 
       if (outgoing.length === 1) {
         // single send
-        activeConnection.send(JSON.stringify(outgoing.pop()));
+        // activeConnection.send(JSON.stringify(outgoing.pop()));
+        activeConnection.send(transformer.serialize(outgoing.pop()));
       } else {
         // batch send
-        activeConnection.send(JSON.stringify(outgoing));
+        activeConnection.send(transformer.serialize(outgoing));
       }
       // clear
       outgoing = [];
@@ -178,7 +181,9 @@ export function createWSClient(opts: WebSocketClientOptions) {
       }
     };
     conn.addEventListener('message', ({ data }) => {
-      const msg = JSON.parse(data) as TRPCClientIncomingMessage;
+      // const msg = JSON.parse(data) as TRPCClientIncomingMessage;
+      // const msg = transformer.deserialize(data);
+      const msg = transformPayload(data, transformer);
 
       if ('method' in msg) {
         handleIncomingRequest(msg);
@@ -311,9 +316,9 @@ export function wsLink<TRouter extends AnyRouter>(
     const { client } = opts;
     return ({ op }) => {
       return observable((observer) => {
-        const { type, path, id, context } = op;
+        const { type, path, input, id, context } = op;
 
-        const input = runtime.transformer.serialize(op.input);
+        // const input = runtime.transformer.serialize(op.input);
 
         let isDone = false;
         const unsub = client.request(
@@ -339,14 +344,14 @@ export function wsLink<TRouter extends AnyRouter>(
               }
             },
             next(message) {
-              const transformed = transformResult(message, runtime);
+              // const transformed = transformResult(message, runtime);
 
-              if (!transformed.ok) {
-                observer.error(TRPCClientError.from(transformed.error));
-                return;
-              }
+              // if (!transformed.ok) {
+              //   observer.error(TRPCClientError.from(transformed.error));
+              //   return;
+              // }
               observer.next({
-                result: transformed.result,
+                result: message as unknown as TRPCResultMessage<unknown>['result'],
               });
 
               if (op.type !== 'subscription') {
@@ -368,21 +373,24 @@ export function wsLink<TRouter extends AnyRouter>(
   };
 }
 
-function transformResultInner<TRouter extends AnyRouter, TOutput>(
-  response:
-  | TRPCResponseMessage<TOutput, inferRouterError<TRouter>>
-  | TRPCResponse<TOutput, inferRouterError<TRouter>>,
-  runtime: TRPCClientRuntime,
+function transformPayloadInner<TRouter extends AnyRouter, TOutput>(
+  payload: unknown,
+  // | TRPCResponseMessage<TOutput, inferRouterError<TRouter>>
+  // | TRPCResponse<TOutput, inferRouterError<TRouter>>,
+  // runtime: TRPCClientRuntime,
+  transformer: DataTransformer,
 ) {
+  const response = transformer.deserialize(payload);
   if ('error' in response) {
-    const error = runtime.transformer.deserialize(
-      response.error,
-    ) as inferRouterError<TRouter>;
+    // const error = runtime.transformer.deserialize(
+    //   response.error,
+    // ) as inferRouterError<TRouter>;
+    const err = response.error as inferRouterError<TRouter>;
     return {
       ok: false,
       error: {
         ...response,
-        error,
+        err,
       },
     } as const;
   }
@@ -391,7 +399,7 @@ function transformResultInner<TRouter extends AnyRouter, TOutput>(
     ...response.result,
     ...((!response.result.type || response.result.type === 'data') && {
       type: 'data',
-      data: runtime.transformer.deserialize(response.result.data),
+      data: response.result.data,
     }),
   } as TRPCResultMessage<TOutput>['result'];
   return { ok: true, result } as const;
@@ -406,16 +414,18 @@ function isObject(value: unknown): value is Record<string, unknown> {
  * Transforms and validates that the result is a valid TRPCResponse
  * @internal
  */
-function transformResult<TRouter extends AnyRouter, TOutput>(
-  response:
-  | TRPCResponseMessage<TOutput, inferRouterError<TRouter>>
-  | TRPCResponse<TOutput, inferRouterError<TRouter>>,
-  runtime: TRPCClientRuntime,
-): ReturnType<typeof transformResultInner> {
-  let result: ReturnType<typeof transformResultInner>;
+function transformPayload<TRouter extends AnyRouter, TOutput>(
+  // response:
+  // | TRPCResponseMessage<TOutput, inferRouterError<TRouter>>
+  // | TRPCResponse<TOutput, inferRouterError<TRouter>>,
+  payload: unknown,
+  // runtime: TRPCClientRuntime,
+  transformer: DataTransformer,
+): ReturnType<typeof transformPayloadInner> {
+  let result: ReturnType<typeof transformPayloadInner>;
   try {
-    // Use the data transformers on the JSON-response
-    result = transformResultInner(response, runtime);
+    // Use the data transformers on the payload
+    result = transformPayloadInner(payload, transformer);
   } catch (err) {
     throw new TRPCClientError('Unable to transform response from server');
   }

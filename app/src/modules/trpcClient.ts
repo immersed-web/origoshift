@@ -1,5 +1,5 @@
 import { createTRPCProxyClient, TRPCClientError, wsLink, type CreateTRPCProxyClient } from '@trpc/client';
-import type { inferRouterOutputs, inferRouterInputs } from '@trpc/server';
+import type { inferRouterOutputs, inferRouterInputs, DataTransformer } from '@trpc/server';
 import { createWSClient } from './customWsLink';
 import type { AppRouter } from 'mediaserver';
 // import { unpack, pack } from 'msgpackr';
@@ -41,6 +41,7 @@ function buildConnectionUrl(token:string, connectAsSender?: boolean){
   return `${wsBaseURL}?token=${token}`;
 }
 
+const dataTransformer = superjson;
 
 export type RouterOutputs = inferRouterOutputs<AppRouter>
 export type RouterInputs = inferRouterInputs<AppRouter>
@@ -61,9 +62,11 @@ export const createTrpcClient = (getToken: () => string, clientType: ClientType 
   // await loginWithAutoToken(username, password);
   wsClient = createWSClient({
     url: () => buildConnectionUrl(getToken(), clientType === 'sender'),
+    transformer: dataTransformer,
   });
   trpcClient.value = createTRPCProxyClient<AppRouter>({
-    transformer: superjson,
+    transformer: dataTransformer,
+    // transformer: superjson,
     // transformer: {
     //   serialize: pack,
     //   deserialize: unpack,

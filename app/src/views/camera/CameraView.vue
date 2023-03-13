@@ -20,7 +20,7 @@
       <pre>
         Permission state: {{ permissionState }}
         Video info: {{ videoInfo }}
-        Mediasoup device loaded: {{ deviceLoaded }}
+        Mediasoup device loaded: {{ soup.deviceLoaded }}
   </pre>
       <select
         v-model="pickedVideoInput"
@@ -98,8 +98,6 @@ onMounted(async () =>{
 
 });
 
-const deviceLoaded = ref<boolean>(false);
-
 const videoTag = ref<HTMLVideoElement>();
 
 const mediaDevices = ref<MediaDeviceInfo[]>();
@@ -162,7 +160,9 @@ async function startVideo(videoDevice: MediaDeviceInfo){
     // deviceId: pickedVideoInput.value?.deviceId,
     isPaused: false,
   };
+  const restoredProducerId = senderStore.savedProducers.get(deviceId)?.producerId;
   const producerId = await soup.produce({
+    producerId: restoredProducerId,
     track: videoTrack.value,
     producerInfo,
   });
@@ -171,6 +171,7 @@ async function startVideo(videoDevice: MediaDeviceInfo){
 
 const permissionState = ref();
 onMounted(async () => {
+  //@ts-expect-error
   const perm = await navigator.permissions.query({name: 'camera'});
   permissionState.value = perm.state;
   perm.onchange = ev => permissionState.value = perm.state;

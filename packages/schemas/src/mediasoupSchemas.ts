@@ -62,6 +62,7 @@ const RtpParametersSchema = z.object({
 
 
 export const CreateProducerPayloadSchema  = z.object({
+  producerId: ProducerIdSchema.optional(),
   transportId: TransportIdSchema,
   kind: MediaKindSchema,
   rtpParameters: RtpParametersSchema,

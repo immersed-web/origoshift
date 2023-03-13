@@ -3,15 +3,6 @@ import type { ProducerId, TransportId, CreateProducerPayload } from 'schemas/med
 export const soupDevice = new Device();
 
 
-// soupDevice.createSendTransport()
-
-// class SoupClient {
-
-//   constructor(){
-
-//   }
-// }
-
 type ConnectTransportFunction = (data: {transportId: TransportId, dtlsParameters: soupTypes.DtlsParameters}) => Promise<void>
 type CreateProducerFunction = (data: CreateProducerPayload) => Promise<ProducerId>
 
@@ -51,13 +42,14 @@ export const attachTransportEvents = (transport: soupTypes.Transport, connectTra
         //   producerInfo,
         // });
         // const response = await socketutils.sendRequest(createProducerReq);
-        const { producerInfo } = appData as {producerInfo: CreateProducerPayload['producerInfo']};
-        const producerId = await createProducer({transportId: transport.id as TransportId, kind, rtpParameters, producerInfo});
+        const { producerInfo, producerId } = appData as Pick<CreateProducerPayload, 'producerId' | 'producerInfo'>;
+
+        const createdProducerId = await createProducer({transportId: transport.id as TransportId, producerId, kind, rtpParameters, producerInfo});
         // if (response.wasSuccess) {
         //   const cbData = {
         //     id: response.data.producerId,
         //   };
-        callback({ id: producerId });
+        callback({ id: createdProducerId });
         return;
       } catch (err) {
         errorback(err as Error);

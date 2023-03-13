@@ -159,123 +159,8 @@ export class Venue {
     // this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
   }
 
-  // Hopefully well never have to uncomment and use this function. for security we aim to not directly expose the raw clients outside the venue instance
-  // getClient (connectionId: ConnectionId){
-  //   const client = this.clients.get(connectionId);
-  //   if(!client){
-  //     throw new Error('no client with that id in venue');
-  //   }
-  //   return client;
-  // }
-
-  // getRtpCapabilities(): soupTypes.RtpCapabilities {
-  //   return this.router.rtpCapabilities;
-  // }
-
-  // createRoom({roomId, roomName}: {roomId?: string, roomName: string}){
-  //   if(roomId){
-  //     this.rooms.forEach(room => {
-  //       if(room.id === roomId){
-  //         throw new Error('NO CAN DO!! A room with that ID already exists in the gathering.');
-  //       }
-  //     });
-  //   }
-  //   if(roomName){
-  //     this.rooms.forEach(room => {
-  //       if(room.roomName === roomName){
-  //         throw new Error('NO CAN DO!! A room with that name already exists in the gathering.');
-  //       }
-  //     });
-  //   }
-  //   const room = Room.createRoom({roomId, roomName, gathering: this});
-  //   this.rooms.set(room.id, room);
-  //   this.broadCastGatheringState(undefined, 'room created');
-
-  //   return room;
-  // }
-
-  // sendGatheringStateTo(client: Client, updateReason?: string){
-  //   const state = this.gatheringState;
-  //   let reason = 'update reason not specified';
-  //   if(updateReason) reason = updateReason;
-  //   const msg = createMessage('gatheringStateUpdated',{newState: state, reason });
-  //   client.send(msg);
-  // }
-
-  // // TODO: We should throttle some or perhaps all of the broadcast functions so we protect from overload
-  // broadCastGatheringState(clientsToSkip: string[] = [], updateReason?: string) {
-  //   Log(`gonna broadcast to ${this.clients.size} clients`);
-  //   let reason = 'update reason not specified';
-  //   if(updateReason) reason = updateReason;
-
-  //   this.clients.forEach(client => {
-  //     if(client.connectionId in clientsToSkip){
-  //       Log('skipping client:', client.connectionId);
-  //       return;
-  //     }
-  //     const gatheringStateMsg = createMessage('gatheringStateUpdated', {newState: this.gatheringState, reason});
-  //     Log(`sending gatheringStateUpdated to client ${client.connectionId}`);
-  //     client.send(gatheringStateMsg);
-  //   });
-  // }
-
-  // deleteRoom(roomOrId: Room | string){
-  //   if(typeof roomOrId === 'string'){
-  //     this.rooms.delete(roomOrId);
-  //     return;
-  //   }
-  //   this.rooms.delete(roomOrId.id);
-  //   this.broadCastGatheringState(undefined, 'room deleted');
-  // }
-
-  // get gatheringState() {
-  //   // const gatheringState: GatheringState = { gatheringId: this.id, rooms: {}, senderClients: {}, clients: {} };
-  //   const gatheringState: GatheringState = { gatheringId: this.uuid, rooms: {}, clients: {} };
-  //   if(this.name){
-  //     gatheringState.gatheringName = this.name;
-  //   }
-  //   this.rooms.forEach((room) => {
-  //     const roomstate = room.shallowRoomState;
-  //     gatheringState.rooms[room.id] = roomstate;
-  //   });
-  //   // this.senderClients.forEach(senderClient => {
-  //   //   gatheringState.senderClients[senderClient.id] = senderClient.clientState;
-  //   // });
-  //   this.clients.forEach(client => {
-  //     gatheringState.clients[client.connectionId] = client.clientState;
-  //   });
-  //   return gatheringState;
-  // }
-
-  // getRoom({id, name}: {id?: string, name?: string}) {
-  //   let foundRoom: Room | undefined;
-  //   if(id){
-  //     foundRoom = this.rooms.get(id);
-  //   }
-  //   if(name){
-  //     for (const [ _ , room] of this.rooms) {
-  //       if(room.roomName === name){
-  //         foundRoom = room;
-  //       }
-  //     }
-  //   }
-  //   if(!foundRoom){
-  //     throw new Error('the gathering doesnt have a room with that id or name');
-  //   }
-  //   return foundRoom;
-  // }
-
   async createWebRtcTransport() {
     const transport = await this.router.createWebRtcTransport(mediasoupConfig.webRtcTransport);
-
-    // const { listenIps, enableUdp, enableTcp, preferUdp, initialAvailableOutgoingBitrate } = mediasoupConfig.webRtcTransport;
-    // const transport = await this.router.createWebRtcTransport({
-    //   listenIps,
-    //   enableUdp,
-    //   preferUdp,
-    //   enableTcp,
-    //   initialAvailableOutgoingBitrate,
-    // });
 
     if(mediasoupConfig.maxIncomingBitrate){
       try{
@@ -347,6 +232,7 @@ export class Venue {
       throw e;
     }
   }
+
   static async loadVenue(venueId: VenueId, ownerId: UserId, worker?: soupTypes.Worker) {
     try {
       if(Venue.venues.has(venueId)){

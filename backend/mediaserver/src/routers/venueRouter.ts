@@ -3,7 +3,7 @@ const log = new Log('Venue:Router');
 process.env.DEBUG = 'Venue:Router*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { hasAtLeastSecurityLevel, VenueIdSchema } from 'schemas';
+import { hasAtLeastSecurityLevel, VenueId, VenueIdSchema } from 'schemas';
 import { z } from 'zod';
 import { procedure as p, atLeastModeratorP, router, isInVenueM, atLeastSenderP, isUserClientM, isSenderClientM } from '../trpc/trpc';
 // import Venue from '../classes/Venue';
@@ -36,10 +36,11 @@ export const venueRouter = router({
       };
     }
 
-    const dbResponse = await prismaClient.venue.delete({
+    const deletedVenue = await prismaClient.venue.delete({
       where
     });
-    return dbResponse;
+    return deletedVenue.venueId;
+    // return dbResponse;
   }),
   loadVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input, ctx}) => {
     const venue = await Venue.loadVenue(input.venueId, ctx.userId);
@@ -49,20 +50,13 @@ export const venueRouter = router({
     attachEmitter(ctx.client.venueEvents, 'venueWasUnloaded');
   }),
   listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
-    // TODO: get directly from the client instance as it loads db data when created
-    const dbResponse = await prismaClient.venue.findMany({
-      where: {
-        ownerId: ctx.userId
-      },
-      select: {
-        venueId: true,
-        name: true,
-      }
-    });
-    return dbResponse;
+    return ctx.client.ownedVenues.map(({venueId, name}) => ({venueId, name}));
   }),
   listAllowedVenues: p.query(({ctx}) => {
-    return ctx.client.allowedVenues;
+    return ctx.client.allowedVenues.map(({venueId, name}) => {
+      const vId = venueId as VenueId;
+      return {venueId: vId, name};
+    });
   }),
   subClientAddedOrRemoved: p.use(isUserClientM).subscription(({ctx}) => {
     return attachFilteredEmitter(ctx.client.venueEvents, 'clientAddedOrRemoved', ctx.connectionId);

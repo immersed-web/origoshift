@@ -30,7 +30,7 @@ export const ConnectTransportPayloadSchema = z.object({
 })
 
 export const ProducerInfoSchema = z.object({
-  deviceId: z.string().optional(),
+  // deviceId: z.string().optional(),
   isPaused: z.boolean()
 })
 export type ProducerInfo = z.TypeOf<typeof ProducerInfoSchema>
@@ -69,3 +69,9 @@ export const CreateProducerPayloadSchema  = z.object({
 });
 
 export type CreateProducerPayload = z.TypeOf<typeof CreateProducerPayloadSchema>
+
+export const CreateConsumerPayloadSchema  = z.object({
+  producerId: ProducerIdSchema,
+});
+
+export type CreateConsumerPayload = z.TypeOf<typeof CreateConsumerPayloadSchema>

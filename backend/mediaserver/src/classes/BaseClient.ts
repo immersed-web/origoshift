@@ -89,6 +89,12 @@ export class BaseClient {
     }
     return [...this.prismaData.allowedVenues, ...this.prismaData.ownedVenues];
   }
+  get ownedVenues() {
+    if(!this.prismaData) {
+      return [];
+    }
+    return this.prismaData.ownedVenues;
+  }
 
   jwtUserData: JwtUserData;
 

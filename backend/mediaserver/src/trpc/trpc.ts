@@ -2,9 +2,7 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import { SenderClient, UserClient } from '../classes/InternalClasses';
 import { JwtUserData, ConnectionId, hasAtLeastSecurityLevel } from 'schemas';
 // import { z } from 'zod';
-// import { pack, unpack } from 'msgpackr';
 import superjson from 'superjson';
-// import type { Context } from 'index';
 
 export type Context = JwtUserData & {
   // userId: UserId
@@ -94,8 +92,16 @@ export const isVenueOwnerM = isInVenueM.unstable_pipe(({ctx, next}) => {
   return next();
 });
 
+// TODO: Implement this middleware
+// const isInCameraM = isInVenueM.unstable_pipe(({ctx, next}) => {
+//   if(ctx.venue.cameras)
+// })
+
 export const currentVenueAdminP = atLeastModeratorP.use(isUserClientM).use(isVenueOwnerM);
 
 export const userInVenueP = procedure.use(isUserClientM).use(isInVenueM);
 
 export const clientInVenueP = procedure.use(isInVenueM);
+
+// TODO: Implement this procedure
+// export const clientInCameraP = procedure.use(isInVenueM).use(isInCameraM);

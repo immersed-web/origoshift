@@ -60,18 +60,18 @@
 <script setup lang="ts">
 import LoggedInHeader from '@/components/layout/LoggedInHeader.vue';
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
-import { clientOrThrow, isTRPCClientError } from '@/modules/trpcClient';
-import { soupDevice, attachTransportEvents } from '@/modules/mediasoup';
-import type {types as soupTypes } from 'mediasoup-client';
-import type { ProducerId, ProducerInfo } from 'schemas/mediasoup';
-import { useVenueStore } from '@/stores/venueStore';
 import { useRouter } from 'vue-router';
+import { isTRPCClientError } from '@/modules/trpcClient';
+// import type {types as soupTypes } from 'mediasoup-client';
+import type { ProducerInfo } from 'schemas/mediasoup';
+import { useVenueStore } from '@/stores/venueStore';
 import { useSenderStore } from '@/stores/senderStore';
+import { useSoupStroe } from '@/stores/soupStore';
 
 const senderStore = useSenderStore();
 const venueStore = useVenueStore();
 const router = useRouter();
-const sendTransport = shallowRef<soupTypes.Transport>();
+const soup = useSoupStroe();
 
 onMounted(async () =>{
   const tryToJoin = async () => {
@@ -81,33 +81,8 @@ onMounted(async () =>{
         return;
       }
       await venueStore.joinVenue(senderStore.savedPickedVenueId);
-      clientOrThrow.value.soup.subSoupObjectClosed.subscribe(undefined, {
-        onData(data) {
-          console.log(data);
-        },
-      });
-      if(!soupDevice.loaded){
-        const routerRtpCapabilities = await clientOrThrow.value.soup.getRouterRTPCapabilities.query();
-        console.log(routerRtpCapabilities);
-        await soupDevice.load({ routerRtpCapabilities});
-      }
-      deviceLoaded.value = soupDevice.loaded;
-      clientOrThrow.value.soup.setRTPCapabilities.mutate({
-        rtpCapabilities: soupDevice.rtpCapabilities,
-      });
-      const transportOptions = await clientOrThrow.value.soup.createSendTransport.mutate();
-      sendTransport.value = soupDevice.createSendTransport(transportOptions);
-
-      attachTransportEvents(sendTransport.value,
-        async (connectData) => {
-          await clientOrThrow.value.soup.connectTransport.mutate(connectData);
-        },
-        async (produceData) => {
-          const producerId = await clientOrThrow.value.soup.createProducer.mutate(produceData);
-          return producerId as ProducerId;
-        });
-      // await clientOrThrow.value.venue.loadVenue.mutate({venueId: venue.venueId});
-      // await clientOrThrow.value.venue.joinVenueAsSender.mutate({venueId: venue.venueId});
+      await soup.loadDevice();
+      await soup.createSendTransport();
     } catch(e) {
       if(isTRPCClientError(e)){
         console.error(e.message);
@@ -164,10 +139,11 @@ const videoInfo = computed(() => {
 });
 async function startVideo(videoDevice: MediaDeviceInfo){
   console.log('starting video!!');
+  const deviceId = videoDevice.deviceId;
   const stream = await navigator.mediaDevices.getUserMedia({
     video: {
       deviceId: {
-        exact: videoDevice.deviceId,
+        exact: deviceId,
       },
       width: {
         ideal: 4000,
@@ -178,23 +154,19 @@ async function startVideo(videoDevice: MediaDeviceInfo){
     },
   });
   console.log(stream);
-  const producerInfo: ProducerInfo = {
-    deviceId: pickedVideoInput.value?.deviceId,
-    isPaused: false,
-  };
-
   videoTrack.value = await stream.getVideoTracks()[0];
   videoTag.value!.srcObject = stream;
   videoTag.value!.play();
-  sendTransport.value?.produce({
+
+  const producerInfo: ProducerInfo = {
+    // deviceId: pickedVideoInput.value?.deviceId,
+    isPaused: false,
+  };
+  const producerId = await soup.produce({
     track: videoTrack.value,
-    encodings: [{
-      maxBitrate: 25_000_000,
-    }],
-    appData: {
-      producerInfo,
-    },
+    producerInfo,
   });
+  senderStore.savedProducers.set(deviceId, {deviceId, producerId, type: 'video'});
 }
 
 const permissionState = ref();

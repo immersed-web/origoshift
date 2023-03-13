@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { ref } from 'vue';
 import type { VenueId } from 'schemas';
-import { clientOrThrow } from '@/modules/trpcClient';
+// import { clientOrThrow } from '@/modules/trpcClient';
 import { useConnectionStore } from '@/stores/connectionStore';
 
 type Venue = RouterOutputs['venue']['joinVenue'];
@@ -30,12 +30,12 @@ export const useVenueStore = defineStore('venue', () => {
   });
 
   async function joinVenue (venueId: VenueId) {
-    currentVenue.value = await clientOrThrow.value.venue.joinVenue.mutate({venueId});
+    currentVenue.value = await connection.client.venue.joinVenue.mutate({venueId});
 
 
   }
   async function leaveVenue() {
-    await clientOrThrow.value.venue.leaveCurrentVenue.mutate();
+    await connection.client.venue.leaveCurrentVenue.mutate();
     currentVenue.value = undefined;
   }
 

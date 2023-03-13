@@ -6,6 +6,8 @@ export const soupDevice = new Device();
 type ConnectTransportFunction = (data: {transportId: TransportId, dtlsParameters: soupTypes.DtlsParameters}) => Promise<void>
 type CreateProducerFunction = (data: CreateProducerPayload) => Promise<ProducerId>
 
+export type ProduceAppData = Pick<CreateProducerPayload, 'producerId' | 'producerInfo'>
+
 export const attachTransportEvents = (transport: soupTypes.Transport, connectTransport: ConnectTransportFunction, createProducer: CreateProducerFunction) => {
   transport.on('connect', async ({dtlsParameters}, callback, errback) => {
     console.log('transport connect event trigered!');
@@ -42,7 +44,7 @@ export const attachTransportEvents = (transport: soupTypes.Transport, connectTra
         //   producerInfo,
         // });
         // const response = await socketutils.sendRequest(createProducerReq);
-        const { producerInfo, producerId } = appData as Pick<CreateProducerPayload, 'producerId' | 'producerInfo'>;
+        const { producerInfo, producerId } = appData as ProduceAppData;
 
         const createdProducerId = await createProducer({transportId: transport.id as TransportId, producerId, kind, rtpParameters, producerInfo});
         // if (response.wasSuccess) {

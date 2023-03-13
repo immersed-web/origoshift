@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
-import { soupDevice, attachTransportEvents } from '@/modules/mediasoup';
+import { soupDevice, attachTransportEvents, type ProduceAppData } from '@/modules/mediasoup';
 import type {types as soupTypes } from 'mediasoup-client';
 import { ref, shallowReactive, shallowRef } from 'vue';
 import { useConnectionStore } from './connectionStore';
@@ -64,7 +64,7 @@ export const useSoupStroe = defineStore('soup', () =>{
     if(!sendTransport.value){
       throw Error('no transport. Cant produce');
     }
-    const appData = {
+    const appData: ProduceAppData = {
       producerInfo,
       producerId,
     };

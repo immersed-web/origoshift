@@ -26,128 +26,13 @@ const venueIncludeWhitelistVirtual  = {
 const args = {include: venueIncludeWhitelistVirtual} satisfies Prisma.VenueArgs;
 type VenueResponse = Prisma.VenueGetPayload<typeof args>
 
-// export function getVenue(venueId: VenueId){
-//   return Venue.getVenue(venueId);
-// }
-
 export class Venue {
-  // First some static stuff for global housekeeping
-  private static venues: Map<VenueId, Venue> = new Map();
-
-  static async createNewVenue(name: string, owner: UserId){
-    try {
-      const result = await prisma.venue.create({
-        data: {
-          name,
-          owner: {
-            connect: {
-              userId: owner
-            }
-          },
-          settings: {coolSetting: 'aaaww yeeeah'},
-          startTime: new Date(),
-        }
-      });
-
-      // prisma.virtualSpace.create({
-      //   data: {
-      //     virtualSpace3DModel: {
-      //       create: {
-      //         scale: 1,
-      //         modelUrl: 'google.com',
-      //         navmeshUrl: 'google.se'
-      //       }
-      //     },
-      //     settings: {
-      //       cool: 'asdfasdf',
-      //     },
-      //     venue: {
-      //       connect: result,
-      //     }
-      //   }
-      // });
-
-
-      // const venue = await prisma.venue.findFirst({
-      //   where: {
-      //     name: 'Hello'
-      //   }
-      // });
-
-      return result.venueId;
-    } catch (e){
-      log.error(e);
-      throw e;
+  private constructor(prismaData: VenueResponse, router: soupTypes.Router){
+    this.router = router;
+    this.prismaData = prismaData;
+    if(prismaData.virtualSpace){
+      this.vrSpace = new VrSpace(this, prismaData.virtualSpace);
     }
-  }
-  static async loadVenue(venueId: VenueId, ownerId: UserId, worker?: soupTypes.Worker) {
-    try {
-      if(Venue.venues.has(venueId)){
-        throw new Error('Venue with that venueId already loaded');
-      }
-      const dbResponse = await prisma.venue.findUniqueOrThrow({
-        where: {
-          ownerId_venueId: {
-            venueId,
-            ownerId
-          }
-        },
-        include: venueIncludeWhitelistVirtual,
-      });
-
-      if(!worker){
-        worker = getMediasoupWorker();
-      }
-      const router = await worker.createRouter(mediasoupConfig.router);
-      const venue = new Venue(dbResponse, router);
-      log.info(`loading ${venue.prismaData.name} (${venue.prismaData.venueId})`);
-
-      Venue.venues.set(venue.venueId, venue);
-      return venue;
-    } catch (e) {
-      log.error('failed to load venue');
-      throw e;
-    }
-  }
-
-  // NOTE: It's important we release all references here!
-  unload() {
-    log.info(`unloading ${this.prismaData.name} (${this.venueId})`);
-    this.emitToAllClients('venueWasUnloaded', this.venueId);
-    this.router.close();
-    // this.cameras.forEach(room => room.destroy());
-    Venue.venues.delete(this.venueId);
-    this.vrSpace?.unload();
-  }
-
-  static venueIsLoaded(params: {venueId: VenueId}){
-    return Venue.venues.has(params.venueId);
-  }
-
-  static getLoadedVenues(){
-    const obj: Record<VenueId, {venueId: VenueId, name: string}> = {};
-    for(const [key, venue] of Venue.venues.entries()){
-      obj[key] = {
-        name: venue.prismaData.name,
-        venueId: venue.venueId,
-      };
-    }
-    return obj;
-  }
-
-  static getVenue(venueId: VenueId) {
-    // if(venueId){
-    const venue = Venue.venues.get(venueId);
-    if(!venue){
-      throw new Error('No venue with that id is loaded');
-    }
-    return venue;
-    // }else if(params.name){
-    //   throw Error('Please dont implement this. We should strive to use Ids throughout');
-    //   // return this.getGatheringFromName(params.name);
-    // } else {
-    //   throw new Error('no id or name provided. Cant get venue! Duuuh!');
-    // }
   }
 
   private prismaData: VenueResponse;
@@ -167,7 +52,7 @@ export class Venue {
   cameras: Map<CameraId, Camera> = new Map();
 
   private clients: Map<ConnectionId, UserClient> = new Map();
-  get clientList() {
+  get clientIds() {
     return Array.from(this.clients.keys());
   }
 
@@ -176,14 +61,26 @@ export class Venue {
   get _isEmpty() {
     return this.clients.size === 0 && this.senderClients.size === 0;
   }
+  getPublicState() {
+    const {venueId, name, clientIds, ownerId} = this;
+    const cameras: Record<CameraId, ReturnType<Camera['getPublicState']>> = {};
+    this.cameras.forEach(cam => cameras[cam.cameraId] = cam.getPublicState());
+    return {
+      venueId, name, clientIds, ownerId,
+      vrSpace: this.vrSpace?.getPublicState(),
+      cameras: cameras
+    };
+  }
 
-  private constructor(prismaData: VenueResponse, router: soupTypes.Router){
-    this.router = router;
-    this.prismaData = prismaData;
-    if(prismaData.virtualSpace){
-      this.vrSpace = new VrSpace(this, prismaData.virtualSpace);
-    }
-
+  //
+  // NOTE: It's important we release all references here!
+  unload() {
+    log.info(`unloading ${this.prismaData.name} (${this.venueId})`);
+    this.emitToAllClients('venueWasUnloaded', this.venueId);
+    this.router.close();
+    // this.cameras.forEach(room => room.destroy());
+    Venue.venues.delete(this.venueId);
+    this.vrSpace?.unload();
   }
 
   /**
@@ -399,5 +296,115 @@ export class Venue {
     // transport.on('close', () => gatheringLog('---transport close--- transport with id ' + transport.id + ' closed'));
 
     return transport;
+  }
+
+  // Static stuff for global housekeeping
+  private static venues: Map<VenueId, Venue> = new Map();
+
+  static async createNewVenue(name: string, owner: UserId){
+    try {
+      const result = await prisma.venue.create({
+        data: {
+          name,
+          owner: {
+            connect: {
+              userId: owner
+            }
+          },
+          settings: {coolSetting: 'aaaww yeeeah'},
+          startTime: new Date(),
+        }
+      });
+
+      // prisma.virtualSpace.create({
+      //   data: {
+      //     virtualSpace3DModel: {
+      //       create: {
+      //         scale: 1,
+      //         modelUrl: 'google.com',
+      //         navmeshUrl: 'google.se'
+      //       }
+      //     },
+      //     settings: {
+      //       cool: 'asdfasdf',
+      //     },
+      //     venue: {
+      //       connect: result,
+      //     }
+      //   }
+      // });
+
+
+      // const venue = await prisma.venue.findFirst({
+      //   where: {
+      //     name: 'Hello'
+      //   }
+      // });
+
+      return result.venueId;
+    } catch (e){
+      log.error(e);
+      throw e;
+    }
+  }
+  static async loadVenue(venueId: VenueId, ownerId: UserId, worker?: soupTypes.Worker) {
+    try {
+      if(Venue.venues.has(venueId)){
+        throw new Error('Venue with that venueId already loaded');
+      }
+      const dbResponse = await prisma.venue.findUniqueOrThrow({
+        where: {
+          ownerId_venueId: {
+            venueId,
+            ownerId
+          }
+        },
+        include: venueIncludeWhitelistVirtual,
+      });
+
+      if(!worker){
+        worker = getMediasoupWorker();
+      }
+      const router = await worker.createRouter(mediasoupConfig.router);
+      const venue = new Venue(dbResponse, router);
+      log.info(`loading ${venue.prismaData.name} (${venue.prismaData.venueId})`);
+
+      Venue.venues.set(venue.venueId, venue);
+      return venue;
+    } catch (e) {
+      log.error('failed to load venue');
+      throw e;
+    }
+  }
+
+
+  static venueIsLoaded(params: {venueId: VenueId}){
+    return Venue.venues.has(params.venueId);
+  }
+
+  static getLoadedVenues(){
+    const obj: Record<VenueId, {venueId: VenueId, name: string}> = {};
+    for(const [key, venue] of Venue.venues.entries()){
+      obj[key] = {
+        name: venue.prismaData.name,
+        venueId: venue.venueId,
+      };
+    }
+    return obj;
+  }
+
+  static getVenue(venueId: VenueId) {
+    // if(venueId){
+    const venue = Venue.venues.get(venueId);
+    if(!venue){
+      throw new Error('No venue with that id is loaded');
+    }
+    return venue;
+    // }else if(params.name){
+    //   throw Error('Please dont implement this. We should strive to use Ids throughout');
+    //   // return this.getGatheringFromName(params.name);
+    // } else {
+    //   throw new Error('no id or name provided. Cant get venue! Duuuh!');
+    // }
   }
 }

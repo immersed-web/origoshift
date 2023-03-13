@@ -5,7 +5,7 @@ const log = new Log('UserClient');
 process.env.DEBUG = 'UserClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { ClientTransform, ClientTransforms, ConnectionId, UserId, UserRole, VenueId, CameraId } from 'schemas';
+import { ClientTransform, ClientTransforms, ConnectionId, UserId, UserRole, VenueId, CameraId, ClientType } from 'schemas';
 import { Venue } from './InternalClasses';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
 import { BaseClient } from './BaseClient';
@@ -47,6 +47,7 @@ export class UserClient extends BaseClient {
     this.userEvents = new TypedEmitter();
     this.vrEvents = new TypedEmitter();
   }
+  readonly clientType = 'client' as const satisfies ClientType;
 
   transform: ClientTransform | undefined;
 

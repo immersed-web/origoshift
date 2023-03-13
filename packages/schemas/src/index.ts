@@ -153,3 +153,6 @@ export const ClientInfoSchema = z.object({
 })
 
 export type ClientInfo = z.infer<typeof ClientInfoSchema>;
+
+export const ClientTypeSchema = z.union([z.literal('client'), z.literal('sender')]);
+export type ClientType = z.infer<typeof ClientTypeSchema>;

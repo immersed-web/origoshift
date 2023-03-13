@@ -203,14 +203,21 @@ export function applyWSHandler<TRouter extends AnyRouter, Ctx>(opts: WSHandlerOp
       const observable = result;
       const sub = observable.subscribe({
         next(data) {
-          respond(ws, {
-            id,
-            jsonrpc,
-            result: {
-              type: 'data',
-              data,
-            },
-          });
+          // console.log('SENDING TO SUBSCRIBER');
+          try{
+            respond(ws, {
+              id,
+              jsonrpc,
+              result: {
+                type: 'data',
+                data,
+              },
+            });
+          }catch(e) {
+            // console.error(e);
+            console.error('failed to write to websocket. Probably the socket was already closed!!');
+            return;
+          }
         },
         error(err) {
           const error = getTRPCErrorFromUnknown(err);

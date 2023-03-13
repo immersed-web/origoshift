@@ -36,7 +36,7 @@
             class="ml-2"
             color="red"
             size="xs"
-            @click="async () => await client.venue.deleteVenue.mutate({venueId: venue.venueId})"
+            @click="async () => await clientOrThrow.venue.deleteVenue.mutate({venueId: venue.venueId})"
           >
             Ta bort
           </XButton>
@@ -69,14 +69,14 @@
         </div>
       </div>
       <XButton
-        @click="async () => await client.vr.openVrSpace.mutate()"
+        @click="async () => await clientOrThrow.vr.openVrSpace.mutate()"
       >
         OpenVr
       </XButton>
-      <XButton @click="async () => await client.vr.enterVrSpace.mutate()">
+      <XButton @click="async () => await clientOrThrow.vr.enterVrSpace.mutate()">
         Enter vrSpace
       </XButton>
-      <XButton @click="async () => await client.venue.leaveCurrentVenue.query()">
+      <XButton @click="async () => await clientOrThrow.venue.leaveCurrentVenue.query()">
         Leave current venue
       </XButton>
       <!-- <XButton @click="startTransformStream">
@@ -88,7 +88,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { client, startLoggedInClient, type RouterOutputs } from '@/modules/trpcClient';
+import { clientOrThrow, startLoggedInClient, type RouterOutputs } from '@/modules/trpcClient';
 import type { ClientTransform, ConnectionId } from 'schemas';
 import { useClientStore } from '@/stores/clientStore';
 import type { Unsubscribable } from '@trpc/server/observable';
@@ -118,47 +118,47 @@ const loginAsAdmin = async () => {
 };
 
 const getVenuesAll = async () => {
-  clientStore.venuesAll = await client.value.venue.listMyVenues.query();
+  clientStore.venuesAll = await clientOrThrow.value.venue.listMyVenues.query();
 };
 
 const getVenuesLoaded = async () => {
-  clientStore.venuesLoaded = await client.value.venue.listLoadedVenues.query();
+  clientStore.venuesLoaded = await clientOrThrow.value.venue.listLoadedVenues.query();
 };
 
 const loadVenue = async (venueId: string) => {
-  await client.value.venue.loadVenue.mutate({venueId: venueId});
+  await clientOrThrow.value.venue.loadVenue.mutate({venueId: venueId});
   getVenuesLoaded();
 };
 
 const createVenue = async () => {
-  await client.value.venue.createNewVenue.mutate({name: `venue-${Math.trunc(Math.random() * 1000)}`});
+  await clientOrThrow.value.venue.createNewVenue.mutate({name: `venue-${Math.trunc(Math.random() * 1000)}`});
   getVenuesAll();
 };
 
 function onSlide(evt: number) {
   slider.value = evt;
-  client.value.vr.transforms.updateTransform.mutate({
+  clientOrThrow.value.vr.transforms.updateTransform.mutate({
     position: [slider.value, 0, 0],
     orientation: [0,0,0,0],
   });
 }
 
-const subToHeartBeat = () => client.value.subHeartBeat.subscribe(undefined, {
+const subToHeartBeat = () => clientOrThrow.value.subHeartBeat.subscribe(undefined, {
   onData(heartbeat){
     clientStore.heartbeat = heartbeat;
   },
 });
 
 const getHealth = async () => {
-  clientStore.health = await client.value.health.query();
+  clientStore.health = await clientOrThrow.value.health.query();
 };
 
 const getGreeting = async () => {
-  clientStore.greeting = await client.value.greeting.query();
+  clientStore.greeting = await clientOrThrow.value.greeting.query();
 };
 
 const joinVenue = async (venueId: string) => {
-  await client.value.venue.joinVenue.mutate({venueId});
+  await clientOrThrow.value.venue.joinVenue.mutate({venueId});
   startTransformSubscription();
 };
 
@@ -167,7 +167,7 @@ function startTransformSubscription() {
   if(transformSubscription){
     transformSubscription.unsubscribe();
   }
-  transformSubscription = client.value.vr.transforms.subClientTransforms.subscribe(undefined, {
+  transformSubscription = clientOrThrow.value.vr.transforms.subClientTransforms.subscribe(undefined, {
     onData(data) {
       console.log('received transform data!', data);
       clientStore.clientTransforms = data;
@@ -181,10 +181,10 @@ function startTransformSubscription() {
 }
 
 onMounted(async () => {
-  connectionId.value = await client.value.getConnectionId.query();
+  connectionId.value = await clientOrThrow.value.getConnectionId.query();
   console.log(connectionId.value);
 
-  client.value.venue.subClientAddedOrRemoved.subscribe(undefined, {
+  clientOrThrow.value.venue.subClientAddedOrRemoved.subscribe(undefined, {
     onData(data){
       console.log(data);
     },

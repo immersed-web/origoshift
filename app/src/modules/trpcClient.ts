@@ -2,10 +2,14 @@ import { createTRPCProxyClient, TRPCClientError, wsLink, type CreateTRPCProxyCli
 import type { inferRouterOutputs, inferRouterInputs } from '@trpc/server';
 import { createWSClient } from './customWsLink';
 import type { AppRouter } from 'mediaserver';
+// import { unpack, pack } from 'msgpackr';
+import type { ClientType } from 'schemas';
+import superjson from 'superjson';
 // import { guestAutoToken, loginWithAutoToken, getToken } from '@/modules/authClient';
 // import type {} from 'zod';
 
 import { shallowRef, type ShallowRef, computed, type ComputedRef } from 'vue';
+import { devtoolsLink } from 'trpc-client-devtools-link';
 
 
 const wsBaseURL = 'ws://localhost:9001';
@@ -26,7 +30,8 @@ export const clientOrThrow: ComputedRef<CreateTRPCProxyClient<AppRouter>> = comp
 });
 
 export let wsClient: ReturnType<typeof createWSClient> | undefined;
-type ClientType = 'user' | 'sender';
+
+// type ClientType = 'user' | 'sender';
 let currentClientType: ClientType | undefined;
 
 function buildConnectionUrl(token:string, connectAsSender?: boolean){
@@ -43,7 +48,7 @@ export type RouterInputs = inferRouterInputs<AppRouter>
 // type ClientGetter = () => ReturnType<typeof createTRPCProxyClient<AppRouter>> | undefined;
 // export const getClient: ClientGetter = () => client.value;
 
-export const createTrpcClient = (getToken: () => string, clientType: ClientType = 'user' ) => {
+export const createTrpcClient = (getToken: () => string, clientType: ClientType = 'client' ) => {
   if(trpcClient.value && currentClientType === clientType){
     console.warn(`Eeeeeh. You are creating a new (${clientType}) trpc-client when there is already one running. Are you suuure you know what you are doing?? I am rather sure you dont wanna do this :-P`);
   }
@@ -58,10 +63,27 @@ export const createTrpcClient = (getToken: () => string, clientType: ClientType 
     url: () => buildConnectionUrl(getToken(), clientType === 'sender'),
   });
   trpcClient.value = createTRPCProxyClient<AppRouter>({
+    transformer: superjson,
+    // transformer: {
+    //   serialize: pack,
+    //   deserialize: unpack,
+    // },
     links: [
+      devtoolsLink(),
       wsLink({client: wsClient}),
     ],
   });
+
+  (async () => {
+    console.log('###### testing endpoint of new client');
+    console.log('client is: ', trpcClient.value);
+    try {
+      const response = await trpcClient.value?.greeting.query();
+      console.log('response:', response);
+    } catch(e) {
+      console.error(e);
+    }
+  })();
   currentClientType = clientType;
   // return trpcClient.value;
 };

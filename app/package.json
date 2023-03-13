@@ -20,7 +20,10 @@
     "daisyui": "^2.51.0",
     "jwt-decode": "^3.1.2",
     "pinia": "^2.0.28",
+    "pinia-plugin-persistedstate": "^3.1.0",
     "schemas": "workspace:^1.0.0",
+    "superjson": "^1.12.2",
+    "trpc-client-devtools-link": "0.2.1-next",
     "vue": "^3.2.45",
     "vue-router": "^4.1.6"
   },

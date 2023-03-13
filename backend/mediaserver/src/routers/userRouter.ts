@@ -1,5 +1,5 @@
 import { attachEmitter } from '../trpc/trpc-utils';
-import { UserClient } from '../classes/InternalClasses';
+// import { UserClient } from '../classes/InternalClasses';
 import { isUserClientM, procedure as p, router } from '../trpc/trpc';
 
 const userClientP = p.use(isUserClientM);

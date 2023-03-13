@@ -14,6 +14,7 @@ export const useClientStore = defineStore('client', {
     // heartbeat: '',
     // venuesAll: [] as RouterOutputs['venue']['listMyVenues'],
     // venuesLoaded: {} as RouterOutputs['venue']['listLoadedVenues'],
+    // currentVenue: {} as RouterOutputs['venue']['listAllowedVenues'][number],
     clientTransforms: {} as ClientTransforms,
   }),
   getters: {

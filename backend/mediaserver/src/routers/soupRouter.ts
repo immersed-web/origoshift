@@ -1,12 +1,17 @@
+import { Log } from 'debug-level';
+const log = new Log('Soup:Router');
+process.env.DEBUG = 'Soup:Router*, ' + process.env.DEBUG;
+log.enable(process.env.DEBUG);
+
 import { TRPCError } from '@trpc/server';
-import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId } from 'schemas/mediasoup';
+import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId, RtpCapabilitiesSchema } from 'schemas/mediasoup';
 import { z } from 'zod';
-import { isInVenueM, procedure as p, router } from '../trpc/trpc';
+import { procedure as p, clientInVenueP, router } from '../trpc/trpc';
+import { attachEmitter } from '../trpc/trpc-utils';
 // import { Producer as SoupProducer } from 'mediasoup/node/lib/Producer';
 // import '../augmentedMediasoup';
 // import { attachFilteredEmitter, FilteredEvents } from '../trpc/trpc-utils';
 
-const clientInVenueP = p.use(isInVenueM);
 
 export const soupRouter = router({
   getRouterRTPCapabilities: clientInVenueP.query(({ctx}) => {
@@ -15,8 +20,16 @@ export const soupRouter = router({
     return caps;
     // return 'Not implemented yet' as const;
   }),
-  setRTPCapabilities: clientInVenueP.query(() => {
-    return 'Not implemented yet' as const;
+  setRTPCapabilities: clientInVenueP.input(z.object({rtpCapabilities: RtpCapabilitiesSchema})).mutation(({input, ctx}) => {
+    ctx.client.rtpCapabilities = input.rtpCapabilities;
+    log.debug(`clint ${ctx.username} (${ctx.connectionId}) changed rtpCapabilities to: `, input.rtpCapabilities);
+    // return 'Not implemented yet' as const;
+  }),
+  createSendTransport: clientInVenueP.mutation(async ({ctx}) => {
+    return await ctx.client.createWebRtcTransport('send');
+  }),
+  createReceiveTransport: clientInVenueP.mutation(async ({ctx}) => {
+    return await ctx.client.createWebRtcTransport('receive');
   }),
   connectTransport: clientInVenueP.input(ConnectTransportPayloadSchema).mutation(async ({ctx, input}) => {
     const client = ctx.client;
@@ -34,6 +47,7 @@ export const soupRouter = router({
     await chosenTransport.connect({dtlsParameters});
   }),
   createProducer: clientInVenueP.input(CreateProducerPayloadSchema).mutation(async ({ctx, input}) => {
+    log.info('received createProducer request!');
     const client = ctx.client;
 
     if(!client.sendTransport){
@@ -47,7 +61,7 @@ export const soupRouter = router({
     producer.on('transportclose', () => {
       console.log(`transport for producer ${producer.id} was closed`);
       client.producers.delete(producer.id as ProducerId);
-      client.soupEvents.emit('producerClosed', producer.id as ProducerId);
+      client.soupEvents.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'transport was closed'});
     });
     client.producers.set(producer.id as ProducerId, producer);
 
@@ -59,5 +73,9 @@ export const soupRouter = router({
   onProducerClosed: clientInVenueP.input(z.string().uuid()).subscription(({input, ctx}) => {
     return 'Not implemented yet' as const;
     // return attachFilteredEmitter(ee, 'producerClosed', ctx.uuid);
+  }),
+  subSoupObjectClosed: p.subscription(({ctx}) => {
+    return attachEmitter(ctx.client.soupEvents, 'soupObjectClosed');
+    // return 'Not implemented yet' as const;
   })
 });

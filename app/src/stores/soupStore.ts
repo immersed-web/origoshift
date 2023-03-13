@@ -23,10 +23,11 @@ export const useSoupStroe = defineStore('soup', () =>{
 
   async function loadDevice() {
     if(!soupDevice.loaded){
-      const routerRtpCapabilities = await connectionStore.client.soup.getRouterRTPCapabilities.query();
-      console.log(routerRtpCapabilities);
-      await soupDevice.load({ routerRtpCapabilities});
+      throw Error('mediasoup device already loaded!');
     }
+    const routerRtpCapabilities = await connectionStore.client.soup.getRouterRTPCapabilities.query();
+    console.log(routerRtpCapabilities);
+    await soupDevice.load({ routerRtpCapabilities});
     deviceLoaded.value = soupDevice.loaded;
     connectionStore.client.soup.setRTPCapabilities.mutate({
       rtpCapabilities: soupDevice.rtpCapabilities,
@@ -177,6 +178,7 @@ export const useSoupStroe = defineStore('soup', () =>{
 
   return {
     loadDevice,
+    deviceLoaded,
     createSendTransport,
     createReceiveTransport,
     producers,

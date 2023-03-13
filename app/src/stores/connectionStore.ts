@@ -2,7 +2,7 @@ import { clientOrThrow, createTrpcClient, wsClient } from '@/modules/trpcClient'
 import type { CreateTRPCProxyClient } from '@trpc/client';
 import type { AppRouter } from 'mediaserver';
 import { defineStore } from 'pinia';
-import type { ClientType } from 'schemas';
+import type { ConnectionType } from 'schemas';
 import { ref, shallowRef, type ShallowRef } from 'vue';
 import { useAuthStore } from './authStore';
 
@@ -18,7 +18,7 @@ import { useAuthStore } from './authStore';
 export const useConnectionStore = defineStore('connection', () => {
   const authStore = useAuthStore();
   const connected = ref(false);
-  const connectionType = ref<ClientType>();
+  const connectionType = ref<ConnectionType>();
 
   // createTrpcClient(() => authStore.tokenOrThrow, 'user');
   // Not possible at the moment because of unnamed exported types

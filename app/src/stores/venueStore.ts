@@ -11,26 +11,27 @@ export const useVenueStore = defineStore('venue', () => {
   const connection = useConnectionStore();
   const currentVenue = ref<Venue>();
 
+  connection.client.venue.subClientAddedOrRemoved.subscribe(undefined, {
+    onData(data){
+      if(data.added){
+        currentVenue.value?.clientIds.push(data.client.connectionId);
+      } else {
+        const idx = currentVenue.value?.clientIds.indexOf(data.client.connectionId);
+        if(idx !== undefined){
+          currentVenue.value?.clientIds.splice(idx, 1);
+        }
+      }
+    },
+  });
+  connection.client.venue.subVenueUnloaded.subscribe(undefined, {
+    onData() {
+      currentVenue.value = undefined;
+    },
+  });
+
   async function joinVenue (venueId: VenueId) {
     currentVenue.value = await clientOrThrow.value.venue.joinVenue.mutate({venueId});
 
-    connection.client.venue.subClientAddedOrRemoved.subscribe(undefined, {
-      onData(data){
-        if(data.added){
-          currentVenue.value?.clientIds.push(data.client.connectionId);
-        } else {
-          const idx = currentVenue.value?.clientIds.indexOf(data.client.connectionId);
-          if(idx !== undefined){
-            currentVenue.value?.clientIds.splice(idx, 1);
-          }
-        }
-      },
-    });
-    connection.client.venue.subVenueUnloaded.subscribe(undefined, {
-      onData() {
-        currentVenue.value = undefined;
-      },
-    });
 
   }
   async function leaveVenue() {
@@ -51,6 +52,4 @@ export const useVenueStore = defineStore('venue', () => {
     leaveVenue,
     // joinVenueAsSender,
   };
-}, {
-  persist: true,
 });

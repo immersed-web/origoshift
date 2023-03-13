@@ -2,14 +2,14 @@ import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useClientStore } from '@/stores/clientStore';
 // import { useSenderStore } from '@/stores/senderStore';
-import { hasAtLeastSecurityLevel, type UserRole } from 'schemas';
+import { hasAtLeastSecurityLevel, type UserRole, type ConnectionType } from 'schemas';
 import { createRouter, createWebHistory } from 'vue-router';
 
 declare module 'vue-router' {
   interface RouteMeta {
     // noAuth?: boolean
     // requiresAuth?: boolean
-    requiredConnection?: 'sender' | 'user'
+    requiredConnection?: ConnectionType
     requiredRole?: UserRole
     afterLoginRedirect?: string
     loginNeededRedirect?: 'cameraLogin' | 'login'
@@ -30,7 +30,7 @@ const router = createRouter({
     },
     {
       path: '/user/',
-      meta: { requiredRole: 'user', loginNeededRedirect: 'login', requiredConnection: 'user' },
+      meta: { requiredRole: 'user', loginNeededRedirect: 'login', requiredConnection: 'client' },
       component:  () => import('@/layouts/LoggedInLayout.vue'),
       children: [
         {
@@ -52,7 +52,7 @@ const router = createRouter({
     },
     {
       path: '/admin/',
-      meta: { requiredRole: 'admin', loginNeededRedirect: 'login', requiredConnection: 'user' },
+      meta: { requiredRole: 'admin', loginNeededRedirect: 'login', requiredConnection: 'client' },
       component:  () => import('@/layouts/LoggedInLayout.vue'),
       children: [
         {
@@ -121,12 +121,14 @@ router.beforeEach(async (to, from) => {
       throw Error('eeeeh. You are not logged but you shouldnt reach this code without being logged in. Something is wrooong');
     }
     if(!connectionStore.connected){
-      if(to.meta.requiredConnection === 'user'){
+      if(to.meta.requiredConnection === 'client'){
         connectionStore.createUserClient();
         clientStore.updateClientState();
       } else {
         connectionStore.createSenderClient();
       }
+    } else if(connectionStore.connectionType !== to.meta.requiredConnection){
+      throw Error('you are already connected to the backend as the wrong type of client. Close the current connection before going to this route.');
     }
   }
 });

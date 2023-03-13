@@ -43,7 +43,7 @@ export const venueRouter = router({
   }),
   loadVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input, ctx}) => {
     const venue = await Venue.loadVenue(input.venueId, ctx.userId);
-    return venue.venueId;
+    return venue.getPublicState();
   }),
   subVenueUnloaded: p.subscription(({ctx}) => {
     attachEmitter(ctx.client.venueEvents, 'venueWasUnloaded');

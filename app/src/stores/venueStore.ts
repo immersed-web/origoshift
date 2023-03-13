@@ -29,10 +29,11 @@ export const useVenueStore = defineStore('venue', () => {
     },
   });
 
+  async function loadVenue (venueId: VenueId) {
+    return await clientOrThrow.value.venue.loadVenue.mutate({venueId: venueId});
+  }
   async function joinVenue (venueId: VenueId) {
     currentVenue.value = await clientOrThrow.value.venue.joinVenue.mutate({venueId});
-
-
   }
   async function leaveVenue() {
     await clientOrThrow.value.venue.leaveCurrentVenue.mutate();
@@ -48,6 +49,7 @@ export const useVenueStore = defineStore('venue', () => {
 
   return {
     currentVenue,
+    loadVenue,
     joinVenue,
     leaveVenue,
     // joinVenueAsSender,

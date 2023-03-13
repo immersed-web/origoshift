@@ -3,6 +3,15 @@
     <h1 class="text-5xl font-bold">
       Loaded and joined venue: {{ clientStore.clientState.currentVenueId }}
     </h1>
+    <div>
+      <h2>Inställningar för eventet</h2>
+      <pre>
+        {{ venueStore.currentVenue }}
+      </pre>
+      <!-- <form>
+        <input v-model="venueStore.currentVenue" type="text" />
+      </form> -->
+    </div>
     <div class="flex space-x-2">
       <button
         class="btn btn-primary"
@@ -22,15 +31,16 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useClientStore } from '@/stores/clientStore';
+import { useVenueStore } from '@/stores/venueStore';
 import { useRouter } from 'vue-router';
 import { clientOrThrow } from '@/modules/trpcClient';
-import LoggedInLayout from '@/layouts/LoggedInLayout.vue';
 
 // Router
 const router = useRouter();
 
 // Stores
 const clientStore = useClientStore();
+const venueStore = useVenueStore();
 
 // View functionality
 onMounted(() => {

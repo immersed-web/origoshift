@@ -2,7 +2,7 @@
   <div class="navbar bg-primary text-white">
     <div class="flex-1">
       <RouterLink
-        :to="{name: authStore.homeRoute}"
+        :to="{name: authStore.routePrefix + 'Home'}"
         class="btn btn-ghost normal-case text-xl"
       >
         OrigoShift
@@ -25,7 +25,7 @@
           class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
         >
           <li>
-            <RouterLink :to="{name: authStore.homeRoute}">
+            <RouterLink :to="{name: authStore.routePrefix + 'Home'}">
               @{{ clientStore.clientState.userName }}
             </RouterLink>
           </li>

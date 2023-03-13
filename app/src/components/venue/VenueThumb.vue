@@ -15,9 +15,12 @@ import type { PropType } from 'vue';
 // import { useRouter } from 'vue-router';
 import { clientOrThrow } from '@/modules/trpcClient';
 import type { RouterOutputs } from '@/modules/trpcClient';
+import { useVenueStore } from '@/stores/venueStore';
+import type { VenueId } from 'schemas/*';
 
-// Router
+// Use imports
 // const router = useRouter();
+const venueStore = useVenueStore();
 
 // Props & emits
 const props = defineProps({
@@ -27,16 +30,16 @@ const emit = defineEmits<{
   (e: 'joined'): void,
 }>();
 
-const loadAndJoinVenue = async (venueId: string) => {
+const loadAndJoinVenue = async (venueId: VenueId) => {
   try{
-    await clientOrThrow.value.venue.loadVenue.mutate({venueId: venueId});
+    const loadedVenueState = await venueStore.loadVenue(venueId);
+    console.log('Loaded venue state', loadedVenueState);
+    await venueStore.joinVenue(venueId);
+    emit('joined');
   }
   catch(e){
     console.log(e);
   }
-  await clientOrThrow.value.venue.joinVenue.mutate({venueId});
-  emit('joined');
-  // router.push({name: 'userVenue'});
 };
 
 </script>

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { JwtPayload as JwtShapeFromLib } from 'jsonwebtoken'
-import { Role } from "database";
+import { Role, Venue } from "database";
 import { toZod } from "tozod";
 
 type RemoveIndex<T> = {
@@ -117,6 +117,12 @@ export type VenueId = z.infer<typeof VenueIdSchema>;
 
 export const VrSpaceIdSchema = UuidSchema.brand<'VrSpaceId'>();
 export type VrSpaceId = z.infer<typeof VrSpaceIdSchema>;
+
+// TODO: Make it unsatisfied when using fields that don't exist in Venue
+export const VenueUpdateSchema = z.object({
+  name: z.string().optional(),
+}) satisfies z.ZodType<Partial<Venue>>
+export type VenueUpdate = z.infer<typeof VenueUpdateSchema>
 
 export const CameraIdSchema = UuidSchema.brand<'CameraId'>();
 export type CameraId = z.infer<typeof CameraIdSchema>;

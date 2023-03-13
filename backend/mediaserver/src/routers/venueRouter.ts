@@ -3,9 +3,9 @@ const log = new Log('Venue:Router');
 process.env.DEBUG = 'Venue:Router*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { hasAtLeastSecurityLevel, VenueId, VenueIdSchema } from 'schemas';
+import { hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
 import { z } from 'zod';
-import { procedure as p, atLeastModeratorP, router, isInVenueM, atLeastSenderP, isUserClientM, isSenderClientM } from '../trpc/trpc';
+import { procedure as p, atLeastModeratorP, router, isInVenueM, atLeastSenderP, isUserClientM, isSenderClientM, isVenueOwnerM } from '../trpc/trpc';
 // import Venue from '../classes/Venue';
 import { Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
@@ -44,18 +44,17 @@ export const venueRouter = router({
   }),
   loadVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input, ctx}) => {
     const venue = await Venue.loadVenue(input.venueId, ctx.userId);
-    return venue.venueId;
+    return venue.getPublicState();
   }),
   subVenueUnloaded: p.subscription(({ctx}) => {
     attachEmitter(ctx.client.venueEvents, 'venueWasUnloaded');
   }),
   listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
-    return ctx.client.ownedVenues.map(({venueId, name}) => ({venueId, name}));
+    return ctx.client.ownedVenues.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));
   }),
   listAllowedVenues: p.query(({ctx}) => {
     return ctx.client.allowedVenues.map(({venueId, name}) => {
-      const vId = venueId as VenueId;
-      return {venueId: vId, name};
+      return {venueId: venueId as VenueId, name};
     });
   }),
   subClientAddedOrRemoved: p.use(isUserClientM).subscription(({ctx}) => {
@@ -78,6 +77,11 @@ export const venueRouter = router({
   //     log.info('request received to join venue as sender:', input.venueId);
   //     await ctx.client.joinVenue(input.venueId);
   //   }),
+  updateVenue: p.use(isVenueOwnerM).input(VenueUpdateSchema).mutation(({input, ctx}) =>{
+    if(ctx.client.venue){
+      ctx.client.venue.update(input);
+    }
+  }),
   leaveCurrentVenue: p.use(isInVenueM).mutation(({ctx}) => {
     if(!ctx.client.leaveCurrentVenue()){
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'cant leave if not in a venue.. Duh!'});

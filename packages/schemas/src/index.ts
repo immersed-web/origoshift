@@ -154,5 +154,5 @@ export const ClientInfoSchema = z.object({
 
 export type ClientInfo = z.infer<typeof ClientInfoSchema>;
 
-export const ClientTypeSchema = z.union([z.literal('client'), z.literal('sender')]);
-export type ClientType = z.infer<typeof ClientTypeSchema>;
+export const ConnectionTypeSchema = z.union([z.literal('client'), z.literal('sender')]);
+export type ConnectionType = z.infer<typeof ConnectionTypeSchema>;

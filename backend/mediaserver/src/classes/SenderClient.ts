@@ -4,7 +4,7 @@ import { BaseClient, Venue } from './InternalClasses';
 
 
 import { Log } from 'debug-level';
-import { ClientType, VenueId } from 'schemas';
+import { ConnectionType, VenueId } from 'schemas';
 const log = new Log('SenderClient');
 process.env.DEBUG = 'SenderClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
@@ -25,7 +25,7 @@ export class SenderClient extends BaseClient {
 
     this.senderEvents = new TypedEmitter();
   }
-  readonly clientType = 'sender' as const satisfies ClientType;
+  readonly clientType = 'sender' as const satisfies ConnectionType;
 
 
   getPublicState(){

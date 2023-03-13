@@ -15,7 +15,7 @@ const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema, ClientType } from 'schemas';
+import { JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema, ConnectionType } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
 import { loadUserPrismaData, SenderClient, UserClient } from './classes/InternalClasses';
@@ -73,7 +73,7 @@ const {onSocketOpen, onSocketMessage, onSocketClose} = applyWSHandler<AppRouter,
 
 const app = uWebSockets.App();
 
-type WSUserData = { jwtUserData: JwtUserData, clientType: ClientType, prismaData?: Awaited<ReturnType<typeof loadUserPrismaData>>}
+type WSUserData = { jwtUserData: JwtUserData, clientType: ConnectionType, prismaData?: Awaited<ReturnType<typeof loadUserPrismaData>>}
 app.ws<WSUserData>('/*', {
 
   /* There are many common helper features */
@@ -99,7 +99,7 @@ app.ws<WSUserData>('/*', {
       const url = new URL(`http://localhost?${req.getQuery()}`);
       const receivedToken = url.searchParams.get('token');
       const isSender = url.searchParams.has('sender');
-      const clientType: ClientType = isSender? 'sender' : 'client';
+      const clientType: ConnectionType = isSender? 'sender' : 'client';
       if(!receivedToken){
         throw Error('no token found in search query');
       }

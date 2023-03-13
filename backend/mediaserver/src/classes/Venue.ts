@@ -13,6 +13,7 @@ import type { Prisma } from 'database';
 import prisma from '../modules/prismaClient';
 
 import { Camera, VrSpace, type UserClient, SenderClient  } from './InternalClasses';
+import { VenueUpdate } from 'schemas/*';
 // import { FilteredEvents } from 'trpc/trpc-utils';
 
 const venueIncludeWhitelistVirtual  = {
@@ -41,6 +42,13 @@ export class Venue {
     return this.prismaData.venueId as VenueId;
   }
   get name() { return this.prismaData.name; }
+  // set name(data : VenueUpdate) {
+  //   if(data.name) { this.prismaData.name = data.name;}
+  //   // if(data.description) { this.prismaData = data.description;}
+
+  //   prisma.venue.update({where: {venueId: this.prismaData.venueId}, data: this.prismaData});
+  // }
+
   // TODO: We probably want to be able to have many owners for a venue in the future
   get ownerId() {
     return this.prismaData.ownerId as UserId;
@@ -81,6 +89,11 @@ export class Venue {
     // this.cameras.forEach(room => room.destroy());
     Venue.venues.delete(this.venueId);
     this.vrSpace?.unload();
+  }
+
+  async update (input: VenueUpdate) {
+    if(input.name) { this.prismaData.name = input.name;}
+    await prisma.venue.update({where: {venueId: this.prismaData.venueId}, data: input});
   }
 
   /**

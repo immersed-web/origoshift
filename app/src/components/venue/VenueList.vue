@@ -18,9 +18,11 @@ import { onBeforeMount, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { clientOrThrow, type RouterOutputs } from '@/modules/trpcClient';
 import VenueThumb from '@/components/venue/VenueThumb.vue';
+import { useAuthStore } from '@/stores/authStore';
 
-// Router
+// Use imports
 const router = useRouter();
+const authStore = useAuthStore();
 
 const myVenues = ref<RouterOutputs['venue']['listMyVenues']>();
 onBeforeMount(async () => {
@@ -28,7 +30,7 @@ onBeforeMount(async () => {
 });
 
 const joined = async () => {
-  router.push({name: 'userVenue'});
+  router.push({name: authStore.routePrefix + 'Venue'});
 };
 
 </script>

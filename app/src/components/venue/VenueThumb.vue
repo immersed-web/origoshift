@@ -32,7 +32,8 @@ const emit = defineEmits<{
 
 const loadAndJoinVenue = async (venueId: VenueId) => {
   try{
-    await venueStore.loadVenue(venueId);
+    const loadedVenueState = await venueStore.loadVenue(venueId);
+    console.log('Loaded venue state', loadedVenueState);
     await venueStore.joinVenue(venueId);
     emit('joined');
   }

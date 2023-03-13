@@ -1,16 +1,25 @@
 <template>
   <div>
     <h1 class="text-5xl font-bold">
-      Loaded and joined venue: {{ clientStore.clientState.currentVenueId }}
+      Loaded and joined venue: {{ venueStore.currentVenue?.name }}
     </h1>
     <div>
       <h2>Inställningar för eventet</h2>
+      <form
+        v-if="venueStore.currentVenue"
+        @submit.prevent="updateVenue"
+      >
+        <input
+          v-model="venueStore.currentVenue.name"
+          type="text"
+        >
+        <button type="submit">
+          Uppdatera
+        </button>
+      </form>
       <pre>
         {{ venueStore.currentVenue }}
       </pre>
-      <!-- <form>
-        <input v-model="venueStore.currentVenue" type="text" />
-      </form> -->
     </div>
     <div class="flex space-x-2">
       <button
@@ -51,6 +60,13 @@ const openLobby = async () => {
   await clientOrThrow.value.vr.openVrSpace.mutate();
   await clientOrThrow.value.vr.enterVrSpace.mutate();
   router.push({name: 'lobby'});
+};
+
+const updateVenue = async () => {
+  if(venueStore.currentVenue){
+    console.log('Update venue', venueStore.currentVenue?.name);
+    venueStore.updateVenue();
+  }
 };
 
 </script>

@@ -3,7 +3,7 @@ const log = new Log('BaseClient');
 process.env.DEBUG = 'BaseClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { ClientType, ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId } from 'schemas';
+import { ConnectionType, ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
 import type { types as soupClientTypes } from 'mediasoup-client';
 import { ConsumerId, ProducerId, TransportId  } from 'schemas/mediasoup';

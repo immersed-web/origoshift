@@ -22,7 +22,7 @@ const venueIncludeWhitelistVirtual  = {
       userId: true
     }
   },
-  virtualSpace: true,
+  virtualSpace: {include: {virtualSpace3DModel: true}},
 } satisfies Prisma.VenueInclude;
 const args = {include: venueIncludeWhitelistVirtual} satisfies Prisma.VenueArgs;
 type VenueResponse = Prisma.VenueGetPayload<typeof args>
@@ -200,6 +200,9 @@ export class Venue {
 
   async CreateAndAddVirtualSpace() {
     this.prismaData.virtualSpace = await prisma.virtualSpace.create({
+      include: {
+        virtualSpace3DModel: true,
+      },
       data: {
         virtualSpace3DModel: {
           create: {

@@ -1,0 +1,27 @@
+<template>
+  <div>
+    <div class="flex mb-4">
+      <h2 class="flex-1 card-title">
+        <!-- <span class="material-icons">videocam</span> -->
+        360
+      </h2>
+      <button
+        class="btn btn-primary"
+      >
+        Gå in i 360
+      </button>
+    </div>
+    <div>
+      Inställningar för 360...
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useVenueStore } from '@/stores/venueStore';
+
+// Use imports
+const venueStore = useVenueStore();
+
+</script>
+

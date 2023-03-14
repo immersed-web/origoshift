@@ -50,6 +50,7 @@ importers:
       eslint-plugin-vue: ^9.3.0
       jsdom: ^20.0.3
       jwt-decode: ^3.1.2
+      material-icons: ^1.13.2
       mediaserver: workspace:*
       npm-run-all: ^4.1.5
       pinia: ^2.0.28
@@ -73,6 +74,7 @@ importers:
       daisyui: 2.51.0_gbtt6ss3tbiz4yjtvdr6fbrj44
       devalue: 4.3.0
       jwt-decode: 3.1.2
+      material-icons: 1.13.2
       pinia: 2.0.29_e7lp6ggkpgyi5vqd44m2kxvk6i
       pinia-plugin-persistedstate: 3.1.0_pinia@2.0.29
       schemas: link:../packages/schemas
@@ -7339,6 +7341,10 @@ packages:
     dependencies:
       object-visit: 1.0.1
     dev: true
+
+  /material-icons/1.13.2:
+    resolution: {integrity: sha512-aCh4u9U5LNjePNSpN4uNOaMlVwfE/BmJIYiFxJw5FxFfCJIBW5GSymnF6QrHIti4hIxvMtM3vFR7t4yrZJC1SQ==}
+    dev: false
 
   /math-random/1.0.4:
     resolution: {integrity: sha512-rUxjysqif/BZQH2yhd5Aaq7vXMSx9NdEsQcyA07uEzIvxgI7zIr33gGsh+RU0/XjmQpCW7RsVof1vlkvQVCK5A==}

@@ -20,6 +20,7 @@
     "daisyui": "^2.51.0",
     "devalue": "^4.3.0",
     "jwt-decode": "^3.1.2",
+    "material-icons": "^1.13.2",
     "pinia": "^2.0.28",
     "pinia-plugin-persistedstate": "^3.1.0",
     "schemas": "workspace:^1.0.0",

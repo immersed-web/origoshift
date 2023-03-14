@@ -72,8 +72,10 @@ onMounted(() => {
 });
 
 onUnmounted(async () => {
-  await venueStore.leaveVenue();
-  router.push({name: 'adminHome'});
+  if(venueStore.currentVenue){
+    await venueStore.leaveVenue();
+    router.push({name: 'adminHome'});
+  }
 });
 
 const deleteVenue = async () => {

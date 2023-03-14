@@ -1,10 +1,10 @@
 <template>
   <div>
-    <h1 class="text-5xl font-bold">
+    <h1 class="text-5xl font-bold mb-4">
       Välkommen {{ clientStore.clientState.userName }}
     </h1>
     <div>
-      <h2 class="text-3xl font-bold">
+      <h2 class="text-3xl font-bold mb-2">
         Mina event
       </h2>
       <div class="flex space-x-2">
@@ -19,14 +19,12 @@
         </div>
       </div>
     </div>
-    <pre>{{ myVenues }}</pre>
-    <pre>{{ loadedVenues }}</pre>
-    <button
+    <!-- <button
       class="btn btn-outline btn-primary"
       @click="$router.push({name: 'camera'})"
     >
       Gå till kamera-vy
-    </button>
+    </button> -->
   </div>
 </template>
 

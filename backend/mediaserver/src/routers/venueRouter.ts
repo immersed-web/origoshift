@@ -5,7 +5,7 @@ log.enable(process.env.DEBUG);
 
 import { hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
 import { z } from 'zod';
-import { procedure as p, atLeastModeratorP, router, isInVenueM, atLeastSenderP, isUserClientM, isSenderClientM, isVenueOwnerM } from '../trpc/trpc';
+import { procedure as p, atLeastModeratorP, router, isInVenueM, atLeastSenderP, isUserClientM, isSenderClientM, isVenueOwnerM, clientInVenueP } from '../trpc/trpc';
 // import Venue from '../classes/Venue';
 import { Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
@@ -71,6 +71,12 @@ export const venueRouter = router({
     log.info(`request received to join venue as ${ctx.client.clientType}:`, input.venueId);
     await ctx.client.joinVenue(input.venueId);
     return ctx.client.venue?.getPublicState();
+  }),
+  getVenueState: clientInVenueP.query(({ctx}) => {
+    return ctx.venue.getPublicState();
+  }),
+  subSenderAddedOrRemoved: p.use(isVenueOwnerM).subscription(({ctx}) => {
+    return attachFilteredEmitter(ctx.client.venueEvents, 'senderAddedOrRemoved', ctx.client.connectionId);
   }),
   // joinVenueAsSender: atLeastSenderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
   //   .mutation(async ({ctx, input}) =>{

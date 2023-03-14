@@ -1,5 +1,6 @@
 import { createTRPCProxyClient, TRPCClientError, wsLink, type CreateTRPCProxyClient } from '@trpc/client';
 import type { inferRouterOutputs, inferRouterInputs } from '@trpc/server';
+import type { inferObservableValue } from '@trpc/server/observable';
 import { createWSClient } from './customWsLink';
 import type { AppRouter } from 'mediaserver';
 import type { ConnectionType } from 'schemas';
@@ -40,6 +41,7 @@ function buildConnectionUrl(token:string, connectAsSender?: boolean){
 
 export type RouterOutputs = inferRouterOutputs<AppRouter>
 export type RouterInputs = inferRouterInputs<AppRouter>
+export type SubscriptionValue<Subscription> = inferObservableValue<Subscription>;
 
 export const createTrpcClient = (getToken: () => string, clientType: ConnectionType = 'client' ) => {
   if(trpcClient.value && currentClientType === clientType){

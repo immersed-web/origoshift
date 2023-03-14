@@ -158,7 +158,7 @@ export class Venue {
     this.senderClients.set(senderClient.connectionId, senderClient);
     // console.log('clients after add: ',this.clients);
     senderClient._setVenue(this.venueId);
-    // this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
+    this.emitToAllClients('senderAddedOrRemoved', {client: senderClient.getPublicState(), added: true}, senderClient.connectionId);
   }
 
   removeSenderClient (senderClient: SenderClient) {
@@ -169,7 +169,7 @@ export class Venue {
     if(this._isEmpty){
       this.unload();
     }
-    // this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
+    this.emitToAllClients('senderAddedOrRemoved', {client: senderClient.getPublicState(), added: false}, senderClient.connectionId);
   }
 
   async createWebRtcTransport() {

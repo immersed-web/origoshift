@@ -38,27 +38,43 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, shallowReactive } from 'vue';
+import { useRouter } from 'vue-router';
 import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
-import { useRouter } from 'vue-router';
-import { clientOrThrow } from '@/modules/trpcClient';
+import { useConnectionStore } from '@/stores/connectionStore';
+import type { RouterOutputs, SubscriptionValue } from '@/modules/trpcClient';
 
 // Router
 const router = useRouter();
 
 // Stores
+const connectionStore = useConnectionStore();
 const clientStore = useClientStore();
 const venueStore = useVenueStore();
+
+// Refs
+type ReceivedSenderData = SubscriptionValue<RouterOutputs['venue']['subSenderAddedOrRemoved']>['client'];
+const connectedSenders = shallowReactive<Map<ReceivedSenderData['connectionId'], ReceivedSenderData>>(new Map());
 
 // View functionality
 onMounted(() => {
   clientStore.updateClientState();
+  connectionStore.client.venue.subSenderAddedOrRemoved.subscribe(undefined, {
+    onData(data) {
+      const client = data.client;
+      if(data.added){
+        connectedSenders.set(client.connectionId ,client);
+      } else {
+        connectedSenders.delete(client.connectionId);
+      }
+    },
+  });
 });
 
 const openLobby = async () => {
-  await clientOrThrow.value.vr.openVrSpace.mutate();
-  await clientOrThrow.value.vr.enterVrSpace.mutate();
+  await connectionStore.client.vr.openVrSpace.mutate();
+  await connectionStore.client.vr.enterVrSpace.mutate();
   router.push({name: 'lobby'});
 };
 

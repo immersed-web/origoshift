@@ -29,9 +29,11 @@ export class SenderClient extends BaseClient {
 
 
   getPublicState(){
+    const { connectionId, userId, username } = this;
     return {
-      userId: this.userId,
-
+      connectionId,
+      userId,
+      username,
     };
   }
 

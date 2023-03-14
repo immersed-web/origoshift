@@ -7,7 +7,7 @@ import { ConnectionType, ConnectionId, ConnectionIdSchema, JwtUserData, UserId, 
 import { types as soupTypes } from 'mediasoup';
 import type { types as soupClientTypes } from 'mediasoup-client';
 import { ConsumerId, ProducerId, TransportId  } from 'schemas/mediasoup';
-import { UserClient, Venue } from './InternalClasses';
+import { SenderClient, UserClient, Venue } from './InternalClasses';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
 import { randomUUID } from 'crypto';
@@ -29,6 +29,7 @@ export type ClientSoupEvents = NonFilteredEvents<{
 }>
 export type ClientVenueEvents = FilteredEvents<{
   'clientAddedOrRemoved': (data: {client: ReturnType<UserClient['getPublicState']>, added: boolean}) => void,
+  'senderAddedOrRemoved': (data: {client: ReturnType<SenderClient['getPublicState']>, added: boolean}) => void,
 }, ConnectionId>
 & NonFilteredEvents<{
   'venueWasUnloaded': (venueId: VenueId) => void,

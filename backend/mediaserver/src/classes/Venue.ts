@@ -274,7 +274,7 @@ export class Venue {
       //   }
       // });
 
-      return result.venueId;
+      return result.venueId as VenueId;
     } catch (e){
       log.error(e);
       throw e;

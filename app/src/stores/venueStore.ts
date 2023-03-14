@@ -29,6 +29,13 @@ export const useVenueStore = defineStore('venue', () => {
     },
   });
 
+  async function createVenue () {
+    const venueId = await connection.client.venue.createNewVenue.mutate({name: `event-${Math.trunc(Math.random() * 1000)}`});
+    await loadVenue(venueId);
+    await joinVenue(venueId);
+    console.log('Created, loaded and joined venue', venueId);
+  }
+
   async function loadVenue (venueId: VenueId) {
     return await connection.client.venue.loadVenue.mutate({venueId});
   }
@@ -67,6 +74,7 @@ export const useVenueStore = defineStore('venue', () => {
 
   return {
     currentVenue,
+    createVenue,
     loadVenue,
     joinVenue,
     updateVenue,

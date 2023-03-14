@@ -26,21 +26,26 @@ export default (clientList: Map<any, any>) => {
     }
   }
 
-  console.log('totalNrOf:', totalNrOf);
+  log.info('totalNrOf:', totalNrOf);
 };
 
 export const printClientListeners = (clientList: Map<unknown, UserClient | SenderClient>) => {
   const printObj: Record<string, unknown> = {};
   for(const client of clientList.values()){
     const clientObj: Record<string, unknown> = {};
-    let emitters: [string, TypedEmitter][];
+    let emitters: [string, TypedEmitter][] = [
+      ['venueEvents', client.venueEvents],
+      ['soupEvents', client.soupEvents],
+    ];
     if(client instanceof UserClient){
       emitters = [
-        ['venuEvents', client.venueEvents],
+        ...emitters,
         ['vrEvents', client.vrEvents],
+        ['userEvents', client.userEvents],
       ];
     } else if(client instanceof SenderClient){
       emitters = [
+        ...emitters,
         ['senderEvents', client.senderEvents],
       ];
     } else {
@@ -59,5 +64,5 @@ export const printClientListeners = (clientList: Map<unknown, UserClient | Sende
     }
     printObj[client.connectionId] = clientObj;
   }
-  console.log(printObj);
+  log.info(printObj);
 };

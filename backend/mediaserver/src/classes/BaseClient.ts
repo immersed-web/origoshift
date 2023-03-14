@@ -6,7 +6,7 @@ log.enable(process.env.DEBUG);
 import { ConnectionType, ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
 import type { types as soupClientTypes } from 'mediasoup-client';
-import { ConsumerId, ProducerId, TransportId  } from 'schemas/mediasoup';
+import { ConsumerId, CreateProducerPayload, ProducerId, TransportId  } from 'schemas/mediasoup';
 import { SenderClient, UserClient, Venue } from './InternalClasses';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
@@ -27,9 +27,12 @@ export type ClientSoupEvents = NonFilteredEvents<{
   // 'consumerClosed': (consumerId: ConsumerId) => void
   // 'producerClosed': (producerId: ProducerId) => void
 }>
+
+type ClientStateUnion = ReturnType<UserClient['getPublicState']> | ReturnType<SenderClient['getPublicState']>
 export type ClientVenueEvents = FilteredEvents<{
   'clientAddedOrRemoved': (data: {client: ReturnType<UserClient['getPublicState']>, added: boolean}) => void,
   'senderAddedOrRemoved': (data: {client: ReturnType<SenderClient['getPublicState']>, added: boolean}) => void,
+  'clientStateUpdated': (data: {clientPublicState: ClientStateUnion }) => void,
 }, ConnectionId>
 & NonFilteredEvents<{
   'venueWasUnloaded': (venueId: VenueId) => void,
@@ -73,6 +76,7 @@ export class BaseClient {
     this.prismaData = prismaData;
     this.soupEvents = new TypedEmitter();
     this.venueEvents = new TypedEmitter();
+    this.venueEvents.addListener('clientStateUpdated', (state, triggeringConnection) => log.info(`${this.userId} received clientStateUpdated event triggered by ${triggeringConnection}:`, state.clientPublicState));
   }
 
   // readonly clientType: ClientType = 'client';
@@ -209,6 +213,22 @@ export class BaseClient {
       dtlsParameters,
     };
     return transportOptions;
+  }
+
+  async createProducer(produceOptions: CreateProducerPayload){
+    if(!this.sendTransport){
+      throw Error('no transport. Cant produce');
+    }
+    const {kind, rtpParameters, producerInfo, producerId} = produceOptions;
+    const appData = { producerInfo };
+    const producer: soupTypes.Producer = await this.sendTransport.produce({ id: producerId,  kind, rtpParameters, appData});
+    producer.on('transportclose', () => {
+      console.log(`transport for producer ${producer.id} was closed`);
+      this.producers.delete(producer.id as ProducerId);
+      this.soupEvents.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'transport was closed'});
+    });
+    this.producers.set(producer.id as ProducerId, producer);
+    return producer.id as ProducerId;
   }
 
   closeAllTransports() {

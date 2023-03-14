@@ -20,6 +20,17 @@ export const useAdminStore = defineStore('admin', () => {
     },
   });
 
+  connectionStore.client.venue.subClientStateUpdated.subscribe(undefined, {
+    onData(data) {
+      console.log('received clientStateUpdated:', data);
+      const clientState = data.clientPublicState;
+      if(clientState.clientType !== 'sender') {
+        return;
+      }
+      connectedSenders.set(clientState.connectionId ,clientState);
+    },
+  });
+
 
   return {
     connectedSenders,

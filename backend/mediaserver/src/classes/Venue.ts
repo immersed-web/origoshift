@@ -9,7 +9,7 @@ log.enable(process.env.DEBUG);
 import {types as soupTypes} from 'mediasoup';
 import { ConnectionId, UserId, VenueId, CameraId } from 'schemas';
 
-import type { Prisma, VirtualSpace } from 'database';
+import type { Prisma } from 'database';
 import prisma from '../modules/prismaClient';
 
 import { Camera, VrSpace, type UserClient, SenderClient  } from './InternalClasses';

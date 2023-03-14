@@ -31,16 +31,26 @@ export class SenderClient extends BaseClient {
 
 
   getPublicState(){
-    const { connectionId, userId, username } = this;
+    const { connectionId, userId, username, clientType } = this;
     const producerList: {producerId: ProducerId, kind: soupTypes.MediaKind}[] = [];
     this.producers.forEach((p) => producerList.push({producerId: (p.id as ProducerId), kind: p.kind}));
     return {
+      clientType,
       connectionId,
       userId,
       username,
       producers: producerList
     };
   }
+
+  // _notifyClientStateUpdated(reason?: string) {
+  //   if(this._socketClosed){
+  //     log.info('skipped emitting to client because socket was already closed');
+  //     return;
+  //   }
+  //   log.info(`emitting clientState for ${this.username} (${this.connectionId})`);
+  //   this.venueEvents.emit('clientStateUpdated', {clientState: this.getPublicState(), reason }, );
+  // }
 
   unload() {
     this._socketClosed = true;

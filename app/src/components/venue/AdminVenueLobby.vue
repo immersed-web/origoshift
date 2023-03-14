@@ -5,10 +5,18 @@
         VR-lobby
       </h2>
       <button
+        v-if="venueStore.currentVenue?.vrSpace"
         class="btn btn-primary"
-        @click="openLobby"
+        @click="openVirtualSpace"
       >
         Gå in i VR-lobby
+      </button>
+      <button
+        v-else
+        class="btn btn-primary"
+        @click="createVirtualSpace"
+      >
+        Lägg till VR-lobby
       </button>
     </div>
     <div>
@@ -20,15 +28,21 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useConnectionStore } from '@/stores/connectionStore';
+import { useVenueStore } from '@/stores/venueStore';
 
 // Use imports
 const router = useRouter();
 const connectionStore = useConnectionStore();
+const venueStore = useVenueStore();
 
-const openLobby = async () => {
+const openVirtualSpace = async () => {
   await connectionStore.client.vr.openVrSpace.mutate();
   await connectionStore.client.vr.enterVrSpace.mutate();
   router.push({name: 'lobby'});
+};
+
+const createVirtualSpace = async () => {
+  await connectionStore.client.vr.createVrSpace.mutate();
 };
 
 </script>

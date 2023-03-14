@@ -9,7 +9,7 @@ log.enable(process.env.DEBUG);
 import {types as soupTypes} from 'mediasoup';
 import { ConnectionId, UserId, VenueId, CameraId } from 'schemas';
 
-import type { Prisma } from 'database';
+import type { Prisma, VirtualSpace } from 'database';
 import prisma from '../modules/prismaClient';
 
 import { Camera, VrSpace, type UserClient, SenderClient  } from './InternalClasses';
@@ -194,6 +194,28 @@ export class Venue {
     // transport.on('close', () => gatheringLog('---transport close--- transport with id ' + transport.id + ' closed'));
 
     return transport;
+  }
+
+  // Virtual space (lobby) stuff
+
+  async CreateAndAddVirtualSpace() {
+    this.prismaData.virtualSpace = await prisma.virtualSpace.create({
+      data: {
+        virtualSpace3DModel: {
+          create: {
+            scale: 1,
+            modelUrl: 'google.com',
+            navmeshUrl: 'google.se'
+          }
+        },
+        settings: {
+          cool: 'asdfasdf',
+        },
+        venue: {
+          connect: {venueId: this.prismaData.venueId},
+        }
+      }
+    });
   }
 
   // Static stuff for global housekeeping

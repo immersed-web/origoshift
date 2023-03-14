@@ -6,6 +6,7 @@ import { throttle} from 'lodash';
 import type { UserClient, Venue } from './InternalClasses';
 
 import { Log } from 'debug-level';
+import { record } from 'zod';
 
 const log = new Log('VR:Space');
 
@@ -51,7 +52,9 @@ export class VrSpace {
 
   getPublicState() {
     // return 'NOT IMPLEMENTED YET';
-    return this.prismaData;
+    const {settings, ...returnState} = this.prismaData;
+    const s = settings as Record<string, unknown>;
+    return {...returnState, settings: s};
   }
 
   addClient (client: UserClient){

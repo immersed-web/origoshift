@@ -85,6 +85,13 @@ export const currentVenueHasVrSpace = isInVenueM.unstable_pipe(({ctx, next}) => 
   });
 });
 
+export const currentVenueHasNoVrSpace = isInVenueM.unstable_pipe(({ctx, next}) => {
+  if(ctx.venue.vrSpace){
+    throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'the venue already have a vr space.'});
+  }
+  return next();
+});
+
 export const isVenueOwnerM = isInVenueM.unstable_pipe(({ctx, next}) => {
   if(ctx.venue.ownerId !== ctx.userId){
     throw new TRPCError({code: 'FORBIDDEN', message: 'you are not the owner of this venue. Not allowed!'});

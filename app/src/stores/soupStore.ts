@@ -6,7 +6,7 @@ import { ref, shallowReactive, shallowRef } from 'vue';
 import { useConnectionStore } from './connectionStore';
 import type { ConsumerId, ProducerId, ProducerInfo } from 'schemas/mediasoup';
 
-export const useSoupStroe = defineStore('soup', () =>{
+export const useSoupStore = defineStore('soup', () =>{
   const deviceLoaded = ref(false);
   const sendTransport = shallowRef<soupTypes.Transport>();
   const receiveTransport = shallowRef<soupTypes.Transport>();
@@ -22,7 +22,7 @@ export const useSoupStroe = defineStore('soup', () =>{
   });
 
   async function loadDevice() {
-    if(!soupDevice.loaded){
+    if(soupDevice.loaded){
       throw Error('mediasoup device already loaded!');
     }
     const routerRtpCapabilities = await connectionStore.client.soup.getRouterRTPCapabilities.query();

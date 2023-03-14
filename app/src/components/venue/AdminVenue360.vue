@@ -12,13 +12,14 @@
       </button>
     </div>
     <div>
-      Inställningar för 360...
+      <SenderList />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useVenueStore } from '@/stores/venueStore';
+import SenderList from './SenderList.vue';
 
 // Use imports
 const venueStore = useVenueStore();

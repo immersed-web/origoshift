@@ -48,9 +48,9 @@
         </div> -->
       </div>
     </div>
-    <pre>
+    <!-- <pre>
       {{ venueStore.currentVenue }}
-    </pre>
+    </pre> -->
   </div>
 </template>
 

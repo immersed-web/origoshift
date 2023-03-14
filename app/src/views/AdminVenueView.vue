@@ -1,39 +1,56 @@
 <template>
   <div>
-    <h1 class="text-5xl font-bold">
-      Loaded and joined venue: {{ venueStore.currentVenue?.name }}
-    </h1>
-    <div>
-      <h2>Inställningar för eventet</h2>
-      <form
-        v-if="venueStore.currentVenue"
-        @submit.prevent="updateVenue"
-      >
-        <input
-          v-model="venueStore.currentVenue.name"
-          type="text"
-        >
-        <button type="submit">
-          Uppdatera
-        </button>
-      </form>
-      <pre>
-        {{ venueStore.currentVenue }}
-      </pre>
+    <div class="flex mb-4">
+      <div class="flex-1">
+        <h1 class="text-5xl font-bold">
+          {{ venueStore.currentVenue?.name }}
+        </h1>
+      </div>
+      <div class="flex-1">
+        <!-- <ul class="steps">
+          <li class="step step-primary">
+            Grundinställningar
+          </li>
+          <li class="step step-primary">
+            Ställ in 360
+          </li>
+          <li class="step step-primary">
+            Ställ in VR-lobby
+          </li>
+          <li class="step">
+            Gå live!
+          </li>
+        </ul> -->
+      </div>
     </div>
-    <div class="flex space-x-2">
-      <button
-        class="btn btn-primary"
-        @click="openLobby"
-      >
-        Gå in i VR-lobby
-      </button>
-      <button
-        class="btn btn-primary"
-      >
-        Gå in i 360
-      </button>
+    <div class="flex items-stretch">
+      <div class="flex-1">
+        <!-- <div class="card w-96 bg-base-100 shadow-xl border">
+          <div class="card-body"> -->
+        <AdminVenueSettings />
+        <!-- </div>
+        </div> -->
+      </div>
+      <div class="divider divider-horizontal" />
+      <div class="flex-1">
+        <!-- <div class="card w-96 bg-base-100 shadow-xl border">
+          <div class="card-body"> -->
+        <AdminVenueLobby />
+        <!-- </div>
+        </div> -->
+      </div>
+      <div class="divider divider-horizontal" />
+      <div class="flex-1">
+        <!-- <div class="card w-96 bg-base-100 shadow-xl border">
+          <div class="card-body"> -->
+        <AdminVenue360 />
+        <!-- </div>
+        </div> -->
+      </div>
     </div>
+    <!-- <pre>
+      {{ venueStore.currentVenue }}
+    </pre> -->
   </div>
 </template>
 
@@ -43,6 +60,9 @@ import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
 import { useRouter } from 'vue-router';
 import { clientOrThrow } from '@/modules/trpcClient';
+import AdminVenueSettings from '@/components/venue/AdminVenueSettings.vue';
+import AdminVenueLobby from '@/components/venue/AdminVenueLobby.vue';
+import AdminVenue360 from '@/components/venue/AdminVenue360.vue';
 
 // Router
 const router = useRouter();

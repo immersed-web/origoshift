@@ -50,7 +50,8 @@ export class VrSpace {
   }
 
   getPublicState() {
-    return 'NOT IMPLEMENTED YET';
+    // return 'NOT IMPLEMENTED YET';
+    return this.prismaData;
   }
 
   addClient (client: UserClient){

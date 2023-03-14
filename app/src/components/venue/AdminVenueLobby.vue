@@ -19,16 +19,15 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { clientOrThrow } from '@/modules/trpcClient';
-import { useVenueStore } from '@/stores/venueStore';
+import { useConnectionStore } from '@/stores/connectionStore';
 
 // Use imports
 const router = useRouter();
-const venueStore = useVenueStore();
+const connectionStore = useConnectionStore();
 
 const openLobby = async () => {
-  await clientOrThrow.value.vr.openVrSpace.mutate();
-  await clientOrThrow.value.vr.enterVrSpace.mutate();
+  await connectionStore.client.vr.openVrSpace.mutate();
+  await connectionStore.client.vr.enterVrSpace.mutate();
   router.push({name: 'lobby'});
 };
 

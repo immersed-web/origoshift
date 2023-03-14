@@ -48,9 +48,9 @@
         </div> -->
       </div>
     </div>
-    <!-- <pre>
+    <pre>
       {{ venueStore.currentVenue }}
-    </pre> -->
+    </pre>
   </div>
 </template>
 
@@ -76,19 +76,6 @@ const venueStore = useVenueStore();
 onMounted(() => {
   clientStore.updateClientState();
 });
-
-const openLobby = async () => {
-  await connectionStore.client.vr.openVrSpace.mutate();
-  await connectionStore.client.vr.enterVrSpace.mutate();
-  router.push({name: 'lobby'});
-};
-
-const updateVenue = async () => {
-  if(venueStore.currentVenue){
-    console.log('Update venue', venueStore.currentVenue?.name);
-    venueStore.updateVenue();
-  }
-};
 
 </script>
 

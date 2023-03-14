@@ -211,6 +211,19 @@ export class Venue {
           },
           settings: {coolSetting: 'aaaww yeeeah'},
           startTime: new Date(),
+          virtualSpace: {
+            create: {
+              virtualSpace3DModel: {
+                create: {
+                  scale: 1,
+                  modelUrl: 'google.com',
+                  navmeshUrl: 'google.se'
+                }
+              },
+              settings: {
+              }
+            }
+          }
         }
       });
 

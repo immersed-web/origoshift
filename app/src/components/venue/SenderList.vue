@@ -5,6 +5,9 @@
         <th colspan="2">
           Anslutna sändare
         </th>
+        <th>
+          Strömmar
+        </th>
       </tr>
     </thead>
     <tbody class="border">
@@ -12,8 +15,16 @@
         v-for="[key, sender] in adminStore.connectedSenders"
         :key="key"
       >
-        <th>{{ sender.connectionId }}</th>
+        <th>{{ sender.connectionId.substring(0, 5) }}...</th>
         <th>{{ sender.username }}</th>
+        <th>
+          <p
+            v-for="producer in sender.producers"
+            :key="producer.producerId"
+          >
+            {{ producer.kind }}:{{ producer.producerId.substring(0, 5) }}
+          </p>
+        </th>
       </tr>
     </tbody>
   </table>

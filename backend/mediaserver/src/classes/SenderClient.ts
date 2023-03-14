@@ -5,6 +5,8 @@ import { BaseClient, Venue } from './InternalClasses';
 
 import { Log } from 'debug-level';
 import { ConnectionType, VenueId } from 'schemas';
+import { ProducerId } from 'schemas/mediasoup';
+import type { types as soupTypes } from 'mediasoup';
 const log = new Log('SenderClient');
 process.env.DEBUG = 'SenderClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
@@ -30,10 +32,13 @@ export class SenderClient extends BaseClient {
 
   getPublicState(){
     const { connectionId, userId, username } = this;
+    const producerList: {producerId: ProducerId, kind: soupTypes.MediaKind}[] = [];
+    this.producers.forEach((p) => producerList.push({producerId: (p.id as ProducerId), kind: p.kind}));
     return {
       connectionId,
       userId,
       username,
+      producers: producerList
     };
   }
 

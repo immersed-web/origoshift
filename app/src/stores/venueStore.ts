@@ -48,6 +48,16 @@ export const useVenueStore = defineStore('venue', () => {
     currentVenue.value = undefined;
   }
 
+  async function deleteCurrentVenue() {
+
+    if(currentVenue.value?.venueId){
+      const venueId = currentVenue.value.venueId;
+      await leaveVenue();
+      // TODO: Make all other clients leave venue, too
+      await connection.client.venue.deleteVenue.mutate({venueId});
+    }
+  }
+
   // async function joinVenueAsSender(venueId: VenueId) {
   //   await clientOrThrow.value.venue.loadVenue.mutate({venueId});
   //   await clientOrThrow.value.venue.joinVenueAsSender.mutate({ venueId });
@@ -61,6 +71,7 @@ export const useVenueStore = defineStore('venue', () => {
     joinVenue,
     updateVenue,
     leaveVenue,
+    deleteCurrentVenue,
     // joinVenueAsSender,
   };
 });

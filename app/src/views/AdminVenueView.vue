@@ -6,23 +6,17 @@
           {{ venueStore.currentVenue?.name }}
         </h1>
       </div>
-      <div class="flex-1">
-        <!-- <ul class="steps">
-          <li class="step step-primary">
-            Grundinställningar
-          </li>
-          <li class="step step-primary">
-            Ställ in 360
-          </li>
-          <li class="step step-primary">
-            Ställ in VR-lobby
-          </li>
-          <li class="step">
-            Gå live!
-          </li>
-        </ul> -->
+      <div>
+        <button
+          class="btn btn-error"
+          @click="deleteVenue"
+        >
+          <span class="material-icons mr-2">delete</span>
+          Ta bort event
+        </button>
       </div>
     </div>
+    <div class="divider" />
     <div class="flex items-stretch">
       <div class="flex-1">
         <!-- <div class="border shadow-xl card w-96 bg-base-100">
@@ -55,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
@@ -76,6 +70,16 @@ const venueStore = useVenueStore();
 onMounted(() => {
   clientStore.updateClientState();
 });
+
+onUnmounted(async () => {
+  await venueStore.leaveVenue();
+  router.push({name: 'adminHome'});
+});
+
+const deleteVenue = async () => {
+  await venueStore.deleteCurrentVenue();
+  router.push({name: 'adminHome'});
+};
 
 </script>
 

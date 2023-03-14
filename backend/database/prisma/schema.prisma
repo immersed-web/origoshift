@@ -67,7 +67,7 @@ model VirtualSpace3DModel {
 model VirtualSpace {
   vrId                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   settings              Json
-  venue                 Venue               @relation(fields: [ownerVenueId], references: [venueId])
+  venue                 Venue               @relation(fields: [ownerVenueId], references: [venueId], onDelete: Cascade)
   ownerVenueId          String              @unique @db.Uuid
   virtualSpace3DModel   VirtualSpace3DModel @relation(fields: [virtualSpace3DModelId], references: [modelId])
   virtualSpace3DModelId String              @db.Uuid

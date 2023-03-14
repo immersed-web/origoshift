@@ -62,16 +62,15 @@ import LoggedInHeader from '@/components/layout/LoggedInHeader.vue';
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { isTRPCClientError } from '@/modules/trpcClient';
-// import type {types as soupTypes } from 'mediasoup-client';
 import type { ProducerInfo } from 'schemas/mediasoup';
 import { useVenueStore } from '@/stores/venueStore';
 import { useSenderStore } from '@/stores/senderStore';
-import { useSoupStroe } from '@/stores/soupStore';
+import { useSoupStore } from '@/stores/soupStore';
 
 const senderStore = useSenderStore();
 const venueStore = useVenueStore();
 const router = useRouter();
-const soup = useSoupStroe();
+const soup = useSoupStore();
 
 onMounted(async () =>{
   const tryToJoin = async () => {
@@ -81,7 +80,9 @@ onMounted(async () =>{
         return;
       }
       await venueStore.joinVenue(senderStore.savedPickedVenueId);
-      await soup.loadDevice();
+      if(!soup.deviceLoaded){
+        await soup.loadDevice();
+      }
       await soup.createSendTransport();
     } catch(e) {
       if(isTRPCClientError(e)){

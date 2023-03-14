@@ -55,12 +55,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, shallowReactive } from 'vue';
+import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
 import { useConnectionStore } from '@/stores/connectionStore';
-import type { RouterOutputs, SubscriptionValue } from '@/modules/trpcClient';
 import AdminVenueSettings from '@/components/venue/AdminVenueSettings.vue';
 import AdminVenueLobby from '@/components/venue/AdminVenueLobby.vue';
 import AdminVenue360 from '@/components/venue/AdminVenue360.vue';
@@ -73,23 +72,9 @@ const connectionStore = useConnectionStore();
 const clientStore = useClientStore();
 const venueStore = useVenueStore();
 
-// Refs
-type ReceivedSenderData = SubscriptionValue<RouterOutputs['venue']['subSenderAddedOrRemoved']>['client'];
-const connectedSenders = shallowReactive<Map<ReceivedSenderData['connectionId'], ReceivedSenderData>>(new Map());
-
 // View functionality
 onMounted(() => {
   clientStore.updateClientState();
-  connectionStore.client.venue.subSenderAddedOrRemoved.subscribe(undefined, {
-    onData(data) {
-      const client = data.client;
-      if(data.added){
-        connectedSenders.set(client.connectionId ,client);
-      } else {
-        connectedSenders.delete(client.connectionId);
-      }
-    },
-  });
 });
 
 </script>

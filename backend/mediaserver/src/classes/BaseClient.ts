@@ -3,7 +3,7 @@ const log = new Log('BaseClient');
 process.env.DEBUG = 'BaseClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { ConnectionType, ConnectionId, ConnectionIdSchema, JwtUserData, UserId, UserRole, VenueId } from 'schemas';
+import { ConnectionId, JwtUserData, UserId, UserRole, VenueId, ConnectionIdSchema } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
 import type { types as soupClientTypes } from 'mediasoup-client';
 import { ConsumerId, CreateProducerPayload, ProducerId, TransportId  } from 'schemas/mediasoup';
@@ -28,15 +28,22 @@ export type ClientSoupEvents = NonFilteredEvents<{
   // 'producerClosed': (producerId: ProducerId) => void
 }>
 
-type ClientStateUnion = ReturnType<UserClient['getPublicState']> | ReturnType<SenderClient['getPublicState']>
+// type ClientStateUnion = ReturnType<UserClient['getPublicState']> | ReturnType<SenderClient['getPublicState']>
+
 export type ClientVenueEvents = FilteredEvents<{
   'clientAddedOrRemoved': (data: {client: ReturnType<UserClient['getPublicState']>, added: boolean}) => void,
   'senderAddedOrRemoved': (data: {client: ReturnType<SenderClient['getPublicState']>, added: boolean}) => void,
-  'clientStateUpdated': (data: {clientPublicState: ClientStateUnion }) => void,
 }, ConnectionId>
 & NonFilteredEvents<{
   'venueWasUnloaded': (venueId: VenueId) => void,
 }>
+
+type ClientClientEvents = NonFilteredEvents<{
+  'clientState': (data: { clientState: ReturnType<UserClient['getPublicState']>, reason?: string }) => void
+  'senderState': (data: { senderState: ReturnType<SenderClient['getPublicState']>, reason?: string }) => void
+}>
+
+type AllClientEvents = ClientSoupEvents & ClientVenueEvents & ClientClientEvents
 
 const userQuery = {
   select: {
@@ -74,14 +81,15 @@ export class BaseClient {
     this.connectionId = connectionId;
     this.jwtUserData = jwtUserData;
     this.prismaData = prismaData;
-    this.soupEvents = new TypedEmitter();
-    this.venueEvents = new TypedEmitter();
-    this.venueEvents.addListener('clientStateUpdated', (state, triggeringConnection) => log.info(`${this.userId} received clientStateUpdated event triggered by ${triggeringConnection}:`, state.clientPublicState));
+    this.event = new TypedEmitter();
+    // this.soupEvents = new TypedEmitter();
+    // this.venueEvents = new TypedEmitter();
+    // this.clientEvents = new TypedEmitter();
+    // this.clientEvents.addListener('clientStateUpdated', (state) => log.info(`${this.userId} received clientStateUpdated event triggered by ${triggeringConnection}:`, state.clientPublicState));
   }
 
-  // readonly clientType: ClientType = 'client';
-
-  protected _socketClosed = false;
+  connected = true;
+  // protected _socketClosed = false;
 
   /**
   * The id of the actual connection. This differs from the userId, as a user could potentially have multiple concurrent active connections
@@ -123,8 +131,10 @@ export class BaseClient {
   consumers: Map<ConsumerId, soupTypes.Consumer> = new Map();
   producers: Map<ProducerId, soupTypes.Producer> = new Map();
 
-  soupEvents: TypedEmitter<ClientSoupEvents>;
-  venueEvents: TypedEmitter<ClientVenueEvents>;
+  // soupEvents: TypedEmitter<ClientSoupEvents>;
+  // venueEvents: TypedEmitter<ClientVenueEvents>;
+  // clientEvents: TypedEmitter<ClientEvents>;
+  event: TypedEmitter<AllClientEvents>;
 
   protected venueId?: VenueId;
   /**
@@ -145,14 +155,25 @@ export class BaseClient {
     }
   }
 
-  // NOTE: It's important we release all references here!
-  // unload() {
-  //   // log.info(`unloading base client ${ this.username } ${this.connectionId} `);
-  //   this._socketClosed = true;
+  getPublicState(){
+    return {
+      connectionId: this.connectionId,
+      userId: this.userId,
+      userName: this.username,
+      role: this.role,
+      currentVenueId: this.venue?.venueId,
+    };
+  }
 
-  //   // This will call the extending class's leave function if called from descendant
-  //   this.teardownMediasoupObjects();
-  // }
+  // NOTE: It's important we release all references here!
+  unload() {
+    // log.info(`unloading base client ${ this.username } ${this.connectionId} `);
+    this.connected = false;
+
+    // This will call the extending class's leave function if called from descendant
+    // this.teardownMediasoupObjects();
+    // this.leaveCurrentVenue();
+  }
 
   // leaveCurrentVenue() {
   //   if(!this.venue) {
@@ -184,7 +205,7 @@ export class BaseClient {
     }
     transport.addListener('routerclose', () => {
       log.info('transport event: router closed');
-      this.soupEvents.emit('soupObjectClosed', {type: 'transport', id: transport.id as TransportId, reason: 'router was closed'});
+      this.event.emit('soupObjectClosed', {type: 'transport', id: transport.id as TransportId, reason: 'router was closed'});
       if(direction == 'receive'){
         this.receiveTransport = undefined;
       } else {
@@ -225,7 +246,7 @@ export class BaseClient {
     producer.on('transportclose', () => {
       console.log(`transport for producer ${producer.id} was closed`);
       this.producers.delete(producer.id as ProducerId);
-      this.soupEvents.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'transport was closed'});
+      this.event.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'transport was closed'});
     });
     this.producers.set(producer.id as ProducerId, producer);
     return producer.id as ProducerId;
@@ -234,13 +255,13 @@ export class BaseClient {
   closeAllTransports() {
     if(this.sendTransport){
       this.sendTransport.close();
-      // this.soupEvents.emit('transportClosed', this.sendTransport.id as TransportId);
-      this.soupEvents.emit('soupObjectClosed', {type: 'transport', id: this.sendTransport.id as TransportId, reason: 'closing all transports for client'});
+      // this.event.emit('transportClosed', this.sendTransport.id as TransportId);
+      this.event.emit('soupObjectClosed', {type: 'transport', id: this.sendTransport.id as TransportId, reason: 'closing all transports for client'});
       this.sendTransport = undefined;
     }
     if(this.receiveTransport){
       this.receiveTransport.close();
-      this.soupEvents.emit('soupObjectClosed', {type: 'transport', id: this.receiveTransport.id as TransportId, reason: 'closing all transports for client'});
+      this.event.emit('soupObjectClosed', {type: 'transport', id: this.receiveTransport.id as TransportId, reason: 'closing all transports for client'});
       this.receiveTransport = undefined;
     }
   }
@@ -249,7 +270,7 @@ export class BaseClient {
     const producerArray = Array.from(this.producers.entries());
     for(const [producerKey, producer] of producerArray){
       producer.close();
-      this.soupEvents.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'closing all producers for client'});
+      this.event.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'closing all producers for client'});
       this.producers.delete(producerKey);
     }
     // this.room?.broadcastRoomState('a client closed all their producers');
@@ -259,7 +280,7 @@ export class BaseClient {
     const consumerArray = Array.from(this.consumers.entries());
     for(const [consumerKey, consumer] of consumerArray){
       consumer.close();
-      this.soupEvents.emit('soupObjectClosed', {type: 'consumer', id: consumer.id as ConsumerId, reason: 'closing all consumers for client'});
+      this.event.emit('soupObjectClosed', {type: 'consumer', id: consumer.id as ConsumerId, reason: 'closing all consumers for client'});
       this.consumers.delete(consumerKey);
     }
   };

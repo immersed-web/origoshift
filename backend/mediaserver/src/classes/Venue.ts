@@ -12,7 +12,7 @@ import { ConnectionId, UserId, VenueId, CameraId } from 'schemas';
 import type { Prisma } from 'database';
 import prisma from '../modules/prismaClient';
 
-import { Camera, VrSpace, type UserClient, SenderClient  } from './InternalClasses';
+import { Camera, VrSpace, type UserClient, SenderClient, BaseClient  } from './InternalClasses';
 import { VenueUpdate } from 'schemas/*';
 // import { FilteredEvents } from 'trpc/trpc-utils';
 
@@ -65,6 +65,9 @@ export class Venue {
   }
 
   private senderClients: Map<ConnectionId, SenderClient> = new Map();
+  get senderClientIds() {
+    return Array.from(this.senderClients.keys());
+  }
 
   get _isEmpty() {
     return this.clients.size === 0 && this.senderClients.size === 0;
@@ -97,48 +100,59 @@ export class Venue {
   }
 
   /**
-   * adds a client to this venues collection of clients. Also takes care of assigning the venue inside the client itself
+   * adds a client (client or sender) to this venues collection of clients. Also takes care of assigning the venue inside the client itself
    * @param client the client instance to add to the venue
    */
-  addClient ( client : UserClient){
-    log.info(`Client ${client.username} added to the venue ${this.prismaData.name}`);
+  addClient ( client : UserClient | SenderClient){
+    if(client.clientType === 'client'){
+      this.clients.set(client.base.connectionId, client);
+      this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.base.connectionId);
+    } else {
+      this.senderClients.set(client.base.connectionId, client);
+      this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: true}, client.base.connectionId);
+    }
     // console.log('clients before add: ',this.clients);
-    this.clients.set(client.connectionId, client);
     // console.log('clients after add: ',this.clients);
-    client._setVenue(this.venueId);
-    this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
+    client.base._setVenue(this.venueId);
+    log.info(`Client (${client.clientType}) ${client.base.username} added to the venue ${this.prismaData.name}`);
   }
 
   /**
-   * Removes the client from the venue. Also automatically unloads the venue if it becomes empty
+   * Removes the client (client or sender) from the venue. Also automatically unloads the venue if it becomes empty
    * Also removes the client from camera or a vrSpace if its inside one
    */
-  removeClient (client: UserClient) {
-    log.info(`removing ${client.username} (${client.connectionId}) from the venue ${this.prismaData.name}`);
-    // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states?
-    const camera = client.currentCamera;
-    if(camera){
-      camera.removeClient(client);
+  removeClient (client: UserClient | SenderClient) {
+    log.info(`removing ${client.base.username} (${client.base.connectionId}) from the venue ${this.name}`);
+    if(client.clientType === 'client'){
+      // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states?
+      const camera = client.currentCamera;
+      if(camera){
+        camera.removeClient(client);
+      }
+      const vrSpace = client.vrSpace;
+      if(vrSpace){
+        vrSpace.removeClient(client);
+      }
+      this.clients.delete(client.base.connectionId);
+      this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.base.connectionId);
+    } else {
+      this.senderClients.delete(client.base.connectionId);
+      this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: false}, client.base.connectionId);
     }
-    const vrSpace = client.vrSpace;
-    if(vrSpace){
-      vrSpace.removeClient(client);
-    }
-    this.clients.delete(client.connectionId);
-    client._setVenue(undefined);
+    client.base._setVenue(undefined);
 
+    // If this was the last client in the venue, lets unload it!
     if(this._isEmpty){
       this.unload();
     }
-    this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
   }
 
-  emitToAllClients: UserClient['venueEvents']['emit'] = (event, ...args) => {
+  emitToAllClients: BaseClient['event']['emit'] = (event, ...args) => {
     log.info(`emitting ${event} to all clients`);
     let allEmittersHadListeners = true;
     this.clients.forEach((client) => {
-      log.debug('emitting to client: ', client.username);
-      allEmittersHadListeners &&= client.venueEvents.emit(event, ...args);
+      log.debug('emitting to client: ', client.base.username);
+      allEmittersHadListeners &&= client.base.event.emit(event, ...args);
     });
     if(!allEmittersHadListeners){
       log.warn(`at least one client didnt have any listener registered for the ${event} event type`);
@@ -151,26 +165,26 @@ export class Venue {
    * their only role is to send media to the server. The server can instruct connected senderClients to start or stop media producers.
    * The server is then responsible for linking the producers from senderCLients to the server Camera instances
    */
-  addSenderClient (senderClient : SenderClient){
-    log.info(`SenderClient ${senderClient.username} (${senderClient.connectionId}) added to the venue ${this.prismaData.name}`);
-    // console.log('clients before add: ',this.clients);
-    // const senderClient = new SenderClient(client);
-    this.senderClients.set(senderClient.connectionId, senderClient);
-    // console.log('clients after add: ',this.clients);
-    senderClient._setVenue(this.venueId);
-    this.emitToAllClients('senderAddedOrRemoved', {client: senderClient.getPublicState(), added: true}, senderClient.connectionId);
-  }
+  // addSenderClient (senderClient : SenderClient){
+  //   log.info(`SenderClient ${senderClient.username} (${senderClient.connectionId}) added to the venue ${this.prismaData.name}`);
+  //   // console.log('clients before add: ',this.clients);
+  //   // const senderClient = new SenderClient(client);
+  //   this.senderClients.set(senderClient.connectionId, senderClient);
+  //   // console.log('clients after add: ',this.clients);
+  //   senderClient._setVenue(this.venueId);
+  //   this.emitToAllClients('senderAddedOrRemoved', {client: senderClient.getPublicState(), added: true}, senderClient.connectionId);
+  // }
 
-  removeSenderClient (senderClient: SenderClient) {
-    log.info(`SenderClient ${senderClient.username} (${senderClient.connectionId}) removed from the venue ${this.prismaData.name}`);
-    this.senderClients.delete(senderClient.connectionId);
-    senderClient._setVenue(undefined);
+  // removeSenderClient (senderClient: SenderClient) {
+  //   log.info(`SenderClient ${senderClient.username} (${senderClient.connectionId}) removed from the venue ${this.prismaData.name}`);
+  //   this.senderClients.delete(senderClient.connectionId);
+  //   senderClient._setVenue(undefined);
 
-    if(this._isEmpty){
-      this.unload();
-    }
-    this.emitToAllClients('senderAddedOrRemoved', {client: senderClient.getPublicState(), added: false}, senderClient.connectionId);
-  }
+  //   if(this._isEmpty){
+  //     this.unload();
+  //   }
+  //   this.emitToAllClients('senderAddedOrRemoved', {client: senderClient.getPublicState(), added: false}, senderClient.connectionId);
+  // }
 
   async createWebRtcTransport() {
     const transport = await this.router.createWebRtcTransport(mediasoupConfig.webRtcTransport);

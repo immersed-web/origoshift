@@ -1,8 +1,7 @@
 
-import { randomUUID } from 'crypto';
 import { Log } from 'debug-level';
 import  prisma from '../modules/prismaClient';
-import type { Prisma, Camera as PrismaCamera } from 'database';
+import type { Camera as PrismaCamera } from 'database';
 import type { CameraId } from 'schemas';
 import type {Venue, UserClient} from './InternalClasses';
 
@@ -45,12 +44,12 @@ export class Camera {
     if(cc){
       cc.removeClient(client);
     }
-    this.clients.set(client.connectionId, client);
+    this.clients.set(client.base.connectionId, client);
     client._setCamera(this.cameraId);
   }
 
   removeClient(client: UserClient){
-    const wasRemoved = this.clients.delete(client.connectionId);
+    const wasRemoved = this.clients.delete(client.base.connectionId);
     if(wasRemoved){
       client._setCamera();
     }

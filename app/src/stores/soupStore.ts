@@ -122,15 +122,15 @@ export const useSoupStore = defineStore('soup', () =>{
   //   }
   // }
 
-  async function pauseConsumer (consumerId: string) {
+  async function pauseConsumer (consumerId: ConsumerId) {
     pauseResumeConsumer(consumerId, true);
   }
 
-  async function resumeConsumer (consumerId: string) {
+  async function resumeConsumer (consumerId: ConsumerId) {
     pauseResumeConsumer(consumerId, false);
   }
 
-  async function pauseResumeConsumer (consumerId: string, wasPaused: boolean) {
+  async function pauseResumeConsumer (consumerId: ConsumerId, wasPaused: boolean) {
     const consumer = consumers.get(consumerId);
     if (!consumer) {
       throw new Error('no such consumer found (client-side)');
@@ -149,15 +149,15 @@ export const useSoupStore = defineStore('soup', () =>{
     // await socketutils.sendRequest(pauseReq);
   }
 
-  async function pauseProducer (producerId: string) {
+  async function pauseProducer (producerId: ProducerId) {
     pauseResumeProducer(producerId, true);
   }
 
-  async function resumeProducer (producerId: string) {
+  async function resumeProducer (producerId: ProducerId) {
     pauseResumeProducer(producerId, false);
   }
 
-  async function pauseResumeProducer (producerId: string, wasPaused: boolean) {
+  async function pauseResumeProducer (producerId: ProducerId, wasPaused: boolean) {
     const producer = producers.get(producerId);
     if (!producer) {
       throw Error('no such producer found (client-side)');

@@ -31,13 +31,13 @@ export const vrRouter = router({
     updateTransform: userInVenueP.use(currentVenueHasVrSpace).input(ClientTransformSchema).mutation(({input, ctx}) =>{
       log.debug(`transform received from ${ctx.username} (${ctx.connectionId})`);
       log.debug(input);
-      const venue = ctx.client.venue;
+      const venue = ctx.venue;
       if(!venue){
         throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You are not in a venue. You shouldnt send transform data!'});
       }
       ctx.client.transform = input;
       const vrSpace = ctx.vrSpace;
-      vrSpace.pendingTransforms[ctx.client.connectionId] = input;
+      vrSpace.pendingTransforms[ctx.connectionId] = input;
       vrSpace.sendPendingTransforms();
 
     }),
@@ -46,7 +46,7 @@ export const vrRouter = router({
     }),
     subClientTransforms: p.use(isUserClientM).use(currentVenueHasVrSpace).subscription(({ctx}) => {
       console.log(`${ctx.username} started subscription to transforms`);
-      return attachEmitter(ctx.client.vrEvents, 'clientTransforms');
+      return attachEmitter(ctx.client.event, 'clientTransforms');
       // return attachEmitter(venue.vrSpace.emitter, 'transforms');
     })
   })

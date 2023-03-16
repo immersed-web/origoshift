@@ -12,6 +12,6 @@ export const userRouter = router({
     // return 'Test' as const;
   }),
   subClientState: userClientP.subscription(({ctx}) => {
-    return attachEmitter(ctx.client.userEvents, 'clientState');
+    return attachEmitter(ctx.client.base.event, 'clientState');
   }),
 });

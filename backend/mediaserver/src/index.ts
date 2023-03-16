@@ -9,13 +9,13 @@ log.enable(process.env.DEBUG);
 import observerLogger from './mediasoupObservers';
 const printSoupStats = observerLogger();
 
-import printClassInstances, { printClientListeners } from './classInstanceObservers';
+import { printClassInstances, printClientListeners } from './DebugObservers';
 import uWebSockets, { WebSocket } from 'uWebSockets.js';
 const { DEDICATED_COMPRESSOR_3KB } = uWebSockets;
 import { createWorkers } from './modules/mediasoupWorkers';
 import { verifyJwtToken } from 'shared-modules/jwtUtils';
 import { extractMessageFromCatch } from 'shared-modules/utilFns';
-import { JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema, ConnectionType } from 'schemas';
+import { JwtUserData, JwtUserDataSchema, hasAtLeastSecurityLevel, UserId, UserIdSchema, ClientType } from 'schemas';
 import { applyWSHandler } from './trpc/ws-adapter';
 import { appRouter, AppRouter } from './routers/appRouter';
 import { loadUserPrismaData, SenderClient, UserClient } from './classes/InternalClasses';
@@ -73,7 +73,7 @@ const {onSocketOpen, onSocketMessage, onSocketClose} = applyWSHandler<AppRouter,
 
 const app = uWebSockets.App();
 
-type WSUserData = { jwtUserData: JwtUserData, clientType: ConnectionType, prismaData?: Awaited<ReturnType<typeof loadUserPrismaData>>}
+type WSUserData = { jwtUserData: JwtUserData, clientType: ClientType, prismaData?: Awaited<ReturnType<typeof loadUserPrismaData>>}
 app.ws<WSUserData>('/*', {
 
   /* There are many common helper features */
@@ -99,7 +99,7 @@ app.ws<WSUserData>('/*', {
       const url = new URL(`http://localhost?${req.getQuery()}`);
       const receivedToken = url.searchParams.get('token');
       const isSender = url.searchParams.has('sender');
-      const clientType: ConnectionType = isSender? 'sender' : 'client';
+      const connectionType: ClientType = isSender? 'sender' : 'client';
       if(!receivedToken){
         throw Error('no token found in search query');
       }
@@ -119,7 +119,7 @@ app.ws<WSUserData>('/*', {
       }
       wsUserData = {
         jwtUserData: userDataOnly,
-        clientType,
+        clientType: connectionType,
       };
     } catch(e){
       const msg = extractMessageFromCatch(e, 'YOU SHALL NOT PASS');
@@ -163,14 +163,14 @@ app.ws<WSUserData>('/*', {
   },
   open: (ws) => {
     const userData = ws.getUserData();
-    const clientType = userData.clientType;
+    const connectionType = userData.clientType;
     const userId = UserIdSchema.parse(userData.jwtUserData.userId);
     logUws.info('socket opened');
 
     // const connection = new Connection({jwtUserData: userData.jwtUserData });
 
     let client: UserClient | SenderClient;
-    if(clientType === 'sender'){
+    if(connectionType === 'sender'){
       client = new SenderClient({ jwtUserData: userData.jwtUserData, prismaData: userData.prismaData });
     } else {
       client = new UserClient({ jwtUserData: userData.jwtUserData, prismaData: userData.prismaData });
@@ -185,10 +185,10 @@ app.ws<WSUserData>('/*', {
     } else {
       connectedUsers.set(userId, [ws]);
     }
-    logUws.debug('new client:', client.jwtUserData);
+    logUws.debug('new client:', client.base.jwtUserData);
 
 
-    const context: Context = {...userData.jwtUserData, connectionId: client.connectionId, client};
+    const context: Context = {...userData.jwtUserData, connectionId: client.base.connectionId, client, clientType: connectionType};
     onSocketOpen(ws, context);
   },
   drain: (ws) => {

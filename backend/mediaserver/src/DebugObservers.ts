@@ -9,7 +9,7 @@ log.enable(process.env.DEBUG);
 // @ts-expect-error: We allow reading private field here
 type venueDict = typeof Venue.venues extends Map<infer K, any>?Record<K, number>:never
 
-export default (clientList: Map<any, any>) => {
+export const printClassInstances = (clientList: Map<any, any>) => {
   const totalNrOf = {
     nrOfClients: clientList.size,
     nrOfVenues: 0,
@@ -34,19 +34,20 @@ export const printClientListeners = (clientList: Map<unknown, UserClient | Sende
   for(const client of clientList.values()){
     const clientObj: Record<string, unknown> = {};
     let emitters: [string, TypedEmitter][] = [
-      ['venueEvents', client.venueEvents],
-      ['soupEvents', client.soupEvents],
+      ['baseClientEvents', client.base.event],
+      // ['soupEvents', client.soupEvents],
     ];
     if(client instanceof UserClient){
       emitters = [
         ...emitters,
-        ['vrEvents', client.vrEvents],
-        ['userEvents', client.userEvents],
+        ['userClientEvents', client.event]
+        // ['vrEvents', client.vrEvents],
+        // ['userEvents', client.userEvents],
       ];
     } else if(client instanceof SenderClient){
       emitters = [
         ...emitters,
-        ['senderEvents', client.senderEvents],
+        ['senderClientEvents', client.event],
       ];
     } else {
       log.warn('Not matching client instance type when trying to print listener stats');
@@ -62,7 +63,7 @@ export const printClientListeners = (clientList: Map<unknown, UserClient | Sende
       }
       clientObj[emitterName] = emitterObj;
     }
-    printObj[client.connectionId] = clientObj;
+    printObj[client.base.connectionId] = clientObj;
   }
   log.info(printObj);
 };

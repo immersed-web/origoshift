@@ -21,15 +21,15 @@ export const soupRouter = router({
     // return 'Not implemented yet' as const;
   }),
   setRTPCapabilities: clientInVenueP.input(z.object({rtpCapabilities: RtpCapabilitiesSchema})).mutation(({input, ctx}) => {
-    ctx.client.rtpCapabilities = input.rtpCapabilities;
+    ctx.client.base.rtpCapabilities = input.rtpCapabilities;
     log.debug(`clint ${ctx.username} (${ctx.connectionId}) changed rtpCapabilities to: `, input.rtpCapabilities);
     // return 'Not implemented yet' as const;
   }),
   createSendTransport: clientInVenueP.mutation(async ({ctx}) => {
-    return await ctx.client.createWebRtcTransport('send');
+    return await ctx.client.base.createWebRtcTransport('send');
   }),
   createReceiveTransport: clientInVenueP.mutation(async ({ctx}) => {
-    return await ctx.client.createWebRtcTransport('receive');
+    return await ctx.client.base.createWebRtcTransport('receive');
   }),
   connectTransport: clientInVenueP.input(ConnectTransportPayloadSchema).mutation(async ({ctx, input}) => {
     const client = ctx.client;
@@ -37,10 +37,10 @@ export const soupRouter = router({
     const dtlsParameters = input.dtlsParameters;
     let chosenTransport;
 
-    if(transportId === client.receiveTransport?.id){
-      chosenTransport = client.receiveTransport;
-    } else if(transportId === client.sendTransport?.id){
-      chosenTransport = client.sendTransport;
+    if(transportId === client.base.receiveTransport?.id){
+      chosenTransport = client.base.receiveTransport;
+    } else if(transportId === client.base.sendTransport?.id){
+      chosenTransport = client.base.sendTransport;
     } else{
       throw new TRPCError({code: 'NOT_FOUND', message:'no transport with that id on server-side'});
     }
@@ -50,14 +50,18 @@ export const soupRouter = router({
     log.info('received createProducer request!');
     const client: UserClient | SenderClient = ctx.client;
 
-    if(!client.sendTransport){
+    if(!client.base.sendTransport){
       throw new TRPCError({code:'PRECONDITION_FAILED', message:'sendTransport is undefined. Need a sendtransport to produce'});
-    } else if(client.sendTransport.id !== input.transportId){
+    } else if(client.base.sendTransport.id !== input.transportId){
       throw new TRPCError({code: 'BAD_REQUEST', message:'the provided transporId didnt match the id of the sendTransport'});
     }
-    const producerId = await client.createProducer(input);
+    const producerId = await client.base.createProducer(input);
     log.info('gonna emit clientStateUpdated!');
-    ctx.venue.emitToAllClients('clientStateUpdated', { clientPublicState: client.getPublicState() }, ctx.connectionId);
+    if(client.clientType === 'client'){
+      ctx.venue.emitToAllClients('clientState', { clientState: client.getPublicState(), reason: 'client created producer' });
+    } else {
+      ctx.venue.emitToAllClients('senderState', {senderState: client.getPublicState(), reason: 'sender created producer'});
+    }
     return producerId;
   }),
   closeProducer: clientInVenueP.input(z.object({producerId:z.string().uuid()})).mutation(({input, ctx}) => {
@@ -142,7 +146,7 @@ export const soupRouter = router({
 
   // }),
   subSoupObjectClosed: p.subscription(({ctx}) => {
-    return attachEmitter(ctx.client.soupEvents, 'soupObjectClosed');
+    return attachEmitter(ctx.client.base.event, 'soupObjectClosed');
     // return 'Not implemented yet' as const;
   })
 });

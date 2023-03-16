@@ -1,15 +1,10 @@
 import type { VirtualSpace } from 'database';
 import { ClientTransforms, VrSpaceId } from 'schemas';
-// import type Venue from './Venue';
 import { throttle} from 'lodash';
-// import Client from './Client';
 import type { UserClient, Venue } from './InternalClasses';
 
 import { Log } from 'debug-level';
-import { record } from 'zod';
-
 const log = new Log('VR:Space');
-
 process.env.DEBUG = 'VR:Space*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
@@ -59,19 +54,19 @@ export class VrSpace {
 
   addClient (client: UserClient){
     if(!this.isOpen){
-      log.warn(`You tried to add client ${client.username} to the vr space in ${this.venue.name} that isnt open. No bueno!`);
+      log.warn(`You tried to add client ${client.base.username} to the vr space in ${this.venue.name} that isnt open. No bueno!`);
       return;
     }
-    if(!this.venue.clientIds.includes(client.connectionId)){
+    if(!this.venue.clientIds.includes(client.base.connectionId)){
       throw Error('must be in the related venue when joining a vr space!');
     }
-    this.clients.set(client.connectionId, client);
+    this.clients.set(client.base.connectionId, client);
     client.isInVrSpace = true;
   }
 
   removeClient (client: UserClient){
     client.isInVrSpace = false;
-    return this.clients.delete(client.connectionId);
+    return this.clients.delete(client.base.connectionId);
   }
 
   sendPendingTransforms = throttle(() => {
@@ -81,12 +76,12 @@ export class VrSpace {
     trailing: true
   });
 
-  emitToAllClients: UserClient['vrEvents']['emit'] = (event, ...args) => {
+  emitToAllClients: UserClient['event']['emit'] = (event, ...args) => {
     let allEmittersHadListeners = true;
     this.clients.forEach(c => {
-      const hadEmitter = c.vrEvents.emit(event, ...args);
+      const hadEmitter = c.event.emit(event, ...args);
       allEmittersHadListeners &&= hadEmitter;
-      log.debug(`emitted ${event} to ${c.username} (${c.connectionId}), had listener(s): ${hadEmitter}`);
+      log.debug(`emitted ${event} to ${c.base.username} (${c.base.connectionId}), had listener(s): ${hadEmitter}`);
     });
     if(!allEmittersHadListeners){
       log.warn('not all emitters had attached listeners');

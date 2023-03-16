@@ -1,6 +1,6 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import { SenderClient, UserClient } from '../classes/InternalClasses';
-import { JwtUserData, ConnectionId, hasAtLeastSecurityLevel } from 'schemas';
+import { JwtUserData, ConnectionId, hasAtLeastSecurityLevel, ClientType } from 'schemas';
 // import { z } from 'zod';
 import superjson from 'superjson';
 
@@ -10,6 +10,7 @@ export type Context = JwtUserData & {
   // jwt: JwtUserData
   connectionId: ConnectionId
   client: UserClient | SenderClient
+  clientType: ClientType
   // connection: Connection
 }
 const trpc = initTRPC.context<Context>().create({
@@ -65,7 +66,7 @@ export const isSenderClientM = middleware(({ctx, next}) =>{
 });
 
 export const isInVenueM = middleware(({ctx, next})=> {
-  const venue = ctx.client.venue;
+  const venue = ctx.client.base.venue;
   if(!venue) {
     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You have to be added to a venue before performing that action!'});
   }

@@ -47,18 +47,18 @@ export const venueRouter = router({
     return venue.getPublicState();
   }),
   subVenueUnloaded: p.subscription(({ctx}) => {
-    attachEmitter(ctx.client.venueEvents, 'venueWasUnloaded');
+    attachEmitter(ctx.client.base.event, 'venueWasUnloaded');
   }),
   listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
-    return ctx.client.ownedVenues.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));
+    return ctx.client.base.ownedVenues.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));
   }),
   listAllowedVenues: p.query(({ctx}) => {
-    return ctx.client.allowedVenues.map(({venueId, name}) => {
+    return ctx.client.base.allowedVenues.map(({venueId, name}) => {
       return {venueId: venueId as VenueId, name};
     });
   }),
   subClientAddedOrRemoved: p.use(isUserClientM).subscription(({ctx}) => {
-    return attachFilteredEmitter(ctx.client.venueEvents, 'clientAddedOrRemoved', ctx.connectionId);
+    return attachFilteredEmitter(ctx.client.base.event, 'clientAddedOrRemoved', ctx.connectionId);
   }),
   listLoadedVenues: p.query(({ctx}) => {
     return Venue.getLoadedVenues();
@@ -70,17 +70,17 @@ export const venueRouter = router({
   ).mutation(async ({input, ctx}) => {
     log.info(`request received to join venue as ${ctx.client.clientType}:`, input.venueId);
     await ctx.client.joinVenue(input.venueId);
-    return ctx.client.venue?.getPublicState();
+    return ctx.client.base.venue?.getPublicState();
   }),
   getVenueState: clientInVenueP.query(({ctx}) => {
     return ctx.venue.getPublicState();
   }),
   subClientStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to clientState`);
-    return attachFilteredEmitter(ctx.client.venueEvents, 'clientStateUpdated', ctx.connectionId);
+    return attachFilteredEmitter(ctx.client.base.event, 'clientState', ctx.connectionId);
   }),
   subSenderAddedOrRemoved: p.use(isVenueOwnerM).subscription(({ctx}) => {
-    return attachFilteredEmitter(ctx.client.venueEvents, 'senderAddedOrRemoved', ctx.client.connectionId);
+    return attachFilteredEmitter(ctx.client.base.event, 'senderAddedOrRemoved', ctx.connectionId);
   }),
   // joinVenueAsSender: atLeastSenderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
   //   .mutation(async ({ctx, input}) =>{
@@ -88,8 +88,8 @@ export const venueRouter = router({
   //     await ctx.client.joinVenue(input.venueId);
   //   }),
   updateVenue: p.use(isVenueOwnerM).input(VenueUpdateSchema).mutation(({input, ctx}) =>{
-    if(ctx.client.venue){
-      ctx.client.venue.update(input);
+    if(ctx.venue){
+      ctx.venue.update(input);
     }
   }),
   leaveCurrentVenue: p.use(isInVenueM).mutation(({ctx}) => {

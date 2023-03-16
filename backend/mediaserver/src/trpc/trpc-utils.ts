@@ -74,7 +74,7 @@ export function attachEmitter<E extends ListenerSignature<E>, K extends Unfilter
 
 export function attachFilteredEmitter<E extends ListenerSignature<E>, K extends keyof E, Data extends EventData<E, K>, TransformedResult = Data>(emitter: TypedEmitter<E>, event: FilteredEventTypes<E>, filter: FilterType<E, typeof event>, transformer?: (data: Data) => TransformedResult){
   const myObservable = observable<TransformedResult>(emit => {
-    const onEvent: FilteredListenerFunction<F, Data> = (data, triggerId)=> {
+    const onEvent: FilteredListenerFunction<typeof filter, Data> = (data, triggerId)=> {
       if(triggerId === filter){
         log.info('skipping because emitter is filtered');
         return;

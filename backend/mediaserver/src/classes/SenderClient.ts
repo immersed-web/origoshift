@@ -1,6 +1,6 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { NonFilteredEvents } from 'trpc/trpc-utils';
-import { BaseClient, Venue } from './InternalClasses';
+import { BaseClient, Venue, AllClientEvents } from './InternalClasses';
 
 import { Log } from 'debug-level';
 import { ClientType, VenueId } from 'schemas';
@@ -11,50 +11,52 @@ const log = new Log('SenderClient');
 process.env.DEBUG = 'SenderClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-export type SenderClientEvents = NonFilteredEvents<{
+type SenderControlEvents = NonFilteredEvents<{
   'startProduceVideoRequest': () => void
   'startProducerAudioRequest': () => void
 }>
+type SenderClientEvents =  SenderControlEvents & AllClientEvents
 
-export class SenderClient {
+export class SenderClient extends BaseClient{
   constructor(...args: ConstructorParameters<typeof BaseClient>){
-    this.base = new BaseClient(...args);
-    log.info(`Creating sender client ${this.base.username} (${this.base.connectionId})`);
-    log.debug('prismaData:', this.base.prismaData);
+    super(...args);
+    // this.base = new BaseClient(...args);
+    log.info(`Creating sender client ${this.username} (${this.connectionId})`);
+    log.debug('prismaData:', this.prismaData);
 
 
     this.event = new TypedEmitter();
   }
   readonly clientType = 'sender' as const satisfies ClientType;
 
-  base: BaseClient;
+  // base: BaseClient;
   event: TypedEmitter<SenderClientEvents>;
 
   getPublicState(){
     // const { connectionId, userId, username } = this.base;
     const producerList: {producerId: ProducerId, kind: soupTypes.MediaKind}[] = [];
-    this.base.producers.forEach((p) => producerList.push({producerId: (p.id as ProducerId), kind: p.kind}));
+    this.producers.forEach((p) => producerList.push({producerId: (p.id as ProducerId), kind: p.kind}));
     return {
-      ...this.base.getPublicState(),
+      ...super.getPublicState(),
       clientType: this.clientType,
       producers: producerList
     };
   }
 
   _onClientStateUpdated(reason?: string) {
-    if(!this.base.connectionId){
+    if(!this.connectionId){
       log.info('skipped emitting to client because socket was already closed');
       return;
     }
-    log.info(`emitting clientState for ${this.base.username} (${this.base.connectionId}) to itself`);
-    this.base.event.emit('senderState', {senderState: this.getPublicState(), reason }, );
+    log.info(`emitting clientState for ${this.username} (${this.connectionId}) to itself`);
+    this.event.emit('senderState', {senderState: this.getPublicState(), reason }, );
   }
 
   unload() {
-    this.base.unload();
+    super.unload();
     // this.base.connected = false;
     // this._socketClosed = true;
-    log.info(`unloading sender client ${ this.base.username } ${this.base.connectionId} `);
+    log.info(`unloading sender client ${ this.username } ${this.connectionId} `);
     // super.unload();
     this.leaveCurrentVenue();
   }
@@ -70,12 +72,12 @@ export class SenderClient {
   }
 
   leaveCurrentVenue() {
-    if(!this.base.venue) {
+    if(!this.venue) {
       return false;
       // throw Error('cant leave a venue if you are not in one!');
     }
-    this.base.teardownMediasoupObjects();
-    this.base.venue.removeClient(this);
+    this.teardownMediasoupObjects();
+    this.venue.removeClient(this);
     // this._notifyClientStateUpdated('user client left a venue');
     return true;
   }

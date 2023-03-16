@@ -8,18 +8,18 @@ import { types as soupTypes } from 'mediasoup';
 import type { types as soupClientTypes } from 'mediasoup-client';
 import { ConsumerId, CreateProducerPayload, ProducerId, TransportId  } from 'schemas/mediasoup';
 import { SenderClient, UserClient, Venue } from './InternalClasses';
-import { TypedEmitter } from 'tiny-typed-emitter';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
 import { randomUUID } from 'crypto';
 import { Prisma, userDeselectPassword, userSelectAll } from 'database';
 import prismaClient from '../modules/prismaClient';
+import { TypedEmitter } from 'tiny-typed-emitter';
 
 type SoupObjectClosePayload =
       {type: 'transport', id: TransportId }
       | {type: 'producer', id: ProducerId }
       | {type: 'consumer', id: ConsumerId }
 
-export type ClientSoupEvents = NonFilteredEvents<{
+type ClientSoupEvents = NonFilteredEvents<{
   'soupObjectClosed': (data: SoupObjectClosePayload & { reason: string}) => void
   // 'transportClosed': (transportId: TransportId) => void
   'consumerPausedOrResumed': (data: {consumerId: ConsumerId, wasPaused: boolean}) => void
@@ -30,7 +30,7 @@ export type ClientSoupEvents = NonFilteredEvents<{
 
 // type ClientStateUnion = ReturnType<UserClient['getPublicState']> | ReturnType<SenderClient['getPublicState']>
 
-export type ClientVenueEvents = FilteredEvents<{
+type ClientVenueEvents = FilteredEvents<{
   'clientAddedOrRemoved': (data: {client: ReturnType<UserClient['getPublicState']>, added: boolean}) => void,
   'senderAddedOrRemoved': (data: {client: ReturnType<SenderClient['getPublicState']>, added: boolean}) => void,
 }, ConnectionId>
@@ -43,7 +43,7 @@ type ClientClientEvents = NonFilteredEvents<{
   'senderState': (data: { senderState: ReturnType<SenderClient['getPublicState']>, reason?: string }) => void
 }>
 
-type AllClientEvents = ClientSoupEvents & ClientVenueEvents & ClientClientEvents
+export type AllClientEvents = ClientSoupEvents & ClientVenueEvents & ClientClientEvents
 
 const userQuery = {
   select: {
@@ -76,12 +76,13 @@ export async function loadUserPrismaData(userId: UserId){
  * @class
  * Base class for backend state of client connection. You should probably not use the base class directly.
  */
-export class BaseClient {
+export abstract class BaseClient {
   constructor({connectionId = ConnectionIdSchema.parse(randomUUID()), jwtUserData, prismaData}: ClientConstructorParams) {
     this.connectionId = connectionId;
     this.jwtUserData = jwtUserData;
     this.prismaData = prismaData;
-    this.event = new TypedEmitter();
+
+    // this.event = new TypedEmitter();
     // this.soupEvents = new TypedEmitter();
     // this.venueEvents = new TypedEmitter();
     // this.clientEvents = new TypedEmitter();
@@ -89,7 +90,6 @@ export class BaseClient {
   }
 
   connected = true;
-  // protected _socketClosed = false;
 
   /**
   * The id of the actual connection. This differs from the userId, as a user could potentially have multiple concurrent active connections
@@ -134,7 +134,7 @@ export class BaseClient {
   // soupEvents: TypedEmitter<ClientSoupEvents>;
   // venueEvents: TypedEmitter<ClientVenueEvents>;
   // clientEvents: TypedEmitter<ClientEvents>;
-  event: TypedEmitter<AllClientEvents>;
+  abstract event: TypedEmitter;
 
   protected venueId?: VenueId;
   /**

@@ -8,7 +8,7 @@ log.enable(process.env.DEBUG);
 import { ClientTransform, ClientTransforms, ConnectionId, UserId, UserRole, VenueId, CameraId, ClientType } from 'schemas';
 import { Venue } from './InternalClasses';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
-import { BaseClient } from './BaseClient';
+import { BaseClient, AllClientEvents } from './InternalClasses';
 
 
 // export type UserEvents = NonFilteredEvents<{
@@ -20,7 +20,7 @@ export type UserVrEvents = NonFilteredEvents<{
   'clientTransforms': (transforms: ClientTransforms) => void
 }>
 
-type UserClientEvents = UserVrEvents;
+type UserClientEvents = UserVrEvents & AllClientEvents;
 
 
 // export type PublicUserClientState = {
@@ -38,12 +38,12 @@ type UserClientEvents = UserVrEvents;
  * @class
  * This class represents the backend state of a user client connection.
  */
-export class UserClient {
+export class UserClient extends BaseClient {
   constructor(...args: ConstructorParameters<typeof BaseClient>){
-    // super(...args);
-    this.base = new BaseClient(...args);
-    log.info(`Creating user client ${this.base.username} (${this.base.connectionId})`);
-    log.debug('prismaData:', this.base.prismaData);
+    super(...args);
+    // this.base = new BaseClient(...args);
+    log.info(`Creating user client ${this.username} (${this.connectionId})`);
+    log.debug('prismaData:', this.prismaData);
 
 
 
@@ -53,7 +53,7 @@ export class UserClient {
 
   }
   readonly clientType = 'client' as const satisfies ClientType;
-  base: BaseClient;
+  // base: BaseClient;
 
   transform: ClientTransform | undefined;
 
@@ -63,8 +63,8 @@ export class UserClient {
   // vrEvents: TypedEmitter<UserVrEvents>;
 
   unload() {
-    this.base.connected = false;
-    log.info(`unloading user client ${ this.base.username } ${this.base.connectionId} `);
+    this.connected = false;
+    log.info(`unloading user client ${ this.username } ${this.connectionId} `);
     this.leaveCurrentVenue();
   }
 
@@ -77,10 +77,10 @@ export class UserClient {
   }
   get currentCamera() {
     if(!this.currentCameraId) return undefined;
-    if(!this.base.venue){
+    if(!this.venue){
       throw Error('Something is really off! currentCameraId is set but client isnt in a venue! Invalid state!');
     }
-    const camera = this.base.venue.cameras.get(this.currentCameraId);
+    const camera = this.venue.cameras.get(this.currentCameraId);
     if(!camera){
       throw Error('client had an assigned currentCameraId but that camera was not found in venue. Invalid state!');
     }
@@ -91,11 +91,11 @@ export class UserClient {
   get vrSpace(){
     if(this.isInVrSpace){
       try{
-        if(!this.base.venue){
+        if(!this.venue){
           // log.error('The client is considered to be part of a vr space without being in a venue. That shouldnt be possible!');
           throw Error('The client is considered to be part of a vr space without being in a venue. That shouldnt be possible!');
         }
-        return this.base.venue.vrSpace;
+        return this.venue.vrSpace;
       } catch (e) {
         console.error(e);
         return undefined;
@@ -106,7 +106,7 @@ export class UserClient {
 
   getPublicState(){
     return {
-      ...this.base.getPublicState(),
+      ...super.getPublicState(),
       clientType: this.clientType,
       transform: this.transform,
       currentCameraId: this.currentCamera?.cameraId,
@@ -115,55 +115,55 @@ export class UserClient {
   }
 
   _onClientStateUpdated(reason?: string) {
-    if(!this.base.connected){
+    if(!this.connected){
       log.info('skipped emitting to client because socket was already closed');
       return;
     }
-    log.info(`emitting clientState for ${this.base.username} (${this.base.connectionId}) to itself`);
+    log.info(`emitting clientState for ${this.username} (${this.connectionId}) to itself`);
     // we emit the new clientstate to the client itself.
-    this.base.event.emit('clientState', {clientState: this.getPublicState(), reason });
+    this.event.emit('clientState', {clientState: this.getPublicState(), reason });
   }
 
   async joinVenue(venueId: VenueId) {
     this.leaveCurrentVenue();
     const venue = Venue.getVenue(venueId);
     venue.addClient(this);
-    this.base.sendTransport = await venue.createWebRtcTransport();
-    this.base.receiveTransport = await venue.createWebRtcTransport();
+    this.sendTransport = await venue.createWebRtcTransport();
+    this.receiveTransport = await venue.createWebRtcTransport();
     this._onClientStateUpdated('user client joined venue');
   }
 
   leaveCurrentVenue() {
-    if(!this.base.venue) {
+    if(!this.venue) {
       return false;
       // throw Error('cant leave a venue if you are not in one!');
     }
-    this.base.teardownMediasoupObjects();
-    this.base.venue.removeClient(this);
+    this.teardownMediasoupObjects();
+    this.venue.removeClient(this);
     this._onClientStateUpdated('user client left a venue');
     return true;
   }
 
   joinVrSpace(){
     this.leaveCurrentCamera();
-    if(!this.base.venue){
+    if(!this.venue){
       throw Error('cant join vrspace if isnt in a venue!');
     }
-    if(!this.base.venue.vrSpace){
+    if(!this.venue.vrSpace){
       throw Error('cant join vrspace if the venue doesnt have one!');
     }
-    this.base.venue.vrSpace.addClient(this);
+    this.venue.vrSpace.addClient(this);
     this._onClientStateUpdated('user client joined vrSpace');
   }
 
   leaveVrSpace() {
-    if(this.base.venue?.vrSpace?.removeClient(this)){
+    if(this.venue?.vrSpace?.removeClient(this)){
       this._onClientStateUpdated('user client left vrSpace');
     }
   }
 
   joinCamera(cameraId: CameraId) {
-    const camera = this.base.venue?.cameras.get(cameraId);
+    const camera = this.venue?.cameras.get(cameraId);
     if(!camera){
       throw Error('no camera with that id exist in the venue');
     }

@@ -185,10 +185,10 @@ app.ws<WSUserData>('/*', {
     } else {
       connectedUsers.set(userId, [ws]);
     }
-    logUws.debug('new client:', client.base.jwtUserData);
+    logUws.debug('new client:', client.jwtUserData);
 
 
-    const context: Context = {...userData.jwtUserData, connectionId: client.base.connectionId, client, clientType: connectionType};
+    const context: Context = {...userData.jwtUserData, connectionId: client.connectionId, client, clientType: connectionType};
     onSocketOpen(ws, context);
   },
   drain: (ws) => {

@@ -75,6 +75,10 @@ export const venueRouter = router({
   getVenueState: clientInVenueP.query(({ctx}) => {
     return ctx.venue.getPublicState();
   }),
+  subClientStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
+    log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to clientState`);
+    return attachFilteredEmitter(ctx.client.venueEvents, 'clientStateUpdated', ctx.connectionId);
+  }),
   subSenderAddedOrRemoved: p.use(isVenueOwnerM).subscription(({ctx}) => {
     return attachFilteredEmitter(ctx.client.venueEvents, 'senderAddedOrRemoved', ctx.client.connectionId);
   }),

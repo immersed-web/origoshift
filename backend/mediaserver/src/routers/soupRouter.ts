@@ -4,14 +4,14 @@ process.env.DEBUG = 'Soup:Router*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import { TRPCError } from '@trpc/server';
-import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId, RtpCapabilitiesSchema, CreateConsumerPayloadSchema } from 'schemas/mediasoup';
+import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId, RtpCapabilitiesSchema, CreateConsumerPayloadSchema, ProducerIdSchema } from 'schemas/mediasoup';
 import { z } from 'zod';
 import { procedure as p, clientInVenueP, router } from '../trpc/trpc';
-import { attachEmitter } from '../trpc/trpc-utils';
-// import { Producer as SoupProducer } from 'mediasoup/node/lib/Producer';
-// import '../augmentedMediasoup';
-// import { attachFilteredEmitter, FilteredEvents } from '../trpc/trpc-utils';
-
+import { attachEmitter, attachFilteredEmitter } from '../trpc/trpc-utils';
+import { CameraIdSchema } from 'schemas';
+import { types as soupTypes } from 'mediasoup';
+import type { UserClient } from 'classes/UserClient';
+import type { SenderClient } from 'classes/SenderClient';
 
 export const soupRouter = router({
   getRouterRTPCapabilities: clientInVenueP.query(({ctx}) => {
@@ -48,27 +48,23 @@ export const soupRouter = router({
   }),
   createProducer: clientInVenueP.input(CreateProducerPayloadSchema).mutation(async ({ctx, input}) => {
     log.info('received createProducer request!');
-    const client = ctx.client;
+    const client: UserClient | SenderClient = ctx.client;
 
     if(!client.sendTransport){
       throw new TRPCError({code:'PRECONDITION_FAILED', message:'sendTransport is undefined. Need a sendtransport to produce'});
     } else if(client.sendTransport.id !== input.transportId){
       throw new TRPCError({code: 'BAD_REQUEST', message:'the provided transporId didnt match the id of the sendTransport'});
     }
-    const {kind, rtpParameters, producerInfo} = input;
-    const appData = { producerInfo };
-    const producer = await client.sendTransport.produce({ kind, rtpParameters, appData});
-    producer.on('transportclose', () => {
-      console.log(`transport for producer ${producer.id} was closed`);
-      client.producers.delete(producer.id as ProducerId);
-      client.soupEvents.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'transport was closed'});
-    });
-    client.producers.set(producer.id as ProducerId, producer);
-
-    return producer.id;
+    const producerId = await client.createProducer(input);
+    log.info('gonna emit clientStateUpdated!');
+    ctx.venue.emitToAllClients('clientStateUpdated', { clientPublicState: client.getPublicState() }, ctx.connectionId);
+    return producerId;
   }),
   closeProducer: clientInVenueP.input(z.object({producerId:z.string().uuid()})).mutation(({input, ctx}) => {
     return 'Not implemented yet' as const;
+  }),
+  consumeCamera: clientInVenueP.input(z.object({cameraId: CameraIdSchema, producerId: ProducerIdSchema})).mutation(({ctx, input}) => {
+    return 'NOT IMPLEMENTED YET :-(';
   }),
   // createConsumer: clientInVenueP.input(CreateConsumerPayloadSchema).mutation(({ctx, input}) => {
   //   log.info('received createConsumer request');

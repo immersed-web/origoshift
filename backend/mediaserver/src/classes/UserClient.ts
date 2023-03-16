@@ -12,7 +12,7 @@ import { BaseClient } from './BaseClient';
 
 
 export type UserEvents = NonFilteredEvents<{
-  'clientState': (data: {reason?: string, clientState: PublicUserClientState}) => void
+  'clientState': (data: {reason?: string, clientState: ReturnType<UserClient['getPublicState']>}) => void
 }>
 
 
@@ -21,16 +21,16 @@ export type UserVrEvents = NonFilteredEvents<{
 }>
 
 
-export type PublicUserClientState = {
-  connectionId: ConnectionId
-  userId: UserId
-  userName: string
-  role: UserRole
-  transform?: ClientTransform
-  currentVenueId?: VenueId
-  currentCameraId?: CameraId
-  isInVrSpace: boolean
-}
+// export type PublicUserClientState = {
+//   connectionId: ConnectionId
+//   userId: UserId
+//   userName: string
+//   role: UserRole
+//   transform?: ClientTransform
+//   currentVenueId?: VenueId
+//   currentCameraId?: CameraId
+//   isInVrSpace: boolean
+// }
 
 /**
  * @class
@@ -46,6 +46,7 @@ export class UserClient extends BaseClient {
 
     this.userEvents = new TypedEmitter();
     this.vrEvents = new TypedEmitter();
+
   }
   readonly clientType = 'client' as const satisfies ConnectionType;
 
@@ -97,9 +98,10 @@ export class UserClient extends BaseClient {
     return undefined;
   }
 
-  getPublicState(): PublicUserClientState{
+  getPublicState(){
     return {
       connectionId: this.connectionId,
+      clientType: this.clientType,
       userId: this.userId,
       userName: this.username,
       role: this.role,

@@ -77,14 +77,14 @@ export const venueRouter = router({
   }),
   subClientStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to clientState`);
-    return attachFilteredEmitter(ctx.client.base.event, 'clientState', ctx.connectionId);
+    return attachFilteredEmitter(ctx.client.event, 'clientState', ctx.connectionId);
   }),
   subSenderStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to senderState`);
-    return attachFilteredEmitter(ctx.client.base.event, 'senderState', ctx.connectionId);
+    return attachFilteredEmitter(ctx.client.event, 'senderState', ctx.connectionId);
   }),
   subSenderAddedOrRemoved: p.use(isVenueOwnerM).subscription(({ctx}) => {
-    return attachFilteredEmitter(ctx.client.base.event, 'senderAddedOrRemoved', ctx.connectionId);
+    return attachFilteredEmitter(ctx.client.event, 'senderAddedOrRemoved', ctx.connectionId);
   }),
   // joinVenueAsSender: atLeastSenderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
   //   .mutation(async ({ctx, input}) =>{

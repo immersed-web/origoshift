@@ -2,11 +2,22 @@
   "name": "fileserver",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "scripts": {
+    "start": "dotenv -e ../../.env node ./dist/index.js",
+    "dev": "dotenv -v DEVELOPMENT=true -e ../../.env node-dev ./src/index.ts",
+    "build": "tsup-node",
+    "build:watch": "tsup-node --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.15.3",
+    "node-dev": "^7.4.3",
+    "ts-node": "^10.9.1"
+  }
 }

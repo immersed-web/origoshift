@@ -11,7 +11,6 @@ type ListenerFunction<Arg = any> = (data: Arg) => void
 type FilteredListenerFunction<Filter, Arg = any> = (data: Arg, filter: Filter) => void
 type SingleParamListenerSignature<L> = { [E in keyof L]: ListenerFunction }
 type FilteredListenerSignature<L, Filter> = { [E in keyof L]: FilteredListenerFunction<Filter> }
-// type CombinedListenerSignature<L> = { [E in keyof L]:  }
 
 type PickUnfilteredEvents<E extends ListenerSignature<E>> = {
   [K in keyof E as E[K] extends ListenerFunction ? K : never]: E[K]
@@ -27,6 +26,7 @@ type AddFilterToEvents<IEvents extends SingleParamListenerSignature<IEvents>, Fi
   [K in keyof IEvents]: AddFilterParam<IEvents[K], FilterType>
 }
 
+type FilterType<E extends ListenerSignature<E>, K extends FilteredEventTypes<E>> = Parameters<EmitterCallback<PickFilteredEvents<E>, K>>[1]
 
 export type EmitSignature<E extends ListenerSignature<E>> = TypedEmitter<E>['emit'];
 
@@ -54,31 +54,27 @@ export function attachEmitter<E extends ListenerSignature<E>, K extends Unfilter
 }
 
 
-type MyEvents = FilteredEvents<{
-  'filtered': (data: {msg: string}) => void,
-  'moarzrFiltered': (data: number) => void,
-}, string> & NonFilteredEvents<{
-  'unfiltered': (data: {greeting: string}) => void
-  'coolEvent': (data: {info: number, meta: string}) => void
-}>
-// type MyEvents = {
-//   'filtered': (data: {msg: string}, filter: string) => void,
+// type MyEvents = FilteredEvents<{
+//   'filtered': (data: {msg: string}) => void,
+//   'moarzrFiltered': (data: number) => void,
+// }, number> & NonFilteredEvents<{
 //   'unfiltered': (data: {greeting: string}) => void
-// }
+//   'coolEvent': (data: {info: number, meta: string}) => void
+// }>
 
-const te : TypedEmitter<MyEvents> = new TypedEmitter();
-const obsvble = attachEmitter(te, 'coolEvent', (data) => ({...data, hello: 'world'}));
-obsvble.subscribe({
-  next(value) {
-    console.log(value);
-  },
-});
+// const te : TypedEmitter<MyEvents> = new TypedEmitter();
+// const obsvble = attachEmitter(te, 'coolEvent', (data) => ({...data, hello: 'world'}));
+// obsvble.subscribe({
+//   next(value) {
+//     console.log(value);
+//   },
+// });
 
 
 
-export function attachFilteredEmitter<E extends ListenerSignature<E>, K extends keyof E,  FilterType, Data extends EventData<E, K>, TransformedResult = Data>(emitter: TypedEmitter<E>, event: FilteredEventTypes<E>, filter: FilterType, transformer?: (data: Data) => TransformedResult){
+export function attachFilteredEmitter<E extends ListenerSignature<E>, K extends keyof E, Data extends EventData<E, K>, TransformedResult = Data>(emitter: TypedEmitter<E>, event: FilteredEventTypes<E>, filter: FilterType<E, typeof event>, transformer?: (data: Data) => TransformedResult){
   const myObservable = observable<TransformedResult>(emit => {
-    const onEvent: FilteredListenerFunction<FilterType, Data> = (data, triggerId)=> {
+    const onEvent: FilteredListenerFunction<F, Data> = (data, triggerId)=> {
       if(triggerId === filter){
         log.info('skipping because emitter is filtered');
         return;
@@ -99,10 +95,10 @@ export function attachFilteredEmitter<E extends ListenerSignature<E>, K extends 
   return myObservable;
 }
 
-const fltobsvble = attachFilteredEmitter(te, 'moarzrFiltered', 'filtMe' );
+// const fltobsvble = attachFilteredEmitter(te, 'moarzrFiltered', 123, (data) => ('hejsan' as const) );
 
-fltobsvble.subscribe({
-  next(value) {
-    console.log(value);
-  },
-});
+// fltobsvble.subscribe({
+//   next(value) {
+//     console.log(value);
+//   },
+// });

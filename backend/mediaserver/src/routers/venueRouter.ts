@@ -79,6 +79,10 @@ export const venueRouter = router({
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to clientState`);
     return attachFilteredEmitter(ctx.client.base.event, 'clientState', ctx.connectionId);
   }),
+  subSenderStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
+    log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to senderState`);
+    return attachFilteredEmitter(ctx.client.base.event, 'senderState', ctx.connectionId);
+  }),
   subSenderAddedOrRemoved: p.use(isVenueOwnerM).subscription(({ctx}) => {
     return attachFilteredEmitter(ctx.client.base.event, 'senderAddedOrRemoved', ctx.connectionId);
   }),

@@ -20,14 +20,11 @@ export const useAdminStore = defineStore('admin', () => {
     },
   });
 
-  connectionStore.client.venue.subClientStateUpdated.subscribe(undefined, {
+  connectionStore.client.venue.subSenderStateUpdated.subscribe(undefined, {
     onData(data) {
       console.log('received clientStateUpdated:', data);
-      const clientState = data.clientState;
-      if(clientState.clientType !== 'sender') {
-        return;
-      }
-      connectedSenders.set(clientState.connectionId ,clientState);
+      const senderState = data.senderState;
+      connectedSenders.set(senderState.connectionId ,senderState);
     },
   });
 

@@ -58,7 +58,7 @@ const uploadFiles = async () => {
         timeout: 60000,
       });
       console.log(response);
-      // create3DModel(response.data.modelUrl);
+      create3DModel(response.data.modelUrl);
     }
   } catch (err) {
     console.log(err);

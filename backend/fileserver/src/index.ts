@@ -15,7 +15,6 @@ app.get('/hello', (req,res) => {
 })
 
 app.post('/upload', (req,res) => {
-  res.setHeader('Content-Type', 'application/json');
 
   let data = {modelUrl:''}
 
@@ -36,33 +35,14 @@ app.post('/upload', (req,res) => {
     }
   })
   form.on('end', () => {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    // res.write(data)
-    res.end()
-    // res.send(data)
+    if(data.modelUrl !== ''){
+      res.end(JSON.stringify(data))
+    }
+    else {
+      res.status(403).end(JSON.stringify({msg: 'No file was attached'}));
+    }
   })
   form.parse(req)
-  // form.parse(req, (err, fields, files) => {
-  //   console.log(files)
-  //   // if(files.originalFilename){
-  //   //   const filenameSplit = Object.entries(files).forEach(([key, file]) => {
-  //   //     file.originalFilename.split('.');
-  //   //   const fileEnding = filenameSplit[filenameSplit.length-1]
-  //   //   if(fileEnding === 'gltf'){
-  //   //     mv(files.filepath, 'src/uploads/'+files.originalFilename, function(err) {
-  //   //       if(err){
-  //   //         console.log("Error", err)
-  //   //       }
-  //   //     });
-  //   //     data.modelUrl = 'src/uploads/'+files.originalFilename
-  //   //   }
-  //   //   else {
-  //   //     res.status(403).json({msg: 'Only .gltf files are allowed'});
-  //   //   }
-  //   // }
-  //   // }
-  // })
-  return
 })
 const port = process.env.FILESERVER_PORT?.split(':',)[1]
 app.listen(port, () => console.log('Application listening on port ' + port))

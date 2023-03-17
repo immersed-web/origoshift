@@ -34,20 +34,20 @@ export const printClientListeners = (clientList: Map<unknown, UserClient | Sende
   for(const client of clientList.values()){
     const clientObj: Record<string, unknown> = {};
     let emitters: [string, TypedEmitter][] = [
-      ['baseClientEvents', client.base.event],
+      ['clientEvents', client.clientEvent],
       // ['soupEvents', client.soupEvents],
     ];
     if(client instanceof UserClient){
       emitters = [
         ...emitters,
-        ['userClientEvents', client.event]
+        ['userClientEvents', client.userClientEvent]
         // ['vrEvents', client.vrEvents],
         // ['userEvents', client.userEvents],
       ];
     } else if(client instanceof SenderClient){
       emitters = [
         ...emitters,
-        ['senderClientEvents', client.event],
+        ['senderClientEvents', client.senderClientEvent],
       ];
     } else {
       log.warn('Not matching client instance type when trying to print listener stats');
@@ -63,7 +63,7 @@ export const printClientListeners = (clientList: Map<unknown, UserClient | Sende
       }
       clientObj[emitterName] = emitterObj;
     }
-    printObj[client.base.connectionId] = clientObj;
+    printObj[client.connectionId] = clientObj;
   }
   log.info(printObj);
 };

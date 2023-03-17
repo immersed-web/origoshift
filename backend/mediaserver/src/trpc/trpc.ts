@@ -66,7 +66,7 @@ export const isSenderClientM = middleware(({ctx, next}) =>{
 });
 
 export const isInVenueM = middleware(({ctx, next})=> {
-  const venue = ctx.client.base.venue;
+  const venue = ctx.client.venue;
   if(!venue) {
     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You have to be added to a venue before performing that action!'});
   }

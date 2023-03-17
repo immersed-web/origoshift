@@ -46,7 +46,7 @@ export const vrRouter = router({
     }),
     subClientTransforms: p.use(isUserClientM).use(currentVenueHasVrSpace).subscription(({ctx}) => {
       console.log(`${ctx.username} started subscription to transforms`);
-      return attachEmitter(ctx.client.event, 'clientTransforms');
+      return attachEmitter(ctx.client.userClientEvent, 'clientTransforms');
       // return attachEmitter(venue.vrSpace.emitter, 'transforms');
     })
   })

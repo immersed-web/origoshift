@@ -8,7 +8,7 @@ log.enable(process.env.DEBUG);
 import { ClientTransform, ClientTransforms, ConnectionId, UserId, UserRole, VenueId, CameraId, ClientType } from 'schemas';
 import { Venue } from './InternalClasses';
 import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
-import { BaseClient, AllClientEvents } from './InternalClasses';
+import { BaseClient } from './InternalClasses';
 
 
 // export type UserEvents = NonFilteredEvents<{
@@ -16,11 +16,15 @@ import { BaseClient, AllClientEvents } from './InternalClasses';
 // }>
 
 
-export type UserVrEvents = NonFilteredEvents<{
+type UserVrEvents = NonFilteredEvents<{
   'clientTransforms': (transforms: ClientTransforms) => void
 }>
 
-type UserClientEvents = UserVrEvents & AllClientEvents;
+
+type UserClientEvents = UserVrEvents
+& NonFilteredEvents<{
+  'myStateUpdated': (data: { myState: ReturnType<UserClient['getPublicState']>, reason?: string }) => void
+}>;
 
 
 // export type PublicUserClientState = {
@@ -47,7 +51,8 @@ export class UserClient extends BaseClient {
 
 
 
-    this.event = new TypedEmitter();
+    this.userClientEvent = new TypedEmitter();
+    // this.event = new TypedEmitter();
     // this.userEvents = new TypedEmitter();
     // this.vrEvents = new TypedEmitter();
 
@@ -58,7 +63,8 @@ export class UserClient extends BaseClient {
   transform: ClientTransform | undefined;
 
 
-  event: TypedEmitter<UserClientEvents>;
+  userClientEvent: TypedEmitter<UserClientEvents>;
+  // event: TypedEmitter<UserClientEvents>;
   // userEvents: TypedEmitter<UserEvents>;
   // vrEvents: TypedEmitter<UserVrEvents>;
 
@@ -121,7 +127,7 @@ export class UserClient extends BaseClient {
     }
     log.info(`emitting clientState for ${this.username} (${this.connectionId}) to itself`);
     // we emit the new clientstate to the client itself.
-    this.event.emit('clientState', {clientState: this.getPublicState(), reason });
+    this.userClientEvent.emit('myStateUpdated', {myState: this.getPublicState(), reason });
   }
 
   async joinVenue(venueId: VenueId) {

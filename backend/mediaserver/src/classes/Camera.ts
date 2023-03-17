@@ -44,12 +44,12 @@ export class Camera {
     if(cc){
       cc.removeClient(client);
     }
-    this.clients.set(client.base.connectionId, client);
+    this.clients.set(client.connectionId, client);
     client._setCamera(this.cameraId);
   }
 
   removeClient(client: UserClient){
-    const wasRemoved = this.clients.delete(client.base.connectionId);
+    const wasRemoved = this.clients.delete(client.connectionId);
     if(wasRemoved){
       client._setCamera();
     }

@@ -8,11 +8,11 @@ import { types as soupTypes } from 'mediasoup';
 import type { types as soupClientTypes } from 'mediasoup-client';
 import { ConsumerId, CreateProducerPayload, ProducerId, TransportId  } from 'schemas/mediasoup';
 import { SenderClient, UserClient, Venue } from './InternalClasses';
-import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
+import { CustomListenerSignature, FilteredEvents, NonFilteredEvents, SingleParamListenerSignature } from 'trpc/trpc-utils';
 import { randomUUID } from 'crypto';
 import { Prisma, userDeselectPassword, userSelectAll } from 'database';
 import prismaClient from '../modules/prismaClient';
-import { TypedEmitter } from 'tiny-typed-emitter';
+import { ListenerSignature, TypedEmitter } from 'tiny-typed-emitter';
 
 type SoupObjectClosePayload =
       {type: 'transport', id: TransportId }
@@ -28,7 +28,7 @@ type ClientSoupEvents = NonFilteredEvents<{
   // 'producerClosed': (producerId: ProducerId) => void
 }>
 
-// type ClientStateUnion = ReturnType<UserClient['getPublicState']> | ReturnType<SenderClient['getPublicState']>
+type ClientStateUnion = ReturnType<UserClient['getPublicState']> | ReturnType<SenderClient['getPublicState']>
 
 type ClientVenueEvents = FilteredEvents<{
   'clientAddedOrRemoved': (data: {client: ReturnType<UserClient['getPublicState']>, added: boolean}) => void,
@@ -38,10 +38,10 @@ type ClientVenueEvents = FilteredEvents<{
   'venueWasUnloaded': (venueId: VenueId) => void,
 }>
 
-type ClientClientEvents = NonFilteredEvents<{
-  'clientState': (data: { clientState: ReturnType<UserClient['getPublicState']>, reason?: string }) => void
-  'senderState': (data: { senderState: ReturnType<SenderClient['getPublicState']>, reason?: string }) => void
-}>
+type ClientClientEvents = FilteredEvents<{
+  'someClientStateUpdated': (data: { clientState: ClientStateUnion, reason?: string }) => void
+  // 'senderState': (data: { senderState: ReturnType<SenderClient['getPublicState']>, reason?: string }) => void
+}, ConnectionId>
 
 export type AllClientEvents = ClientSoupEvents & ClientVenueEvents & ClientClientEvents
 
@@ -72,22 +72,49 @@ export async function loadUserPrismaData(userId: UserId){
   // return response === null ? undefined : response;
   return response;
 }
+
+// type ConditionalEventType<E extends ListenerSignature<E>> = E extends ListenerSignature<E>? E: unknown;
+// class Animal<E extends ListenerSignature<E> = ListenerSignature<unknown>>{
+//   event: TypedEmitter<AllClientEvents>;
+//   constructor() {
+//     this.event = new TypedEmitter();
+//     this.event.emit('soupObjectClosed', {type: 'producer', id: 'asd' as ProducerId, reason: 'asdfasdf'});
+//     this.event.emit('producerPausedOrResumed', {producerId: 'aas' as ProducerId, wasPaused: true});
+//     // super();
+//     // this.emit('',);
+//   }
+// }
+
+
+// class Frog extends Animal<{jump: (msg: string) => void}> {
+//   constructor() {
+//     super();
+//     this.event.emit('jump', 'juuump');
+//     this.event.emit('soupObjectClosed', {type: 'producer', id: 'asas' as ProducerId, reason: 'aasfas'});
+//   }
+// }
+
 /**
  * @class
  * Base class for backend state of client connection. You should probably not use the base class directly.
  */
-export abstract class BaseClient {
+export class BaseClient {
   constructor({connectionId = ConnectionIdSchema.parse(randomUUID()), jwtUserData, prismaData}: ClientConstructorParams) {
+    // super();
     this.connectionId = connectionId;
     this.jwtUserData = jwtUserData;
     this.prismaData = prismaData;
 
+
+    this.clientEvent = new TypedEmitter();
+
     // this.event = new TypedEmitter();
     // this.soupEvents = new TypedEmitter();
     // this.venueEvents = new TypedEmitter();
-    // this.clientEvents = new TypedEmitter();
     // this.clientEvents.addListener('clientStateUpdated', (state) => log.info(`${this.userId} received clientStateUpdated event triggered by ${triggeringConnection}:`, state.clientPublicState));
   }
+
+  clientEvent: TypedEmitter<AllClientEvents>;
 
   connected = true;
 
@@ -134,7 +161,7 @@ export abstract class BaseClient {
   // soupEvents: TypedEmitter<ClientSoupEvents>;
   // venueEvents: TypedEmitter<ClientVenueEvents>;
   // clientEvents: TypedEmitter<ClientEvents>;
-  abstract event: TypedEmitter;
+  // abstract event: TypedEmitter;
 
   protected venueId?: VenueId;
   /**
@@ -205,7 +232,7 @@ export abstract class BaseClient {
     }
     transport.addListener('routerclose', () => {
       log.info('transport event: router closed');
-      this.event.emit('soupObjectClosed', {type: 'transport', id: transport.id as TransportId, reason: 'router was closed'});
+      this.clientEvent.emit('soupObjectClosed', {type: 'transport', id: transport.id as TransportId, reason: 'router was closed'});
       if(direction == 'receive'){
         this.receiveTransport = undefined;
       } else {
@@ -246,7 +273,7 @@ export abstract class BaseClient {
     producer.on('transportclose', () => {
       console.log(`transport for producer ${producer.id} was closed`);
       this.producers.delete(producer.id as ProducerId);
-      this.event.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'transport was closed'});
+      this.clientEvent.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'transport was closed'});
     });
     this.producers.set(producer.id as ProducerId, producer);
     return producer.id as ProducerId;
@@ -256,12 +283,12 @@ export abstract class BaseClient {
     if(this.sendTransport){
       this.sendTransport.close();
       // this.event.emit('transportClosed', this.sendTransport.id as TransportId);
-      this.event.emit('soupObjectClosed', {type: 'transport', id: this.sendTransport.id as TransportId, reason: 'closing all transports for client'});
+      this.clientEvent.emit('soupObjectClosed', {type: 'transport', id: this.sendTransport.id as TransportId, reason: 'closing all transports for client'});
       this.sendTransport = undefined;
     }
     if(this.receiveTransport){
       this.receiveTransport.close();
-      this.event.emit('soupObjectClosed', {type: 'transport', id: this.receiveTransport.id as TransportId, reason: 'closing all transports for client'});
+      this.clientEvent.emit('soupObjectClosed', {type: 'transport', id: this.receiveTransport.id as TransportId, reason: 'closing all transports for client'});
       this.receiveTransport = undefined;
     }
   }
@@ -270,7 +297,7 @@ export abstract class BaseClient {
     const producerArray = Array.from(this.producers.entries());
     for(const [producerKey, producer] of producerArray){
       producer.close();
-      this.event.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'closing all producers for client'});
+      this.clientEvent.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'closing all producers for client'});
       this.producers.delete(producerKey);
     }
     // this.room?.broadcastRoomState('a client closed all their producers');
@@ -280,7 +307,7 @@ export abstract class BaseClient {
     const consumerArray = Array.from(this.consumers.entries());
     for(const [consumerKey, consumer] of consumerArray){
       consumer.close();
-      this.event.emit('soupObjectClosed', {type: 'consumer', id: consumer.id as ConsumerId, reason: 'closing all consumers for client'});
+      this.clientEvent.emit('soupObjectClosed', {type: 'consumer', id: consumer.id as ConsumerId, reason: 'closing all consumers for client'});
       this.consumers.delete(consumerKey);
     }
   };

@@ -105,16 +105,16 @@ export class Venue {
    */
   addClient ( client : UserClient | SenderClient){
     if(client.clientType === 'client'){
-      this.clients.set(client.base.connectionId, client);
-      this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.base.connectionId);
+      this.clients.set(client.connectionId, client);
+      this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
     } else {
-      this.senderClients.set(client.base.connectionId, client);
-      this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: true}, client.base.connectionId);
+      this.senderClients.set(client.connectionId, client);
+      this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
     }
     // console.log('clients before add: ',this.clients);
     // console.log('clients after add: ',this.clients);
-    client.base._setVenue(this.venueId);
-    log.info(`Client (${client.clientType}) ${client.base.username} added to the venue ${this.prismaData.name}`);
+    client._setVenue(this.venueId);
+    log.info(`Client (${client.clientType}) ${client.username} added to the venue ${this.prismaData.name}`);
   }
 
   /**
@@ -122,7 +122,7 @@ export class Venue {
    * Also removes the client from camera or a vrSpace if its inside one
    */
   removeClient (client: UserClient | SenderClient) {
-    log.info(`removing ${client.base.username} (${client.base.connectionId}) from the venue ${this.name}`);
+    log.info(`removing ${client.username} (${client.connectionId}) from the venue ${this.name}`);
     if(client.clientType === 'client'){
       // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states?
       const camera = client.currentCamera;
@@ -133,13 +133,13 @@ export class Venue {
       if(vrSpace){
         vrSpace.removeClient(client);
       }
-      this.clients.delete(client.base.connectionId);
-      this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.base.connectionId);
+      this.clients.delete(client.connectionId);
+      this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
     } else {
-      this.senderClients.delete(client.base.connectionId);
-      this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: false}, client.base.connectionId);
+      this.senderClients.delete(client.connectionId);
+      this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
     }
-    client.base._setVenue(undefined);
+    client._setVenue(undefined);
 
     // If this was the last client in the venue, lets unload it!
     if(this._isEmpty){
@@ -147,12 +147,12 @@ export class Venue {
     }
   }
 
-  emitToAllClients: BaseClient['event']['emit'] = (event, ...args) => {
+  emitToAllClients: BaseClient['clientEvent']['emit'] = (event, ...args) => {
     log.info(`emitting ${event} to all clients`);
     let allEmittersHadListeners = true;
     this.clients.forEach((client) => {
-      log.debug('emitting to client: ', client.base.username);
-      allEmittersHadListeners &&= client.base.event.emit(event, ...args);
+      log.debug('emitting to client: ', client.username);
+      allEmittersHadListeners &&= client.clientEvent.emit(event, ...args);
     });
     if(!allEmittersHadListeners){
       log.warn(`at least one client didnt have any listener registered for the ${event} event type`);

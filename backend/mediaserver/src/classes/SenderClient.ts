@@ -1,6 +1,6 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { NonFilteredEvents } from 'trpc/trpc-utils';
-import { BaseClient, Venue, AllClientEvents } from './InternalClasses';
+import { BaseClient, Venue } from './InternalClasses';
 
 import { Log } from 'debug-level';
 import { ClientType, VenueId } from 'schemas';
@@ -13,9 +13,12 @@ log.enable(process.env.DEBUG);
 
 type SenderControlEvents = NonFilteredEvents<{
   'startProduceVideoRequest': () => void
-  'startProducerAudioRequest': () => void
+  'startProduceAudioRequest': () => void
 }>
-type SenderClientEvents =  SenderControlEvents & AllClientEvents
+type SenderClientEvents =  SenderControlEvents
+& NonFilteredEvents<{
+  'myStateUpdated': (data: { myState: ReturnType<SenderClient['getPublicState']>, reason?: string }) => void
+}>;
 
 export class SenderClient extends BaseClient{
   constructor(...args: ConstructorParameters<typeof BaseClient>){
@@ -25,12 +28,12 @@ export class SenderClient extends BaseClient{
     log.debug('prismaData:', this.prismaData);
 
 
-    this.event = new TypedEmitter();
+    this.senderClientEvent = new TypedEmitter();
   }
   readonly clientType = 'sender' as const satisfies ClientType;
 
   // base: BaseClient;
-  event: TypedEmitter<SenderClientEvents>;
+  senderClientEvent: TypedEmitter<SenderClientEvents>;
 
   getPublicState(){
     // const { connectionId, userId, username } = this.base;
@@ -49,7 +52,7 @@ export class SenderClient extends BaseClient{
       return;
     }
     log.info(`emitting clientState for ${this.username} (${this.connectionId}) to itself`);
-    this.event.emit('senderState', {senderState: this.getPublicState(), reason }, );
+    this.senderClientEvent.emit('myStateUpdated', {myState: this.getPublicState(), reason});
   }
 
   unload() {

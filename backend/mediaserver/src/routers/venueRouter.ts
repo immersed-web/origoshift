@@ -7,7 +7,7 @@ import { hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } fr
 import { z } from 'zod';
 import { procedure as p, atLeastModeratorP, router, isInVenueM, atLeastSenderP, isUserClientM, isSenderClientM, isVenueOwnerM, clientInVenueP } from '../trpc/trpc';
 // import Venue from '../classes/Venue';
-import { Venue } from '../classes/InternalClasses';
+import { UserClient, Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
 import { TRPCError } from '@trpc/server';
 import type { Prisma } from 'database';
@@ -47,18 +47,18 @@ export const venueRouter = router({
     return venue.getPublicState();
   }),
   subVenueUnloaded: p.subscription(({ctx}) => {
-    attachEmitter(ctx.client.base.event, 'venueWasUnloaded');
+    attachEmitter(ctx.client.clientEvent, 'venueWasUnloaded');
   }),
   listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
-    return ctx.client.base.ownedVenues.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));
+    return ctx.client.ownedVenues.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));
   }),
   listAllowedVenues: p.query(({ctx}) => {
-    return ctx.client.base.allowedVenues.map(({venueId, name}) => {
+    return ctx.client.allowedVenues.map(({venueId, name}) => {
       return {venueId: venueId as VenueId, name};
     });
   }),
   subClientAddedOrRemoved: p.use(isUserClientM).subscription(({ctx}) => {
-    return attachFilteredEmitter(ctx.client.base.event, 'clientAddedOrRemoved', ctx.connectionId);
+    return attachFilteredEmitter(ctx.client.clientEvent, 'clientAddedOrRemoved', ctx.connectionId);
   }),
   listLoadedVenues: p.query(({ctx}) => {
     return Venue.getLoadedVenues();
@@ -70,21 +70,29 @@ export const venueRouter = router({
   ).mutation(async ({input, ctx}) => {
     log.info(`request received to join venue as ${ctx.client.clientType}:`, input.venueId);
     await ctx.client.joinVenue(input.venueId);
-    return ctx.client.base.venue?.getPublicState();
+    return ctx.client.venue?.getPublicState();
   }),
   getVenueState: clientInVenueP.query(({ctx}) => {
     return ctx.venue.getPublicState();
   }),
-  subClientStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
+  subSomeClientStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to clientState`);
-    return attachFilteredEmitter(ctx.client.event, 'clientState', ctx.connectionId);
+    return attachFilteredEmitter(ctx.client.clientEvent, 'someClientStateUpdated', (data) => {
+      if(data.clientState.connectionId === ctx.connectionId) return false;
+      if(data.clientState.clientType === 'sender') return false;
+      return true;
+    }, ({clientState, reason}) => ({clientState: clientState as ReturnType<UserClient['getPublicState']>, reason}));
   }),
-  subSenderStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
+  subSomeSenderStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to senderState`);
-    return attachFilteredEmitter(ctx.client.event, 'senderState', ctx.connectionId);
+    return attachFilteredEmitter(ctx.client.clientEvent, 'someClientStateUpdated', (data) => {
+      if(data.clientState.connectionId === ctx.connectionId) return false;
+      if(data.clientState.clientType === 'client') return false;
+      return true;
+    }, ({clientState, reason}) => ({clientState: clientState as ReturnType<UserClient['getPublicState']>, reason}));
   }),
   subSenderAddedOrRemoved: p.use(isVenueOwnerM).subscription(({ctx}) => {
-    return attachFilteredEmitter(ctx.client.event, 'senderAddedOrRemoved', ctx.connectionId);
+    return attachFilteredEmitter(ctx.client.clientEvent, 'senderAddedOrRemoved', ctx.connectionId);
   }),
   // joinVenueAsSender: atLeastSenderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
   //   .mutation(async ({ctx, input}) =>{

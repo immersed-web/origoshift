@@ -57,11 +57,7 @@ export const soupRouter = router({
     }
     const producerId = await client.createProducer(input);
     log.info('gonna emit clientStateUpdated!');
-    if(client.clientType === 'client'){
-      ctx.venue.emitToAllClients('clientState', { clientState: client.getPublicState(), reason: 'client created producer' });
-    } else {
-      ctx.venue.emitToAllClients('senderState', {senderState: client.getPublicState(), reason: 'sender created producer'});
-    }
+    ctx.venue.emitToAllClients('someClientStateUpdated', { clientState: client.getPublicState(), reason: `client (${client.clientType}) created producer` });
     return producerId;
   }),
   closeProducer: clientInVenueP.input(z.object({producerId:z.string().uuid()})).mutation(({input, ctx}) => {
@@ -146,7 +142,7 @@ export const soupRouter = router({
 
   // }),
   subSoupObjectClosed: p.subscription(({ctx}) => {
-    return attachEmitter(ctx.client.event, 'soupObjectClosed');
+    return attachEmitter(ctx.client.clientEvent, 'soupObjectClosed');
     // return 'Not implemented yet' as const;
   })
 });

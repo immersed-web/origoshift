@@ -22,7 +22,7 @@
     <div>
       Inställningar för VR-lobby...
       <div v-if="venueStore.currentVenue?.vrSpace">
-        {{ venueStore.currentVenue.vrSpace }}
+        <AdminUploadModelForm />
       </div>
     </div>
   </div>
@@ -32,6 +32,7 @@
 import { useRouter } from 'vue-router';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useVenueStore } from '@/stores/venueStore';
+import AdminUploadModelForm from '@/components/venue/AdminUploadModelForm.vue';
 
 // Use imports
 const router = useRouter();

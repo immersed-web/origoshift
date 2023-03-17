@@ -7,7 +7,7 @@ import { hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } fr
 import { z } from 'zod';
 import { procedure as p, atLeastModeratorP, router, isInVenueM, atLeastSenderP, isUserClientM, isSenderClientM, isVenueOwnerM, clientInVenueP } from '../trpc/trpc';
 // import Venue from '../classes/Venue';
-import { UserClient, Venue } from '../classes/InternalClasses';
+import { SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
 import { TRPCError } from '@trpc/server';
 import type { Prisma } from 'database';
@@ -89,7 +89,7 @@ export const venueRouter = router({
       if(data.clientState.connectionId === ctx.connectionId) return false;
       if(data.clientState.clientType === 'client') return false;
       return true;
-    }, ({clientState, reason}) => ({clientState: clientState as ReturnType<UserClient['getPublicState']>, reason}));
+    }, ({clientState, reason}) => ({senderState: clientState as ReturnType<SenderClient['getPublicState']>, reason}));
   }),
   subSenderAddedOrRemoved: p.use(isVenueOwnerM).subscription(({ctx}) => {
     return attachFilteredEmitter(ctx.client.clientEvent, 'senderAddedOrRemoved', ctx.connectionId);

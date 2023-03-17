@@ -3,7 +3,7 @@ import type { inferRouterOutputs, inferRouterInputs } from '@trpc/server';
 import type { inferObservableValue } from '@trpc/server/observable';
 import { createWSClient } from './customWsLink';
 import type { AppRouter } from 'mediaserver';
-import type { ConnectionType } from 'schemas';
+import type { ClientType } from 'schemas';
 import superjson from 'superjson';
 // import { guestAutoToken, loginWithAutoToken, getToken } from '@/modules/authClient';
 
@@ -30,7 +30,7 @@ export const clientOrThrow: ComputedRef<CreateTRPCProxyClient<AppRouter>> = comp
 
 export let wsClient: ReturnType<typeof createWSClient> | undefined;
 
-let currentClientType: ConnectionType | undefined;
+let currentClientType: ClientType | undefined;
 
 function buildConnectionUrl(token:string, connectAsSender?: boolean){
   if(connectAsSender){
@@ -43,7 +43,7 @@ export type RouterOutputs = inferRouterOutputs<AppRouter>
 export type RouterInputs = inferRouterInputs<AppRouter>
 export type SubscriptionValue<Subscription> = inferObservableValue<Subscription>;
 
-export const createTrpcClient = (getToken: () => string, clientType: ConnectionType = 'client' ) => {
+export const createTrpcClient = (getToken: () => string, clientType: ClientType = 'client' ) => {
   if(trpcClient.value && currentClientType === clientType){
     console.warn(`Eeeeeh. You are creating a new (${clientType}) trpc-client when there is already one running. Are you suuure you know what you are doing?? I am rather sure you dont wanna do this :-P`);
   }

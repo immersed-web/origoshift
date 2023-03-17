@@ -20,7 +20,7 @@ export const useAdminStore = defineStore('admin', () => {
     },
   });
 
-  connectionStore.client.venue.subSenderStateUpdated.subscribe(undefined, {
+  connectionStore.client.venue.subSomeSenderStateUpdated.subscribe(undefined, {
     onData(data) {
       console.log('received clientStateUpdated:', data);
       const senderState = data.senderState;

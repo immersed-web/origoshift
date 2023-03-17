@@ -1,35 +1,35 @@
 <template>
-  <div class="navbar bg-primary text-white">
+  <div class="text-white navbar bg-primary">
     <div class="flex-1">
       <RouterLink
         :to="{name: authStore.routePrefix + 'Home'}"
-        class="btn btn-ghost normal-case text-xl"
+        class="text-xl normal-case btn btn-ghost"
       >
         OrigoShift
       </RouterLink>
     </div>
     <div class="flex-none">
-      <div class="dropdown dropdown-end text-black">
+      <div class="text-black dropdown dropdown-end">
         <label
           tabindex="0"
           class="btn btn-ghost btn-circle avatar"
         >
           <div class="avatar placeholder">
-            <div class="bg-neutral-focus text-neutral-content rounded-full w-10">
+            <div class="w-10 rounded-full bg-neutral-focus text-neutral-content">
               <span>{{ clientStore.initials }}</span>
             </div>
           </div>
         </label>
         <ul
           tabindex="0"
-          class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
+          class="p-2 mt-3 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52"
         >
           <li>
             <RouterLink :to="{name: authStore.routePrefix + 'Home'}">
-              @{{ clientStore.clientState.userName }}
+              @{{ clientStore.clientState.username }}
             </RouterLink>
           </li>
-          <div class="divider m-0" />
+          <div class="m-0 divider" />
 
           <li><a>Mina event</a></li>
           <li>

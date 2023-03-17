@@ -22,7 +22,7 @@ export const useClientStore = defineStore('client', {
       return !!state.clientState.userId;
     },
     initials: (state) => {
-      return state.clientState.userName ? state.clientState.userName.split(' ').map(n => n[0]).join('') : '';
+      return state.clientState.username ? state.clientState.username.split(' ').map(n => n[0]).join('') : '';
     },
   },
   actions: {
@@ -33,10 +33,10 @@ export const useClientStore = defineStore('client', {
       // await startLoggedInClient(username, password);
       this.clientState = await clientOrThrow.value.user.getClientState.query();
       // await this.updateClientState();
-      clientOrThrow.value.user.subClientState.subscribe(undefined, {
+      clientOrThrow.value.user.subOwnClientState.subscribe(undefined, {
         onData: (data) => {
           console.log(`clientState received. Reason: ${data.reason}`);
-          this.clientState = data.clientState;
+          this.clientState = data.myState;
         },
       });
       // await this.queryVenuesAll();

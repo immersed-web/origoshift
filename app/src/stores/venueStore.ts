@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { ref } from 'vue';
-import { VenueUpdateSchema, type VenueId, type VenueUpdate } from 'schemas';
+import type { VenueUpdateSchema, VenueId, VenueUpdate } from 'schemas';
 // import { clientOrThrow } from '@/modules/trpcClient';
 import { useConnectionStore } from '@/stores/connectionStore';
 

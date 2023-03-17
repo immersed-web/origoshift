@@ -2,14 +2,14 @@ import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useClientStore } from '@/stores/clientStore';
 // import { useSenderStore } from '@/stores/senderStore';
-import { hasAtLeastSecurityLevel, type UserRole, type ConnectionType } from 'schemas';
+import { hasAtLeastSecurityLevel, type UserRole, type ClientType } from 'schemas';
 import { createRouter, createWebHistory } from 'vue-router';
 
 declare module 'vue-router' {
   interface RouteMeta {
     // noAuth?: boolean
     // requiresAuth?: boolean
-    requiredConnection?: ConnectionType
+    requiredConnection?: ClientType
     requiredRole?: UserRole
     afterLoginRedirect?: string
     loginNeededRedirect?: 'cameraLogin' | 'login'

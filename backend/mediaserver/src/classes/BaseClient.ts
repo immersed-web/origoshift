@@ -186,7 +186,7 @@ export class BaseClient {
     return {
       connectionId: this.connectionId,
       userId: this.userId,
-      userName: this.username,
+      username: this.username,
       role: this.role,
       currentVenueId: this.venue?.venueId,
     };

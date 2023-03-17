@@ -1,10 +1,10 @@
 <template>
   <div>
-    <h1 class="text-5xl font-bold mb-4">
-      Välkommen {{ clientStore.clientState.userName }}
+    <h1 class="mb-4 text-5xl font-bold">
+      Välkommen {{ clientStore.clientState.username }}
     </h1>
     <div>
-      <h2 class="text-3xl font-bold mb-2">
+      <h2 class="mb-2 text-3xl font-bold">
         Mina event
       </h2>
       <div class="flex space-x-2">

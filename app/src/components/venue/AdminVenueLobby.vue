@@ -22,6 +22,7 @@
     <div>
       Inställningar för VR-lobby...
       <div v-if="venueStore.currentVenue?.vrSpace">
+        {{ venueStore.currentVenue?.vrSpace }}
         <AdminUploadModelForm />
       </div>
     </div>

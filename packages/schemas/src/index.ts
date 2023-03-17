@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { JwtPayload as JwtShapeFromLib } from 'jsonwebtoken'
-import { Role, Venue } from "database";
+import { Role, Venue, VirtualSpace3DModel } from "database";
 import { toZod } from "tozod";
 
 type RemoveIndex<T> = {
@@ -123,6 +123,11 @@ export const VenueUpdateSchema = z.object({
   name: z.string().optional(),
 }) satisfies z.ZodType<Partial<Venue>>
 export type VenueUpdate = z.infer<typeof VenueUpdateSchema>
+
+export const VirtualSpace3DModelCreateSchema = z.object({
+  modelUrl: z.string()
+}) satisfies z.ZodType<Partial<VirtualSpace3DModel>>
+export type VirtualSpace3DCreate = z.infer<typeof VirtualSpace3DModelCreateSchema>
 
 export const CameraIdSchema = UuidSchema.brand<'CameraId'>();
 export type CameraId = z.infer<typeof CameraIdSchema>;

@@ -1,7 +1,6 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import formidable, {IncomingForm} from 'formidable';
-import mv from 'mv'
 
 // Init app
 const app : Express = express()
@@ -16,16 +15,54 @@ app.get('/hello', (req,res) => {
 })
 
 app.post('/upload', (req,res) => {
-  const form = new IncomingForm()
+  res.setHeader('Content-Type', 'application/json');
+
+  let data = {modelUrl:''}
+
+  const form = formidable({uploadDir: 'src/uploads', filename(name, ext, part, form) {
+    return part.originalFilename ? part.originalFilename : ''
+  },})
   form.on('file', (field, file) => {
-    mv(file.filepath, 'src/uploads/'+file.originalFilename, function(err) {
-      console.log(err)
-    });
+    console.log(field,file.originalFilename)
+    if(file.originalFilename){
+      const filenameSplit = file.originalFilename.split('.');
+      const fileEnding = filenameSplit[filenameSplit.length-1]
+      if(fileEnding === 'gltf'){
+        data.modelUrl = 'src/uploads/'+file.originalFilename
+      }
+      else {
+        res.status(403).json({msg: 'Only .gltf files are allowed'});
+      }
+    }
   })
   form.on('end', () => {
-    res.json()
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    // res.write(data)
+    res.end()
+    // res.send(data)
   })
   form.parse(req)
+  // form.parse(req, (err, fields, files) => {
+  //   console.log(files)
+  //   // if(files.originalFilename){
+  //   //   const filenameSplit = Object.entries(files).forEach(([key, file]) => {
+  //   //     file.originalFilename.split('.');
+  //   //   const fileEnding = filenameSplit[filenameSplit.length-1]
+  //   //   if(fileEnding === 'gltf'){
+  //   //     mv(files.filepath, 'src/uploads/'+files.originalFilename, function(err) {
+  //   //       if(err){
+  //   //         console.log("Error", err)
+  //   //       }
+  //   //     });
+  //   //     data.modelUrl = 'src/uploads/'+files.originalFilename
+  //   //   }
+  //   //   else {
+  //   //     res.status(403).json({msg: 'Only .gltf files are allowed'});
+  //   //   }
+  //   // }
+  //   // }
+  // })
+  return
 })
 const port = process.env.FILESERVER_PORT?.split(':',)[1]
 app.listen(port, () => console.log('Application listening on port ' + port))

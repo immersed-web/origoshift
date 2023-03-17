@@ -3,7 +3,7 @@ const log = new Log('VR:Router');
 process.env.DEBUG = 'VR:Router*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { ClientTransformSchema } from 'schemas';
+import { ClientTransformSchema, VirtualSpace3DModelCreateSchema } from 'schemas';
 import { procedure as p, router, isVenueOwnerM, isUserClientM, userInVenueP, currentVenueAdminP, currentVenueHasVrSpace, currentVenueHasNoVrSpace } from '../trpc/trpc';
 import { attachEmitter } from '../trpc/trpc-utils';
 import { TRPCError } from '@trpc/server';
@@ -26,6 +26,9 @@ export const vrRouter = router({
   }),
   getState: userInVenueP.use(currentVenueHasVrSpace).query(({ctx}) => {
     ctx.vrSpace.getPublicState();
+  }),
+  create3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpace).input(VirtualSpace3DModelCreateSchema).mutation(({input, ctx}) => {
+    ctx.venue.Create3DModel(input.modelUrl);
   }),
   transforms: router({
     updateTransform: userInVenueP.use(currentVenueHasVrSpace).input(ClientTransformSchema).mutation(({input, ctx}) =>{

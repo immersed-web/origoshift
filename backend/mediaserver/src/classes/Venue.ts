@@ -218,13 +218,15 @@ export class Venue {
         virtualSpace3DModel: true,
       },
       data: {
-        virtualSpace3DModel: {
-          create: {
-            scale: 1,
-            modelUrl: 'google.com',
-            navmeshUrl: 'google.se'
-          }
-        },
+
+        // virtualSpace3DModel:  {
+
+        //   // create: {
+        //   //   scale: 1,
+        //   //   modelUrl: 'google.com',
+        //   //   navmeshUrl: 'google.se'
+        //   // }
+        // },
         settings: {
           cool: 'asdfasdf',
         },
@@ -233,6 +235,22 @@ export class Venue {
         }
       }
     });
+  }
+
+  async Create3DModel(modelUrl: string) {
+    if(this.prismaData.virtualSpace){
+      this.prismaData.virtualSpace.virtualSpace3DModel = await prisma.virtualSpace3DModel.create({
+        data: {
+          modelUrl: modelUrl,
+          navmeshUrl: '',
+          public: false,
+          scale: 1,
+          virtualSpaces: {
+            connect: {vrId: this.prismaData.virtualSpace.vrId}
+          }
+        },
+      });
+    }
   }
 
   // Static stuff for global housekeeping
@@ -250,19 +268,19 @@ export class Venue {
           },
           settings: {coolSetting: 'aaaww yeeeah'},
           startTime: new Date(),
-          virtualSpace: {
-            create: {
-              virtualSpace3DModel: {
-                create: {
-                  scale: 1,
-                  modelUrl: 'google.com',
-                  navmeshUrl: 'google.se'
-                }
-              },
-              settings: {
-              }
-            }
-          }
+          // virtualSpace: {
+          //   create: {
+          //     virtualSpace3DModel: {
+          //       create: {
+          //         scale: 1,
+          //         modelUrl: 'google.com',
+          //         navmeshUrl: 'google.se'
+          //       }
+          //     },
+          //     settings: {
+          //     }
+          //   }
+          // }
         }
       });
 

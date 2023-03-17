@@ -55,6 +55,15 @@ model Venue {
   @@unique([ownerId, venueId])
 }
 
+model VirtualSpace {
+  vrId                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  settings              Json
+  venue                 Venue                @relation(fields: [ownerVenueId], references: [venueId], onDelete: Cascade)
+  ownerVenueId          String               @unique @db.Uuid
+  virtualSpace3DModel   VirtualSpace3DModel? @relation(fields: [virtualSpace3DModelId], references: [modelId])
+  virtualSpace3DModelId String?              @db.Uuid
+}
+
 model VirtualSpace3DModel {
   modelId       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   modelUrl      String
@@ -62,15 +71,6 @@ model VirtualSpace3DModel {
   public        Boolean        @default(false)
   scale         Float
   virtualSpaces VirtualSpace[]
-}
-
-model VirtualSpace {
-  vrId                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  settings              Json
-  venue                 Venue               @relation(fields: [ownerVenueId], references: [venueId], onDelete: Cascade)
-  ownerVenueId          String              @unique @db.Uuid
-  virtualSpace3DModel   VirtualSpace3DModel @relation(fields: [virtualSpace3DModelId], references: [modelId])
-  virtualSpace3DModelId String              @db.Uuid
 }
 
 model Camera {

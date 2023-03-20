@@ -4,9 +4,9 @@ process.env.DEBUG = 'Soup:Router*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import { TRPCError } from '@trpc/server';
-import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId, RtpCapabilitiesSchema, CreateConsumerPayloadSchema, ProducerIdSchema } from 'schemas/mediasoup';
+import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId, RtpCapabilitiesSchema, CreateConsumerPayloadSchema, ProducerIdSchema, ConsumerId } from 'schemas/mediasoup';
 import { z } from 'zod';
-import { procedure as p, clientInVenueP, router } from '../trpc/trpc';
+import { procedure as p, clientInVenueP, router, userClientP } from '../trpc/trpc';
 import { attachEmitter, attachFilteredEmitter } from '../trpc/trpc-utils';
 import { CameraIdSchema } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
@@ -56,91 +56,105 @@ export const soupRouter = router({
       throw new TRPCError({code: 'BAD_REQUEST', message:'the provided transporId didnt match the id of the sendTransport'});
     }
     const producerId = await client.createProducer(input);
-    log.info('gonna emit clientStateUpdated!');
-    ctx.venue.emitToAllClients('someClientStateUpdated', { clientState: client.getPublicState(), reason: `client (${client.clientType}) created producer` });
+    log.info('gonna emit producerCreated');
+    ctx.venue.emitToAllClients('producerCreated', {producerId, producingClient: ctx.connectionId});
+    // ctx.venue.emitToAllClients('someClientStateUpdated', { clientState: client.getPublicState(), reason: `client (${client.clientType}) created producer` });
     return producerId;
   }),
   closeProducer: clientInVenueP.input(z.object({producerId:z.string().uuid()})).mutation(({input, ctx}) => {
     return 'Not implemented yet' as const;
   }),
-  consumeCamera: clientInVenueP.input(z.object({cameraId: CameraIdSchema, producerId: ProducerIdSchema})).mutation(({ctx, input}) => {
-    return 'NOT IMPLEMENTED YET :-(';
+  subProducerCreated: userClientP.subscription(({ctx}) => {
+    return attachFilteredEmitter(ctx.client.clientEvent, 'producerCreated', ctx.connectionId);
   }),
-  // createConsumer: clientInVenueP.input(CreateConsumerPayloadSchema).mutation(({ctx, input}) => {
-  //   log.info('received createConsumer request');
-  //   const client = ctx.client;
-  //   if(!client.receiveTransport){
-  //     throw new TRPCError({code:'PRECONDITION_FAILED', message:'sendTransport is undefined. Need a sendtransport to produce'});
-  //   }
+  consumeCamera: clientInVenueP.input(z.object({cameraId: CameraIdSchema, producerId: ProducerIdSchema})).mutation(({ctx, input}) => {
+    return 'NOT IMPLEMENTED YET :-(' as const;
+  }),
+  createConsumer: clientInVenueP.input(CreateConsumerPayloadSchema).mutation(async ({ctx, input}) => {
+    log.info('received createConsumer request');
+    const client = ctx.client;
+    if(!client.receiveTransport){
+      throw new TRPCError({code:'PRECONDITION_FAILED', message:'A transport is required to create a consumer'});
+    }
 
+    if(!client.rtpCapabilities){
+      throw Error('rtpCapabilities of client unknown. Provide them before requesting to consume');
+    }
+    const requestedProducerId = input.producerId;
+    const canConsume = ctx.venue.router.canConsume({producerId: requestedProducerId, rtpCapabilities: client.rtpCapabilities});
+    if( !canConsume){
+      throw new TRPCError({code: 'BAD_REQUEST', message: 'Client is not capable of consuming the producer according to provided rtpCapabilities'});
+    }
 
-  //         if(!client.rtpCapabilities){
-  //           throw Error('rtpCapabilities of client unknown. Provide them before requesting to consume');
-  //         }
-  //         const requestedProducerId = input.producerId;
-  //         const canConsume = ctx.venue.router.canConsume({producerId: requestedProducerId, rtpCapabilities: client.rtpCapabilities});
-  //         if( !canConsume){
-  //           throw new TRPCError({code: 'BAD_REQUEST', message: 'Client is not capable of consuming the producer according to provided rtpCapabilities'});
-  //         }
-  //         const producer = ctx.venue.producers.get(requestedProducerId);
-  //         if(!producer){
-  //           throw Error('no producer with that id found in current room!');
-  //         }
+    const consumer = await client.receiveTransport.consume({
+      producerId: input.producerId,
+      rtpCapabilities: client.rtpCapabilities,
+      paused: true,
+    });
 
-  //         if(!this.receiveTransport){
-  //           throw Error('A transport is required to create a consumer');
-  //         }
+    const consumerId = consumer.id as ConsumerId;
 
-  //         const consumer = await this.receiveTransport.consume({
-  //           producerId: producer.id,
-  //           rtpCapabilities: this.rtpCapabilities,
-  //           paused: true,
-  //         });
+    client.consumers.set(consumerId, consumer);
 
-  //         this.consumers.set(consumer.id, consumer);
+    consumer.on('transportclose', () => {
+      console.log(`---consumer transport close--- clientConnection: ${ctx.connectionId} consumer_id: ${consumerId}`);
+      // this.send(createMessage('notifyCloseEvent', {
+      //   objectType: 'consumer',
+      //   objectId: consumer.id,
+      // }));
+      // this.consumers.delete(consumer.id);
+      // this.onClientStateUpdated('transport for a consumer closed');
 
-  //         consumer.on('transportclose', () => {
-  //           console.log(`---consumer transport close--- client: ${this.id} consumer_id: ${consumer.id}`);
-  //           this.send(createMessage('notifyCloseEvent', {
-  //             objectType: 'consumer',
-  //             objectId: consumer.id,
-  //           }));
-  //           this.consumers.delete(consumer.id);
-  //           this.onClientStateUpdated('transport for a consumer closed');
-  //         });
+      client.consumers.delete(consumerId);
 
-  //         consumer.on('producerclose', () => {
-  //           console.log(`the producer associated with consumer ${consumer.id} closed so the consumer was also closed`);
-  //           this.send(createMessage('notifyCloseEvent', {
-  //             objectType: 'consumer',
-  //             objectId: consumer.id
-  //           }));
-  //           this.consumers.delete(consumer.id);
-  //         });
+      client.clientEvent.emit('soupObjectClosed', {
+        type: 'consumer',
+        id: consumerId,
+        reason: 'transport for the consumer was closed'
+      });
+    });
 
-  //         consumer.on('producerpause', () => {
-  //           console.log('producer was paused! Handler NOT IMPLEMENTED YET!');
-  //         });
-  //         consumer.on('producerresume', () => {
-  //           console.log('producer was resumed! Handler NOT IMPLEMENTED YET!');
-  //         });
+    consumer.on('producerclose', () => {
+      console.log(`the producer associated with consumer ${consumer.id} closed so the consumer was also closed`);
+      // this.send(createMessage('notifyCloseEvent', {
+      //   objectType: 'consumer',
+      //   objectId: consumer.id
+      // }));
+      // this.consumers.delete(consumer.id);
+      client.consumers.delete(consumerId);
+      client.clientEvent.emit('soupObjectClosed', {
+        type: 'consumer',
+        id: consumerId,
+        reason: 'producer for the consumer was closed'
+      });
+    });
 
-  //         const {id, producerId, kind, rtpParameters} = consumer;
+    consumer.on('producerpause', () => {
+      console.log('producer was paused! Handler NOT IMPLEMENTED YET!');
+    });
+    consumer.on('producerresume', () => {
+      console.log('producer was resumed! Handler NOT IMPLEMENTED YET!');
+    });
 
-  //         response = createResponse('createConsumer', msg.id, {
-  //           wasSuccess: true,
-  //           data: {
-  //             id, producerId, kind, rtpParameters
-  //           }
-  //         });
-  //       } catch (e) {
-  //         response = createResponse('createConsumer', msg.id, {
-  //           wasSuccess: false,
-  //           message: extractMessageFromCatch(e, 'failed to create consumer'),
-  //         });
-  //       }
+    const {id, producerId, kind, rtpParameters} = consumer;
+    return {
+      id, producerId, kind, rtpParameters
+    };
 
-  // }),
+    //         response = createResponse('createConsumer', msg.id, {
+    //           wasSuccess: true,
+    //           data: {
+    //             id, producerId, kind, rtpParameters
+    //           }
+    //         });
+    //       } catch (e) {
+    //         response = createResponse('createConsumer', msg.id, {
+    //           wasSuccess: false,
+    //           message: extractMessageFromCatch(e, 'failed to create consumer'),
+    //         });
+    //       }
+
+  }),
   subSoupObjectClosed: p.subscription(({ctx}) => {
     return attachEmitter(ctx.client.clientEvent, 'soupObjectClosed');
     // return 'Not implemented yet' as const;

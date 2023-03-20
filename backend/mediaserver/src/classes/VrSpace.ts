@@ -8,10 +8,12 @@ const log = new Log('VR:Space');
 process.env.DEBUG = 'VR:Space*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
+type ReceivedVirtualSpace = Exclude<Venue['prismaData']['virtualSpace'], null>;
+
 export class VrSpace {
   private _isOpen = false;
   private venue: Venue;
-  private prismaData: VirtualSpace;
+  private prismaData: ReceivedVirtualSpace
   private clients: Venue['clients'];
 
   get vrSpaceId() {
@@ -24,7 +26,7 @@ export class VrSpace {
 
 
   pendingTransforms: ClientTransforms = {};
-  constructor(venue: Venue, vrSpace: VirtualSpace){
+  constructor(venue: Venue, vrSpace: ReceivedVirtualSpace){
     this.venue = venue;
     this.prismaData = vrSpace;
     this.clients = new Map();

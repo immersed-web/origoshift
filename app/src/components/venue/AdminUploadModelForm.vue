@@ -24,7 +24,7 @@
 
 <script setup lang="ts">
 
-import { type Ref, ref } from 'vue';
+import { type Ref, ref, computed } from 'vue';
 import axios from 'axios';
 import { useConnectionStore } from '@/stores/connectionStore';
 
@@ -65,7 +65,6 @@ const uploadFiles = async () => {
     // throw new Error(err);
   }
 };
-// };
 
 const create3DModel = async (modelUrl: string) => {
   await connectionStore.client.vr.create3DModel.mutate({modelUrl});

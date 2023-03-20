@@ -20,12 +20,17 @@
       </button>
     </div>
     <div>
-      Inställningar för VR-lobby...
+      <p>
+        Inställningar för VR-lobby...
+      </p>
       <div v-if="venueStore.currentVenue?.vrSpace">
-        {{ venueStore.currentVenue?.vrSpace }}
+        <h3>3D-modell</h3>
+        <!-- TODO: Why isn't virtualSpace3DModel recognised by TS? -->
+        {{venueStore.currentVenue.vrSpace.virtualSpace3DModel}}
         <AdminUploadModelForm />
       </div>
     </div>
+    {{ venueStore.currentVenue?.vrSpace }}
   </div>
 </template>
 

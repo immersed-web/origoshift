@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { router, procedure as p, isInCameraM, userInVenueP, userClientP} from '../trpc/trpc';
 import { CameraIdSchema } from 'schemas';
 import { TRPCError } from '@trpc/server';
-import { attachToEvent, attachToFilteredEvent, InputData } from 'trpc/trpc-utils';
+import { attachToEvent, attachToFilteredEvent, NotifierInputData } from 'trpc/trpc-utils';
 import { observable } from '@trpc/server/observable';
 const log = new Log('Router:Camera');
 process.env.DEBUG = 'Router:Camera*, ' + process.env.DEBUG;
@@ -27,7 +27,7 @@ export const cameraRouter = router({
     return foundCamera.getPublicState();
   }),
   subProducerAddedOrRemoved: userClientP.subscription(({ctx}) => {
-    type ProdAddRemoveInput = InputData<typeof ctx.client.notify.newProducerInCamera> | InputData<typeof ctx.client.notify.producerRemovedInCamera>;
+    type ProdAddRemoveInput = NotifierInputData<typeof ctx.client.notify.newProducerInCamera> | NotifierInputData<typeof ctx.client.notify.producerRemovedInCamera>;
     return observable<ProdAddRemoveInput>((scriber) => {
       ctx.client.notify.newProducerInCamera = scriber.next;
       ctx.client.notify.producerRemovedInCamera = scriber.next;

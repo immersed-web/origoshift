@@ -8,7 +8,7 @@ process.env.DEBUG = 'TRPCUtils*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 //Internal utility types
-export type InputData<MaybeFunc extends ((arg: any) => void) | undefined> = Parameters<Exclude<MaybeFunc, undefined>>[0]
+export type NotifierInputData<MaybeFunc extends ((arg: any) => void) | undefined> = Parameters<Exclude<MaybeFunc, undefined>>[0]
 export type NotifierSignature<T extends Record<string, unknown>> = ((data: T & {reason?: string}) => void) | undefined
 
 type MakeParamsRequired<Func extends (args: any) => any> = (...args:Required<Parameters<Func>>) => ReturnType<Func>

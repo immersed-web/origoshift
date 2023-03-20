@@ -20,7 +20,7 @@ type SoupObjectClosePayload =
       | {type: 'consumer', id: ConsumerId }
 
 type ClientSoupEvents = FilteredEvents<{
-  'producerCreated': (data: {producingClient: ConnectionId, producerId: ProducerId}) => void
+  'producerCreated': (data: {producer: ReturnType<BaseClient['_getPublicProducers']>[ProducerId], producingConnectionId: ConnectionId}) => void
 }, ConnectionId>
 & NonFilteredEvents<{
   'soupObjectClosed': (data: SoupObjectClosePayload & { reason: string}) => void
@@ -182,6 +182,15 @@ export class BaseClient {
     }
   }
 
+  _getPublicProducers(){
+    const producerObj: Record<ProducerId, {producerId: ProducerId, kind: soupTypes.MediaKind, paused: boolean }> = {};
+    this.producers.forEach((p) => {
+      const pId = p.id as ProducerId;
+      producerObj[pId] = { producerId: pId, kind: p.kind, paused: p.paused};
+    });
+    return producerObj;
+  }
+
   getPublicState(){
     return {
       connectionId: this.connectionId,
@@ -189,6 +198,7 @@ export class BaseClient {
       username: this.username,
       role: this.role,
       currentVenueId: this.venue?.venueId,
+      producers: this._getPublicProducers(),
     };
   }
 

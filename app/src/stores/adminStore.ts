@@ -1,6 +1,6 @@
 import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { defineStore } from 'pinia';
-import { shallowReactive } from 'vue';
+import { reactive, shallowReactive } from 'vue';
 import { useConnectionStore } from './connectionStore';
 
 export const useAdminStore = defineStore('admin', () => {
@@ -8,7 +8,10 @@ export const useAdminStore = defineStore('admin', () => {
 
   // Refs
   type ReceivedSenderData = SubscriptionValue<RouterOutputs['venue']['subSenderAddedOrRemoved']>['client'];
-  const connectedSenders = shallowReactive<Map<ReceivedSenderData['connectionId'], ReceivedSenderData>>(new Map());
+
+  // TODO: Do we really want deep reactive object?
+  const connectedSenders = reactive<Map<ReceivedSenderData['connectionId'], ReceivedSenderData>>(new Map());
+
   connectionStore.client.venue.subSenderAddedOrRemoved.subscribe(undefined, {
     onData(data) {
       const client = data.client;
@@ -20,11 +23,17 @@ export const useAdminStore = defineStore('admin', () => {
     },
   });
 
-  connectionStore.client.venue.subSomeSenderStateUpdated.subscribe(undefined, {
+  connectionStore.client.soup.subProducerCreated.subscribe(undefined, {
     onData(data) {
-      console.log('received clientStateUpdated:', data);
-      const senderState = data.senderState;
-      connectedSenders.set(senderState.connectionId ,senderState);
+      console.log('received new producer:', data);
+      const { producingConnectionId, producer } = data;
+      const sender = connectedSenders.get(producingConnectionId);
+      if(!sender) {
+        console.warn('The created producer wasnt in the list of connected senders. Perhaps a normal user?');
+        return;
+      }
+      sender.producers[producer.producerId] = producer;
+      connectedSenders.set(producingConnectionId, sender);
     },
   });
 

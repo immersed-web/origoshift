@@ -118,6 +118,9 @@ export type VenueId = z.infer<typeof VenueIdSchema>;
 export const VrSpaceIdSchema = UuidSchema.brand<'VrSpaceId'>();
 export type VrSpaceId = z.infer<typeof VrSpaceIdSchema>;
 
+export const Vr3DModelIdSchema = UuidSchema.brand<'Vr3DModelId'>();
+export type Vr3DModelId = z.infer<typeof Vr3DModelIdSchema>;
+
 // TODO: Make it unsatisfied when using fields that don't exist in Venue
 export const VenueUpdateSchema = z.object({
   name: z.string().optional(),
@@ -128,6 +131,11 @@ export const VirtualSpace3DModelCreateSchema = z.object({
   modelUrl: z.string()
 }) satisfies z.ZodType<Partial<VirtualSpace3DModel>>
 export type VirtualSpace3DCreate = z.infer<typeof VirtualSpace3DModelCreateSchema>
+
+export const VirtualSpace3DModelRemoveSchema = z.object({
+  modelId: Vr3DModelIdSchema
+})
+export type VirtualSpace3DRemove = z.infer<typeof VirtualSpace3DModelRemoveSchema>
 
 export const CameraIdSchema = UuidSchema.brand<'CameraId'>();
 export type CameraId = z.infer<typeof CameraIdSchema>;

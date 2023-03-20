@@ -96,64 +96,73 @@ export function hasAtLeastSecurityLevel(role: UserRole, minimumUserRole: UserRol
 //   guest: z.literal('guest'),
 // });
 
-// type InferredRole = z.infer<typeof zodifiedRoleEnun>;
+// type InferredRole = z.TypeOf<typeof zodifiedRoleEnun>;
 //
 // const UserRoleSchema = z.enum(possibleUserRoles);
 export const UserRoleSchema = z.enum(roleHierarchy);
-export type UserRole = z.infer<typeof UserRoleSchema>;
+export type UserRole = z.TypeOf<typeof UserRoleSchema>;
 
 //Here we are creating Opaque type for the different types of id's. This is to prevent acidentally using ids for the wrong type of object.
 export const UuidSchema = z.string().uuid();
-export type Uuid = z.infer<typeof UuidSchema>;
+export type Uuid = z.TypeOf<typeof UuidSchema>;
 
 export const ConnectionIdSchema = UuidSchema.brand<'ConnectionId'>();
-export type ConnectionId = z.infer<typeof ConnectionIdSchema>;
+export type ConnectionId = z.TypeOf<typeof ConnectionIdSchema>;
 
 export const UserIdSchema = UuidSchema.brand<'UserId'>();
-export type UserId = z.infer<typeof UserIdSchema>;
+export type UserId = z.TypeOf<typeof UserIdSchema>;
 
 export const VenueIdSchema = UuidSchema.brand<'VenueId'>();
-export type VenueId = z.infer<typeof VenueIdSchema>;
+export type VenueId = z.TypeOf<typeof VenueIdSchema>;
 
 export const VrSpaceIdSchema = UuidSchema.brand<'VrSpaceId'>();
-export type VrSpaceId = z.infer<typeof VrSpaceIdSchema>;
+// export type VrSpaceId = z.TypeOf<typeof VrSpaceIdSchema>;
+export type VrSpaceId = z.TypeOf<typeof VrSpaceIdSchema>;
+
+export const Vr3DModelIdSchema = UuidSchema.brand<'Vr3DModelId'>();
+export type Vr3DModelId = z.TypeOf<typeof Vr3DModelIdSchema>;
 
 // TODO: Make it unsatisfied when using fields that don't exist in Venue
 export const VenueUpdateSchema = z.object({
   name: z.string().optional(),
 }) satisfies z.ZodType<Partial<Venue>>
-export type VenueUpdate = z.infer<typeof VenueUpdateSchema>
+export type VenueUpdate = z.TypeOf<typeof VenueUpdateSchema>;
 
 export const VirtualSpace3DModelCreateSchema = z.object({
   modelUrl: z.string()
 }) satisfies z.ZodType<Partial<VirtualSpace3DModel>>
-export type VirtualSpace3DCreate = z.infer<typeof VirtualSpace3DModelCreateSchema>
+export type VirtualSpace3DCreate = z.TypeOf<typeof VirtualSpace3DModelCreateSchema>
+
+export const VirtualSpace3DModelRemoveSchema = z.object({
+  modelId: Vr3DModelIdSchema
+})
+export type VirtualSpace3DRemove = z.TypeOf<typeof VirtualSpace3DModelRemoveSchema>
 
 export const CameraIdSchema = UuidSchema.brand<'CameraId'>();
-export type CameraId = z.infer<typeof CameraIdSchema>;
+export type CameraId = z.TypeOf<typeof CameraIdSchema>;
 
 export const JwtUserDataSchema = z.object({
   userId: UserIdSchema,
   username: z.string(),
   role: UserRoleSchema,
 })
-export type JwtUserData = z.infer<typeof JwtUserDataSchema>;
+export type JwtUserData = z.TypeOf<typeof JwtUserDataSchema>;
 
 export const JwtPayloadSchema = jwtDefaultPayload.merge(JwtUserDataSchema)
-export type JwtPayload = z.infer<typeof JwtPayloadSchema>;
+export type JwtPayload = z.TypeOf<typeof JwtPayloadSchema>;
 
 // export const UserDataSchema = z.object({
 //   jwtToken: z.string(),
 //   decodedJwt: JwtPayloadSchema,
 // })
-// export type UserData = z.infer<typeof UserDataSchema>
+// export type UserData = z.TypeOf<typeof UserDataSchema>
 
 export const ClientTransformSchema = z.object({
   position: z.tuple([z.number(), z.number(), z.number()]),
   orientation: z.tuple([z.number(), z.number(), z.number(), z.number()])
 })
 
-export type ClientTransform = z.infer<typeof ClientTransformSchema>;
+export type ClientTransform = z.TypeOf<typeof ClientTransformSchema>;
 
 export type ClientTransforms = Record<ConnectionId, ClientTransform>;
 
@@ -163,7 +172,7 @@ export const ClientInfoSchema = z.object({
   position: z.optional(ClientTransformSchema)
 })
 
-export type ClientInfo = z.infer<typeof ClientInfoSchema>;
+export type ClientInfo = z.TypeOf<typeof ClientInfoSchema>;
 
 export const ClientTypeSchema = z.union([z.literal('client'), z.literal('sender')]);
-export type ClientType = z.infer<typeof ClientTypeSchema>;
+export type ClientType = z.TypeOf<typeof ClientTypeSchema>;

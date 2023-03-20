@@ -23,18 +23,9 @@
       <p>
         Inställningar för VR-lobby...
       </p>
-      <div v-if="venueStore.currentVenue?.vrSpace" class="prose">
+      <div v-if="venueStore.currentVenue?.vrSpace" class="mt-4">
         <h3>3D-modell</h3>
-        <div v-if="venueStore.currentVenue?.vrSpace?.virtualSpace3DModel">
-          {{ venueStore.currentVenue?.vrSpace?.virtualSpace3DModel.modelUrl }}
-          <!-- <pre>
-            3d-modell: {{ venueStore.currentVenue?.vrSpace?.virtualSpace3DModel }}
-          </pre> -->
-        </div>
-        <div v-else>
-          <AdminUploadModelForm />
-        </div>
-
+        <AdminUploadModelForm />
       </div>
     </div>
   </div>

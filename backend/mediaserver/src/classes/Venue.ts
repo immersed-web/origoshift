@@ -253,6 +253,16 @@ export class Venue {
     }
   }
 
+  async Remove3DModel(modelId: string) {
+    if(this.prismaData.virtualSpace && this.prismaData.virtualSpace.virtualSpace3DModel){
+      this.prismaData.virtualSpace.virtualSpace3DModel = await prisma.virtualSpace3DModel.delete(
+        {
+          where: {modelId}
+        }
+      );
+    }
+  }
+
   // Static stuff for global housekeeping
   private static venues: Map<VenueId, Venue> = new Map();
 

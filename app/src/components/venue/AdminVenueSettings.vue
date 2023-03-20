@@ -1,5 +1,5 @@
 <template>
-  <div class="prose">
+  <div>
     <h2>
       Grundinställningar
     </h2>

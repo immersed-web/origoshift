@@ -3,17 +3,17 @@ import type {types as soupTypes } from 'mediasoup'
 const UuidSchema = z.string().uuid();
 
 export const ProducerIdSchema = UuidSchema.brand('ProducerId')
-export type ProducerId = z.infer<typeof ProducerIdSchema>
+export type ProducerId = z.TypeOf<typeof ProducerIdSchema>
 
 export const ConsumerIdSchema = UuidSchema.brand('ConsumerId')
-export type ConsumerId = z.infer<typeof ConsumerIdSchema>
+export type ConsumerId = z.TypeOf<typeof ConsumerIdSchema>
 
 export const TransportIdSchema = UuidSchema.brand('TransportId')
-export type TransportId = z.infer<typeof TransportIdSchema>
+export type TransportId = z.TypeOf<typeof TransportIdSchema>
 
 
 export const RtpCapabilitiesSchema = z.object({}).passthrough() satisfies z.ZodType<soupTypes.RtpCapabilities>
-export type RtpCapabilities = z.infer<typeof RtpCapabilitiesSchema>
+export type RtpCapabilities = z.TypeOf<typeof RtpCapabilitiesSchema>
 
 const DtlsFingerprintSchema = z.object({
   value: z.string(),

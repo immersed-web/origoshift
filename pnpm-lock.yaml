@@ -30,7 +30,6 @@ importers:
   app:
     specifiers:
       '@rushstack/eslint-patch': ^1.1.4
-      '@tailwindcss/typography': ^0.5.9
       '@types/aframe': ^1.2.2
       '@types/jsdom': ^20.0.1
       '@types/node': ^18.11.12
@@ -85,7 +84,6 @@ importers:
       vue-router: 4.1.6_vue@3.2.45
     devDependencies:
       '@rushstack/eslint-patch': 1.2.0
-      '@tailwindcss/typography': 0.5.9_tailwindcss@3.2.4
       '@types/aframe': 1.2.2
       '@types/jsdom': 20.0.1
       '@types/node': 18.11.18
@@ -1492,18 +1490,6 @@ packages:
     resolution: {integrity: sha512-OAPJUAtgeINhh/TAlUID4QTs53Njm7xzddaVlEs/SXwgtiD1tW22zAB/W1wdqfrpmikgaWQ9Fw6Ws+hsiRm5Vg==}
     dependencies:
       '@sinonjs/commons': 1.8.5
-    dev: true
-
-  /@tailwindcss/typography/0.5.9_tailwindcss@3.2.4:
-    resolution: {integrity: sha512-t8Sg3DyynFysV9f4JDOVISGsjazNb48AeIYQwcL+Bsq5uf4RYL75C1giZ43KISjeDGBaTN3Kxh7Xj/vRSMJUUg==}
-    peerDependencies:
-      tailwindcss: '>=3.0.0 || insiders'
-    dependencies:
-      lodash.castarray: 4.4.0
-      lodash.isplainobject: 4.0.6
-      lodash.merge: 4.6.2
-      postcss-selector-parser: 6.0.10
-      tailwindcss: 3.2.4_postcss@8.4.21
     dev: true
 
   /@tootallnate/once/1.1.2:
@@ -7283,10 +7269,6 @@ packages:
 
   /lodash-es/4.17.21:
     resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
-    dev: true
-
-  /lodash.castarray/4.4.0:
-    resolution: {integrity: sha512-aVx8ztPv7/2ULbArGJ2Y42bG1mEQ5mGjpdvrbJcJFU3TbYybe+QlLS4pst9zV52ymy2in1KpFPiZnAOATxD4+Q==}
     dev: true
 
   /lodash.defaults/4.2.0:

@@ -23,7 +23,7 @@
       <p>
         Inställningar för VR-lobby...
       </p>
-      <div v-if="venueStore.currentVenue?.vrSpace" class="prose">
+      <div v-if="venueStore.currentVenue?.vrSpace">
         <h3>3D-modell</h3>
         <div v-if="venueStore.currentVenue?.vrSpace?.virtualSpace3DModel">
           {{ venueStore.currentVenue?.vrSpace?.virtualSpace3DModel.modelUrl }}

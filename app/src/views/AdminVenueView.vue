@@ -1,12 +1,10 @@
-<template class="">
-  <div class="">
+<template>
+  <div>
     <div class="flex mb-4">
       <div class="flex-1">
-        <div class="prose">
-          <h1 class="">
-            {{ venueStore.currentVenue?.name }}
-          </h1>
-        </div>
+        <h1 class="">
+          {{ venueStore.currentVenue?.name }}
+        </h1>
       </div>
       <div>
         <button

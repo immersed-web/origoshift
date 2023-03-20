@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="flex mb-4">
-      <h2 class="flex-1 card-title">
+    <div class="flex prose">
+      <h2 class="flex-1">
         <!-- <span class="material-icons">videocam</span> -->
         360
       </h2>

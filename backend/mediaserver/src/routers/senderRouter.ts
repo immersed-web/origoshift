@@ -1,5 +1,5 @@
 import { isSenderClientM, procedure as p, router } from '../trpc/trpc';
-import { attachEmitter } from '../trpc/trpc-utils';
+import { attachToEvent } from '../trpc/trpc-utils';
 
 const senderClientP = p.use(isSenderClientM);
 
@@ -8,6 +8,6 @@ export const senderRouter = router({
     return ctx.client.getPublicState();
   }),
   subOwnClientState: senderClientP.subscription(({ctx}) => {
-    return attachEmitter(ctx.client.senderClientEvent, 'myStateUpdated');
+    return attachToEvent(ctx.client.senderClientEvent, 'myStateUpdated');
   }),
 });

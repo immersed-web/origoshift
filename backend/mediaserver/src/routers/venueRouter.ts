@@ -11,7 +11,7 @@ import { SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
 import { TRPCError } from '@trpc/server';
 import type { Prisma } from 'database';
-import { attachEmitter, attachFilteredEmitter } from '../trpc/trpc-utils';
+import { attachToEvent, attachToFilteredEvent } from '../trpc/trpc-utils';
 
 export const venueRouter = router({
   createNewVenue: atLeastModeratorP.input(z.object({
@@ -47,7 +47,7 @@ export const venueRouter = router({
     return venue.getPublicState();
   }),
   subVenueUnloaded: p.subscription(({ctx}) => {
-    attachEmitter(ctx.client.clientEvent, 'venueWasUnloaded');
+    attachToEvent(ctx.client.clientEvent, 'venueWasUnloaded');
   }),
   listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
     return ctx.client.ownedVenues.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));
@@ -58,7 +58,7 @@ export const venueRouter = router({
     });
   }),
   subClientAddedOrRemoved: p.use(isUserClientM).subscription(({ctx}) => {
-    return attachFilteredEmitter(ctx.client.clientEvent, 'clientAddedOrRemoved', ctx.connectionId);
+    return attachToFilteredEvent(ctx.client.clientEvent, 'clientAddedOrRemoved', ctx.connectionId);
   }),
   listLoadedVenues: p.query(({ctx}) => {
     return Venue.getLoadedVenues();
@@ -77,7 +77,7 @@ export const venueRouter = router({
   }),
   subSomeClientStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to clientState`);
-    return attachFilteredEmitter(ctx.client.clientEvent, 'someClientStateUpdated', (data) => {
+    return attachToFilteredEvent(ctx.client.clientEvent, 'someClientStateUpdated', (data) => {
       if(data.clientState.connectionId === ctx.connectionId) return false;
       if(data.clientState.clientType === 'sender') return false;
       return true;
@@ -85,14 +85,14 @@ export const venueRouter = router({
   }),
   subSomeSenderStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to senderState`);
-    return attachFilteredEmitter(ctx.client.clientEvent, 'someClientStateUpdated', (data) => {
+    return attachToFilteredEvent(ctx.client.clientEvent, 'someClientStateUpdated', (data) => {
       if(data.clientState.connectionId === ctx.connectionId) return false;
       if(data.clientState.clientType === 'client') return false;
       return true;
     }, ({clientState, reason}) => ({senderState: clientState as ReturnType<SenderClient['getPublicState']>, reason}));
   }),
   subSenderAddedOrRemoved: p.use(isVenueOwnerM).subscription(({ctx}) => {
-    return attachFilteredEmitter(ctx.client.clientEvent, 'senderAddedOrRemoved', ctx.connectionId);
+    return attachToFilteredEvent(ctx.client.clientEvent, 'senderAddedOrRemoved', ctx.connectionId);
   }),
   // joinVenueAsSender: atLeastSenderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
   //   .mutation(async ({ctx, input}) =>{

@@ -1,4 +1,4 @@
-import { attachEmitter, attachFilteredEmitter } from '../trpc/trpc-utils';
+import { attachToEvent, attachToFilteredEvent } from '../trpc/trpc-utils';
 // import { UserClient } from '../classes/InternalClasses';
 import { isUserClientM, procedure as p, router } from '../trpc/trpc';
 
@@ -12,6 +12,6 @@ export const userRouter = router({
     // return 'Test' as const;
   }),
   subOwnClientState: userClientP.subscription(({ctx}) => {
-    return attachEmitter(ctx.client.userClientEvent, 'myStateUpdated');
+    return attachToEvent(ctx.client.userClientEvent, 'myStateUpdated');
   }),
 });

@@ -10,7 +10,7 @@ import { venueRouter } from './venueRouter';
 import { observable, Observer } from '@trpc/server/observable';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { z } from 'zod';
-import { attachEmitter } from '../trpc/trpc-utils';
+import { attachToEvent } from '../trpc/trpc-utils';
 import { userRouter } from './userRouter';
 import { senderRouter } from './senderRouter';
 
@@ -38,7 +38,7 @@ export const appRouter = router({
     //   appRouterEvents.addListener('heartbeat', handler);
     //   return () => appRouterEvents.removeListener('heartbeat', handler);
     // });
-    return attachEmitter(appRouterEvents, 'heartbeat');
+    return attachToEvent(appRouterEvents, 'heartbeat');
   }),
   // testSubWithInput: procedure.input(z.object({aKey: z.string().uuid(), bKey: z.number()})).subscription(({ctx, input}) => {
   //   const o = observable<{cKey: boolean}>((emit) => {

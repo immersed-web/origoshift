@@ -113,5 +113,16 @@ export const userInVenueP = procedure.use(isUserClientM).use(isInVenueM);
 
 export const clientInVenueP = procedure.use(isInVenueM);
 
+export const isInCameraM = isUserClientM.unstable_pipe(({ctx, next}) => {
+  if(!ctx.client.currentCamera){
+    throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'Must be inside a camera to perform that action'});
+  }
+  return next({
+    ctx: {
+      currentCamera: ctx.client.currentCamera
+    }
+  });
+});
+
 // TODO: Implement this procedure
 // export const clientInCameraP = procedure.use(isInVenueM).use(isInCameraM);

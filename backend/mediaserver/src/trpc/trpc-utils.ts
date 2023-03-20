@@ -61,32 +61,32 @@ export function attachEmitter<E extends ListenerSignature<E>, K extends Unfilter
 }
 
 
-type MyEvents = FilteredEvents<{
-  'filtered': (data: {msg: string}) => void,
-  'moarzrFiltered': (data: number) => void,
-}, number> & NonFilteredEvents<{
-  'unfiltered': (data: {greeting: string}) => void
-  'coolEvent': (data: {info: number, meta: string}) => void
-}>
+// type MyEvents = FilteredEvents<{
+//   'filtered': (data: {msg: string}) => void,
+//   'moarzrFiltered': (data: number) => void,
+// }, number> & NonFilteredEvents<{
+//   'unfiltered': (data: {greeting: string}) => void
+//   'coolEvent': (data: {info: number, meta: string}) => void
+// }>
 
-const te : TypedEmitter<MyEvents> = new TypedEmitter();
-te.emit('moarzrFiltered', 123);
-const obsvble = attachEmitter(te, 'coolEvent', (data) => ({...data, hello: 'world'}));
-obsvble.subscribe({
-  next(value) {
-    console.log(value);
-  },
-});
+// const te : TypedEmitter<MyEvents> = new TypedEmitter();
+// te.emit('moarzrFiltered', 123);
+// const obsvble = attachEmitter(te, 'coolEvent', (data) => ({...data, hello: 'world'}));
+// obsvble.subscribe({
+//   next(value) {
+//     console.log(value);
+//   },
+// });
 
 
-te.emit('moarzrFiltered', 123, undefined);
-const fltobsvble = attachFilteredEmitter(te, 'moarzrFiltered', () => 1+1 == 2, (d) => d+1);
+// te.emit('moarzrFiltered', 123, undefined);
+// const fltobsvble = attachFilteredEmitter(te, 'moarzrFiltered', 123, () => 'hejsn' as const);
 
-fltobsvble.subscribe({
-  next(value) {
-    console.log(value);
-  },
-});
+// fltobsvble.subscribe({
+//   next(value) {
+//     console.log(value);
+//   },
+// });
 
 export function attachFilteredEmitter<E extends ListenerSignature<E>, K extends FilteredEventTypes<E>, Data extends EventData<E, K>, TransformedResult = Data>(emitter: TypedEmitter<E>, event: K, filter: Exclude<FilterType<E, typeof event>, undefined> | ((data: Data) => boolean), transformer?: (data: Data) => TransformedResult){
   const myObservable = observable<TransformedResult>(emit => {

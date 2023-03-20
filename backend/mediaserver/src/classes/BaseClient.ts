@@ -19,13 +19,13 @@ type SoupObjectClosePayload =
       | {type: 'producer', id: ProducerId }
       | {type: 'consumer', id: ConsumerId }
 
-type ClientSoupEvents = NonFilteredEvents<{
+type ClientSoupEvents = FilteredEvents<{
+  'producerCreated': (data: {producingClient: ConnectionId, producerId: ProducerId}) => void
+}, ConnectionId>
+& NonFilteredEvents<{
   'soupObjectClosed': (data: SoupObjectClosePayload & { reason: string}) => void
-  // 'transportClosed': (transportId: TransportId) => void
   'consumerPausedOrResumed': (data: {consumerId: ConsumerId, wasPaused: boolean}) => void
   'producerPausedOrResumed': (data: {producerId: ProducerId, wasPaused: boolean}) => void
-  // 'consumerClosed': (consumerId: ConsumerId) => void
-  // 'producerClosed': (producerId: ProducerId) => void
 }>
 
 type ClientStateUnion = ReturnType<UserClient['getPublicState']> | ReturnType<SenderClient['getPublicState']>

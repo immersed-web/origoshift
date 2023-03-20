@@ -4,34 +4,34 @@ process.env.DEBUG = 'VR:Router*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import { ClientTransformSchema, VirtualSpace3DModelCreateSchema } from 'schemas';
-import { procedure as p, router, isVenueOwnerM, isUserClientM, userInVenueP, currentVenueAdminP, currentVenueHasVrSpace, currentVenueHasNoVrSpace } from '../trpc/trpc';
+import { procedure as p, router, isVenueOwnerM, isUserClientM, userInVenueP, currentVenueAdminP, currentVenueHasVrSpaceM, currentVenueHasNoVrSpaceM } from '../trpc/trpc';
 import { attachEmitter } from '../trpc/trpc-utils';
 import { TRPCError } from '@trpc/server';
 
 export const vrRouter = router({
-  createVrSpace: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasNoVrSpace).mutation(({ctx}) => {
+  createVrSpace: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasNoVrSpaceM).mutation(({ctx}) => {
     ctx.venue.CreateAndAddVirtualSpace();
   }),
-  openVrSpace: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpace).mutation(({ctx}) => {
+  openVrSpace: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).mutation(({ctx}) => {
     ctx.vrSpace.open();
   }),
-  closeVrSpace: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpace).mutation(({ctx}) => {
+  closeVrSpace: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).mutation(({ctx}) => {
     ctx.vrSpace.close();
   }),
-  enterVrSpace: userInVenueP.use(currentVenueHasVrSpace).mutation(({ctx}) =>{
+  enterVrSpace: userInVenueP.use(currentVenueHasVrSpaceM).mutation(({ctx}) =>{
     if(!ctx.vrSpace.isOpen){
       throw new TRPCError({code: 'FORBIDDEN', message: 'The vr space is not opened to users at this point. Very sad!'});
     }
     ctx.vrSpace.addClient(ctx.client);
   }),
-  getState: userInVenueP.use(currentVenueHasVrSpace).query(({ctx}) => {
+  getState: userInVenueP.use(currentVenueHasVrSpaceM).query(({ctx}) => {
     ctx.vrSpace.getPublicState();
   }),
-  create3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpace).input(VirtualSpace3DModelCreateSchema).mutation(({input, ctx}) => {
+  create3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).input(VirtualSpace3DModelCreateSchema).mutation(({input, ctx}) => {
     ctx.venue.Create3DModel(input.modelUrl);
   }),
   transforms: router({
-    updateTransform: userInVenueP.use(currentVenueHasVrSpace).input(ClientTransformSchema).mutation(({input, ctx}) =>{
+    updateTransform: userInVenueP.use(currentVenueHasVrSpaceM).input(ClientTransformSchema).mutation(({input, ctx}) =>{
       log.debug(`transform received from ${ctx.username} (${ctx.connectionId})`);
       log.debug(input);
       const venue = ctx.venue;
@@ -44,10 +44,10 @@ export const vrRouter = router({
       vrSpace.sendPendingTransforms();
 
     }),
-    getClientTransforms: userInVenueP.use(currentVenueHasVrSpace).query(() => {
+    getClientTransforms: userInVenueP.use(currentVenueHasVrSpaceM).query(() => {
       return 'NOT IMPLEMENTED YET' as const;
     }),
-    subClientTransforms: p.use(isUserClientM).use(currentVenueHasVrSpace).subscription(({ctx}) => {
+    subClientTransforms: p.use(isUserClientM).subscription(({ctx}) => {
       console.log(`${ctx.username} started subscription to transforms`);
       return attachEmitter(ctx.client.userClientEvent, 'clientTransforms');
       // return attachEmitter(venue.vrSpace.emitter, 'transforms');

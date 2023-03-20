@@ -42,7 +42,6 @@ export const atLeastUserP = procedure.use(createAuthMiddleware('user'));
 
 
 
-
 export const isUserClientM = middleware(({ctx, next}) =>{
   if(!(ctx.client instanceof UserClient)){
     throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You must be a user client (not a sender client) to perform that action'});
@@ -65,6 +64,9 @@ export const isSenderClientM = middleware(({ctx, next}) =>{
   });
 });
 
+export const userClientP = procedure.use(isUserClientM);
+export const senderClientP = procedure.use(isSenderClientM);
+
 export const isInVenueM = middleware(({ctx, next})=> {
   const venue = ctx.client.venue;
   if(!venue) {
@@ -75,7 +77,7 @@ export const isInVenueM = middleware(({ctx, next})=> {
   }});
 });
 
-export const currentVenueHasVrSpace = isInVenueM.unstable_pipe(({ctx, next}) => {
+export const currentVenueHasVrSpaceM = isInVenueM.unstable_pipe(({ctx, next}) => {
   if(!ctx.venue.vrSpace){
     throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'the venue doesnt have a vr space. Now cry!'});
   }
@@ -86,7 +88,7 @@ export const currentVenueHasVrSpace = isInVenueM.unstable_pipe(({ctx, next}) => 
   });
 });
 
-export const currentVenueHasNoVrSpace = isInVenueM.unstable_pipe(({ctx, next}) => {
+export const currentVenueHasNoVrSpaceM = isInVenueM.unstable_pipe(({ctx, next}) => {
   if(ctx.venue.vrSpace){
     throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'the venue already have a vr space.'});
   }

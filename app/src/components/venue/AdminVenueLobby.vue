@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="flex mb-4">
-      <h2 class="flex-1 card-title">
+    <div class="prose flex mb-4">
+      <h2 class="flex-1">
         VR-lobby
       </h2>
       <button
@@ -23,14 +23,20 @@
       <p>
         Inställningar för VR-lobby...
       </p>
-      <div v-if="venueStore.currentVenue?.vrSpace">
+      <div v-if="venueStore.currentVenue?.vrSpace" class="prose">
         <h3>3D-modell</h3>
-        <!-- TODO: Why isn't virtualSpace3DModel recognised by TS? -->
-        {{venueStore.currentVenue.vrSpace.virtualSpace3DModel}}
-        <AdminUploadModelForm />
+        <div v-if="venueStore.currentVenue?.vrSpace?.virtualSpace3DModel">
+          {{ venueStore.currentVenue?.vrSpace?.virtualSpace3DModel.modelUrl }}
+          <!-- <pre>
+            3d-modell: {{ venueStore.currentVenue?.vrSpace?.virtualSpace3DModel }}
+          </pre> -->
+        </div>
+        <div v-else>
+          <AdminUploadModelForm />
+        </div>
+
       </div>
     </div>
-    {{ venueStore.currentVenue?.vrSpace }}
   </div>
 </template>
 

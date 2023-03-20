@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <h2 class="card-title">
+  <div class="prose">
+    <h2>
       Grundinställningar
     </h2>
     <form

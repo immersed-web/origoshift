@@ -125,7 +125,7 @@ export type Vr3DModelId = z.infer<typeof Vr3DModelIdSchema>;
 export const VenueUpdateSchema = z.object({
   name: z.string().optional(),
 }) satisfies z.ZodType<Partial<Venue>>
-export type VenueUpdate = z.infer<typeof VenueUpdateSchema>
+export type VenueUpdate = z.infer<typeof VenueUpdateSchema>;
 
 export const VirtualSpace3DModelCreateSchema = z.object({
   modelUrl: z.string()

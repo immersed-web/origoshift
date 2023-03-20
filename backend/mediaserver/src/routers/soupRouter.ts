@@ -6,7 +6,7 @@ log.enable(process.env.DEBUG);
 import { TRPCError } from '@trpc/server';
 import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId, RtpCapabilitiesSchema, CreateConsumerPayloadSchema, ProducerIdSchema, ConsumerId } from 'schemas/mediasoup';
 import { z } from 'zod';
-import { procedure as p, clientInVenueP, router, userClientP } from '../trpc/trpc';
+import { procedure as p, clientInVenueP, router, userClientP, atLeastModeratorP } from '../trpc/trpc';
 import { attachEmitter, attachFilteredEmitter } from '../trpc/trpc-utils';
 import { CameraIdSchema } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
@@ -57,14 +57,14 @@ export const soupRouter = router({
     }
     const producerId = await client.createProducer(input);
     log.info('gonna emit producerCreated');
-    ctx.venue.emitToAllClients('producerCreated', {producerId, producingClient: ctx.connectionId});
+    ctx.venue.emitToAllClients('producerCreated', {producingConnectionId: ctx.connectionId, producer: {producerId, paused: input.producerInfo.isPaused, kind: input.kind}});
     // ctx.venue.emitToAllClients('someClientStateUpdated', { clientState: client.getPublicState(), reason: `client (${client.clientType}) created producer` });
     return producerId;
   }),
   closeProducer: clientInVenueP.input(z.object({producerId:z.string().uuid()})).mutation(({input, ctx}) => {
     return 'Not implemented yet' as const;
   }),
-  subProducerCreated: userClientP.subscription(({ctx}) => {
+  subProducerCreated: atLeastModeratorP.subscription(({ctx}) => {
     return attachFilteredEmitter(ctx.client.clientEvent, 'producerCreated', ctx.connectionId);
   }),
   consumeCamera: clientInVenueP.input(z.object({cameraId: CameraIdSchema, producerId: ProducerIdSchema})).mutation(({ctx, input}) => {

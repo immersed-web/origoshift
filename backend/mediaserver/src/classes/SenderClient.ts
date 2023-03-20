@@ -37,16 +37,18 @@ export class SenderClient extends BaseClient{
 
   getPublicState(){
     // const { connectionId, userId, username } = this.base;
-    const producerList: {producerId: ProducerId, kind: soupTypes.MediaKind}[] = [];
-    this.producers.forEach((p) => producerList.push({producerId: (p.id as ProducerId), kind: p.kind}));
+    const producerObj: Record<ProducerId, {producerId: ProducerId, kind: soupTypes.MediaKind }> = {};
+    this.producers.forEach((p) => {
+      const pId = p.id as ProducerId;
+      producerObj[pId] = { producerId: pId, kind: p.kind };
+    });
     return {
       ...super.getPublicState(),
       clientType: this.clientType,
-      producers: producerList
     };
   }
 
-  _onClientStateUpdated(reason?: string) {
+  _onSenderStateUpdated(reason?: string) {
     if(!this.connectionId){
       log.info('skipped emitting to client because socket was already closed');
       return;

@@ -36,3 +36,25 @@ export const cameraRouter = router({
   }),
 
 });
+
+// const aRouter = router({
+//   subScribeToThing: p.subscription(({ctx}) => {
+//     return observable<Thing>((scriber) => {
+//       ctx.userState.onThingUpdate = scriber.next;
+
+//       return () => ctx.userState.onThingUpdate = undefined;
+//     });
+//   })
+// })
+
+// // a user state object that will be availbale on ctx
+// type Thing = {
+//   cool: string
+// }
+// const userState = {
+//   onThingUpdate: undefined as ((data: Thing) => void) | undefined,
+// };
+
+// // Somewhere in my server application:
+// const userState = getUserState(id);
+// userState.onThingUpdate(newData);

@@ -8,6 +8,7 @@
         v-if="venueStore.currentVenue?.vrSpace"
         class="btn btn-primary"
         @click="openVirtualSpace"
+        :disabled="!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel"
       >
         Gå in i VR-lobby
       </button>

@@ -144,11 +144,11 @@ export class Venue {
     }
     else {
       this.clients.set(client.connectionId, client);
+      this._notifyStateUpdated('Client added to Venue');
     //   this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
     }
     client._setVenue(this.venueId);
     log.info(`Client (${client.clientType}) ${client.username} added to the venue ${this.prismaData.name}`);
-    this._notifyStateUpdated('Client added to Venue');
 
     // this._notifyClients('venueStateUpdated', this.getPublicState(), 'because I wanna');
   }

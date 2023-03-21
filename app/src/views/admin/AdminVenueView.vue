@@ -53,9 +53,9 @@ import { onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
-import AdminVenueSettings from '@/components/venue/AdminVenueSettings.vue';
-import AdminVenueLobby from '@/components/venue/AdminVenueLobby.vue';
-import AdminVenue360 from '@/components/venue/AdminVenue360.vue';
+import AdminVenueSettings from './components/AdminVenueSettings.vue';
+import AdminVenueLobby from './components/AdminVenueLobby.vue';
+import AdminVenue360 from './components/AdminVenue360.vue';
 
 // Router
 const router = useRouter();

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="flex mb-4 prose">
+    <div class="flex mb-4">
       <h2 class="flex-1">
         VR-lobby
       </h2>
@@ -38,7 +38,7 @@
 import { useRouter } from 'vue-router';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useVenueStore } from '@/stores/venueStore';
-import AdminUploadModelForm from './AdminUploadModelForm.vue';
+import AdminUploadModelForm from '@/components/venue/AdminUploadModelForm.vue';
 
 // Use imports
 const router = useRouter();

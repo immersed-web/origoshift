@@ -19,7 +19,7 @@
       </div>
     </form>
   </div>
-  <div>
+  <div v-else>
     <form @submit.prevent="uploadFile">
       <div class="form-control w-full max-w-xs">
         <label class="label">

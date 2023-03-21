@@ -53,7 +53,6 @@ import { onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
-import { useConnectionStore } from '@/stores/connectionStore';
 import AdminVenueSettings from '@/components/venue/AdminVenueSettings.vue';
 import AdminVenueLobby from '@/components/venue/AdminVenueLobby.vue';
 import AdminVenue360 from '@/components/venue/AdminVenue360.vue';
@@ -62,7 +61,6 @@ import AdminVenue360 from '@/components/venue/AdminVenue360.vue';
 const router = useRouter();
 
 // Stores
-const connectionStore = useConnectionStore();
 const clientStore = useClientStore();
 const venueStore = useVenueStore();
 

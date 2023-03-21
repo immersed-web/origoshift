@@ -53,8 +53,7 @@ const connectionStore = useConnectionStore();
 const venueStore = useVenueStore();
 
 const config = {
-  // url: '' + process.env.FILESERVER_URL + process.env.FILESERVER_PORT + '/upload',
-  url: 'http://localhost:9002',
+  url: `${import.meta.env.EXPOSED_FILESERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PORT}`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -94,10 +93,10 @@ const removeFile = async () => {
   try {
 
     const body = {
-      fileName: venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelUrl
-    }
+      fileName: venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelUrl,
+    };
 
-    console.log(body)
+    console.log(body);
 
     const response = await axios.post(config.url + '/remove', body, {
       timeout: 60000,

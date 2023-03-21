@@ -4,29 +4,9 @@
     ref="scene"
   >
     <a-assets @loaded="onLoaded">
-      <img
-        id="groundTexture"
-        src="https://cdn.aframe.io/a-painter/images/floor.jpg"
-      >
       <a-asset-item
-        id="venue-asset"
-        src="/models/venue/venue/scene.gltf"
-      />
-      <a-asset-item
-        id="venue_navmesh-asset"
-        src="/models/venue/venue_navmesh/scene.gltf"
-      />
-      <a-asset-item
-        id="dungeon-asset"
-        src="/models/dungeon/dungeon.gltf"
-      />
-      <a-asset-item
-        id="dungeon_navmesh-asset"
-        src="/models/dungeon/navmesh.gltf"
-      />
-      <a-asset-item
-        id="hallway-asset"
-        src="/models/hallway/scene.gltf"
+        id="model-asset"
+        :src="modelUrl"
       />
     </a-assets>
 
@@ -35,8 +15,8 @@
     <!-- The model -->
     <a-entity v-if="loaded">
       <a-entity
-        id="hallway"
-        gltf-model="#hallway-asset"
+        id="model"
+        gltf-model="#model-asset"
         scale="0.04 0.04 0.04"
       />
     </a-entity>
@@ -52,7 +32,7 @@
         position="0 2 0"
         @move0="cameraMoveFast"
         @move1="cameraMoveSlow"
-        simple-navmesh-constraint="navmesh:#hallway; fall:0.5; height:1.65;"
+        simple-navmesh-constraint="navmesh:#model; fall:0.5; height:1.65;"
       >
         <a-entity
           v-if="displayMessage.length"
@@ -79,7 +59,7 @@
 <script setup lang="ts">
 import 'aframe';
 import type { Scene } from 'aframe';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import { clientOrThrow } from '@/modules/trpcClient';
 import type { ClientTransform } from 'schemas';
@@ -89,8 +69,17 @@ import { useClientStore } from '@/stores/clientStore';
 // Stores
 const clientStore = useClientStore();
 
+// Props & emits
+const props = defineProps({
+  modelUrl: {type: String, default: ''},
+});
+
 // A-frame
 const scene = ref<Scene>();
+
+const modelUrl = computed(() => {
+  return props.modelUrl;
+});
 
 // Server, Client, etc.
 

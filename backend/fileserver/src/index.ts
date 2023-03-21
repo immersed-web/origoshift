@@ -3,15 +3,19 @@ import cors from 'cors';
 import formidable, {IncomingForm} from 'formidable';
 import fs from 'fs'
 
-// Init app
 const app : Express = express()
 app.set('trust proxy', true);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-
 // CORS Stuff
 app.use(cors()); //Beware: CORS on all paths from all origins
+
+// Static file serving
+const publicDir = '../../public/'
+const uploadsDir = publicDir + 'uploads/'
+const modelsDir = uploadsDir + '3d_models/'
+app.use(express.static(publicDir));
 
 // Heal the world
 app.get('/hello', (req,res) => {
@@ -19,13 +23,11 @@ app.get('/hello', (req,res) => {
   res.send('Heal the world!')
 })
 
-const fileDir = '../../uploads/'
-const modelsDir = fileDir + '3d_models/'
-
 // Upload 3D model
 app.post('/upload', (req,res) => {
 
   let data = {modelUrl:''}
+  console.log(modelsDir)
 
   const form = formidable({uploadDir: modelsDir, keepExtensions: true})
   form.on('file', (field, file) => {

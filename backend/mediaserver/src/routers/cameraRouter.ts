@@ -1,11 +1,12 @@
 
 import { Log } from 'debug-level';
 import { z } from 'zod';
-import { router, procedure as p, isInCameraM, userInVenueP, userClientP} from '../trpc/trpc';
+import { router, procedure as p, isInCameraM, userInVenueP, userClientP, atLeastModeratorP, isVenueOwnerM} from '../trpc/trpc';
 import { CameraIdSchema } from 'schemas';
 import { TRPCError } from '@trpc/server';
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from 'trpc/trpc-utils';
 import { observable } from '@trpc/server/observable';
+import { ConnectionIdSchema } from 'schemas/*';
 const log = new Log('Router:Camera');
 process.env.DEBUG = 'Router:Camera*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
@@ -13,6 +14,20 @@ log.enable(process.env.DEBUG);
 
 
 export const cameraRouter = router({
+  addSenderToCamera: atLeastModeratorP.use(isVenueOwnerM).input(z.object({
+    senderClientConnectionId: ConnectionIdSchema,
+    cameraId: CameraIdSchema,
+  })).mutation(({ctx, input}) => {
+    const foundCamera = ctx.venue.cameras.get(input.cameraId);
+    if(!foundCamera){
+      throw new TRPCError({code: 'NOT_FOUND', message: 'no camera with that id in venue'});
+    }
+    const foundSender = ctx.venue.senderClients.get(input.senderClientConnectionId);
+    if(!foundSender){
+      throw new TRPCError({code: 'NOT_FOUND', message: 'No sender with that id in venue'});
+    }
+    foundCamera.setSender(foundSender);
+  }),
   getCameraState: p.use(isInCameraM).query(({ctx}) => {
     return ctx.currentCamera.getPublicState();
   }),
@@ -36,25 +51,3 @@ export const cameraRouter = router({
   }),
 
 });
-
-// const aRouter = router({
-//   subScribeToThing: p.subscription(({ctx}) => {
-//     return observable<Thing>((scriber) => {
-//       ctx.userState.onThingUpdate = scriber.next;
-
-//       return () => ctx.userState.onThingUpdate = undefined;
-//     });
-//   })
-// })
-
-// // a user state object that will be availbale on ctx
-// type Thing = {
-//   cool: string
-// }
-// const userState = {
-//   onThingUpdate: undefined as ((data: Thing) => void) | undefined,
-// };
-
-// // Somewhere in my server application:
-// const userState = getUserState(id);
-// userState.onThingUpdate(newData);

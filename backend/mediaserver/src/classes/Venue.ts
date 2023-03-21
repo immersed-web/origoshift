@@ -64,10 +64,10 @@ export class Venue {
     return Array.from(this.clients.keys());
   }
 
-  private senderClients: Map<ConnectionId, SenderClient> = new Map();
-  get senderClientIds() {
-    return Array.from(this.senderClients.keys());
-  }
+  senderClients: Map<ConnectionId, SenderClient> = new Map();
+  // get senderClientIds() {
+  //   return Array.from(this.senderClients.keys());
+  // }
 
   get _isEmpty() {
     return this.clients.size === 0 && this.senderClients.size === 0;

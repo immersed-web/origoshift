@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="prose flex mb-4">
+    <div class="flex mb-4 prose">
       <h2 class="flex-1">
         VR-lobby
       </h2>
@@ -23,7 +23,10 @@
       <p>
         Inställningar för VR-lobby...
       </p>
-      <div v-if="venueStore.currentVenue?.vrSpace" class="mt-4">
+      <div
+        v-if="venueStore.currentVenue?.vrSpace"
+        class="mt-4"
+      >
         <h3>3D-modell</h3>
         <AdminUploadModelForm />
       </div>
@@ -35,7 +38,7 @@
 import { useRouter } from 'vue-router';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useVenueStore } from '@/stores/venueStore';
-import AdminUploadModelForm from '@/components/venue/AdminUploadModelForm.vue';
+import AdminUploadModelForm from './AdminUploadModelForm.vue';
 
 // Use imports
 const router = useRouter();

@@ -11,7 +11,7 @@
           class="btn btn-error"
           @click="deleteVenue"
         >
-          <span class="material-icons mr-2">delete</span>
+          <span class="mr-2 material-icons">delete</span>
           Ta bort event
         </button>
       </div>
@@ -54,9 +54,9 @@ import { useRouter } from 'vue-router';
 import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
 import { useConnectionStore } from '@/stores/connectionStore';
-import AdminVenueSettings from '@/components/venue/AdminVenueSettings.vue';
-import AdminVenueLobby from '@/components/venue/AdminVenueLobby.vue';
-import AdminVenue360 from '@/components/venue/AdminVenue360.vue';
+import AdminVenueSettings from './components/AdminVenueSettings.vue';
+import AdminVenueLobby from './components/AdminVenueLobby.vue';
+import AdminVenue360 from './components/AdminVenue360.vue';
 
 // Router
 const router = useRouter();

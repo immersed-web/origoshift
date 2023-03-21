@@ -26,7 +26,7 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component:  () => import('../views/LoginView.vue'),
+      component:  () => import('@/views/LoginView.vue'),
     },
     {
       path: '/user/',
@@ -36,17 +36,17 @@ const router = createRouter({
         {
           path: '',
           name: 'userHome',
-          component:  () => import('../views/UserHomeView.vue'),
+          component:  () => import('@/views/UserHomeView.vue'),
         },
         {
           path: 'venue',
           name: 'userVenue',
-          component:  () => import('../views/UserVenueView.vue'),
+          component:  () => import('@/views/UserVenueView.vue'),
         },
         {
           path: 'lobby',
           name: 'lobby',
-          component:  () => import('../views/LobbyView.vue'),
+          component:  () => import('@/views/LobbyView.vue'),
         },
       ],
     },
@@ -58,12 +58,17 @@ const router = createRouter({
         {
           path: '',
           name: 'adminHome',
-          component:  () => import('../views/AdminHomeView.vue'),
+          component:  () => import('@/views/admin/AdminHomeView.vue'),
         },
         {
           path: 'venue',
           name: 'adminVenue',
-          component:  () => import('../views/AdminVenueView.vue'),
+          component:  () => import('@/views/admin/AdminVenueView.vue'),
+        },
+        {
+          path: 'cameras',
+          name: 'adminCameras',
+          component:  () => import('@/views/admin/AdminCamerasView.vue'),
         },
       ],
     },
@@ -89,12 +94,12 @@ const router = createRouter({
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue'),
+      component: () => import('@/views/AboutView.vue'),
     },
     // {
     //   path: '/test-client',
     //   name: 'testClient',
-    //   component: () => import('../views/TestBackend.vue'),
+    //   component: () => import('@/views/TestBackend.vue'),
     // },
   ],
 });

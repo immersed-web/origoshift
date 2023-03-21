@@ -1,5 +1,5 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { NonFilteredEvents } from 'trpc/trpc-utils';
+import { NonFilteredEvents, NotifierSignature } from 'trpc/trpc-utils';
 import { BaseClient, Venue } from './InternalClasses';
 
 import { Log } from 'debug-level';
@@ -53,6 +53,11 @@ export class SenderClient extends BaseClient{
   // base: BaseClient;
   senderClientEvent: TypedEmitter<SenderClientEvents>;
 
+  notify = {
+    ...super.notify,
+    myStateUpdated: undefined as NotifierSignature<ReturnType<typeof this.getPublicState>>
+  };
+
   getPublicState(){
     // const { connectionId, userId, username } = this.base;
     // const producerObj: Record<ProducerId, {producerId: ProducerId, kind: soupTypes.MediaKind }> = {};
@@ -67,13 +72,14 @@ export class SenderClient extends BaseClient{
     };
   }
 
-  _onSenderStateUpdated(reason?: string) {
+  _notifyStateUpdated(reason?: string) {
     if(!this.connectionId){
       log.info('skipped emitting to client because socket was already closed');
       return;
     }
     log.info(`emitting clientState for ${this.username} (${this.connectionId}) to itself`);
-    this.senderClientEvent.emit('myStateUpdated', {myState: this.getPublicState(), reason});
+    this.notify.myStateUpdated?.({data: this.getPublicState(), reason});
+    // this.senderClientEvent.emit('myStateUpdated', {myState: this.getPublicState(), reason});
   }
 
   unload() {

@@ -1,8 +1,8 @@
 <template>
   <div v-if="venueStore.currentVenue?.vrSpace?.virtualSpace3DModel">
-    <pre>
+    <!-- <pre>
       {{ venueStore.currentVenue?.vrSpace?.virtualSpace3DModel }}
-    </pre>
+    </pre> -->
     <form @submit.prevent="removeFile">
       <div class="flex items-center">
         <div class="flex-1 flex items-center">
@@ -22,9 +22,6 @@
   <div v-else>
     <form @submit.prevent="uploadFile">
       <div class="form-control w-full max-w-xs">
-        <label class="label">
-          <span class="label-text">Välj en fil</span>
-        </label>
         <input
           type="file"
           accept=".gltf"

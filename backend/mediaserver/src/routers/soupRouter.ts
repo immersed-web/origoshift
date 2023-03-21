@@ -1,6 +1,6 @@
 import { Log } from 'debug-level';
-const log = new Log('Soup:Router');
-process.env.DEBUG = 'Soup:Router*, ' + process.env.DEBUG;
+const log = new Log('Router:Soup');
+process.env.DEBUG = 'Router:Soup*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import { TRPCError } from '@trpc/server';

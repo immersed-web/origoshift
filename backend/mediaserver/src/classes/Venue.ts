@@ -14,6 +14,7 @@ import prisma from '../modules/prismaClient';
 
 import { Camera, VrSpace, type UserClient, SenderClient, BaseClient  } from './InternalClasses';
 import { VenueUpdate } from 'schemas/*';
+import { NotifierInputData } from 'trpc/trpc-utils';
 // import { FilteredEvents } from 'trpc/trpc-utils';
 
 const venueIncludeWhitelistVirtual  = {
@@ -27,6 +28,8 @@ const venueIncludeWhitelistVirtual  = {
 const args = {include: venueIncludeWhitelistVirtual} satisfies Prisma.VenueArgs;
 type VenueResponse = Prisma.VenueGetPayload<typeof args>
 
+// type NotifyKey = keyof UserClient['notify'];
+// type NotifyInput<K extends NotifyKey> = NotifierInputData<UserClient['notify'][K]>
 export class Venue {
   private constructor(prismaData: VenueResponse, router: soupTypes.Router){
     this.router = router;
@@ -104,6 +107,30 @@ export class Venue {
     this.clients.forEach(c => c.notify.venueStateUpdated?.({data, reason}));
   }
 
+  _notifySenderAddedOrRemoved(senderState: ReturnType<SenderClient['getPublicState']>, added: boolean, reason?: string){
+    log.info('Notifying SenderAdded to clients!!!');
+    log.info(this.clients.size);
+    this.clients.forEach(c => {
+      log.info(`notifying client ${c.username} (${c.connectionId}) (${c.clientType})`);
+      if(!c.notify.senderAddedOrRemoved){
+        log.warn('client didnt have observer attached');
+        return;
+      }
+      c.notify.senderAddedOrRemoved({data: {senderState, added}, reason});
+    });
+  }
+
+
+  // _notifyClients<K extends NotifyKey, Input extends NotifyInput<K>['data']>(key: K extends NotifyKey ? K : never, data: Input, reason?: string){
+  //   // const data = this.getPublicState();
+  //   this.clients.forEach(c => {
+  //     const notifyFunction = c.notify[key];
+  //     if(notifyFunction){
+  //       notifyFunction({});
+  //     }
+  //   });
+  // }
+
   /**
    * adds a client (client or sender) to this venues collection of clients. Also takes care of assigning the venue inside the client itself
    * @param client the client instance to add to the venue
@@ -112,17 +139,18 @@ export class Venue {
     // TODO: We should probably decide on where and when we trigger different notifiers. As of now we do both stateupdate and senderaddedremoved
     if(client.clientType === 'sender'){
       this.senderClients.set(client.connectionId, client);
-      this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
+      this._notifySenderAddedOrRemoved(client.getPublicState(), true, 'sender was added');
+      // this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
     }
-    // else {
-    //   this.clients.set(client.connectionId, client);
+    else {
+      this.clients.set(client.connectionId, client);
     //   this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
-    // }
-    // console.log('clients before add: ',this.clients);
-    // console.log('clients after add: ',this.clients);
+    }
     client._setVenue(this.venueId);
     log.info(`Client (${client.clientType}) ${client.username} added to the venue ${this.prismaData.name}`);
     this._notifyStateUpdated('Client added to Venue');
+
+    // this._notifyClients('venueStateUpdated', this.getPublicState(), 'because I wanna');
   }
 
   /**
@@ -131,6 +159,7 @@ export class Venue {
    */
   removeClient (client: UserClient | SenderClient) {
     log.info(`removing ${client.username} (${client.connectionId}) from the venue ${this.name}`);
+    client._setVenue(undefined);
     if(client.clientType === 'client'){
       // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states?
       const camera = client.currentCamera;
@@ -143,12 +172,12 @@ export class Venue {
       }
       this.clients.delete(client.connectionId);
       // this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
+      this._notifyStateUpdated('client removed from venue');
     } else {
       this.senderClients.delete(client.connectionId);
-      this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
+      // this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
+      this._notifySenderAddedOrRemoved(client.getPublicState(), false, 'sender was removed');
     }
-    client._setVenue(undefined);
-    this._notifyStateUpdated('client removed from venue');
 
     // If this was the last client in the venue, lets unload it!
     if(this._isEmpty){

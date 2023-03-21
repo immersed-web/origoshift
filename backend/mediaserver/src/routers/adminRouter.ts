@@ -62,8 +62,13 @@ export const adminRouter = router({
   listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
     return ctx.client.ownedVenues.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));
   }),
-  subSenderAddedOrRemoved: p.use(isVenueOwnerM).subscription(({ctx}) => {
-    return attachToFilteredEvent(ctx.client.clientEvent, 'senderAddedOrRemoved', ctx.connectionId);
+  subSenderAddedOrRemoved: p.use(isVenueOwnerM).use(isUserClientM).subscription(({ctx}) => {
+    return observable<NotifierInputData<UserClient['notify']['senderAddedOrRemoved']>>((scriber) => {
+      log.info(`Attaching sender added notifier for client ${ctx.username} (${ctx.clientType})`);
+      ctx.client.notify.senderAddedOrRemoved = scriber.next;
+      return () => ctx.client.notify.senderAddedOrRemoved = undefined;
+    });
+    // return attachToFilteredEvent(ctx.client.clientEvent, 'senderAddedOrRemoved', ctx.connectionId);
   }),
   subSomeSenderStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to senderState`);

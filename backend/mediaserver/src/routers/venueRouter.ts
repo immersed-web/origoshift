@@ -1,6 +1,6 @@
 import { Log } from 'debug-level';
-const log = new Log('Venue:Router');
-process.env.DEBUG = 'Venue:Router*, ' + process.env.DEBUG;
+const log = new Log('Router:Venue');
+process.env.DEBUG = 'Router:Venue*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import { hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';

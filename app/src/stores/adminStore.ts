@@ -15,8 +15,9 @@ export const useAdminStore = defineStore('admin', () => {
   const connectedSenders = reactive<Map<ReceivedSenderData['connectionId'], ReceivedSenderData>>(new Map());
 
   connectionStore.client.admin.subSenderAddedOrRemoved.subscribe(undefined, {
-    onData(data) {
-      const client = data.client;
+    onData({data, reason}) {
+      console.log('senderAddedOrRemoved triggered!:', data, reason);
+      const client = data.senderState;
       if(data.added){
         connectedSenders.set(client.connectionId ,client);
       } else {

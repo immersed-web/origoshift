@@ -1,5 +1,8 @@
-
 import { Log } from 'debug-level';
+const log = new Log('Router:Camera');
+process.env.DEBUG = 'Router:Camera*, ' + process.env.DEBUG;
+log.enable(process.env.DEBUG);
+
 import { z } from 'zod';
 import { router, procedure as p, isInCameraM, userInVenueP, userClientP, atLeastModeratorP, isVenueOwnerM} from '../trpc/trpc';
 import { CameraIdSchema } from 'schemas';
@@ -7,9 +10,6 @@ import { TRPCError } from '@trpc/server';
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from 'trpc/trpc-utils';
 import { observable } from '@trpc/server/observable';
 import { ConnectionIdSchema } from 'schemas/*';
-const log = new Log('Router:Camera');
-process.env.DEBUG = 'Router:Camera*, ' + process.env.DEBUG;
-log.enable(process.env.DEBUG);
 
 
 

@@ -24,7 +24,7 @@ const venueStore = useVenueStore();
 
 // Props & emits
 const props = defineProps({
-  venue: {type: Object as PropType<RouterOutputs['venue']['listMyVenues'][number]>, required: true},
+  venue: {type: Object as PropType<RouterOutputs['admin']['listMyVenues'][number]>, required: true},
 });
 const emit = defineEmits<{
   (e: 'joined'): void,

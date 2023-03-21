@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { ref } from 'vue';
-import type {} from 'database'
+import type {} from 'database';
 import type { VenueId } from 'schemas';
 // import { clientOrThrow } from '@/modules/trpcClient';
 import { useConnectionStore } from '@/stores/connectionStore';
@@ -24,21 +24,21 @@ export const useVenueStore = defineStore('venue', () => {
       }
     },
   });
-  connection.client.venue.subVenueUnloaded.subscribe(undefined, {
+  connection.client.admin.subVenueUnloaded.subscribe(undefined, {
     onData() {
       currentVenue.value = undefined;
     },
   });
 
   async function createVenue () {
-    const venueId = await connection.client.venue.createNewVenue.mutate({name: `event-${Math.trunc(Math.random() * 1000)}`});
+    const venueId = await connection.client.admin.createNewVenue.mutate({name: `event-${Math.trunc(Math.random() * 1000)}`});
     await loadVenue(venueId);
     await joinVenue(venueId);
     console.log('Created, loaded and joined venue', venueId);
   }
 
   async function loadVenue (venueId: VenueId) {
-    return await connection.client.venue.loadVenue.mutate({venueId});
+    return await connection.client.admin.loadVenue.mutate({venueId});
   }
 
   async function joinVenue (venueId: VenueId) {
@@ -48,7 +48,7 @@ export const useVenueStore = defineStore('venue', () => {
   async function updateVenue () {
     // const saveData = VenueUpdateSchema.parse(currentVenue.value);
     // await connection.client.venue.updateVenue.mutate(saveData);
-    await connection.client.venue.updateVenue.mutate({name: currentVenue.value?.name});
+    await connection.client.admin.updateVenue.mutate({name: currentVenue.value?.name});
   }
 
   async function leaveVenue() {
@@ -62,7 +62,7 @@ export const useVenueStore = defineStore('venue', () => {
       const venueId = currentVenue.value.venueId;
       await leaveVenue();
       // TODO: Make all other clients leave venue, too
-      await connection.client.venue.deleteVenue.mutate({venueId});
+      await connection.client.admin.deleteVenue.mutate({venueId});
     }
   }
 

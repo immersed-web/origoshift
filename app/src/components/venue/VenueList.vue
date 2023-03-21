@@ -24,9 +24,9 @@ import { useAuthStore } from '@/stores/authStore';
 const router = useRouter();
 const authStore = useAuthStore();
 
-const myVenues = ref<RouterOutputs['venue']['listMyVenues']>();
+const myVenues = ref<RouterOutputs['admin']['listMyVenues']>();
 onBeforeMount(async () => {
-  myVenues.value = await clientOrThrow.value.venue.listMyVenues.query();
+  myVenues.value = await clientOrThrow.value.admin.listMyVenues.query();
 });
 
 const joined = async () => {

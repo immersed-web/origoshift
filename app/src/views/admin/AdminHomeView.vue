@@ -43,9 +43,9 @@ const clientStore = useClientStore();
 const authStore = useAuthStore();
 const venueStore = useVenueStore();
 
-const myVenues = ref<RouterOutputs['venue']['listMyVenues']>();
+const myVenues = ref<RouterOutputs['admin']['listMyVenues']>();
 onBeforeMount(async () => {
-  myVenues.value = await clientOrThrow.value.venue.listMyVenues.query();
+  myVenues.value = await clientOrThrow.value.admin.listMyVenues.query();
 });
 
 const loadedVenues = ref<RouterOutputs['venue']['listLoadedVenues']>();

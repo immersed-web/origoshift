@@ -9,12 +9,12 @@ export const useAdminStore = defineStore('admin', () => {
   const venueStore = useVenueStore();
 
   // Refs
-  type ReceivedSenderData = SubscriptionValue<RouterOutputs['venue']['subSenderAddedOrRemoved']>['client'];
+  type ReceivedSenderData = SubscriptionValue<RouterOutputs['admin']['subSenderAddedOrRemoved']>['client'];
 
   // TODO: Do we really want deep reactive object?
   const connectedSenders = reactive<Map<ReceivedSenderData['connectionId'], ReceivedSenderData>>(new Map());
 
-  connectionStore.client.venue.subSenderAddedOrRemoved.subscribe(undefined, {
+  connectionStore.client.admin.subSenderAddedOrRemoved.subscribe(undefined, {
     onData(data) {
       const client = data.client;
       if(data.added){
@@ -25,7 +25,7 @@ export const useAdminStore = defineStore('admin', () => {
     },
   });
 
-  connectionStore.client.soup.subProducerCreated.subscribe(undefined, {
+  connectionStore.client.admin.subProducerCreated.subscribe(undefined, {
     onData(data) {
       console.log('received new producer:', data);
       const { producingConnectionId, producer } = data;
@@ -39,7 +39,7 @@ export const useAdminStore = defineStore('admin', () => {
     },
   });
 
-  connectionStore.client.venue.subVenueStateUpdated.subscribe(undefined, {
+  connectionStore.client.admin.subVenueStateUpdated.subscribe(undefined, {
     onData(data){
       console.log('received venuestate updated:', data);
       venueStore.currentVenue = data;

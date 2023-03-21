@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { attachToEvent } from '../trpc/trpc-utils';
 import { userRouter } from './userRouter';
 import { senderRouter } from './senderRouter';
+import { adminRouter } from './adminRouter';
 
 const appRouterEvents = new TypedEmitter<{
   'heartbeat': (msg: string) => void
@@ -24,6 +25,7 @@ setInterval(() => appRouterEvents.emit('heartbeat', `heartBeat at ${Date.now()}`
 export const appRouter = router({
   user: userRouter,
   sender: senderRouter,
+  admin: adminRouter,
   venue: venueRouter,
   soup: soupRouter,
   vr: vrRouter,

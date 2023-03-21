@@ -64,9 +64,6 @@ export const soupRouter = router({
   closeProducer: clientInVenueP.input(z.object({producerId:z.string().uuid()})).mutation(({input, ctx}) => {
     return 'Not implemented yet' as const;
   }),
-  subProducerCreated: atLeastModeratorP.subscription(({ctx}) => {
-    return attachToFilteredEvent(ctx.client.clientEvent, 'producerCreated', ctx.connectionId);
-  }),
   consumeCamera: clientInVenueP.input(z.object({cameraId: CameraIdSchema, producerId: ProducerIdSchema})).mutation(({ctx, input}) => {
     return 'NOT IMPLEMENTED YET :-(' as const;
   }),

@@ -7,7 +7,7 @@ import { TRPCError } from '@trpc/server';
 import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId, RtpCapabilitiesSchema, CreateConsumerPayloadSchema, ProducerIdSchema, ConsumerId } from 'schemas/mediasoup';
 import { z } from 'zod';
 import { procedure as p, clientInVenueP, router, userClientP, atLeastModeratorP } from '../trpc/trpc';
-import { attachEmitter, attachFilteredEmitter } from '../trpc/trpc-utils';
+import { attachToEvent, attachToFilteredEvent } from '../trpc/trpc-utils';
 import { CameraIdSchema } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
 import type { UserClient } from 'classes/UserClient';
@@ -65,7 +65,7 @@ export const soupRouter = router({
     return 'Not implemented yet' as const;
   }),
   subProducerCreated: atLeastModeratorP.subscription(({ctx}) => {
-    return attachFilteredEmitter(ctx.client.clientEvent, 'producerCreated', ctx.connectionId);
+    return attachToFilteredEvent(ctx.client.clientEvent, 'producerCreated', ctx.connectionId);
   }),
   consumeCamera: clientInVenueP.input(z.object({cameraId: CameraIdSchema, producerId: ProducerIdSchema})).mutation(({ctx, input}) => {
     return 'NOT IMPLEMENTED YET :-(' as const;
@@ -156,7 +156,7 @@ export const soupRouter = router({
 
   }),
   subSoupObjectClosed: p.subscription(({ctx}) => {
-    return attachEmitter(ctx.client.clientEvent, 'soupObjectClosed');
+    return attachToEvent(ctx.client.clientEvent, 'soupObjectClosed');
     // return 'Not implemented yet' as const;
   })
 });

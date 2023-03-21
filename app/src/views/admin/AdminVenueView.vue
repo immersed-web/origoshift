@@ -11,7 +11,7 @@
           class="btn btn-error"
           @click="deleteVenue"
         >
-          <span class="material-icons mr-2">delete</span>
+          <span class="mr-2 material-icons">delete</span>
           Ta bort event
         </button>
       </div>

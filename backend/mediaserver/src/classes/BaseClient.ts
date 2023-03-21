@@ -8,11 +8,12 @@ import { types as soupTypes } from 'mediasoup';
 import type { types as soupClientTypes } from 'mediasoup-client';
 import { ConsumerId, CreateProducerPayload, ProducerId, TransportId  } from 'schemas/mediasoup';
 import { SenderClient, UserClient, Venue } from './InternalClasses';
-import { CustomListenerSignature, FilteredEvents, NonFilteredEvents, SingleParamListenerSignature } from 'trpc/trpc-utils';
+import { CustomListenerSignature, FilteredEvents, NotifierInputData, NonFilteredEvents, NotifierSignature, SingleParamListenerSignature } from 'trpc/trpc-utils';
 import { randomUUID } from 'crypto';
 import { Prisma, userDeselectPassword, userSelectAll } from 'database';
 import prismaClient from '../modules/prismaClient';
 import { ListenerSignature, TypedEmitter } from 'tiny-typed-emitter';
+import { observable } from '@trpc/server/observable';
 
 type SoupObjectClosePayload =
       {type: 'transport', id: TransportId }
@@ -108,6 +109,7 @@ export class BaseClient {
 
     this.clientEvent = new TypedEmitter();
 
+
     // this.event = new TypedEmitter();
     // this.soupEvents = new TypedEmitter();
     // this.venueEvents = new TypedEmitter();
@@ -117,6 +119,12 @@ export class BaseClient {
   clientEvent: TypedEmitter<AllClientEvents>;
 
   connected = true;
+
+  notify = {
+    newProducerInCamera: undefined as NotifierSignature<{added: true} & ReturnType<typeof this._getPublicProducers>[ProducerId]>,
+    producerRemovedInCamera: undefined as NotifierSignature<{added: false, producerId: ProducerId }>
+  };
+
 
   /**
   * The id of the actual connection. This differs from the userId, as a user could potentially have multiple concurrent active connections

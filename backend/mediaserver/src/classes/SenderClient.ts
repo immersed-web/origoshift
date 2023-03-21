@@ -3,7 +3,7 @@ import { NonFilteredEvents } from 'trpc/trpc-utils';
 import { BaseClient, Venue } from './InternalClasses';
 
 import { Log } from 'debug-level';
-import { ClientType, VenueId } from 'schemas';
+import { CameraId, ClientType, VenueId } from 'schemas';
 import { ProducerId } from 'schemas/mediasoup';
 import type { types as soupTypes } from 'mediasoup';
 
@@ -32,18 +32,37 @@ export class SenderClient extends BaseClient{
   }
   readonly clientType = 'sender' as const satisfies ClientType;
 
+  private cameraId?: CameraId;
+  /**
+   * **WARNING**: You should never need to call this function, since the camera instance calls this for you when it adds the sender to itself.
+   */
+  _setCamera(cameraId?: CameraId){
+    this.cameraId = cameraId;
+  }
+  get camera() {
+    if(!this.cameraId) return undefined;
+    if(!this.venue){
+      throw Error('Something is really off! currentCameraId is set but sender isnt in a venue! Invalid state!');
+    }
+    const camera = this.venue.cameras.get(this.cameraId);
+    if(!camera){
+      throw Error('client had an assigned currentCameraId but that camera was not found in venue. Invalid state!');
+    }
+    return camera;
+  }
   // base: BaseClient;
   senderClientEvent: TypedEmitter<SenderClientEvents>;
 
   getPublicState(){
     // const { connectionId, userId, username } = this.base;
-    const producerObj: Record<ProducerId, {producerId: ProducerId, kind: soupTypes.MediaKind }> = {};
-    this.producers.forEach((p) => {
-      const pId = p.id as ProducerId;
-      producerObj[pId] = { producerId: pId, kind: p.kind };
-    });
+    // const producerObj: Record<ProducerId, {producerId: ProducerId, kind: soupTypes.MediaKind }> = {};
+    // this.producers.forEach((p) => {
+    //   const pId = p.id as ProducerId;
+    //   producerObj[pId] = { producerId: pId, kind: p.kind };
+    // });
     return {
       ...super.getPublicState(),
+      cameraId: this.cameraId,
       clientType: this.clientType,
     };
   }

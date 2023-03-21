@@ -1,5 +1,11 @@
 <template>
   <LoggedInHeader />
+  <button
+    @click="$router.replace({name: 'cameraPickVenue'})"
+    class="btn"
+  >
+    Byt evenemang
+  </button>
   <div v-if="!venueStore.currentVenue">
     Waiting for venue {{ senderStore.savedPickedVenueId }} to get loaded...
   </div>
@@ -7,7 +13,7 @@
     <div
       class="m-6 text-6xl"
     >
-      Kamera-vy!
+      {{ venueStore.currentVenue.name }}
     </div>
     <button
       v-if="permissionState !== 'granted'"
@@ -59,45 +65,45 @@
 
 <script setup lang="ts">
 import LoggedInHeader from '@/components/layout/LoggedInHeader.vue';
-import { computed, onMounted, ref, shallowRef, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { isTRPCClientError } from '@/modules/trpcClient';
 import type { ProducerInfo } from 'schemas/mediasoup';
 import { useVenueStore } from '@/stores/venueStore';
 import { useSenderStore } from '@/stores/senderStore';
 import { useSoupStore } from '@/stores/soupStore';
+import { useIntervalFn } from '@vueuse/core';
 
 const senderStore = useSenderStore();
 const venueStore = useVenueStore();
+
+const { pause } = useIntervalFn(async () => {
+  try {
+    if(!senderStore.savedPickedVenueId){
+      router.replace({name: 'cameraPickVenue'});
+      return;
+    }
+    await venueStore.joinVenue(senderStore.savedPickedVenueId);
+    if(!soup.deviceLoaded){
+      await soup.loadDevice();
+    }
+    await soup.createSendTransport();
+    pause();
+  } catch(e) {
+    if(isTRPCClientError(e)){
+      console.error(e.message);
+    } else if (e instanceof Error){
+      console.error(e.message);
+    }
+  }
+}, 5000, {immediateCallback: true} );
+
+onBeforeUnmount(() => {
+  venueStore.leaveVenue();
+});
+
 const router = useRouter();
 const soup = useSoupStore();
-
-onMounted(async () =>{
-  const tryToJoin = async () => {
-    try {
-      if(!senderStore.savedPickedVenueId){
-        router.replace({name: 'cameraPickVenue'});
-        return;
-      }
-      await venueStore.joinVenue(senderStore.savedPickedVenueId);
-      if(!soup.deviceLoaded){
-        await soup.loadDevice();
-      }
-      await soup.createSendTransport();
-    } catch(e) {
-      if(isTRPCClientError(e)){
-        console.error(e.message);
-      } else if (e instanceof Error){
-        console.error(e.message);
-      }
-      setTimeout(() => {
-        tryToJoin();
-      }, 5000);
-    }
-  };
-  tryToJoin();
-
-});
 
 const videoTag = ref<HTMLVideoElement>();
 
@@ -161,13 +167,13 @@ async function startVideo(videoDevice: MediaDeviceInfo){
     // deviceId: pickedVideoInput.value?.deviceId,
     isPaused: false,
   };
-  const restoredProducerId = senderStore.savedProducers.get(deviceId)?.producerId;
+  // const restoredProducerId = senderStore.savedProducers.get(deviceId)?.producerId;
   const producerId = await soup.produce({
-    producerId: restoredProducerId,
+    // producerId: restoredProducerId,
     track: videoTrack.value,
     producerInfo,
   });
-  senderStore.savedProducers.set(deviceId, {deviceId, producerId, type: 'video'});
+  // senderStore.savedProducers.set(deviceId, {deviceId, producerId, type: 'video'});
 }
 
 const permissionState = ref();

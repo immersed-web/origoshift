@@ -3,7 +3,8 @@ import { Log } from 'debug-level';
 import  prisma from '../modules/prismaClient';
 import type { Camera as PrismaCamera } from 'database';
 import type { CameraId } from 'schemas';
-import type {Venue, UserClient} from './InternalClasses';
+import type {Venue, UserClient, SenderClient} from './InternalClasses';
+import { executionAsyncResource } from 'async_hooks';
 
 const log = new Log('Camera');
 
@@ -19,6 +20,7 @@ export class Camera {
   }
 
   venue: Venue;
+  sender?: SenderClient;
   clients: Venue['clients'];
   get clientIds() {
     return Array.from(this.clients.keys());
@@ -54,6 +56,19 @@ export class Camera {
       client._setCamera();
     }
     return wasRemoved;
+  }
+
+  setSender(sender: SenderClient | undefined){
+    if(!sender){
+      this.sender?._setCamera(undefined);
+      this.sender = undefined;
+      return;
+    }
+    if(this.sender){
+      throw Error('trying to set sender in camera when it was already set. This should not happen!');
+    }
+    this.sender = sender;
+    sender._setCamera(this.cameraId);
   }
 
   // STATIC STUFF LAST

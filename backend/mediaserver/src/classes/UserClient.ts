@@ -7,8 +7,9 @@ log.enable(process.env.DEBUG);
 
 import { ClientTransform, ClientTransforms, ConnectionId, UserId, UserRole, VenueId, CameraId, ClientType } from 'schemas';
 import { Venue } from './InternalClasses';
-import { FilteredEvents, NonFilteredEvents } from 'trpc/trpc-utils';
+import { FilteredEvents, NonFilteredEvents, NotifierSignature } from 'trpc/trpc-utils';
 import { BaseClient } from './InternalClasses';
+import { ProducerId } from 'schemas/mediasoup';
 
 
 // export type UserEvents = NonFilteredEvents<{
@@ -67,6 +68,11 @@ export class UserClient extends BaseClient {
   // event: TypedEmitter<UserClientEvents>;
   // userEvents: TypedEmitter<UserEvents>;
   // vrEvents: TypedEmitter<UserVrEvents>;
+
+  notify = {
+    ...super.notify,
+    venueStateUpdated: undefined as NotifierSignature<ReturnType<Venue['getPublicState']>>,
+  };
 
   unload() {
     this.connected = false;

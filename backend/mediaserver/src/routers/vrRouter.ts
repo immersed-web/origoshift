@@ -5,7 +5,7 @@ log.enable(process.env.DEBUG);
 
 import { ClientTransformSchema, VirtualSpace3DModelCreateSchema, VirtualSpace3DModelRemoveSchema } from 'schemas';
 import { procedure as p, router, isVenueOwnerM, isUserClientM, userInVenueP, currentVenueAdminP, currentVenueHasVrSpaceM, currentVenueHasNoVrSpaceM } from '../trpc/trpc';
-import { attachEmitter } from '../trpc/trpc-utils';
+import { attachToEvent } from '../trpc/trpc-utils';
 import { TRPCError } from '@trpc/server';
 
 export const vrRouter = router({
@@ -52,7 +52,7 @@ export const vrRouter = router({
     }),
     subClientTransforms: p.use(isUserClientM).subscription(({ctx}) => {
       console.log(`${ctx.username} started subscription to transforms`);
-      return attachEmitter(ctx.client.userClientEvent, 'clientTransforms');
+      return attachToEvent(ctx.client.userClientEvent, 'clientTransforms');
       // return attachEmitter(venue.vrSpace.emitter, 'transforms');
     })
   })

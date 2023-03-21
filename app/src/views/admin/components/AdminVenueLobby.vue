@@ -1,6 +1,9 @@
 <template>
   <div>
-    <div class="flex mb-4">
+    <div
+      class="flex mb-4"
+      v-auto-animate
+    >
       <h2 class="flex-1">
         VR-lobby
       </h2>
@@ -20,7 +23,7 @@
         Lägg till VR-lobby
       </button>
     </div>
-    <div>
+    <div v-auto-animate>
       <p>
         Inställningar för VR-lobby...
       </p>

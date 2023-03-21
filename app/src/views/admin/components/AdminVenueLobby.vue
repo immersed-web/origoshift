@@ -23,16 +23,37 @@
         Lägg till VR-lobby
       </button>
     </div>
-    <div v-auto-animate>
+    <div
+      v-auto-animate
+    >
       <p>
         Inställningar för VR-lobby...
       </p>
+      <pre> {{ venueStore.currentVenue?.vrSpace?.virtualSpace3DModel }}</pre>
       <div
         v-if="venueStore.currentVenue?.vrSpace"
         class="mt-4"
       >
         <h3>3D-modell</h3>
-        <AdminUploadModelForm />
+        <div class="grid gap-2">
+          <VrAFramePreview
+            v-if="venueStore.currentVenue?.vrSpace?.virtualSpace3DModel"
+            class="flex-1 border"
+            :model-url="venueStore.modelUrl"
+            :navmesh-url="venueStore.navmeshUrl"
+          />
+          <div>
+            <h4>3D-modell</h4>
+            <AdminUploadModelForm model="model" />
+          </div>
+          <div v-if="venueStore.currentVenue?.vrSpace?.virtualSpace3DModel">
+            <h4>Navmesh</h4>
+            <AdminUploadModelForm
+              model="navmesh"
+              name="navmesh"
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -43,6 +64,7 @@ import { useRouter } from 'vue-router';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useVenueStore } from '@/stores/venueStore';
 import AdminUploadModelForm from './AdminUploadModelForm.vue';
+import VrAFramePreview from '@/components/lobby/VrAFramePreview.vue';
 
 // Use imports
 const router = useRouter();

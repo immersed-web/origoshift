@@ -263,6 +263,13 @@ export class Venue {
     }
   }
 
+  async UpdateNavmesh (modelUrl: string) {
+    if(this.prismaData.virtualSpace?.virtualSpace3DModel){
+      this.prismaData.virtualSpace.virtualSpace3DModel.navmeshUrl = modelUrl;
+      await prisma.virtualSpace3DModel.update({where: {modelId: this.prismaData.virtualSpace.virtualSpace3DModelId}, data: {navmeshUrl: modelUrl}});
+    }
+  }
+
   async Remove3DModel(modelId: string) {
     if(this.prismaData.virtualSpace && this.prismaData.virtualSpace.virtualSpace3DModel){
       this.prismaData.virtualSpace.virtualSpace3DModel = await prisma.virtualSpace3DModel.delete(

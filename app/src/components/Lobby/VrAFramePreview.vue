@@ -4,11 +4,16 @@
     cursor="rayOrigin: mouse"
     ref="scene"
     cont
+    id="ascene"
   >
     <a-assets @loaded="onLoaded">
       <a-asset-item
         id="model-asset"
         :src="modelUrl"
+      />
+      <a-asset-item
+        id="navmesh-asset"
+        :src="navmeshUrl"
       />
     </a-assets>
 
@@ -21,6 +26,12 @@
         gltf-model="#model-asset"
         scale="0.04 0.04 0.04"
       />
+      <a-entity
+        id="navmesh"
+        gltf-model="#navmesh-asset"
+        scale="0.04 0.04 0.04"
+        visible="false"
+      />
     </a-entity>
 
     <!-- Avatar wrapper element -->
@@ -31,7 +42,7 @@
         look-controls
         wasd-controls="acceleration:100;"
         position="0 2 0"
-        simple-navmesh-constraint="navmesh:#model; fall:0.5; height:1.65;"
+        :simple-navmesh-constraint="'navmesh:#'+navmeshId+'; fall:0.5; height:1.65;'"
       />
     </a-entity>
   </a-scene>
@@ -45,6 +56,7 @@ import { ref, computed } from 'vue';
 // Props & emits
 const props = defineProps({
   modelUrl: {type: String, default: ''},
+  navmeshUrl: {type: String, default: ''},
 });
 
 // A-frame
@@ -52,6 +64,10 @@ const scene = ref<Scene>();
 
 const modelUrl = computed(() => {
   return props.modelUrl;
+});
+
+const navmeshId = computed(() => {
+  return props.navmeshUrl !== '' ? 'navmesh' : 'model';
 });
 
 // Load a-frame assets
@@ -64,4 +80,10 @@ function onLoaded () {
 </script>
 
 <style scoped>
+
+#ascene {
+  height: 0;
+  padding-top: 56.25%;
+}
+
 </style>

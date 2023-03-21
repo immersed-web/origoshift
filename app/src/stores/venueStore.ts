@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import type {} from 'database';
 import type { VenueId } from 'schemas';
 // import { clientOrThrow } from '@/modules/trpcClient';
@@ -28,6 +28,30 @@ export const useVenueStore = defineStore('venue', () => {
     onData() {
       currentVenue.value = undefined;
     },
+  });
+
+  const modelUrl = computed(() => {
+    if(currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl.indexOf('https://') === 0){
+      return currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl;
+    }
+    else {
+      let path = `${import.meta.env.EXPOSED_FILESERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PORT}`;
+      path += '/uploads/3d_models/';
+      path += currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl;
+      return path;
+    }
+  });
+
+  const navmeshUrl = computed(() => {
+    if(currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl.indexOf('https://') === 0){
+      return currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshUrl;
+    }
+    else {
+      let path = `${import.meta.env.EXPOSED_FILESERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PORT}`;
+      path += '/uploads/3d_models/';
+      path += currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshUrl;
+      return path;
+    }
   });
 
   async function createVenue () {
@@ -81,6 +105,8 @@ export const useVenueStore = defineStore('venue', () => {
     updateVenue,
     leaveVenue,
     deleteCurrentVenue,
+    modelUrl,
+    navmeshUrl,
     // joinVenueAsSender,
   };
 });

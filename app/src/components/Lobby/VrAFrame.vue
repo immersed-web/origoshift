@@ -8,6 +8,10 @@
         id="model-asset"
         :src="modelUrl"
       />
+      <a-asset-item
+        id="navmesh-asset"
+        :src="navmeshUrl"
+      />
     </a-assets>
 
     <a-sky color="#ECECEC" />
@@ -18,6 +22,12 @@
         id="model"
         gltf-model="#model-asset"
         scale="0.04 0.04 0.04"
+      />
+      <a-entity
+        id="navmesh"
+        gltf-model="#navmesh-asset"
+        scale="0.04 0.04 0.04"
+        visible="false"
       />
     </a-entity>
 
@@ -32,10 +42,11 @@
         position="0 2 0"
         @move0="cameraMoveFast"
         @move1="cameraMoveSlow"
-        simple-navmesh-constraint="navmesh:#model; fall:0.5; height:1.65;"
+        :simple-navmesh-constraint="'navmesh:#'+navmeshId+'; fall:0.5; height:1.65;'"
       >
         <a-entity
-          v-if="displayMessage.length"
+          v-if="
+            displayMessage.length"
           :text="'value: ' + displayMessage"
           position="0 0 -1"
           animation="property: object3D.position.y; to: 0.1; dir: alternate; dur: 500; loop: true"
@@ -71,7 +82,8 @@ const clientStore = useClientStore();
 
 // Props & emits
 const props = defineProps({
-  modelUrl: {type: String, default: ''},
+  modelUrl: {type: String, required: true},
+  navmeshUrl: {type: String, default: ''},
 });
 
 // A-frame
@@ -79,6 +91,10 @@ const scene = ref<Scene>();
 
 const modelUrl = computed(() => {
   return props.modelUrl;
+});
+
+const navmeshId = computed(() => {
+  return props.navmeshUrl !== '' ? 'navmesh' : 'model';
 });
 
 // Server, Client, etc.

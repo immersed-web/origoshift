@@ -2,9 +2,11 @@ import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { defineStore } from 'pinia';
 import { reactive, shallowReactive } from 'vue';
 import { useConnectionStore } from './connectionStore';
+import { useVenueStore } from './venueStore';
 
 export const useAdminStore = defineStore('admin', () => {
   const connectionStore = useConnectionStore();
+  const venueStore = useVenueStore();
 
   // Refs
   type ReceivedSenderData = SubscriptionValue<RouterOutputs['venue']['subSenderAddedOrRemoved']>['client'];
@@ -34,6 +36,13 @@ export const useAdminStore = defineStore('admin', () => {
       }
       sender.producers[producer.producerId] = producer;
       connectedSenders.set(producingConnectionId, sender);
+    },
+  });
+
+  connectionStore.client.venue.subVenueStateUpdated.subscribe(undefined, {
+    onData(data){
+      console.log('received venuestate updated:', data);
+      venueStore.currentVenue = data;
     },
   });
 

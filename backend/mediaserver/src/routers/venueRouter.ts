@@ -11,7 +11,8 @@ import { SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
 import { TRPCError } from '@trpc/server';
 import type { Prisma } from 'database';
-import { attachToEvent, attachToFilteredEvent } from '../trpc/trpc-utils';
+import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
+import { observable } from '@trpc/server/observable';
 
 export const venueRouter = router({
   createNewVenue: atLeastModeratorP.input(z.object({
@@ -48,6 +49,12 @@ export const venueRouter = router({
   }),
   subVenueUnloaded: p.subscription(({ctx}) => {
     attachToEvent(ctx.client.clientEvent, 'venueWasUnloaded');
+  }),
+  subVenueStateUpdated: atLeastModeratorP.use(isUserClientM).subscription(({ctx}) => {
+    return observable<NotifierInputData<UserClient['notify']['venueStateUpdated']>>((scriber) => {
+      ctx.client.notify.venueStateUpdated = scriber.next;
+      return () => ctx.client.notify.venueStateUpdated = undefined;
+    });
   }),
   listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
     return ctx.client.ownedVenues.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));

@@ -99,6 +99,11 @@ export class Venue {
     await prisma.venue.update({where: {venueId: this.prismaData.venueId}, data: input});
   }
 
+  _notifyStateUpdated(){
+    const s = this.getPublicState();
+    this.clients.forEach(c => c.notify.venueStateUpdated?.(s));
+  }
+
   /**
    * adds a client (client or sender) to this venues collection of clients. Also takes care of assigning the venue inside the client itself
    * @param client the client instance to add to the venue
@@ -115,6 +120,7 @@ export class Venue {
     // console.log('clients after add: ',this.clients);
     client._setVenue(this.venueId);
     log.info(`Client (${client.clientType}) ${client.username} added to the venue ${this.prismaData.name}`);
+    this._notifyStateUpdated();
   }
 
   /**
@@ -140,6 +146,7 @@ export class Venue {
       this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
     }
     client._setVenue(undefined);
+    this._notifyStateUpdated();
 
     // If this was the last client in the venue, lets unload it!
     if(this._isEmpty){
@@ -235,6 +242,8 @@ export class Venue {
         }
       }
     });
+    this.vrSpace = new VrSpace(this, this.prismaData.virtualSpace);
+    this._notifyStateUpdated();
   }
 
   async Create3DModel(modelUrl: string) {
@@ -250,6 +259,7 @@ export class Venue {
           }
         },
       });
+      this._notifyStateUpdated();
     }
   }
 
@@ -260,6 +270,7 @@ export class Venue {
           where: {modelId}
         }
       );
+      this._notifyStateUpdated();
     }
   }
 

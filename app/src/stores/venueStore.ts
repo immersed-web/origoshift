@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import type {} from 'database';
 import type { VenueId } from 'schemas';
 // import { clientOrThrow } from '@/modules/trpcClient';
@@ -29,6 +29,19 @@ export const useVenueStore = defineStore('venue', () => {
       currentVenue.value = undefined;
     },
   });
+
+  const modelUrl = computed(() => {
+    if(currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl.indexOf('https://') === 0){
+      return currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl;
+    }
+    else {
+      let path = `${import.meta.env.EXPOSED_FILESERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PORT}`;
+      path += '/uploads/3d_models/';
+      path += currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl;
+      return path;
+    }
+  });
+
 
   async function createVenue () {
     const venueId = await connection.client.admin.createNewVenue.mutate({name: `event-${Math.trunc(Math.random() * 1000)}`});
@@ -81,6 +94,7 @@ export const useVenueStore = defineStore('venue', () => {
     updateVenue,
     leaveVenue,
     deleteCurrentVenue,
+    modelUrl,
     // joinVenueAsSender,
   };
 });

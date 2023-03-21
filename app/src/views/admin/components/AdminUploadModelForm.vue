@@ -5,17 +5,24 @@
     </pre> -->
     <form @submit.prevent="removeFile">
       <div class="flex items-center">
-        <div class="flex-1 flex items-center">
+        <div class="flex-1 flex items-center gap-4">
           <!-- <span class="material-icons mr-2">view_in_ar</span> -->
-          <i>{{ venueStore.currentVenue?.vrSpace?.virtualSpace3DModel.modelUrl }}</i>
+          <!-- <i>{{ venueStore.modelUrl }}</i> -->
+          <VrAFramePreview
+            class="flex-1 border"
+            :model-url="venueStore.modelUrl"
+            id="aframe"
+          />
+          <div class="flex-1">
+            <button
+              type="submit"
+              class="btn btn-error"
+            >
+              <span class="material-icons mr-2">delete</span>
+              Ta bort 3D-modell
+            </button>
+          </div>
         </div>
-        <button
-          type="submit"
-          class="btn btn-error"
-        >
-          <span class="material-icons mr-2">delete</span>
-          Ta bort 3D-modell
-        </button>
       </div>
     </form>
   </div>
@@ -45,6 +52,7 @@ import { type Ref, ref, computed } from 'vue';
 import axios from 'axios';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useVenueStore } from '@/stores/venueStore';
+import VrAFramePreview from '@/components/lobby/VrAFramePreview.vue';
 
 const connectionStore = useConnectionStore();
 const venueStore = useVenueStore();
@@ -115,5 +123,14 @@ const remove3DModel = async (modelUrl: string) => {
 </script>
 
 <style scoped>
+
+.break {
+  word-break: break-all;
+}
+
+#aframe {
+  width: 192px;
+  height: 108px;
+}
 
 </style>

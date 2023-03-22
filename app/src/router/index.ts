@@ -156,7 +156,7 @@ router.beforeEach(async (to, from) => {
     console.log('MUST BE IN VENUE FOR THIS ROUTE');
 
     if(!venueStore.currentVenue){
-      await connectionStore.firstConnectionEstablished;
+      // await connectionStore.firstConnectionEstablished;
       if(!venueStore.savedVenueId){
         const routeName = `${authStore.routePrefix}Home`;
         return { name: routeName};

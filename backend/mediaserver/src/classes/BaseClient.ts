@@ -220,15 +220,6 @@ export class BaseClient {
     // this.leaveCurrentVenue();
   }
 
-  // leaveCurrentVenue() {
-  //   if(!this.venue) {
-  //     return false;
-  //     // throw Error('cant leave a venue if you are not in one!');
-  //   }
-  //   this.teardownMediasoupObjects();
-  //   return true;
-  // }
-
   /**
    * closes all mediasoup related object and instances.
    */

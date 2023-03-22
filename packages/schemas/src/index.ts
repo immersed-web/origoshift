@@ -62,7 +62,7 @@ export function throwIfUnauthorized(role: UserRole, minimumUserRole: UserRole) {
   }
 }
 
-export function hasAtLeastSecurityLevel(role: UserRole, minimumUserRole: UserRole) {
+export function hasAtLeastSecurityLevel(role: UserRole | undefined, minimumUserRole: UserRole) {
   if(!role){
     // return false;
     throw new Error('no userRole provided for auth check!');

@@ -4,6 +4,7 @@ import { useClientStore } from '@/stores/clientStore';
 // import { useSenderStore } from '@/stores/senderStore';
 import { hasAtLeastSecurityLevel, type UserRole, type ClientType } from 'schemas';
 import { createRouter, createWebHistory } from 'vue-router';
+import { useVenueStore } from '@/stores/venueStore';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -13,6 +14,7 @@ declare module 'vue-router' {
     requiredRole?: UserRole
     afterLoginRedirect?: string
     loginNeededRedirect?: 'cameraLogin' | 'login'
+    mustBeInVenue?: boolean
   }
 }
 
@@ -61,14 +63,21 @@ const router = createRouter({
           component:  () => import('@/views/admin/AdminHomeView.vue'),
         },
         {
-          path: 'venue',
-          name: 'adminVenue',
-          component:  () => import('@/views/admin/AdminVenueView.vue'),
-        },
-        {
-          path: 'cameras',
-          name: 'adminCameras',
-          component:  () => import('@/views/admin/AdminCamerasView.vue'),
+          path: '',
+          meta: {mustBeInVenue: true},
+          children: [
+
+            {
+              path: 'venue',
+              name: 'adminVenue',
+              component:  () => import('@/views/admin/AdminVenueView.vue'),
+            },
+            {
+              path: 'cameras',
+              name: 'adminCameras',
+              component:  () => import('@/views/admin/AdminCamerasView.vue'),
+            },
+          ],
         },
       ],
     },
@@ -137,8 +146,29 @@ router.beforeEach(async (to, from) => {
       } else {
         connectionStore.createSenderClient();
       }
+      console.log('CONNECTED STATE IN NAV GUARD: ', connectionStore.connected);
     } else if(connectionStore.connectionType !== to.meta.requiredConnection){
       throw Error('you are already connected to the backend as the wrong type of client. Close the current connection before going to this route.');
+    }
+  }
+  if(to.meta.mustBeInVenue){
+    const venueStore = useVenueStore();
+    console.log('MUST BE IN VENUE FOR THIS ROUTE');
+
+    if(!venueStore.currentVenue){
+      await connectionStore.firstConnectionEstablished;
+      if(!venueStore.savedVenueId){
+        const routeName = `${authStore.routePrefix}Home`;
+        return { name: routeName};
+      }
+      if(hasAtLeastSecurityLevel(authStore.role, 'moderator')){
+        try{
+          await venueStore.loadVenue(venueStore.savedVenueId);
+        } catch (e) {
+          console.warn('nav guard tried to load venue that was already loaded');
+        }
+      }
+      await venueStore.joinVenue(venueStore.savedVenueId);
     }
   }
 });

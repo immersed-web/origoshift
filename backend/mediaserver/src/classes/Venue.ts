@@ -7,13 +7,12 @@ process.env.DEBUG = 'Venue*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import {types as soupTypes} from 'mediasoup';
-import { ConnectionId, UserId, VenueId, CameraId } from 'schemas';
+import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate  } from 'schemas';
 
 import type { Prisma } from 'database';
 import prisma from '../modules/prismaClient';
 
 import { Camera, VrSpace, type UserClient, SenderClient, BaseClient  } from './InternalClasses';
-import { VenueUpdate } from 'schemas/*';
 import { NotifierInputData } from 'trpc/trpc-utils';
 // import { FilteredEvents } from 'trpc/trpc-utils';
 

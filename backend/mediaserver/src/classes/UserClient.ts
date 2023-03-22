@@ -144,6 +144,7 @@ export class UserClient extends BaseClient {
     this.sendTransport = await venue.createWebRtcTransport();
     this.receiveTransport = await venue.createWebRtcTransport();
     this._onClientStateUpdated('user client joined venue');
+    return venue.getPublicState();
   }
 
   leaveCurrentVenue() {

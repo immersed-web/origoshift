@@ -20,6 +20,13 @@ export const useConnectionStore = defineStore('connection', () => {
   const connected = ref(false);
   const connectionType = ref<ClientType>();
 
+  let _resolve: () => void;
+  // let _reject: (reason?: any) => void;
+  const firstConnectionEstablished = new Promise<void>((resolve, reject)=>{
+    _resolve = resolve;
+    // _reject = reject;
+  });
+
   // createTrpcClient(() => authStore.tokenOrThrow, 'user');
   // Not possible at the moment because of unnamed exported types
   const client: ShallowRef<CreateTRPCProxyClient<AppRouter>> = shallowRef(clientOrThrow);
@@ -31,7 +38,10 @@ export const useConnectionStore = defineStore('connection', () => {
       throw Error('must create a trpc client (and thus implicitly a wsClient) before accessing the ws connection');
     }
     const ws = wsClient.getConnection();
-    ws.addEventListener('open', () => connected.value = true);
+    ws.addEventListener('open', () => {
+      connected.value = true;
+      _resolve();
+    });
     ws.addEventListener('close', () => connected.value = false);
 
     const greetingResponse = await client.value.greeting.query();
@@ -57,6 +67,7 @@ export const useConnectionStore = defineStore('connection', () => {
   }
 
   return {
+    firstConnectionEstablished,
     client,
     connected,
     connectionType,

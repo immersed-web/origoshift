@@ -82,10 +82,13 @@ export class Venue {
     const {venueId, name, clientIds, ownerId} = this;
     const cameras: Record<CameraId, ReturnType<Camera['getPublicState']>> = {};
     this.cameras.forEach(cam => cameras[cam.cameraId] = cam.getPublicState());
+    const senders: Record<ConnectionId, ReturnType<SenderClient['getPublicState']>> = {};
+    this.senderClients.forEach(s => senders[s.connectionId] = s.getPublicState());
     return {
       venueId, name, clientIds, ownerId,
       vrSpace: this.vrSpace?.getPublicState(),
-      cameras: cameras
+      senders,
+      cameras
     };
   }
 

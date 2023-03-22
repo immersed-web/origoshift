@@ -12,8 +12,6 @@
 <script setup lang="ts">
 
 import type { PropType } from 'vue';
-// import { useRouter } from 'vue-router';
-import { clientOrThrow } from '@/modules/trpcClient';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { useVenueStore } from '@/stores/venueStore';
 import type { VenueId } from 'schemas/*';
@@ -32,8 +30,11 @@ const emit = defineEmits<{
 
 const loadAndJoinVenue = async (venueId: VenueId) => {
   try{
-    const loadedVenueState = await venueStore.loadVenue(venueId);
-    console.log('Loaded venue state', loadedVenueState);
+    await venueStore.loadVenue(venueId);
+  }catch(e) {
+    console.error(e);
+  }
+  try{
     await venueStore.joinVenue(venueId);
     emit('joined');
   }

@@ -1,12 +1,30 @@
 <template>
   <h1>Cameras view</h1>
   <SenderList />
-  <pre>
-    {{ venueStore.currentVenue }}
-  </pre>
-  <pre>
-    {{ adminStore.connectedSenders }}
-  </pre>
+  <div class="flex gap-4">
+    <div>
+      <pre>
+        {{ venueStore.currentVenue }}
+      </pre>
+      <pre>
+        {{ adminStore.connectedSenders }}
+      </pre>
+    </div>
+    <div class="p-4 border-2">
+      <div
+        v-for="[k, sender] in adminStore.connectedSenders"
+        :key="k"
+      >
+        {{ sender.username }}
+        <button
+          class="btn btn-primary"
+          @click="adminStore.createCameraFromSender(`camera_${k.substring(0, 5)}`, k)"
+        >
+          Create camera
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 

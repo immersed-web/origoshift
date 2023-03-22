@@ -1,10 +1,8 @@
 
 import { Log } from 'debug-level';
-import  prisma from '../modules/prismaClient';
 import type { Camera as PrismaCamera } from 'database';
 import type { CameraId } from 'schemas';
 import {Venue, UserClient, SenderClient} from './InternalClasses';
-import { executionAsyncResource } from 'async_hooks';
 
 const log = new Log('Camera');
 
@@ -34,12 +32,16 @@ export class Camera {
   get clientIds() {
     return Array.from(this.clients.keys());
   }
+
   prismaData: PrismaCamera;
   get cameraId(){
     return this.prismaData.cameraId as CameraId;
   }
   get name() {
     return this.prismaData.name;
+  }
+  setName(name: string) {
+    this.prismaData.name = name;
   }
 
   getPublicState() {
@@ -82,46 +84,6 @@ export class Camera {
   }
 
   // STATIC STUFF LAST
-  static async createNewCamera(name: string, venue: Venue){
-    try {
-      const result = await prisma.camera.create({
-        data: {
-          name,
-          venue: {
-            connect: {
-              venueId: venue.venueId
-            }
-          },
-          settings: {coolSetting: 'aaaww yeeeah'},
-          // startTime: new Date(),
-          // virtualSpace: {
-          //   create: {
-          //     settings: 'asdas'
-          //   }
-          // }
 
-        }
-      });
-
-
-
-      return result.cameraId;
-    } catch (e){
-      log.error(e);
-      throw e;
-    }
-  }
-
-  static async loadCamera(cameraId: CameraId, venue: Venue, prismaCamera: PrismaCamera, sender?: SenderClient) {
-    if(venue.cameras.has(cameraId)){
-      throw Error('a camera with that id is already loaded');
-    }
-
-    if(!prismaCamera){
-      prismaCamera = await prisma.camera.findUniqueOrThrow({where: {cameraId}});
-    }
-    const camera = new Camera(prismaCamera, venue, sender);
-    venue.cameras.set(camera.cameraId, camera);
-  }
 
 }

@@ -2,8 +2,8 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import { SenderClient, UserClient, Venue } from './classes/InternalClasses';
 
 import { Log } from 'debug-level';
-const log = new Log('ClassObserver');
-process.env.DEBUG = 'ClassObserver*, ' + process.env.DEBUG;
+const log = new Log('DebugObserver');
+process.env.DEBUG = 'DebugObserver*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 //
 // @ts-expect-error: We allow reading private field here

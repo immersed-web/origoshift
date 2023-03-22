@@ -14,20 +14,6 @@ import { ConnectionIdSchema } from 'schemas/*';
 
 
 export const cameraRouter = router({
-  addSenderToCamera: atLeastModeratorP.use(isVenueOwnerM).input(z.object({
-    senderClientConnectionId: ConnectionIdSchema,
-    cameraId: CameraIdSchema,
-  })).mutation(({ctx, input}) => {
-    const foundCamera = ctx.venue.cameras.get(input.cameraId);
-    if(!foundCamera){
-      throw new TRPCError({code: 'NOT_FOUND', message: 'no camera with that id in venue'});
-    }
-    const foundSender = ctx.venue.senderClients.get(input.senderClientConnectionId);
-    if(!foundSender){
-      throw new TRPCError({code: 'NOT_FOUND', message: 'No sender with that id in venue'});
-    }
-    foundCamera.setSender(foundSender);
-  }),
   getCameraState: p.use(isInCameraM).query(({ctx}) => {
     return ctx.currentCamera.getPublicState();
   }),

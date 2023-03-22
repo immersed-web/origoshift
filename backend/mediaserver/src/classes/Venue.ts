@@ -9,7 +9,7 @@ log.enable(process.env.DEBUG);
 import {types as soupTypes} from 'mediasoup';
 import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate  } from 'schemas';
 
-import type { Prisma } from 'database';
+import { Prisma } from 'database';
 import prisma from '../modules/prismaClient';
 
 import { Camera, VrSpace, type UserClient, SenderClient, BaseClient  } from './InternalClasses';
@@ -23,6 +23,7 @@ const venueIncludeWhitelistVirtual  = {
     }
   },
   virtualSpace: {include: {virtualSpace3DModel: true}},
+  cameras: true,
 } satisfies Prisma.VenueInclude;
 const args = {include: venueIncludeWhitelistVirtual} satisfies Prisma.VenueArgs;
 type VenueResponse = Prisma.VenueGetPayload<typeof args>
@@ -36,6 +37,9 @@ export class Venue {
     if(prismaData.virtualSpace){
       this.vrSpace = new VrSpace(this, prismaData.virtualSpace);
     }
+    prismaData.cameras.forEach(c => {
+      this.loadCamera(c.cameraId as CameraId);
+    });
   }
 
   private prismaData: VenueResponse;
@@ -311,11 +315,51 @@ export class Venue {
     }
   }
 
+  async createNewCamera(name: string){
+    const result = await prisma.camera.create({
+      data: {
+        name,
+        venue: {
+          connect: {
+            venueId: this.venueId
+          }
+        },
+        settings: {coolSetting: 'aaaww yeeeah'},
+        // startTime: new Date(),
+        // virtualSpace: {
+        //   create: {
+        //     settings: 'asdas'
+        //   }
+        // }
+
+      }
+    });
+
+    this.prismaData.cameras.push((result));
+
+    return result.cameraId as CameraId;
+  }
+
+  loadCamera(cameraId: CameraId, sender?: SenderClient) {
+    if(this.cameras.has(cameraId)){
+      throw Error('a camera with that id is already loaded');
+    }
+    const prismaCamera = this.prismaData.cameras.find(c => c.cameraId === cameraId);
+    if(!prismaCamera){
+      throw Error('no prisma data for a camera with that Id in venue prismaData');
+    }
+    const camera = new Camera(prismaCamera, this, sender);
+    this.cameras.set(camera.cameraId, camera);
+
+    this._notifyStateUpdated('camera loaded');
+  }
+
   // Static stuff for global housekeeping
   private static venues: Map<VenueId, Venue> = new Map();
 
   static async createNewVenue(name: string, owner: UserId){
     try {
+
       const result = await prisma.venue.create({
         data: {
           name,
@@ -326,49 +370,11 @@ export class Venue {
           },
           settings: {coolSetting: 'aaaww yeeeah'},
           startTime: new Date(),
-          // virtualSpace: {
-          //   create: {
-          //     virtualSpace3DModel: {
-          //       create: {
-          //         scale: 1,
-          //         modelUrl: 'google.com',
-          //         navmeshUrl: 'google.se'
-          //       }
-          //     },
-          //     settings: {
-          //     }
-          //   }
-          // }
         }
       });
 
-      // prisma.virtualSpace.create({
-      //   data: {
-      //     virtualSpace3DModel: {
-      //       create: {
-      //         scale: 1,
-      //         modelUrl: 'google.com',
-      //         navmeshUrl: 'google.se'
-      //       }
-      //     },
-      //     settings: {
-      //       cool: 'asdfasdf',
-      //     },
-      //     venue: {
-      //       connect: result,
-      //     }
-      //   }
-      // });
-
-
-      // const venue = await prisma.venue.findFirst({
-      //   where: {
-      //     name: 'Hello'
-      //   }
-      // });
-
       return result.venueId as VenueId;
-    } catch (e){
+    } catch(e) {
       log.error(e);
       throw e;
     }

@@ -1,10 +1,10 @@
-import mediasoupConfig from '../mediasoupConfig';
-import { getMediasoupWorker } from '../modules/mediasoupWorkers';
 import { Log } from 'debug-level';
-
 const log = new Log('Venue');
 process.env.DEBUG = 'Venue*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
+
+import mediasoupConfig from '../mediasoupConfig';
+import { getMediasoupWorker } from '../modules/mediasoupWorkers';
 
 import {types as soupTypes} from 'mediasoup';
 import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate  } from 'schemas';
@@ -13,19 +13,24 @@ import { Prisma } from 'database';
 import prisma from '../modules/prismaClient';
 
 import { Camera, VrSpace, type UserClient, SenderClient, BaseClient  } from './InternalClasses';
-import { NotifierInputData } from 'trpc/trpc-utils';
-// import { FilteredEvents } from 'trpc/trpc-utils';
+// import { NotifierInputData } from 'trpc/trpc-utils';
 
-const venueIncludeWhitelistVirtual  = {
-  whitelistedUsers: {
-    select: {
-      userId: true
-    }
-  },
+const basicUserSelect = {
+  select: {
+    userId: true,
+    username: true,
+    role: true,
+  }
+} satisfies Prisma.Venue$ownersArgs;
+
+const venueIncludeStuff  = {
+  whitelistedUsers: basicUserSelect,
+  blackListedUsers: basicUserSelect,
+  owners: basicUserSelect,
   virtualSpace: {include: {virtualSpace3DModel: true}},
   cameras: true,
 } satisfies Prisma.VenueInclude;
-const args = {include: venueIncludeWhitelistVirtual} satisfies Prisma.VenueArgs;
+const args = {include: venueIncludeStuff} satisfies Prisma.VenueArgs;
 type VenueResponse = Prisma.VenueGetPayload<typeof args>
 
 // type NotifyKey = keyof UserClient['notify'];
@@ -40,6 +45,10 @@ export class Venue {
     prismaData.cameras.forEach(c => {
       this.loadCamera(c.cameraId as CameraId);
     });
+
+    // this.owners.forEach(o => {
+    //   o.
+    // })
   }
 
   private prismaData: VenueResponse;
@@ -55,10 +64,13 @@ export class Venue {
   //   prisma.venue.update({where: {venueId: this.prismaData.venueId}, data: this.prismaData});
   // }
 
-  // TODO: We probably want to be able to have many owners for a venue in the future
-  get ownerId() {
-    return this.prismaData.ownerId as UserId;
+  get owners()  {
+    // return this.prismaData.owners;
+    return this.prismaData.owners.reduce<Record<UserId, typeof this.prismaData.owners[number]>>((prev, cur) => {
+      return prev[cur.userId as UserId] = cur;
+    }, {});
   }
+
 
   router: soupTypes.Router;
   vrSpace?: VrSpace;
@@ -79,13 +91,13 @@ export class Venue {
     return this.clients.size === 0 && this.senderClients.size === 0;
   }
   getPublicState() {
-    const {venueId, name, clientIds, ownerId} = this;
+    const {venueId, name, clientIds, owners} = this;
     const cameras: Record<CameraId, ReturnType<Camera['getPublicState']>> = {};
     this.cameras.forEach(cam => cameras[cam.cameraId] = cam.getPublicState());
     const senders: Record<ConnectionId, ReturnType<SenderClient['getPublicState']>> = {};
     this.senderClients.forEach(s => senders[s.connectionId] = s.getPublicState());
     return {
-      venueId, name, clientIds, ownerId,
+      venueId, name, clientIds, owners,
       vrSpace: this.vrSpace?.getPublicState(),
       senders,
       cameras
@@ -366,7 +378,7 @@ export class Venue {
       const result = await prisma.venue.create({
         data: {
           name,
-          owner: {
+          owners: {
             connect: {
               userId: owner
             }
@@ -383,6 +395,15 @@ export class Venue {
     }
   }
 
+  static async deleteVenue(venueId: VenueId) {
+    const deletedVenue = await prisma.venue.delete({
+      where: {
+        venueId
+      }
+    });
+    return deletedVenue;
+  }
+
   static async loadVenue(venueId: VenueId, ownerId: UserId, worker?: soupTypes.Worker) {
     try {
       if(Venue.venues.has(venueId)){
@@ -390,13 +411,17 @@ export class Venue {
       }
       const dbResponse = await prisma.venue.findUniqueOrThrow({
         where: {
-          ownerId_venueId: {
-            venueId,
-            ownerId
-          }
+          venueId,
+          // ownerId_venueId: {
+          //   venueId,
+          //   ownerId
+          // }
         },
-        include: venueIncludeWhitelistVirtual,
+        include: venueIncludeStuff,
       });
+      if(!dbResponse.owners.find(u => u.userId === ownerId)){
+        throw Error('you are not owner of the venue! Not allowed!');
+      }
 
       if(!worker){
         worker = getMediasoupWorker();

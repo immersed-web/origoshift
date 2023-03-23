@@ -107,7 +107,7 @@ export const currentVenueHasNoVrSpaceM = isInVenueM.unstable_pipe(({ctx, next, p
 });
 
 export const isVenueOwnerM = isInVenueM.unstable_pipe(({ctx, next, path}) => {
-  if(ctx.venue.ownerId !== ctx.userId){
+  if(!(ctx.userId in ctx.venue.owners)){
     throw new TRPCError({code: 'FORBIDDEN', message: `you are not the owner of this venue. Action not allowed: ${path}`});
   }
   return next();

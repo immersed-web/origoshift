@@ -35,9 +35,9 @@ model User {
   username      String   @unique
   password      String
   role          Role     @default(user)
-  ownedVenues   Venue[]
-  allowedVenues Venue[]  @relation("allowedUsers")
-  bannedVenues  Venue[]  @relation("blacklistedUsers")
+  ownedVenues   Venue[]  @relation("usersOwningVenues")
+  allowedVenues Venue[]  @relation("usersAllowedInVenues")
+  bannedVenues  Venue[]  @relation("usersBannedFromVenues")
 }
 
 model Venue {
@@ -46,13 +46,14 @@ model Venue {
   startTime        DateTime
   settings         Json
   virtualSpace     VirtualSpace?
-  owner            User          @relation(fields: [ownerId], references: [userId], onDelete: Cascade)
-  ownerId          String        @db.Uuid
-  whitelistedUsers User[]        @relation("allowedUsers")
-  blackListedUsers User[]        @relation("blacklistedUsers")
+  // owner            User          @relation(fields: [ownerId], references: [userId], onDelete: Cascade)
+  // ownerId          String        @db.Uuid
+  owners           User[]        @relation("usersOwningVenues")
+  whitelistedUsers User[]        @relation("usersAllowedInVenues")
+  blackListedUsers User[]        @relation("usersBannedFromVenues")
   cameras          Camera[]
 
-  @@unique([ownerId, venueId])
+  // @@unique([ownerId, venueId])
 }
 
 model VirtualSpace {
@@ -74,11 +75,11 @@ model VirtualSpace3DModel {
 }
 
 model Camera {
-  cameraId String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cameraId String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name     String
-  venue    Venue  @relation(fields: [venueId], references: [venueId], onDelete: Cascade)
-  venueId  String @db.Uuid
-
+  venue    Venue   @relation(fields: [venueId], references: [venueId], onDelete: Cascade)
+  venueId  String  @db.Uuid
+  senderId String? @unique @db.Uuid
   settings Json
 
   @@unique([name, venueId]) // We allow duplicate camera names as long as they are at different venues

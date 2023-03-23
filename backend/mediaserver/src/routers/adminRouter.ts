@@ -25,26 +25,18 @@ export const adminRouter = router({
     return venueId;
   }),
   deleteVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
-    if(Venue.venueIsLoaded({venueId: input.venueId})){
+    const venueId = input.venueId;
+    if(Venue.venueIsLoaded({venueId})){
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'Cant delete a venue when its loaded. Unload it first!'});
     }
-    let where: Prisma.VenueWhereUniqueInput = {
-      ownerId_venueId: {
-        ownerId: ctx.userId,
-        venueId: input.venueId,
-      }
-    };
-    if(hasAtLeastSecurityLevel(ctx.role, 'admin')){
-      where = {
-        venueId: input.venueId
-      };
+    if(
+      !hasAtLeastSecurityLevel(ctx.role, 'admin')
+      && -1 === ctx.client.ownedVenues.findIndex(v => v.venueId === venueId)){
+      throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You are not owner or dont have high enough permission. Now Cry!'});
     }
 
-    const deletedVenue = await prismaClient.venue.delete({
-      where
-    });
+    const deletedVenue = await Venue.deleteVenue(venueId);
     return deletedVenue.venueId;
-    // return dbResponse;
   }),
   loadVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input, ctx}) => {
     const venue = await Venue.loadVenue(input.venueId, ctx.userId);

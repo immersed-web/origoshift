@@ -64,6 +64,7 @@ app.post('/remove', (req,res) => {
       res.status(403).end(JSON.stringify({msg: 'The file does not exist.'}));
       return
     }
+    res.end();
   })
 })
 

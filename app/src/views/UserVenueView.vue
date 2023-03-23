@@ -33,9 +33,9 @@ const router = useRouter();
 const clientStore = useClientStore();
 
 // View functionality
-onMounted(() => {
-  clientStore.updateClientState();
-});
+// onMounted(() => {
+//   clientStore.updateClientState();
+// });
 
 const openLobby = async () => {
   await clientOrThrow.value.vr.openVrSpace.mutate();

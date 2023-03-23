@@ -65,9 +65,9 @@ const clientStore = useClientStore();
 const venueStore = useVenueStore();
 
 // View functionality
-onMounted(() => {
-  clientStore.updateClientState();
-});
+// onMounted(() => {
+//   clientStore.updateClientState();
+// });
 
 onUnmounted(async () => {
   // if(venueStore.currentVenue){

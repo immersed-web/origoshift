@@ -15,6 +15,11 @@ export const useAdminStore = defineStore('admin', () => {
   // TODO: Do we really want deep reactive object?
   const connectedSenders = reactive<Map<ReceivedSenderData['connectionId'], ReceivedSenderData>>(new Map());
 
+  // if(venueStore.currentVenue){
+
+  //   connectedSenders. venueStore.currentVenue.senders
+  // }
+
   connectionStore.client.admin.subSenderAddedOrRemoved.subscribe(undefined, {
     onData({data, reason}) {
       console.log('senderAddedOrRemoved triggered!:', data, reason);

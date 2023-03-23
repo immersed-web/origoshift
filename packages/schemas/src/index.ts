@@ -122,6 +122,9 @@ export type VrSpaceId = z.TypeOf<typeof VrSpaceIdSchema>;
 export const Vr3DModelIdSchema = UuidSchema.brand<'Vr3DModelId'>();
 export type Vr3DModelId = z.TypeOf<typeof Vr3DModelIdSchema>;
 
+export const SenderIdSchema = UuidSchema.brand<'SenderId'>();
+export type SenderId = z.TypeOf<typeof SenderIdSchema>;
+
 // TODO: Make it unsatisfied when using fields that don't exist in Venue
 export const VenueUpdateSchema = z.object({
   name: z.string().optional(),

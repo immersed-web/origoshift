@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1 class="mb-4 text-5xl font-bold">
-      Välkommen {{ clientStore.clientState.username }}
+      Välkommen {{ clientStore.clientState?.username }}
     </h1>
     <div>
       <h2 class="mb-2 text-3xl font-bold">
@@ -55,8 +55,6 @@ onBeforeMount(async () => {
 
 // View functionality
 async function createVenue () {
-  // await clientOrThrow.value.venue.createNewVenue.mutate({name: `event-${Math.trunc(Math.random() * 1000)}`});
-  // myVenues.value = await clientOrThrow.value.venue.listMyVenues.query();
   await venueStore.createVenue();
   router.push({name: authStore.routePrefix + 'Venue'});
 

@@ -5,7 +5,7 @@
       :key="venue.venueId"
     >
       <VenueThumb
-        :venue="venue"
+        :venue="{venueId: venue.venueId as VenueId, name: venue.name}"
         @joined="joined"
       />
     </div>
@@ -20,6 +20,7 @@ import { useRouter } from 'vue-router';
 import VenueThumb from '@/components/venue/VenueThumb.vue';
 import { useAuthStore } from '@/stores/authStore';
 import { useClientStore } from '@/stores/clientStore';
+import type { VenueId } from 'schemas';
 
 // Use imports
 const router = useRouter();

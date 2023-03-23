@@ -25,10 +25,10 @@ export const adminRouter = router({
     ctx.client.loadPrismaDataAndNotifySelf('Venue created');
     return venueId;
   }),
-  updateVenue: p.use(isVenueOwnerM).input(VenueUpdateSchema).mutation(({input, ctx}) =>{
-    if(ctx.venue){
-      ctx.venue.update(input);
-    }
+  updateVenue: p.use(isVenueOwnerM).use(isUserClientM).input(VenueUpdateSchema).mutation(async ({input, ctx}) =>{
+    await ctx.venue.update(input);
+    ctx.client.loadPrismaDataAndNotifySelf('updated venue info/settings');
+    ctx.venue._notifyStateUpdated('venue settings/data updated');
   }),
   deleteVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
     const venueId = input.venueId;

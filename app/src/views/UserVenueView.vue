@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1 class="text-5xl font-bold">
-      Loaded and joined venue: {{ clientStore.clientState.currentVenueId }}
+      Loaded and joined venue: {{ clientStore.clientState?.currentVenueId }}
     </h1>
     <div class="flex space-x-2">
       <button
@@ -23,8 +23,8 @@
 import { onMounted } from 'vue';
 import { useClientStore } from '@/stores/clientStore';
 import { useRouter } from 'vue-router';
-import { clientOrThrow } from '@/modules/trpcClient';
-import LoggedInLayout from '@/layouts/LoggedInLayout.vue';
+import { useConnectionStore } from '@/stores/connectionStore';
+const connection = useConnectionStore();
 
 // Router
 const router = useRouter();
@@ -34,12 +34,12 @@ const clientStore = useClientStore();
 
 // View functionality
 onMounted(() => {
-  clientStore.updateClientState();
+  clientStore.fetchClientState();
 });
 
 const openLobby = async () => {
-  await clientOrThrow.value.vr.openVrSpace.mutate();
-  await clientOrThrow.value.vr.enterVrSpace.mutate();
+  await connection.client.vr.openVrSpace.mutate();
+  await connection.client.vr.enterVrSpace.mutate();
   router.push({name: 'lobby'});
 };
 

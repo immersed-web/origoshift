@@ -116,7 +116,6 @@ const router = createRouter({
 router.beforeEach(async (to, from) => {
   // console.log('beforeEach: ', to, from);
   const connectionStore = useConnectionStore();
-  const clientStore = useClientStore();
   const authStore = useAuthStore();
 
   if(to.path === '/' && authStore.role){
@@ -142,7 +141,8 @@ router.beforeEach(async (to, from) => {
     if(!connectionStore.connected){
       if(to.meta.requiredConnection === 'client'){
         connectionStore.createUserClient();
-        clientStore.updateClientState();
+        const clientStore = useClientStore();
+        clientStore.fetchClientState();
       } else {
         connectionStore.createSenderClient();
       }

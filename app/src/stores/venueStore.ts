@@ -4,7 +4,6 @@ import { ref, computed } from 'vue';
 import type {} from 'database';
 import type { VenueId } from 'schemas';
 import { useConnectionStore } from '@/stores/connectionStore';
-// import { useLocalStorage } from '@vueuse/core';
 
 type _ReceivedVenueState = RouterOutputs['venue']['joinVenue'];
 export const useVenueStore = defineStore('venue', () => {
@@ -72,17 +71,7 @@ export const useVenueStore = defineStore('venue', () => {
     savedVenueId.value = currentVenue.value.venueId;
   }
 
-  // async function loadAndJoinFromSavedVenueId(){
-  //   if(!savedVenueId.value){
-  //     throw Error('no saved venueId found in localstorage');
-  //   }
-  //   await loadVenue(savedVenueId.value);
-  //   await joinVenue(savedVenueId.value);
-  // }
-
   async function updateVenue () {
-    // const saveData = VenueUpdateSchema.parse(currentVenue.value);
-    // await connection.client.venue.updateVenue.mutate(saveData);
     await connection.client.admin.updateVenue.mutate({name: currentVenue.value?.name});
   }
 

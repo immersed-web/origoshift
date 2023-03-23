@@ -29,7 +29,7 @@
       <p>
         Inställningar för VR-lobby...
       </p>
-      <pre> {{ venueStore.currentVenue?.vrSpace?.virtualSpace3DModel }}</pre>
+      <!-- <pre> {{ venueStore.currentVenue?.vrSpace }}</pre> -->
       <div
         v-if="venueStore.currentVenue?.vrSpace"
         class="mt-4"

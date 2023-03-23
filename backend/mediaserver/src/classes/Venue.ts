@@ -280,7 +280,7 @@ export class Venue {
       }
     });
     this.vrSpace = new VrSpace(this, this.prismaData.virtualSpace);
-    this._notifyStateUpdated();
+    this._notifyStateUpdated('Created virtual space');
   }
 
   async Create3DModel(modelUrl: string) {
@@ -296,7 +296,7 @@ export class Venue {
           }
         },
       });
-      this._notifyStateUpdated();
+      this._notifyStateUpdated('Created 3d model');
     }
   }
 
@@ -304,6 +304,7 @@ export class Venue {
     if(this.prismaData.virtualSpace?.virtualSpace3DModel){
       this.prismaData.virtualSpace.virtualSpace3DModel.navmeshUrl = modelUrl;
       await prisma.virtualSpace3DModel.update({where: {modelId: this.prismaData.virtualSpace.virtualSpace3DModel.modelId}, data: {navmeshUrl: modelUrl}});
+      this._notifyStateUpdated('Updated navmesh');
     }
   }
 
@@ -314,7 +315,7 @@ export class Venue {
           where: {modelId}
         }
       );
-      this._notifyStateUpdated();
+      this._notifyStateUpdated('Removed 3d model');
     }
   }
 

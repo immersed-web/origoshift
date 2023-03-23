@@ -5,57 +5,47 @@ import type { RouterOutputs } from '@/modules/trpcClient';
 import { clientOrThrow } from '@/modules/trpcClient';
 import type { ClientTransforms } from 'schemas';
 import { useConnectionStore } from './connectionStore';
+import { ref } from 'vue';
 
-export const useClientStore = defineStore('client', {
-  state: () => ({
-    clientState: {} as RouterOutputs['user']['getClientState'],
-    // greeting: '',
-    // health: '',
-    // heartbeat: '',
-    // venuesAll: [] as RouterOutputs['venue']['listMyVenues'],
-    // venuesLoaded: {} as RouterOutputs['venue']['listLoadedVenues'],
-    // currentVenue: {} as RouterOutputs['venue']['listAllowedVenues'][number],
-    clientTransforms: {} as ClientTransforms,
-  }),
-  getters: {
-    loggedIn: (state) => {
-      return !!state.clientState.userId;
-    },
-    initials: (state) => {
-      return state.clientState.username ? state.clientState.username.split(' ').map(n => n[0]).join('') : '';
-    },
-  },
-  actions: {
-    async initConnection() {
-      const connection = useConnectionStore();
-      connection.createUserClient();
+export const useClientStore = defineStore('client', () => {
 
-      // await startLoggedInClient(username, password);
-      this.clientState = await connection.client.user.getClientState.query();
-      // await this.updateClientState();
-      connection.client.user.subOwnClientState.subscribe(undefined, {
-        onData: (data) => {
-          console.log(`clientState received. Reason: ${data.reason}`);
-          this.clientState = data.myState;
-        },
-      });
-      // await this.queryVenuesAll();
-      // await this.queryVenuesLoaded();
-      return this.clientState;
-    },
-    // async queryVenuesAll () {
-    //   this.venuesAll = await clientOrThrow.value.venue.listMyVenues.query();
-    // },
-    // async queryVenuesLoaded () {
-    //   this.venuesLoaded = await client.value.venue.listLoadedVenues.query();
-    // },
-    // async createVenue () {
-    //   await clientOrThrow.value.venue.createNewVenue.mutate({name: `venue-${Math.trunc(Math.random() * 1000)}`});
-    //   // this.queryVenuesAll();
-    // },
-    // TODO: Should be replaced by subscription
-    async updateClientState () {
-      this.clientState = await clientOrThrow.value.user.getClientState.query();
-    },
-  },
+  const connection = useConnectionStore();
+
+
+  const clientState = ref<RouterOutputs['user']['getClientState']>();
+  const clientTransforms = ref<ClientTransforms>();
+
+  // const loggedIn = () => {
+  //   return !!clientState.value?.userId;
+  // };
+
+  const initials = () => {
+    return clientState.value?.username ? clientState.value?.username.split(' ').map(n => n[0]).join('') : '';
+  };
+
+  const updateClientState = async () => {
+    clientState.value = await connection.client.user.getClientState.query();
+  };
+
+  const initConnection = async () => {
+    clientState.value = await connection.client.user.getClientState.query();
+    // await this.updateClientState();
+    connection.client.user.subOwnClientState.subscribe(undefined, {
+      onData: (data) => {
+        console.log(`clientState received. Reason: ${data.reason}`);
+        clientState.value = data.myState;
+      },
+    });
+  };
+
+  // Init
+  initConnection();
+
+  return {
+    clientState,
+    clientTransforms,
+    initials,
+    updateClientState,
+  };
+
 });

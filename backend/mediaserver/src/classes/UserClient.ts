@@ -6,7 +6,7 @@ process.env.DEBUG = 'UserClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import { ClientTransform, ClientTransforms, ConnectionId, UserId, UserRole, VenueId, CameraId, ClientType } from 'schemas';
-import { SenderClient, Venue } from './InternalClasses';
+import { loadUserPrismaData, SenderClient, Venue } from './InternalClasses';
 import { FilteredEvents, NonFilteredEvents, NotifierSignature } from 'trpc/trpc-utils';
 import { BaseClient } from './InternalClasses';
 import { ProducerId } from 'schemas/mediasoup';
@@ -125,6 +125,12 @@ export class UserClient extends BaseClient {
       currentCameraId: this.currentCamera?.cameraId,
       isInVrSpace: this.isInVrSpace,
     };
+  }
+
+  async loadPrismaDataAndNotifySelf(reason?: string) {
+    const updatedDbUser = await loadUserPrismaData(this.userId);
+    this.prismaData = updatedDbUser;
+    this._onClientStateUpdated(reason);
   }
 
   _onClientStateUpdated(reason?: string) {

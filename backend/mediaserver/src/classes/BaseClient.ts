@@ -207,6 +207,7 @@ export class BaseClient {
       role: this.role,
       currentVenueId: this.venue?.venueId,
       producers: this.getPublicProducers(),
+      ownedVenues: this.ownedVenues
     };
   }
 

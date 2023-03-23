@@ -5,7 +5,7 @@ log.enable(process.env.DEBUG);
 
 import { TRPCError } from '@trpc/server';
 import { observable } from '@trpc/server/observable';
-import { Camera, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
+import { Camera, loadUserPrismaData, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import { Prisma } from 'database';
 import prismaClient from '../modules/prismaClient';
 import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
@@ -18,10 +18,11 @@ export const adminRouter = router({
   subProducerCreated: atLeastModeratorP.subscription(({ctx}) => {
     return attachToFilteredEvent(ctx.client.clientEvent, 'producerCreated', ctx.connectionId);
   }),
-  createNewVenue: atLeastModeratorP.input(z.object({
+  createNewVenue: atLeastModeratorP.use(isUserClientM).input(z.object({
     name: z.string()
   })).mutation(async ({input, ctx}) => {
     const venueId = await Venue.createNewVenue(input.name, ctx.userId);
+    ctx.client.loadPrismaDataAndNotifySelf('Venue created');
     return venueId;
   }),
   deleteVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {

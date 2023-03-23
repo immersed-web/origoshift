@@ -69,7 +69,6 @@ const fileInput : Ref<HTMLInputElement | undefined> = ref();
 const uploadFile = async () => {
   try {
     if(fileInput.value?.files){
-      console.log(fileInput.value, fileInput.value.files);
       const data = new FormData();
       Array.from(fileInput.value.files).forEach(file => {
         data.append('gltf', file, file.name);
@@ -100,7 +99,6 @@ const create3DModel = async (modelUrl: string) => {
 };
 
 const updateNavmesh = async (modelUrl: string) => {
-  console.log('Update navmesh', modelUrl);
   await connectionStore.client.vr.updateNavmesh.mutate({modelUrl});
 };
 
@@ -114,15 +112,14 @@ const removeFile = async () => {
 
     console.log(body);
 
-    const response = await axios.post(config.url + '/remove', body, {
+    await axios.post(config.url + '/remove', body, {
       timeout: 60000,
     });
-    console.log(response);
     if(props.model === 'model'){
       remove3DModel();
     }
     else if (props.model === 'navmesh'){
-      updateNavmesh('bajs');
+      updateNavmesh('');
     }
   } catch (err) {
     console.log(err);

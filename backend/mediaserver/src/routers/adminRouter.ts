@@ -5,10 +5,10 @@ log.enable(process.env.DEBUG);
 
 import { TRPCError } from '@trpc/server';
 import { observable } from '@trpc/server/observable';
-import { SenderClient, UserClient, Venue } from '../classes/InternalClasses';
+import { Camera, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import { Prisma } from 'database';
 import prismaClient from '../modules/prismaClient';
-import { hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
+import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
 import { z } from 'zod';
 import { atLeastModeratorP, isUserClientM, isVenueOwnerM, procedure as p, router } from '../trpc/trpc';
@@ -62,8 +62,13 @@ export const adminRouter = router({
   listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
     return ctx.client.ownedVenues.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));
   }),
-  subSenderAddedOrRemoved: p.use(isVenueOwnerM).subscription(({ctx}) => {
-    return attachToFilteredEvent(ctx.client.clientEvent, 'senderAddedOrRemoved', ctx.connectionId);
+  subSenderAddedOrRemoved: p.use(isVenueOwnerM).use(isUserClientM).subscription(({ctx}) => {
+    return observable<NotifierInputData<UserClient['notify']['senderAddedOrRemoved']>>((scriber) => {
+      log.info(`Attaching sender added notifier for client ${ctx.username} (${ctx.clientType})`);
+      ctx.client.notify.senderAddedOrRemoved = scriber.next;
+      return () => ctx.client.notify.senderAddedOrRemoved = undefined;
+    });
+    // return attachToFilteredEvent(ctx.client.clientEvent, 'senderAddedOrRemoved', ctx.connectionId);
   }),
   subSomeSenderStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to senderState`);
@@ -82,5 +87,41 @@ export const adminRouter = router({
     if(ctx.venue){
       ctx.venue.update(input);
     }
+  }),
+  createCamera: atLeastModeratorP.use(isVenueOwnerM).input(z.object({
+    name: z.string(),
+    senderId: ConnectionIdSchema.optional(),
+  })).mutation(async ({ctx, input}) => {
+    try{
+      const cId = await ctx.venue.createNewCamera(input.name);
+      let sender: SenderClient | undefined = undefined;
+      if(input.senderId){
+        sender = ctx.venue.senderClients.get(input.senderId);
+      }
+      ctx.venue.loadCamera(cId, sender);
+    } catch(e) {
+      // log.error('FAILED TO CREATE CAMERA!!!');
+      if(e instanceof Prisma.PrismaClientKnownRequestError){
+        if(e.code === 'P2002'){
+          // log.error('Is Prisma error! prisma message: ', e.message);
+          throw new TRPCError({code: 'CONFLICT', message: 'upptaget kameranamn!'});
+        }
+      }
+      throw new TRPCError({code: 'INTERNAL_SERVER_ERROR', message: 'Kund inte skapa kamera! okänt fel :-('});
+    }
+  }),
+  addSenderToCamera: atLeastModeratorP.use(isVenueOwnerM).input(z.object({
+    senderClientConnectionId: ConnectionIdSchema,
+    cameraId: CameraIdSchema,
+  })).mutation(({ctx, input}) => {
+    const foundCamera = ctx.venue.cameras.get(input.cameraId);
+    if(!foundCamera){
+      throw new TRPCError({code: 'NOT_FOUND', message: 'no camera with that id in venue'});
+    }
+    const foundSender = ctx.venue.senderClients.get(input.senderClientConnectionId);
+    if(!foundSender){
+      throw new TRPCError({code: 'NOT_FOUND', message: 'No sender with that id in venue'});
+    }
+    foundCamera.setSender(foundSender);
   }),
 });

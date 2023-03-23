@@ -1,5 +1,8 @@
 <template>
   <LoggedInHeader />
+  <pre>
+    {{ senderStore.senderId }}
+  </pre>
   <button
     @click="$router.replace({name: 'cameraPickVenue'})"
     class="btn"

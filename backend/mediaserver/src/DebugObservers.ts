@@ -2,12 +2,12 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import { SenderClient, UserClient, Venue } from './classes/InternalClasses';
 
 import { Log } from 'debug-level';
-const log = new Log('ClassObserver');
-process.env.DEBUG = 'ClassObserver*, ' + process.env.DEBUG;
+const log = new Log('DebugObserver');
+process.env.DEBUG = 'DebugObserver*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 //
 // @ts-expect-error: We allow reading private field here
-type venueDict = typeof Venue.venues extends Map<infer K, any>?Record<K, number>:never
+type venueDict = typeof Venue.venues extends Map<infer K, any>?Record<K, {clients: number, senders: number}>:never
 
 export const printClassInstances = (clientList: Map<any, any>) => {
   const totalNrOf = {
@@ -19,10 +19,17 @@ export const printClassInstances = (clientList: Map<any, any>) => {
   // @ts-expect-error: In ooonly this specific case we want to ignore the private field (ws). But never elsewhere
   for( const [venueKey, venue] of Venue.venues.entries()) {
     totalNrOf.nrOfVenues++;
-    totalNrOf.venueClients[venueKey] = 0;
+    totalNrOf.venueClients[venueKey] = {
+      clients: 0,
+      senders: 0,
+    };
+
     // @ts-expect-error: In ooonly this specific case we want to ignore the private field (ws). But never elsewhere
     for(const [clientKey, client] of venue.clients.entries()) {
-      totalNrOf.venueClients[venueKey]++;
+      totalNrOf.venueClients[venueKey].clients++;
+    }
+    for(const [senderKey, client] of venue.senderClients.entries()) {
+      totalNrOf.venueClients[venueKey].senders++;
     }
   }
 

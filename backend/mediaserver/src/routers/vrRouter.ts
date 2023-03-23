@@ -1,6 +1,6 @@
 import { Log } from 'debug-level';
-const log = new Log('VR:Router');
-process.env.DEBUG = 'VR:Router*, ' + process.env.DEBUG;
+const log = new Log('Router:VR');
+process.env.DEBUG = 'Router:VR*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import { ClientTransformSchema, VirtualSpace3DModelCreateSchema, VirtualSpace3DModelRemoveSchema } from 'schemas';

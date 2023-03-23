@@ -3,14 +3,16 @@ import type { RouterOutputs } from '@/modules/trpcClient';
 import { ref, computed } from 'vue';
 import type {} from 'database';
 import type { VenueId } from 'schemas';
-// import { clientOrThrow } from '@/modules/trpcClient';
 import { useConnectionStore } from '@/stores/connectionStore';
+// import { useLocalStorage } from '@vueuse/core';
 
-type Venue = RouterOutputs['venue']['joinVenue'];
+type _ReceivedVenueState = RouterOutputs['venue']['joinVenue'];
 export const useVenueStore = defineStore('venue', () => {
-  console.log('VENUESTORE USE FUNCTION TRIGGERED');
+  // console.log('VENUESTORE USE FUNCTION TRIGGERED');
   const connection = useConnectionStore();
-  const currentVenue = ref<Venue>();
+  const currentVenue = ref<_ReceivedVenueState>();
+  // const persistedVenueId = useLocalStorage<VenueId>('savedVenueId', null);
+  const savedVenueId = ref<VenueId>();
 
   connection.client.venue.subClientAddedOrRemoved.subscribe(undefined, {
     onData(data){
@@ -67,7 +69,16 @@ export const useVenueStore = defineStore('venue', () => {
 
   async function joinVenue (venueId: VenueId) {
     currentVenue.value = await connection.client.venue.joinVenue.mutate({venueId});
+    savedVenueId.value = currentVenue.value.venueId;
   }
+
+  // async function loadAndJoinFromSavedVenueId(){
+  //   if(!savedVenueId.value){
+  //     throw Error('no saved venueId found in localstorage');
+  //   }
+  //   await loadVenue(savedVenueId.value);
+  //   await joinVenue(savedVenueId.value);
+  // }
 
   async function updateVenue () {
     // const saveData = VenueUpdateSchema.parse(currentVenue.value);
@@ -76,6 +87,10 @@ export const useVenueStore = defineStore('venue', () => {
   }
 
   async function leaveVenue() {
+    if(!currentVenue.value){
+      console.warn('Tried to leave venue when you aren\'t in one.. Not so clever, eh?');
+      return;
+    }
     await connection.client.venue.leaveCurrentVenue.mutate();
     currentVenue.value = undefined;
   }
@@ -98,6 +113,7 @@ export const useVenueStore = defineStore('venue', () => {
 
 
   return {
+    savedVenueId,
     currentVenue,
     createVenue,
     loadVenue,
@@ -107,6 +123,9 @@ export const useVenueStore = defineStore('venue', () => {
     deleteCurrentVenue,
     modelUrl,
     navmeshUrl,
-    // joinVenueAsSender,
   };
+}, {
+  persist: {
+    paths: ['savedVenueId'],
+  },
 });

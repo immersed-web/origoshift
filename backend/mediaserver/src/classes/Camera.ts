@@ -1,10 +1,8 @@
 
 import { Log } from 'debug-level';
-import  prisma from '../modules/prismaClient';
 import type { Camera as PrismaCamera } from 'database';
 import type { CameraId } from 'schemas';
-import type {Venue, UserClient, SenderClient} from './InternalClasses';
-import { executionAsyncResource } from 'async_hooks';
+import {Venue, UserClient, SenderClient} from './InternalClasses';
 
 const log = new Log('Camera');
 
@@ -13,18 +11,28 @@ log.enable(process.env.DEBUG);
 
 
 export class Camera {
-  constructor(prismaCamera: PrismaCamera, venue: Venue){
+  constructor(prismaCamera: PrismaCamera, venue: Venue, sender?: SenderClient){
     this.prismaData = prismaCamera;
     this.venue = venue;
     this.clients = new Map();
+    if(sender){
+      this.setSender(sender);
+    }
   }
 
   venue: Venue;
   sender?: SenderClient;
+  get producers() {
+    if(!this.sender) {
+      return undefined;
+    }
+    this.sender.getPublicProducers();
+  }
   clients: Venue['clients'];
   get clientIds() {
     return Array.from(this.clients.keys());
   }
+
   prismaData: PrismaCamera;
   get cameraId(){
     return this.prismaData.cameraId as CameraId;
@@ -32,10 +40,14 @@ export class Camera {
   get name() {
     return this.prismaData.name;
   }
+  setName(name: string) {
+    this.prismaData.name = name;
+  }
 
   getPublicState() {
-    const { cameraId, name, clientIds } = this;
-    return { cameraId, name, clientIds };
+    const { cameraId, name, clientIds, producers } = this;
+    // const producers = this.sender?.getPublicProducers();
+    return { cameraId, name, clientIds, producers };
   }
 
   /**
@@ -72,44 +84,6 @@ export class Camera {
   }
 
   // STATIC STUFF LAST
-  static async createNewCamera(name: string, venue: Venue){
-    try {
-      const result = await prisma.camera.create({
-        data: {
-          name,
-          venue: {
-            connect: {
-              venueId: venue.venueId
-            }
-          },
-          settings: {coolSetting: 'aaaww yeeeah'},
-          // startTime: new Date(),
-          // virtualSpace: {
-          //   create: {
-          //     settings: 'asdas'
-          //   }
-          // }
 
-        }
-      });
-
-      return result.cameraId;
-    } catch (e){
-      log.error(e);
-      throw e;
-    }
-  }
-
-  static async loadCamera(cameraId: CameraId, venue: Venue, prismaCamera: PrismaCamera) {
-    if(venue.cameras.has(cameraId)){
-      throw Error('a camera with that id is already loaded');
-    }
-
-    if(!prismaCamera){
-      prismaCamera = await prisma.camera.findUniqueOrThrow({where: {cameraId}});
-    }
-    const camera = new Camera(prismaCamera, venue);
-    venue.cameras.set(camera.cameraId, camera);
-  }
 
 }

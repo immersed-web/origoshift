@@ -1,6 +1,6 @@
 import { Log } from 'debug-level';
-const log = new Log('Venue:Router');
-process.env.DEBUG = 'Venue:Router*, ' + process.env.DEBUG;
+const log = new Log('Router:Venue');
+process.env.DEBUG = 'Router:Venue*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import { hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
@@ -32,8 +32,8 @@ export const venueRouter = router({
     })
   ).mutation(async ({input, ctx}) => {
     log.info(`request received to join venue as ${ctx.client.clientType}:`, input.venueId);
-    await ctx.client.joinVenue(input.venueId);
-    return ctx.client.venue?.getPublicState();
+    const vState = await ctx.client.joinVenue(input.venueId);
+    return vState;
   }),
   getVenueState: clientInVenueP.query(({ctx}) => {
     return ctx.venue.getPublicState();

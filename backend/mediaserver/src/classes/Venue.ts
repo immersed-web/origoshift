@@ -7,13 +7,13 @@ process.env.DEBUG = 'Venue*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import {types as soupTypes} from 'mediasoup';
-import { ConnectionId, UserId, VenueId, CameraId } from 'schemas';
+import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate  } from 'schemas';
 
-import type { Prisma } from 'database';
+import { Prisma } from 'database';
 import prisma from '../modules/prismaClient';
 
 import { Camera, VrSpace, type UserClient, SenderClient, BaseClient  } from './InternalClasses';
-import { VenueUpdate } from 'schemas/*';
+import { NotifierInputData } from 'trpc/trpc-utils';
 // import { FilteredEvents } from 'trpc/trpc-utils';
 
 const venueIncludeWhitelistVirtual  = {
@@ -23,10 +23,13 @@ const venueIncludeWhitelistVirtual  = {
     }
   },
   virtualSpace: {include: {virtualSpace3DModel: true}},
+  cameras: true,
 } satisfies Prisma.VenueInclude;
 const args = {include: venueIncludeWhitelistVirtual} satisfies Prisma.VenueArgs;
 type VenueResponse = Prisma.VenueGetPayload<typeof args>
 
+// type NotifyKey = keyof UserClient['notify'];
+// type NotifyInput<K extends NotifyKey> = NotifierInputData<UserClient['notify'][K]>
 export class Venue {
   private constructor(prismaData: VenueResponse, router: soupTypes.Router){
     this.router = router;
@@ -34,6 +37,9 @@ export class Venue {
     if(prismaData.virtualSpace){
       this.vrSpace = new VrSpace(this, prismaData.virtualSpace);
     }
+    prismaData.cameras.forEach(c => {
+      this.loadCamera(c.cameraId as CameraId);
+    });
   }
 
   private prismaData: VenueResponse;
@@ -76,10 +82,13 @@ export class Venue {
     const {venueId, name, clientIds, ownerId} = this;
     const cameras: Record<CameraId, ReturnType<Camera['getPublicState']>> = {};
     this.cameras.forEach(cam => cameras[cam.cameraId] = cam.getPublicState());
+    const senders: Record<ConnectionId, ReturnType<SenderClient['getPublicState']>> = {};
+    this.senderClients.forEach(s => senders[s.connectionId] = s.getPublicState());
     return {
       venueId, name, clientIds, ownerId,
       vrSpace: this.vrSpace?.getPublicState(),
-      cameras: cameras
+      senders,
+      cameras
     };
   }
 
@@ -99,28 +108,55 @@ export class Venue {
     await prisma.venue.update({where: {venueId: this.prismaData.venueId}, data: input});
   }
 
-  _notifyStateUpdated(){
-    const s = this.getPublicState();
-    this.clients.forEach(c => c.notify.venueStateUpdated?.(s));
+  _notifyStateUpdated(reason?: string){
+    const data = this.getPublicState();
+    this.clients.forEach(c => c.notify.venueStateUpdated?.({data, reason}));
   }
+
+  _notifySenderAddedOrRemoved(senderState: ReturnType<SenderClient['getPublicState']>, added: boolean, reason?: string){
+    log.info('Notifying SenderAdded to clients!!!');
+    log.info(this.clients.size);
+    this.clients.forEach(c => {
+      log.info(`notifying client ${c.username} (${c.connectionId}) (${c.clientType})`);
+      if(!c.notify.senderAddedOrRemoved){
+        log.warn('client didnt have observer attached');
+        return;
+      }
+      c.notify.senderAddedOrRemoved({data: {senderState, added}, reason});
+    });
+  }
+
+
+  // _notifyClients<K extends NotifyKey, Input extends NotifyInput<K>['data']>(key: K extends NotifyKey ? K : never, data: Input, reason?: string){
+  //   // const data = this.getPublicState();
+  //   this.clients.forEach(c => {
+  //     const notifyFunction = c.notify[key];
+  //     if(notifyFunction){
+  //       notifyFunction({});
+  //     }
+  //   });
+  // }
 
   /**
    * adds a client (client or sender) to this venues collection of clients. Also takes care of assigning the venue inside the client itself
    * @param client the client instance to add to the venue
    */
   addClient ( client : UserClient | SenderClient){
-    if(client.clientType === 'client'){
-      this.clients.set(client.connectionId, client);
-      this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
-    } else {
+    // TODO: We should probably decide on where and when we trigger different notifiers. As of now we do both stateupdate and senderaddedremoved
+    if(client.clientType === 'sender'){
       this.senderClients.set(client.connectionId, client);
-      this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
+      this._notifySenderAddedOrRemoved(client.getPublicState(), true, 'sender was added');
+      // this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
     }
-    // console.log('clients before add: ',this.clients);
-    // console.log('clients after add: ',this.clients);
+    else {
+      this.clients.set(client.connectionId, client);
+      this._notifyStateUpdated('Client added to Venue');
+    //   this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
+    }
     client._setVenue(this.venueId);
     log.info(`Client (${client.clientType}) ${client.username} added to the venue ${this.prismaData.name}`);
-    this._notifyStateUpdated();
+
+    // this._notifyClients('venueStateUpdated', this.getPublicState(), 'because I wanna');
   }
 
   /**
@@ -129,6 +165,7 @@ export class Venue {
    */
   removeClient (client: UserClient | SenderClient) {
     log.info(`removing ${client.username} (${client.connectionId}) from the venue ${this.name}`);
+    client._setVenue(undefined);
     if(client.clientType === 'client'){
       // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states?
       const camera = client.currentCamera;
@@ -140,13 +177,13 @@ export class Venue {
         vrSpace.removeClient(client);
       }
       this.clients.delete(client.connectionId);
-      this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
+      // this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
+      this._notifyStateUpdated('client removed from venue');
     } else {
       this.senderClients.delete(client.connectionId);
-      this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
+      // this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
+      this._notifySenderAddedOrRemoved(client.getPublicState(), false, 'sender was removed');
     }
-    client._setVenue(undefined);
-    this._notifyStateUpdated();
 
     // If this was the last client in the venue, lets unload it!
     if(this._isEmpty){
@@ -266,7 +303,7 @@ export class Venue {
   async UpdateNavmesh (modelUrl: string) {
     if(this.prismaData.virtualSpace?.virtualSpace3DModel){
       this.prismaData.virtualSpace.virtualSpace3DModel.navmeshUrl = modelUrl;
-      await prisma.virtualSpace3DModel.update({where: {modelId: this.prismaData.virtualSpace.virtualSpace3DModelId}, data: {navmeshUrl: modelUrl}});
+      await prisma.virtualSpace3DModel.update({where: {modelId: this.prismaData.virtualSpace.virtualSpace3DModel.modelId}, data: {navmeshUrl: modelUrl}});
     }
   }
 
@@ -281,11 +318,51 @@ export class Venue {
     }
   }
 
+  async createNewCamera(name: string){
+    const result = await prisma.camera.create({
+      data: {
+        name,
+        venue: {
+          connect: {
+            venueId: this.venueId
+          }
+        },
+        settings: {coolSetting: 'aaaww yeeeah'},
+        // startTime: new Date(),
+        // virtualSpace: {
+        //   create: {
+        //     settings: 'asdas'
+        //   }
+        // }
+
+      }
+    });
+
+    this.prismaData.cameras.push((result));
+
+    return result.cameraId as CameraId;
+  }
+
+  loadCamera(cameraId: CameraId, sender?: SenderClient) {
+    if(this.cameras.has(cameraId)){
+      throw Error('a camera with that id is already loaded');
+    }
+    const prismaCamera = this.prismaData.cameras.find(c => c.cameraId === cameraId);
+    if(!prismaCamera){
+      throw Error('no prisma data for a camera with that Id in venue prismaData');
+    }
+    const camera = new Camera(prismaCamera, this, sender);
+    this.cameras.set(camera.cameraId, camera);
+
+    this._notifyStateUpdated('camera loaded');
+  }
+
   // Static stuff for global housekeeping
   private static venues: Map<VenueId, Venue> = new Map();
 
   static async createNewVenue(name: string, owner: UserId){
     try {
+
       const result = await prisma.venue.create({
         data: {
           name,
@@ -296,49 +373,11 @@ export class Venue {
           },
           settings: {coolSetting: 'aaaww yeeeah'},
           startTime: new Date(),
-          // virtualSpace: {
-          //   create: {
-          //     virtualSpace3DModel: {
-          //       create: {
-          //         scale: 1,
-          //         modelUrl: 'google.com',
-          //         navmeshUrl: 'google.se'
-          //       }
-          //     },
-          //     settings: {
-          //     }
-          //   }
-          // }
         }
       });
 
-      // prisma.virtualSpace.create({
-      //   data: {
-      //     virtualSpace3DModel: {
-      //       create: {
-      //         scale: 1,
-      //         modelUrl: 'google.com',
-      //         navmeshUrl: 'google.se'
-      //       }
-      //     },
-      //     settings: {
-      //       cool: 'asdfasdf',
-      //     },
-      //     venue: {
-      //       connect: result,
-      //     }
-      //   }
-      // });
-
-
-      // const venue = await prisma.venue.findFirst({
-      //   where: {
-      //     name: 'Hello'
-      //   }
-      // });
-
       return result.venueId as VenueId;
-    } catch (e){
+    } catch(e) {
       log.error(e);
       throw e;
     }

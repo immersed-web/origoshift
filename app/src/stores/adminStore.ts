@@ -1,5 +1,6 @@
 import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { defineStore } from 'pinia';
+import type { ConnectionId } from 'schemas';
 import { reactive, shallowReactive } from 'vue';
 import { useConnectionStore } from './connectionStore';
 import { useVenueStore } from './venueStore';
@@ -9,14 +10,20 @@ export const useAdminStore = defineStore('admin', () => {
   const venueStore = useVenueStore();
 
   // Refs
-  type ReceivedSenderData = SubscriptionValue<RouterOutputs['admin']['subSenderAddedOrRemoved']>['client'];
+  type ReceivedSenderData = SubscriptionValue<RouterOutputs['admin']['subSenderAddedOrRemoved']>['data']['senderState'];
 
   // TODO: Do we really want deep reactive object?
   const connectedSenders = reactive<Map<ReceivedSenderData['connectionId'], ReceivedSenderData>>(new Map());
 
+  // if(venueStore.currentVenue){
+
+  //   connectedSenders. venueStore.currentVenue.senders
+  // }
+
   connectionStore.client.admin.subSenderAddedOrRemoved.subscribe(undefined, {
-    onData(data) {
-      const client = data.client;
+    onData({data, reason}) {
+      console.log('senderAddedOrRemoved triggered!:', data, reason);
+      const client = data.senderState;
       if(data.added){
         connectedSenders.set(client.connectionId ,client);
       } else {
@@ -42,13 +49,18 @@ export const useAdminStore = defineStore('admin', () => {
   connectionStore.client.admin.subVenueStateUpdated.subscribe(undefined, {
     onData(data){
       console.log('received venuestate updated:', data);
-      venueStore.currentVenue = data;
+      venueStore.currentVenue = data.data;
     },
   });
+
+  async function createCameraFromSender(cameraName: string, senderId: ConnectionId){
+    await connectionStore.client.admin.createCamera.mutate({name: cameraName, senderId});
+  }
 
 
   return {
     connectedSenders,
+    createCameraFromSender,
 
   };
 });

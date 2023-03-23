@@ -21,7 +21,7 @@ type SoupObjectClosePayload =
       | {type: 'consumer', id: ConsumerId }
 
 type ClientSoupEvents = FilteredEvents<{
-  'producerCreated': (data: {producer: ReturnType<BaseClient['_getPublicProducers']>[ProducerId], producingConnectionId: ConnectionId}) => void
+  'producerCreated': (data: {producer: ReturnType<BaseClient['getPublicProducers']>[ProducerId], producingConnectionId: ConnectionId}) => void
 }, ConnectionId>
 & NonFilteredEvents<{
   'soupObjectClosed': (data: SoupObjectClosePayload & { reason: string}) => void
@@ -121,7 +121,7 @@ export class BaseClient {
   connected = true;
 
   notify = {
-    newProducerInCamera: undefined as NotifierSignature<{added: true} & ReturnType<typeof this._getPublicProducers>[ProducerId]>,
+    newProducerInCamera: undefined as NotifierSignature<{added: true} & ReturnType<typeof this.getPublicProducers>[ProducerId]>,
     producerRemovedInCamera: undefined as NotifierSignature<{added: false, producerId: ProducerId }>
   };
 
@@ -190,7 +190,7 @@ export class BaseClient {
     }
   }
 
-  _getPublicProducers(){
+  getPublicProducers(){
     const producerObj: Record<ProducerId, {producerId: ProducerId, kind: soupTypes.MediaKind, paused: boolean }> = {};
     this.producers.forEach((p) => {
       const pId = p.id as ProducerId;
@@ -206,7 +206,7 @@ export class BaseClient {
       username: this.username,
       role: this.role,
       currentVenueId: this.venue?.venueId,
-      producers: this._getPublicProducers(),
+      producers: this.getPublicProducers(),
     };
   }
 
@@ -219,15 +219,6 @@ export class BaseClient {
     // this.teardownMediasoupObjects();
     // this.leaveCurrentVenue();
   }
-
-  // leaveCurrentVenue() {
-  //   if(!this.venue) {
-  //     return false;
-  //     // throw Error('cant leave a venue if you are not in one!');
-  //   }
-  //   this.teardownMediasoupObjects();
-  //   return true;
-  // }
 
   /**
    * closes all mediasoup related object and instances.

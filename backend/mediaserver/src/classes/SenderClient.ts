@@ -1,11 +1,12 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { NonFilteredEvents } from 'trpc/trpc-utils';
+import { NonFilteredEvents, NotifierSignature } from 'trpc/trpc-utils';
 import { BaseClient, Venue } from './InternalClasses';
 
 import { Log } from 'debug-level';
-import { CameraId, ClientType, VenueId } from 'schemas';
+import { CameraId, ClientType, SenderId, SenderIdSchema, VenueId } from 'schemas';
 import { ProducerId } from 'schemas/mediasoup';
 import type { types as soupTypes } from 'mediasoup';
+import { randomUUID } from 'crypto';
 
 const log = new Log('SenderClient');
 process.env.DEBUG = 'SenderClient*, ' + process.env.DEBUG;
@@ -20,9 +21,11 @@ type SenderClientEvents =  SenderControlEvents
   'myStateUpdated': (data: { myState: ReturnType<SenderClient['getPublicState']>, reason?: string }) => void
 }>;
 
+type SenderConstructorInput = ConstructorParameters<typeof BaseClient>[0] & {senderId?: SenderId};
 export class SenderClient extends BaseClient{
-  constructor(...args: ConstructorParameters<typeof BaseClient>){
-    super(...args);
+  constructor({senderId = SenderIdSchema.parse(randomUUID()), ...args}: SenderConstructorInput){
+    super(args);
+    this.senderId = senderId;
     // this.base = new BaseClient(...args);
     log.info(`Creating sender client ${this.username} (${this.connectionId})`);
     log.debug('prismaData:', this.prismaData);
@@ -31,6 +34,7 @@ export class SenderClient extends BaseClient{
     this.senderClientEvent = new TypedEmitter();
   }
   readonly clientType = 'sender' as const satisfies ClientType;
+  senderId: SenderId;
 
   private cameraId?: CameraId;
   /**
@@ -53,27 +57,29 @@ export class SenderClient extends BaseClient{
   // base: BaseClient;
   senderClientEvent: TypedEmitter<SenderClientEvents>;
 
+  notify = {
+    ...super.notify,
+    myStateUpdated: undefined as NotifierSignature<ReturnType<typeof this.getPublicState>>
+  };
+
   getPublicState(){
-    // const { connectionId, userId, username } = this.base;
-    // const producerObj: Record<ProducerId, {producerId: ProducerId, kind: soupTypes.MediaKind }> = {};
-    // this.producers.forEach((p) => {
-    //   const pId = p.id as ProducerId;
-    //   producerObj[pId] = { producerId: pId, kind: p.kind };
-    // });
+    const { senderId, cameraId, clientType } = this;
     return {
       ...super.getPublicState(),
-      cameraId: this.cameraId,
-      clientType: this.clientType,
+      senderId,
+      cameraId,
+      clientType,
     };
   }
 
-  _onSenderStateUpdated(reason?: string) {
+  _notifyStateUpdated(reason?: string) {
     if(!this.connectionId){
       log.info('skipped emitting to client because socket was already closed');
       return;
     }
     log.info(`emitting clientState for ${this.username} (${this.connectionId}) to itself`);
-    this.senderClientEvent.emit('myStateUpdated', {myState: this.getPublicState(), reason});
+    this.notify.myStateUpdated?.({data: this.getPublicState(), reason});
+    // this.senderClientEvent.emit('myStateUpdated', {myState: this.getPublicState(), reason});
   }
 
   unload() {
@@ -92,7 +98,8 @@ export class SenderClient extends BaseClient{
     venue.addClient(this);
     // await this.createWebRtcTransport('send');
     // await this.createWebRtcTransport('receive');
-    // this._notifyClientStateUpdated('user client joined venue');
+    this._notifyStateUpdated('sender client joined venue');
+    return venue.getPublicState();
   }
 
   leaveCurrentVenue() {

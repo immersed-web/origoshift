@@ -8,7 +8,7 @@ import { observable } from '@trpc/server/observable';
 import { Camera, loadUserPrismaData, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import { Prisma } from 'database';
 import prismaClient from '../modules/prismaClient';
-import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
+import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSchema, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
 import { z } from 'zod';
 import { atLeastModeratorP, isUserClientM, isVenueOwnerM, procedure as p, router } from '../trpc/trpc';
@@ -83,13 +83,16 @@ export const adminRouter = router({
   //   }),
   createCamera: atLeastModeratorP.use(isVenueOwnerM).input(z.object({
     name: z.string(),
-    senderId: ConnectionIdSchema.optional(),
+    senderId: SenderIdSchema.optional(),
   })).mutation(async ({ctx, input}) => {
     try{
-      const cId = await ctx.venue.createNewCamera(input.name);
+      const { name, senderId } = input;
+      const cId = await ctx.venue.createNewCamera(name, senderId);
       let sender: SenderClient | undefined = undefined;
-      if(input.senderId){
-        sender = ctx.venue.senderClients.get(input.senderId);
+      for(const s of ctx.venue.senderClients.values()){
+        if(s.senderId === senderId){
+          sender = s;
+        }
       }
       ctx.venue.loadCamera(cId, sender);
     } catch(e) {

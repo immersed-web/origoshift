@@ -7,7 +7,7 @@ import mediasoupConfig from '../mediasoupConfig';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
 
 import {types as soupTypes} from 'mediasoup';
-import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate  } from 'schemas';
+import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate, SenderId  } from 'schemas';
 
 import { Prisma } from 'database';
 import prisma from '../modules/prismaClient';
@@ -331,7 +331,7 @@ export class Venue {
     }
   }
 
-  async createNewCamera(name: string){
+  async createNewCamera(name: string, senderId?: SenderId){
     const result = await prisma.camera.create({
       data: {
         name,
@@ -340,6 +340,7 @@ export class Venue {
             venueId: this.venueId
           }
         },
+        senderId,
         settings: {coolSetting: 'aaaww yeeeah'},
         // startTime: new Date(),
         // virtualSpace: {
@@ -363,6 +364,14 @@ export class Venue {
     const prismaCamera = this.prismaData.cameras.find(c => c.cameraId === cameraId);
     if(!prismaCamera){
       throw Error('no prisma data for a camera with that Id in venue prismaData');
+    }
+    // Try to auto connect to sender from senderId
+    if(!sender && prismaCamera.senderId){
+      for(const s of this.senderClients.values()){
+        if(s.senderId === prismaCamera.senderId){
+          sender = s;
+        }
+      }
     }
     const camera = new Camera(prismaCamera, this, sender);
     this.cameras.set(camera.cameraId, camera);

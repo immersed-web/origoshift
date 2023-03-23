@@ -20,7 +20,6 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
 import { useClientStore } from '@/stores/clientStore';
 import { useRouter } from 'vue-router';
 import { useConnectionStore } from '@/stores/connectionStore';
@@ -31,11 +30,6 @@ const router = useRouter();
 
 // Stores
 const clientStore = useClientStore();
-
-// View functionality
-onMounted(() => {
-  clientStore.fetchClientState();
-});
 
 const openLobby = async () => {
   await connection.client.vr.openVrSpace.mutate();

@@ -49,9 +49,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
 import AdminVenueSettings from './components/AdminVenueSettings.vue';
 import AdminVenueLobby from './components/AdminVenueLobby.vue';
@@ -61,13 +60,7 @@ import AdminVenue360 from './components/AdminVenue360.vue';
 const router = useRouter();
 
 // Stores
-const clientStore = useClientStore();
 const venueStore = useVenueStore();
-
-// View functionality
-onMounted(() => {
-  clientStore.fetchClientState();
-});
 
 onUnmounted(async () => {
   // if(venueStore.currentVenue){

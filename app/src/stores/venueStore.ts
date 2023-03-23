@@ -87,6 +87,10 @@ export const useVenueStore = defineStore('venue', () => {
   }
 
   async function leaveVenue() {
+    if(!currentVenue.value){
+      console.warn('Tried to leave venue when you aren\'t in one.. Not so clever, eh?');
+      return;
+    }
     await connection.client.venue.leaveCurrentVenue.mutate();
     currentVenue.value = undefined;
   }

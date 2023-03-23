@@ -42,9 +42,9 @@ export const atLeastUserP = procedure.use(createAuthMiddleware('user'));
 
 
 
-export const isUserClientM = middleware(({ctx, next}) =>{
+export const isUserClientM = middleware(({ctx, next, path}) =>{
   if(!(ctx.client instanceof UserClient)){
-    throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You must be a user client (not a sender client) to perform that action'});
+    throw new TRPCError({code: 'PRECONDITION_FAILED', message: `You must be a user client (not a sender client) to perform action: ${path}`});
   }
   return next({
     ctx: {
@@ -53,9 +53,9 @@ export const isUserClientM = middleware(({ctx, next}) =>{
   });
 });
 
-export const isSenderClientM = middleware(({ctx, next}) =>{
+export const isSenderClientM = middleware(({ctx, next, path}) =>{
   if(!(ctx.client instanceof SenderClient)){
-    throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You must be a sender client (not a user client) to perform that action'});
+    throw new TRPCError({code: 'PRECONDITION_FAILED', message: `You must be a sender client (not a user client) to perform action: ${path}`});
   }
   return next({
     ctx: {
@@ -67,10 +67,10 @@ export const isSenderClientM = middleware(({ctx, next}) =>{
 export const userClientP = procedure.use(isUserClientM);
 export const senderClientP = procedure.use(isSenderClientM);
 
-export const isInVenueM = middleware(({ctx, next})=> {
+export const isInVenueM = middleware(({ctx, next, path})=> {
   const venue = ctx.client.venue;
   if(!venue) {
-    throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You have to be added to a venue before performing that action!'});
+    throw new TRPCError({code: 'PRECONDITION_FAILED', message: `You have to be added to a venue before performing action: ${path}`});
   }
   return next({ctx: {
     venue
@@ -99,16 +99,16 @@ export const currentVrSpaceHasModelM = isInVenueM.unstable_pipe(({ctx, next}) =>
   });
 });
 
-export const currentVenueHasNoVrSpaceM = isInVenueM.unstable_pipe(({ctx, next}) => {
+export const currentVenueHasNoVrSpaceM = isInVenueM.unstable_pipe(({ctx, next, path}) => {
   if(ctx.venue.vrSpace){
-    throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'the venue already have a vr space.'});
+    throw new TRPCError({ code: 'PRECONDITION_FAILED', message: `the venue already have a vr space. Action not allowed: ${path}`});
   }
   return next();
 });
 
-export const isVenueOwnerM = isInVenueM.unstable_pipe(({ctx, next}) => {
+export const isVenueOwnerM = isInVenueM.unstable_pipe(({ctx, next, path}) => {
   if(ctx.venue.ownerId !== ctx.userId){
-    throw new TRPCError({code: 'FORBIDDEN', message: 'you are not the owner of this venue. Not allowed!'});
+    throw new TRPCError({code: 'FORBIDDEN', message: `you are not the owner of this venue. Action not allowed: ${path}`});
   }
   return next();
 });
@@ -124,9 +124,9 @@ export const userInVenueP = procedure.use(isUserClientM).use(isInVenueM);
 
 export const clientInVenueP = procedure.use(isInVenueM);
 
-export const isInCameraM = isUserClientM.unstable_pipe(({ctx, next}) => {
+export const isInCameraM = isUserClientM.unstable_pipe(({ctx, next, path}) => {
   if(!ctx.client.currentCamera){
-    throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'Must be inside a camera to perform that action'});
+    throw new TRPCError({code: 'PRECONDITION_FAILED', message: `Must be inside a camera to perform action: ${path}`});
   }
   return next({
     ctx: {

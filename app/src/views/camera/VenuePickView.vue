@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-flow-row gap-4 m-6">
+  <div class="grid max-w-xl grid-flow-row gap-4 m-6">
     <button
       class="btn btn-primary"
       v-for="venue in venues"
@@ -12,7 +12,8 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { clientOrThrow, isTRPCClientError, type RouterOutputs } from '@/modules/trpcClient';
+import type { RouterOutputs } from '@/modules/trpcClient';
+import { useConnectionStore } from '@/stores/connectionStore';
 import { useSenderStore } from '@/stores/senderStore';
 
 import type { VenueId } from 'schemas';
@@ -24,29 +25,31 @@ type Venue = RouterOutputs['venue']['listAllowedVenues'][number];
 const router = useRouter();
 const venues = ref<Venue[]>();
 const senderStore = useSenderStore();
+const connection = useConnectionStore();
 
 onBeforeMount(async () => {
-  venues.value = await clientOrThrow.value.venue.listAllowedVenues.query();
+  venues.value = await connection.client.venue.listAllowedVenues.query();
 });
 
 function tryToJoinAndEnterCamera(venue: Venue){
-
-  const tryToJoin = async () => {
-    try {
-      senderStore.savedPickedVenueId = venue.venueId as VenueId;
-      router.push({name: 'cameraHome'});
-    } catch(e) {
-      if(isTRPCClientError(e)){
-        console.error(e.message);
-      } else if (e instanceof Error){
-        console.error(e.message);
-      }
-      setTimeout(() => {
-        tryToJoin();
-      }, 5000);
-    }
-  };
-  tryToJoin();
+  senderStore.savedPickedVenueId = venue.venueId as VenueId;
+  router.push({name: 'cameraHome'});
+  // const tryToJoin = async () => {
+  //   try {
+  //     senderStore.savedPickedVenueId = venue.venueId as VenueId;
+  //     router.push({name: 'cameraHome'});
+  //   } catch(e) {
+  //     if(isTRPCClientError(e)){
+  //       console.error(e.message);
+  //     } else if (e instanceof Error){
+  //       console.error(e.message);
+  //     }
+  //     setTimeout(() => {
+  //       tryToJoin();
+  //     }, 5000);
+  //   }
+  // };
+  // tryToJoin();
 
 }
 

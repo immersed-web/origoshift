@@ -24,13 +24,7 @@ export const useSenderStore = defineStore('sender', () => {
     },
   });
 
-  /**
-   * @Internal
-   * Should usually not be called. Used inside the store.
-   * Helps in syncing of senderId between server instance and localstorage.
-   * If given an id it sends it to backend. If undefined it fetches from backend.
-   */
-  const _initSenderId = async (sId: SenderId) => {
+  const _initSenderId = async (sId?: SenderId) => {
     if(sId) {
       console.log('GONNA SEND MY SENDERID TO SERVER!!!');
       connection.client.sender.setSenderId.mutate(sId);
@@ -41,12 +35,14 @@ export const useSenderStore = defineStore('sender', () => {
     }
   };
 
-  const testFunctioon = () => {
-    console.log('TEST!!!');
-  };
-
   return {
-    initSenderId: _initSenderId,
+    /**
+     * @internal
+     * Should usually not be called. Used inside the store.
+     * Helps in syncing of senderId between server instance and localstorage.
+     * If given an id it sends it to backend. If undefined it fetches from backend.
+     */
+    _initSenderId,
     senderId,
     savedPickedVenueId,
     savedPickedDeviceId,
@@ -58,7 +54,7 @@ export const useSenderStore = defineStore('sender', () => {
   persist: {
     afterRestore(ctx) {
       console.log('AFTER RESTORE:', ctx.store);
-      ctx.store.initSenderId(ctx.store.senderId);
+      ctx.store._initSenderId(ctx.store.senderId);
     },
   },
 });

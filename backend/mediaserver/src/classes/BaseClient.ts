@@ -53,48 +53,24 @@ const userQuery = {
   }
 } satisfies Prisma.UserArgs;
 type UserResponse = Prisma.UserGetPayload<typeof userQuery>
+
+export async function loadUserPrismaData(userId: UserId){
+  const response = await prismaClient.user.findUniqueOrThrow({
+    ...userQuery,
+    where: {
+      userId
+    },
+  });
+  // return response === null ? undefined : response;
+  return response;
+}
+
 interface ClientConstructorParams {
   connectionId?: ConnectionId,
   // ws: SocketWrapper,
   jwtUserData: JwtUserData,
   prismaData?: UserResponse
 }
-
-export async function loadUserPrismaData(userId: UserId){
-  const response = await prismaClient.user.findUniqueOrThrow({
-    where: {
-      userId
-    },
-    select: {
-      ...userSelectAll,
-      ...userDeselectPassword,
-    }
-  });
-  // return response === null ? undefined : response;
-  return response;
-}
-
-// type ConditionalEventType<E extends ListenerSignature<E>> = E extends ListenerSignature<E>? E: unknown;
-// class Animal<E extends ListenerSignature<E> = ListenerSignature<unknown>>{
-//   event: TypedEmitter<AllClientEvents>;
-//   constructor() {
-//     this.event = new TypedEmitter();
-//     this.event.emit('soupObjectClosed', {type: 'producer', id: 'asd' as ProducerId, reason: 'asdfasdf'});
-//     this.event.emit('producerPausedOrResumed', {producerId: 'aas' as ProducerId, wasPaused: true});
-//     // super();
-//     // this.emit('',);
-//   }
-// }
-
-
-// class Frog extends Animal<{jump: (msg: string) => void}> {
-//   constructor() {
-//     super();
-//     this.event.emit('jump', 'juuump');
-//     this.event.emit('soupObjectClosed', {type: 'producer', id: 'asas' as ProducerId, reason: 'aasfas'});
-//   }
-// }
-
 /**
  * @class
  * Base class for backend state of client connection. You should probably not use the base class directly.

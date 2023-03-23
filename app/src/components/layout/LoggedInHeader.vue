@@ -26,7 +26,7 @@
         >
           <li>
             <RouterLink :to="{name: authStore.routePrefix + 'Home'}">
-              @{{ clientStore.clientState.username }}
+              @{{ clientStore.clientState?.username }}
             </RouterLink>
           </li>
           <div class="m-0 divider" />

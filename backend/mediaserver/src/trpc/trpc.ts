@@ -1,3 +1,7 @@
+import { Log } from 'debug-level';
+const log = new Log('TrpcModule');
+process.env.DEBUG = 'TrpcModule*, ' + process.env.DEBUG;
+log.enable(process.env.DEBUG);
 import { initTRPC, TRPCError } from '@trpc/server';
 import { SenderClient, UserClient } from '../classes/InternalClasses';
 import { JwtUserData, ConnectionId, hasAtLeastSecurityLevel, ClientType } from 'schemas';
@@ -107,6 +111,7 @@ export const currentVenueHasNoVrSpaceM = isInVenueM.unstable_pipe(({ctx, next, p
 });
 
 export const isVenueOwnerM = isInVenueM.unstable_pipe(({ctx, next, path}) => {
+  // log.info('venueOwner middleware. venueowners:',ctx.venue.owners);
   if(!(ctx.userId in ctx.venue.owners)){
     throw new TRPCError({code: 'FORBIDDEN', message: `you are not the owner of this venue. Action not allowed: ${path}`});
   }

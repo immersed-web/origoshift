@@ -25,6 +25,11 @@ export const adminRouter = router({
     ctx.client.loadPrismaDataAndNotifySelf('Venue created');
     return venueId;
   }),
+  updateVenue: p.use(isVenueOwnerM).input(VenueUpdateSchema).mutation(({input, ctx}) =>{
+    if(ctx.venue){
+      ctx.venue.update(input);
+    }
+  }),
   deleteVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
     const venueId = input.venueId;
     if(Venue.venueIsLoaded({venueId})){
@@ -76,11 +81,6 @@ export const adminRouter = router({
   //     log.info('request received to join venue as sender:', input.venueId);
   //     await ctx.client.joinVenue(input.venueId);
   //   }),
-  updateVenue: p.use(isVenueOwnerM).input(VenueUpdateSchema).mutation(({input, ctx}) =>{
-    if(ctx.venue){
-      ctx.venue.update(input);
-    }
-  }),
   createCamera: atLeastModeratorP.use(isVenueOwnerM).input(z.object({
     name: z.string(),
     senderId: ConnectionIdSchema.optional(),

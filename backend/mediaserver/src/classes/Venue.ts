@@ -65,9 +65,9 @@ export class Venue {
   // }
 
   get owners()  {
-    // return this.prismaData.owners;
     return this.prismaData.owners.reduce<Record<UserId, typeof this.prismaData.owners[number]>>((prev, cur) => {
-      return prev[cur.userId as UserId] = cur;
+      prev[cur.userId as UserId] = cur;
+      return prev;
     }, {});
   }
 

@@ -20,7 +20,7 @@ export function isTRPCClientError(
 }
 
 
-const trpcClient: ShallowRef<CreateTRPCProxyClient<AppRouter> | undefined> = shallowRef();
+export const trpcClient: ShallowRef<CreateTRPCProxyClient<AppRouter> | undefined> = shallowRef();
 export const clientOrThrow: ComputedRef<CreateTRPCProxyClient<AppRouter>> = computed(() => {
   if(!trpcClient.value){
     throw Error('tried to access non-existent trpc-client. Very sad!!');

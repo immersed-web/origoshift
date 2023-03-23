@@ -9,6 +9,10 @@ export const useClientStore = defineStore('client', () => {
 
   const connection = useConnectionStore();
 
+  if(!connection.clientExists){
+    throw Error('This store (clientStore) relies on there being a client created. Make sure to create a connection using the connection store before using this store');
+  }
+
   const clientState = ref<RouterOutputs['user']['getClientState']>();
   const clientTransforms = ref<ClientTransforms>();
 

@@ -1,5 +1,30 @@
 <template>
   <h1>Cameras view</h1>
+  <table class="table">
+    <thead>
+      <tr>
+        <th colspan="0">
+          Kameror
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        v-for="camera in venueStore.currentVenue?.cameras"
+        :key="camera.cameraId"
+      >
+        <td>{{ camera.name }}</td>
+        <td>
+          <button
+            :disabled="!camera.senderAttached"
+            class="btn btn-primary"
+          >
+            Consume
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
   <SenderList />
   <div class="flex gap-4">
     <div>

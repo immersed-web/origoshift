@@ -191,10 +191,10 @@ export class BaseClient {
   unload() {
     // log.info(`unloading base client ${ this.username } ${this.connectionId} `);
     this.connected = false;
+  }
 
-    // This will call the extending class's leave function if called from descendant
-    // this.teardownMediasoupObjects();
-    // this.leaveCurrentVenue();
+  protected _onLeavingVenue(){
+    this.teardownMediasoupObjects();
   }
 
   /**

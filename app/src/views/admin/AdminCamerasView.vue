@@ -18,7 +18,7 @@
         {{ sender.username }}
         <button
           class="btn btn-primary"
-          @click="adminStore.createCameraFromSender(`camera_${k.substring(0, 5)}`, k)"
+          @click="adminStore.createCameraFromSender(`camera_${k.substring(0, 5)}`, sender.senderId)"
         >
           Create camera
         </button>

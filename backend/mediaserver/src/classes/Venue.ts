@@ -126,7 +126,7 @@ export class Venue {
   }
 
   _notifySenderAddedOrRemoved(senderState: ReturnType<SenderClient['getPublicState']>, added: boolean, reason?: string){
-    log.info('Notifying SenderAdded to clients!!!');
+    log.info('Notifying SenderAddedOrRemoved to clients!!!');
     log.info(this.clients.size);
     this.clients.forEach(c => {
       log.info(`notifying client ${c.username} (${c.connectionId}) (${c.clientType})`);
@@ -157,6 +157,7 @@ export class Venue {
     // TODO: We should probably decide on where and when we trigger different notifiers. As of now we do both stateupdate and senderaddedremoved
     if(client.clientType === 'sender'){
       this.senderClients.set(client.connectionId, client);
+      this.tryMatchCamera(client);
       this._notifySenderAddedOrRemoved(client.getPublicState(), true, 'sender was added');
       // this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
     }
@@ -177,7 +178,6 @@ export class Venue {
    */
   removeClient (client: UserClient | SenderClient) {
     log.info(`removing ${client.username} (${client.connectionId}) from the venue ${this.name}`);
-    client._setVenue(undefined);
     if(client.clientType === 'client'){
       // TODO: We should also probably cleanup if client is in a camera or perhaps a VR place to avoid invalid states?
       const camera = client.currentCamera;
@@ -192,10 +192,13 @@ export class Venue {
       // this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
       this._notifyStateUpdated('client removed from venue');
     } else {
+      client.camera?.setSender(undefined);
       this.senderClients.delete(client.connectionId);
+
       // this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
       this._notifySenderAddedOrRemoved(client.getPublicState(), false, 'sender was removed');
     }
+    client._setVenue(undefined);
 
     // If this was the last client in the venue, lets unload it!
     if(this._isEmpty){
@@ -369,6 +372,7 @@ export class Venue {
     if(!sender && prismaCamera.senderId){
       for(const s of this.senderClients.values()){
         if(s.senderId === prismaCamera.senderId){
+          log.info('Found matched sender. Attaching camera to it.');
           sender = s;
         }
       }
@@ -377,6 +381,17 @@ export class Venue {
     this.cameras.set(camera.cameraId, camera);
 
     this._notifyStateUpdated('camera loaded');
+  }
+
+  tryMatchCamera(senderClient: SenderClient){
+    log.info('TRYING TO FIND MATCHING CAMERA!');
+    for(const [cKey, c] of this.cameras) {
+      if(c.senderId === senderClient.senderId){
+        log.info(`Found matched camera for sender ${senderClient.username} (${senderClient.senderId}). Attaching to it.`);
+        c.setSender(senderClient);
+        break;
+      }
+    }
   }
 
   // Static stuff for global housekeeping

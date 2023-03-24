@@ -1,6 +1,6 @@
 import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { defineStore } from 'pinia';
-import type { ConnectionId } from 'schemas';
+import type { ConnectionId, SenderId } from 'schemas';
 import { reactive, shallowReactive } from 'vue';
 import { useConnectionStore } from './connectionStore';
 import { useVenueStore } from './venueStore';
@@ -53,7 +53,7 @@ export const useAdminStore = defineStore('admin', () => {
     },
   });
 
-  async function createCameraFromSender(cameraName: string, senderId: ConnectionId){
+  async function createCameraFromSender(cameraName: string, senderId: SenderId){
     await connectionStore.client.admin.createCamera.mutate({name: cameraName, senderId});
   }
 

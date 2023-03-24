@@ -1,7 +1,7 @@
 
 import { Log } from 'debug-level';
 import type { Camera as PrismaCamera } from 'database';
-import type { CameraId } from 'schemas';
+import type { CameraId, SenderId  } from 'schemas';
 import {Venue, UserClient, SenderClient} from './InternalClasses';
 
 const log = new Log('Camera');
@@ -16,6 +16,7 @@ export class Camera {
     this.venue = venue;
     this.clients = new Map();
     if(sender){
+      log.info('attaching sender when instantiating camera');
       this.setSender(sender);
     }
   }
@@ -37,6 +38,9 @@ export class Camera {
   get cameraId(){
     return this.prismaData.cameraId as CameraId;
   }
+  get senderId() {
+    return this.prismaData.senderId as SenderId;
+  }
   get name() {
     return this.prismaData.name;
   }
@@ -45,9 +49,8 @@ export class Camera {
   }
 
   getPublicState() {
-    const { cameraId, name, clientIds, producers } = this;
-    // const producers = this.sender?.getPublicProducers();
-    return { cameraId, name, clientIds, producers };
+    const { cameraId, name, clientIds, senderId, producers } = this;
+    return { cameraId, name, clientIds, senderId, producers };
   }
 
   /**

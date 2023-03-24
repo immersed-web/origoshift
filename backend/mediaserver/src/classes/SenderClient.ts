@@ -83,11 +83,8 @@ export class SenderClient extends BaseClient{
   }
 
   unload() {
-    super.unload();
-    // this.base.connected = false;
-    // this._socketClosed = true;
     log.info(`unloading sender client ${ this.username } ${this.connectionId} `);
-    // super.unload();
+    super.unload();
     this.leaveCurrentVenue();
   }
 
@@ -107,7 +104,8 @@ export class SenderClient extends BaseClient{
       return false;
       // throw Error('cant leave a venue if you are not in one!');
     }
-    this.teardownMediasoupObjects();
+    super._onLeavingVenue();
+    // this.teardownMediasoupObjects();
     this.venue.removeClient(this);
     // this._notifyClientStateUpdated('user client left a venue');
     return true;

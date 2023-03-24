@@ -176,6 +176,7 @@ export class BaseClient {
   }
 
   getPublicState(){
+    const ownedVenues = this.ownedVenues.map(v => v.venueId);
     return {
       connectionId: this.connectionId,
       userId: this.userId,
@@ -183,7 +184,7 @@ export class BaseClient {
       role: this.role,
       currentVenueId: this.venue?.venueId,
       producers: this.getPublicProducers(),
-      ownedVenues: this.ownedVenues
+      ownedVenues
     };
   }
 

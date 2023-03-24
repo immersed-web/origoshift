@@ -94,12 +94,12 @@ export class Venue {
     const {venueId, name, clientIds, owners} = this;
     const cameras: Record<CameraId, ReturnType<Camera['getPublicState']>> = {};
     this.cameras.forEach(cam => cameras[cam.cameraId] = cam.getPublicState());
-    const senders: Record<ConnectionId, ReturnType<SenderClient['getPublicState']>> = {};
-    this.senderClients.forEach(s => senders[s.connectionId] = s.getPublicState());
+    // const senders: Record<ConnectionId, ReturnType<SenderClient['getPublicState']>> = {};
+    // this.senderClients.forEach(s => senders[s.connectionId] = s.getPublicState());
     return {
       venueId, name, clientIds, owners,
       vrSpace: this.vrSpace?.getPublicState(),
-      senders,
+      sendersConnectionIds: Array.from(this.senderClients.keys()),
       cameras
     };
   }
@@ -158,7 +158,8 @@ export class Venue {
     if(client.clientType === 'sender'){
       this.senderClients.set(client.connectionId, client);
       this.tryMatchCamera(client);
-      this._notifySenderAddedOrRemoved(client.getPublicState(), true, 'sender was added');
+      this._notifyStateUpdated('sender added to venue');
+      // this._notifySenderAddedOrRemoved(client.getPublicState(), true, 'sender was added');
       // this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
     }
     else {
@@ -196,7 +197,8 @@ export class Venue {
       this.senderClients.delete(client.connectionId);
 
       // this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
-      this._notifySenderAddedOrRemoved(client.getPublicState(), false, 'sender was removed');
+      // this._notifySenderAddedOrRemoved(client.getPublicState(), false, 'sender was removed');
+      this._notifyStateUpdated('sender removed from venue');
     }
     client._setVenue(undefined);
 
@@ -385,7 +387,9 @@ export class Venue {
 
   tryMatchCamera(senderClient: SenderClient){
     log.info('TRYING TO FIND MATCHING CAMERA!');
+    log.info('senderId:', senderClient.senderId);
     for(const [cKey, c] of this.cameras) {
+      log.info('comparing against cameraId:', c.senderId);
       if(c.senderId === senderClient.senderId){
         log.info(`Found matched camera for sender ${senderClient.username} (${senderClient.senderId}). Attaching to it.`);
         c.setSender(senderClient);

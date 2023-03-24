@@ -50,7 +50,9 @@ export class Camera {
 
   getPublicState() {
     const { cameraId, name, clientIds, senderId, producers } = this;
-    return { cameraId, name, clientIds, senderId, producers };
+    // const senderState = this.sender?.getPublicState();
+    const senderAttached = !!this.sender;
+    return { cameraId, name, clientIds, senderId, senderAttached, producers };
   }
 
   /**

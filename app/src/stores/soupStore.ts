@@ -89,38 +89,30 @@ export const useSoupStore = defineStore('soup', () =>{
     return producer.replaceTrack({ track });
   }
 
-  // async function consume (producerId: string) {
-  //   if (!producerId) {
-  //     throw Error('consume called without producerId! Please provide one!');
-  //   }
-  //   if (!receiveTransport.value) {
-  //     return Promise.reject('No receiveTransport present. Needed to be able to consume');
-  //   }
-  //   // const createConsumerReq = createRequest('createConsumer', {
-  //   //   producerId,
-  //   // });
-  //   try {
-  //     // const response = await socketutils.sendRequest(createConsumerReq);
-  //     const response = await connectionStore.client.soup.createConsumer({producerId});
+  async function consume (producerId: ProducerId) {
+    if (!producerId) {
+      throw Error('consume called without producerId! Please provide one!');
+    }
+    if (!receiveTransport.value) {
+      throw Error('No receiveTransport present. Needed to be able to consume');
+    }
+    // const response = await socketutils.sendRequest(createConsumerReq);
+    const consumerOptions = await connectionStore.client.soup.createConsumer.mutate({producerId});
 
-  //     const consumerOptions = response.data;
-  //     console.log('createConsumerRequest gave these options: ', consumerOptions);
-  //     const consumer = await receiveTransport.value.consume(consumerOptions);
-  //     consumers.set(consumer.id, consumer);
-  //     console.log('conmsumers map is: ', consumers);
+    console.log('createConsumerRequest gave these options: ', consumerOptions);
+    const consumer = await receiveTransport.value.consume(consumerOptions);
+    consumers.set(consumer.id as ConsumerId, consumer);
+    // console.log('conmsumers map is: ', consumers);
 
-  //     // const setPauseReq = createRequest('notifyPauseResumeRequest', {
-  //     //   objectType: 'consumer',
-  //     //   objectId: consumer.id,
-  //     //   wasPaused: false,
-  //     // });
-  //     // await socketutils.sendRequest(setPauseReq);
+    // const setPauseReq = createRequest('notifyPauseResumeRequest', {
+    //   objectType: 'consumer',
+    //   objectId: consumer.id,
+    //   wasPaused: false,
+    // });
+    // await socketutils.sendRequest(setPauseReq);
 
-  //     return { track: consumer.track, consumerId: consumer.id as ConsumerId };
-  //   } catch (e) {
-  //     return Promise.reject(e);
-  //   }
-  // }
+    return { track: consumer.track, consumerId: consumer.id as ConsumerId };
+  }
 
   async function pauseConsumer (consumerId: ConsumerId) {
     pauseResumeConsumer(consumerId, true);
@@ -187,7 +179,7 @@ export const useSoupStore = defineStore('soup', () =>{
     replaceProducerTrack,
     pauseProducer,
     resumeProducer,
-    // consume,
+    consume,
     pauseConsumer,
     resumeConsumer,
   };

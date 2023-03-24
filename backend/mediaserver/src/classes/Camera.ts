@@ -27,7 +27,7 @@ export class Camera {
     if(!this.sender) {
       return undefined;
     }
-    this.sender.getPublicProducers();
+    return this.sender.getPublicProducers();
   }
   clients: Venue['clients'];
   get clientIds() {

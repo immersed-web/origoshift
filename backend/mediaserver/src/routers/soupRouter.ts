@@ -57,7 +57,8 @@ export const soupRouter = router({
     }
     const producerId = await client.createProducer(input);
     log.info('gonna emit producerCreated');
-    ctx.venue.emitToAllClients('producerCreated', {producingConnectionId: ctx.connectionId, producer: {producerId, paused: input.producerInfo.isPaused, kind: input.kind}});
+    ctx.venue._notifyStateUpdated('producer added');
+    // ctx.venue.emitToAllClients('producerCreated', {producingConnectionId: ctx.connectionId, producer: {producerId, paused: input.producerInfo.isPaused, kind: input.kind}});
     // ctx.venue.emitToAllClients('someClientStateUpdated', { clientState: client.getPublicState(), reason: `client (${client.clientType}) created producer` });
     return producerId;
   }),

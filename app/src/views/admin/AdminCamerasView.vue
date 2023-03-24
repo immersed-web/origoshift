@@ -16,6 +16,9 @@
         <td>{{ camera.name }}</td>
         <td>
           <button
+            v-for="p in camera.producers"
+            :key="p.producerId"
+            @click="soupStore.consume(p.producerId)"
             :disabled="!camera.senderAttached"
             class="btn btn-primary"
           >
@@ -57,9 +60,19 @@
 import SenderList from '@/components/venue/SenderList.vue';
 import {useVenueStore} from '@/stores/venueStore';
 import { useAdminStore } from '@/stores/adminStore';
+import { useSoupStore } from '@/stores/soupStore';
+import { onBeforeMount } from 'vue';
 
 
 const venueStore = useVenueStore();
 const adminStore = useAdminStore();
+const soupStore = useSoupStore();
+
+onBeforeMount(async ()=> {
+  if(!soupStore.deviceLoaded){
+    await soupStore.loadDevice();
+  }
+  soupStore.createReceiveTransport();
+});
 
 </script>

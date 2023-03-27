@@ -117,31 +117,26 @@ export const useSoupStore = defineStore('soup', () =>{
     return { track: consumer.track, consumerId: consumer.id as ConsumerId };
   }
 
-  async function pauseConsumer (consumerId: ConsumerId) {
-    pauseResumeConsumer(consumerId, true);
+  async function pauseConsumer (producerId: ProducerId) {
+    pauseResumeConsumer(producerId, true);
   }
 
-  async function resumeConsumer (consumerId: ConsumerId) {
-    pauseResumeConsumer(consumerId, false);
+  async function resumeConsumer (producerId: ProducerId) {
+    pauseResumeConsumer(producerId, false);
   }
 
-  async function pauseResumeConsumer (consumerId: ConsumerId, wasPaused: boolean) {
-    const consumer = consumers.get(consumerId);
+  async function pauseResumeConsumer (producerId: ProducerId, wasPaused: boolean) {
+    const consumer = consumers.get(producerId);
     if (!consumer) {
       throw new Error('no such consumer found (client-side)');
     }
+    const consumerId = consumer.id as ConsumerId;
     if (wasPaused) {
       consumer.pause();
     } else {
       consumer.resume();
     }
-    //TODO: Implement
-    // const pauseReq = createRequest('notifyPauseResumeRequest', {
-    //   objectType: 'consumer',
-    //   objectId: consumer.id,
-    //   wasPaused,
-    // });
-    // await socketutils.sendRequest(pauseReq);
+    await connectionStore.client.soup.pauseOrResumeConsumer.mutate({consumerId, pause: wasPaused});
   }
 
   async function pauseProducer (producerId: ProducerId) {

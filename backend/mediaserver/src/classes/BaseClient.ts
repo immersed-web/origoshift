@@ -99,7 +99,8 @@ export class BaseClient {
 
   notify = {
     newProducerInCamera: undefined as NotifierSignature<{added: true} & ReturnType<typeof this.getPublicProducers>[ProducerId]>,
-    producerRemovedInCamera: undefined as NotifierSignature<{added: false, producerId: ProducerId }>
+    producerRemovedInCamera: undefined as NotifierSignature<{added: false, producerId: ProducerId }>,
+    venueStateUpdated: undefined as NotifierSignature<ReturnType<Venue['getPublicState']>>,
   };
 
 

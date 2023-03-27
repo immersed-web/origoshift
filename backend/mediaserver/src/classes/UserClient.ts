@@ -12,32 +12,14 @@ import { BaseClient } from './InternalClasses';
 import { ProducerId } from 'schemas/mediasoup';
 
 
-// export type UserEvents = NonFilteredEvents<{
-//   'clientState': (data: {reason?: string, clientState: ReturnType<UserClient['getPublicState']>}) => void
-// }>
-
-
 type UserVrEvents = NonFilteredEvents<{
   'clientTransforms': (transforms: ClientTransforms) => void
 }>
-
 
 type UserClientEvents = UserVrEvents
 & NonFilteredEvents<{
   'myStateUpdated': (data: { myState: ReturnType<UserClient['getPublicState']>, reason?: string }) => void
 }>;
-
-
-// export type PublicUserClientState = {
-//   connectionId: ConnectionId
-//   userId: UserId
-//   userName: string
-//   role: UserRole
-//   transform?: ClientTransform
-//   currentVenueId?: VenueId
-//   currentCameraId?: CameraId
-//   isInVrSpace: boolean
-// }
 
 /**
  * @class
@@ -59,19 +41,13 @@ export class UserClient extends BaseClient {
 
   }
   readonly clientType = 'client' as const satisfies ClientType;
-  // base: BaseClient;
 
   transform: ClientTransform | undefined;
 
-
   userClientEvent: TypedEmitter<UserClientEvents>;
-  // event: TypedEmitter<UserClientEvents>;
-  // userEvents: TypedEmitter<UserEvents>;
-  // vrEvents: TypedEmitter<UserVrEvents>;
 
   notify = {
     ...super.notify,
-    venueStateUpdated: undefined as NotifierSignature<ReturnType<Venue['getPublicState']>>,
     senderAddedOrRemoved: undefined as NotifierSignature<{senderState: ReturnType<SenderClient['getPublicState']>, added: boolean}>
   };
 

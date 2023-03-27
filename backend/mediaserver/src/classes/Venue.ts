@@ -134,6 +134,14 @@ export class Venue {
   _notifyStateUpdated(reason?: string){
     const data = this.getPublicState();
     this.clients.forEach(c => c.notify.venueStateUpdated?.({data, reason}));
+    this.senderClients.forEach(s => {
+      log.info(`notifying venuestate to sender ${s.username} (${s.connectionId})`);
+      if(!s.notify.venueStateUpdated){
+        log.warn('sender didnt have subscriver attached');
+        return;
+      }
+      s.notify.venueStateUpdated({data, reason});
+    });
   }
 
   _notifySenderAddedOrRemoved(senderState: ReturnType<SenderClient['getPublicState']>, added: boolean, reason?: string){

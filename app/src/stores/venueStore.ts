@@ -25,9 +25,18 @@ export const useVenueStore = defineStore('venue', () => {
       }
     },
   });
-  connection.client.admin.subVenueUnloaded.subscribe(undefined, {
+  connection.client.venue.subVenueUnloaded.subscribe(undefined, {
     onData() {
       currentVenue.value = undefined;
+    },
+  });
+  connection.client.venue.subVenueStateUpdated.subscribe(undefined, {
+    onData(data){
+      console.log('received venuestate updated:', data);
+      currentVenue.value = data.data;
+    },
+    onError(err){
+      console.error(err);
     },
   });
 

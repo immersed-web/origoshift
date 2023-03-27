@@ -7,7 +7,6 @@ import { useVenueStore } from './venueStore';
 
 export const useAdminStore = defineStore('admin', () => {
   const connectionStore = useConnectionStore();
-  const venueStore = useVenueStore();
 
   // Refs
   type ReceivedSenderData = SubscriptionValue<RouterOutputs['admin']['subSenderAddedOrRemoved']>['data']['senderState'];
@@ -43,13 +42,6 @@ export const useAdminStore = defineStore('admin', () => {
       }
       sender.producers[producer.producerId] = producer;
       connectedSenders.set(producingConnectionId, sender);
-    },
-  });
-
-  connectionStore.client.admin.subVenueStateUpdated.subscribe(undefined, {
-    onData(data){
-      console.log('received venuestate updated:', data);
-      venueStore.currentVenue = data.data;
     },
   });
 

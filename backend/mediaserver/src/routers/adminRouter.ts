@@ -48,15 +48,6 @@ export const adminRouter = router({
     const venue = await Venue.loadVenue(input.venueId, ctx.userId);
     return venue.getPublicState();
   }),
-  subVenueUnloaded: p.subscription(({ctx}) => {
-    attachToEvent(ctx.client.clientEvent, 'venueWasUnloaded');
-  }),
-  subVenueStateUpdated: atLeastModeratorP.use(isUserClientM).subscription(({ctx}) => {
-    return observable<NotifierInputData<UserClient['notify']['venueStateUpdated']>>((scriber) => {
-      ctx.client.notify.venueStateUpdated = scriber.next;
-      return () => ctx.client.notify.venueStateUpdated = undefined;
-    });
-  }),
   listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
     return ctx.client.ownedVenues.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));
   }),

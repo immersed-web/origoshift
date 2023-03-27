@@ -7,7 +7,7 @@ import { hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } fr
 import { z } from 'zod';
 import { procedure as p, atLeastModeratorP, router, isInVenueM, atLeastSenderP, isUserClientM, isSenderClientM, isVenueOwnerM, clientInVenueP } from '../trpc/trpc';
 // import Venue from '../classes/Venue';
-import { SenderClient, UserClient, Venue } from '../classes/InternalClasses';
+import { BaseClient, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
 import { TRPCError } from '@trpc/server';
 import type { Prisma } from 'database';
@@ -37,6 +37,16 @@ export const venueRouter = router({
   }),
   getVenueState: clientInVenueP.query(({ctx}) => {
     return ctx.venue.getPublicState();
+  }),
+  subVenueStateUpdated: p.subscription(({ctx}) => {
+    log.info(`attching venueStateUpdated notifier for client: ${ctx.username} (${ctx.connectionId})`);
+    return observable<NotifierInputData<BaseClient['notify']['venueStateUpdated']>>((scriber) => {
+      ctx.client.notify.venueStateUpdated = scriber.next;
+      return () => ctx.client.notify.venueStateUpdated = undefined;
+    });
+  }),
+  subVenueUnloaded: p.subscription(({ctx}) => {
+    attachToEvent(ctx.client.clientEvent, 'venueWasUnloaded');
   }),
   subSomeClientStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to clientState`);

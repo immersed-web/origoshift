@@ -11,7 +11,9 @@ export const useSoupStore = defineStore('soup', () =>{
   const sendTransport = shallowRef<soupTypes.Transport>();
   const receiveTransport = shallowRef<soupTypes.Transport>();
   const producers = shallowReactive<Map<ProducerId, soupTypes.Producer>>(new Map());
-  const consumers = shallowReactive<Map<ConsumerId, soupTypes.Consumer>>(new Map());
+  // Perhaps unintuitive to have producerId as key.
+  // But presumably the most common case is to need the consumer belonging to a specific producer.
+  const consumers = shallowReactive<Map<ProducerId, soupTypes.Consumer>>(new Map());
 
   const connectionStore = useConnectionStore();
 
@@ -89,6 +91,7 @@ export const useSoupStore = defineStore('soup', () =>{
     return producer.replaceTrack({ track });
   }
 
+  // TODO: Check if already consuming that producer and if so return that consumer
   async function consume (producerId: ProducerId) {
     if (!producerId) {
       throw Error('consume called without producerId! Please provide one!');
@@ -96,20 +99,20 @@ export const useSoupStore = defineStore('soup', () =>{
     if (!receiveTransport.value) {
       throw Error('No receiveTransport present. Needed to be able to consume');
     }
-    // const response = await socketutils.sendRequest(createConsumerReq);
+    const foundConsumer = consumers.get(producerId);
+    if(foundConsumer){
+      return { track: foundConsumer.track, consumerId: foundConsumer.id as ConsumerId};
+    }
     const consumerOptions = await connectionStore.client.soup.createConsumer.mutate({producerId});
 
     console.log('createConsumerRequest gave these options: ', consumerOptions);
     const consumer = await receiveTransport.value.consume(consumerOptions);
-    consumers.set(consumer.id as ConsumerId, consumer);
-    // console.log('conmsumers map is: ', consumers);
+    //Not a bug to use producerID! It's on purpose.
+    consumers.set(producerId, consumer);
 
-    // const setPauseReq = createRequest('notifyPauseResumeRequest', {
-    //   objectType: 'consumer',
-    //   objectId: consumer.id,
-    //   wasPaused: false,
-    // });
-    // await socketutils.sendRequest(setPauseReq);
+    const consumerId = consumer.id as ConsumerId;
+    // safe to unpause from server now
+    await connectionStore.client.soup.pauseOrResumeConsumer.mutate({consumerId, pause: false});
 
     return { track: consumer.track, consumerId: consumer.id as ConsumerId };
   }

@@ -4,7 +4,7 @@ process.env.DEBUG = 'Router:Soup*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import { TRPCError } from '@trpc/server';
-import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId, RtpCapabilitiesSchema, CreateConsumerPayloadSchema, ProducerIdSchema, ConsumerId } from 'schemas/mediasoup';
+import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId, RtpCapabilitiesSchema, CreateConsumerPayloadSchema, ProducerIdSchema, ConsumerId, ConsumerIdSchema } from 'schemas/mediasoup';
 import { z } from 'zod';
 import { procedure as p, clientInVenueP, router, userClientP, atLeastModeratorP } from '../trpc/trpc';
 import { attachToEvent, attachToFilteredEvent } from '../trpc/trpc-utils';
@@ -152,6 +152,20 @@ export const soupRouter = router({
     //         });
     //       }
 
+  }),
+  pauseOrResumeConsumer: p.input(z.object({
+    consumerId: ConsumerIdSchema,
+    pause: z.boolean(),
+  })).mutation(({ctx, input}) => {
+    const consumer = ctx.client.consumers.get(input.consumerId);
+    if(!consumer) {
+      throw new TRPCError({code: 'NOT_FOUND', message: 'no consumer witht that id found'});
+    }
+    if(input.pause){
+      consumer.pause();
+    } else {
+      consumer.resume();
+    }
   }),
   subSoupObjectClosed: p.subscription(({ctx}) => {
     return attachToEvent(ctx.client.clientEvent, 'soupObjectClosed');

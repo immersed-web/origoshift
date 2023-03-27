@@ -14,6 +14,7 @@ import { Prisma, userDeselectPassword, userSelectAll } from 'database';
 import prismaClient from '../modules/prismaClient';
 import { ListenerSignature, TypedEmitter } from 'tiny-typed-emitter';
 import { observable } from '@trpc/server/observable';
+import { keyBy } from 'lodash';
 
 type SoupObjectClosePayload =
       {type: 'transport', id: TransportId }
@@ -176,7 +177,14 @@ export class BaseClient {
   }
 
   getPublicState(){
-    const ownedVenues = this.ownedVenues.map(v => v.venueId);
+    // const ownedVenues = this.ownedVenues.map(v => v.venueId);
+
+    // const ownedVenues = keyBy(this.ownedVenues, (v) => v.venueId);
+    const ownedVenues = this.ownedVenues.reduce<Record<VenueId, {venueId: VenueId, name: string}>>((acc, venue) => {
+      const {venueId, name} = venue;
+      acc[venueId as VenueId] = {venueId: venueId as VenueId, name};
+      return acc;
+    }, {});
     return {
       connectionId: this.connectionId,
       userId: this.userId,

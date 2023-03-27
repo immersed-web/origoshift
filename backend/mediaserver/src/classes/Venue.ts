@@ -13,6 +13,7 @@ import { Prisma } from 'database';
 import prisma from '../modules/prismaClient';
 
 import { Camera, VrSpace, type UserClient, SenderClient, BaseClient  } from './InternalClasses';
+import { computed, shallowReactive } from '@vue/reactivity';
 // import { NotifierInputData } from 'trpc/trpc-utils';
 
 const basicUserSelect = {
@@ -75,17 +76,26 @@ export class Venue {
   router: soupTypes.Router;
   vrSpace?: VrSpace;
 
-  cameras: Map<CameraId, Camera> = new Map();
+  // cameras: Map<CameraId, Camera> = new Map();
+  cameras = shallowReactive<Map<CameraId, Camera>>(new Map());
 
   private clients: Map<ConnectionId, UserClient> = new Map();
   get clientIds() {
     return Array.from(this.clients.keys());
   }
 
-  senderClients: Map<ConnectionId, SenderClient> = new Map();
-  // get senderClientIds() {
-  //   return Array.from(this.senderClients.keys());
-  // }
+  // senderClients: Map<ConnectionId, SenderClient> = new Map();
+  senderClients  = shallowReactive<Map<ConnectionId, SenderClient>>(new Map());
+  detachedSenders = computed(() => {
+    const sendersInCamsConnectionIds = [] as ConnectionId[];
+    this.cameras.forEach(c => {
+      if(c.sender) {
+        sendersInCamsConnectionIds.push(c.sender.connectionId);
+      }
+    });
+    const sendersConnectionIds = Array.from(this.senderClients.entries());
+    return new Map(sendersConnectionIds.filter(([sId, sender]) => !sendersInCamsConnectionIds.includes(sId)));
+  });
 
   get _isEmpty() {
     return this.clients.size === 0 && this.senderClients.size === 0;
@@ -94,12 +104,13 @@ export class Venue {
     const {venueId, name, clientIds, owners} = this;
     const cameras: Record<CameraId, ReturnType<Camera['getPublicState']>> = {};
     this.cameras.forEach(cam => cameras[cam.cameraId] = cam.getPublicState());
-    // const senders: Record<ConnectionId, ReturnType<SenderClient['getPublicState']>> = {};
-    // this.senderClients.forEach(s => senders[s.connectionId] = s.getPublicState());
+    const detachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string}> = {};
+    this.detachedSenders.value.forEach(s => detachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username});
+    // log.info('Detached senders:', this.detachedSenders.value);
     return {
       venueId, name, clientIds, owners,
       vrSpace: this.vrSpace?.getPublicState(),
-      sendersConnectionIds: Array.from(this.senderClients.keys()),
+      detachedSenders,
       cameras
     };
   }

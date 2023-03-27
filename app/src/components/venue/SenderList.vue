@@ -2,29 +2,18 @@
   <table class="table">
     <thead>
       <tr>
-        <th colspan="2">
+        <th colspan="0">
           Anslutna sändare
-        </th>
-        <th>
-          Strömmar
         </th>
       </tr>
     </thead>
     <tbody class="border">
       <tr
-        v-for="[key, sender] in adminStore.connectedSenders"
-        :key="key"
+        v-for="sender in venueStore.currentVenue?.detachedSenders"
+        :key="sender.connectionId"
       >
-        <th>{{ sender.connectionId.substring(0, 5) }}...</th>
-        <th>{{ sender.username }}</th>
-        <th>
-          <p
-            v-for="producer in sender.producers"
-            :key="producer.producerId"
-          >
-            {{ producer.kind }}:{{ producer.producerId.substring(0, 5) }}
-          </p>
-        </th>
+        <td>{{ sender.connectionId.substring(0, 5) }}...</td>
+        <td>{{ sender.username }}</td>
       </tr>
     </tbody>
   </table>

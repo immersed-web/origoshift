@@ -44,13 +44,13 @@
       </pre>
   <div class="p-4 border-2">
     <div
-      v-for="[k, sender] in adminStore.connectedSenders"
-      :key="k"
+      v-for="sender in venueStore.currentVenue?.detachedSenders"
+      :key="sender.connectionId"
     >
       {{ sender.username }}
       <button
         class="btn btn-primary"
-        @click="adminStore.createCameraFromSender(`camera_${k.substring(0, 5)}`, sender.senderId)"
+        @click="adminStore.createCameraFromSender(`camera_${sender.connectionId.substring(0, 5)}`, sender.senderId)"
       >
         Create camera
       </button>

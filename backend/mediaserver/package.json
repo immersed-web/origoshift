@@ -21,6 +21,7 @@
     "test:once": "jest"
   },
   "dependencies": {
+    "@vue/reactivity": "^3.2.47",
     "database": "workspace:*",
     "debug-level": "3.0.0-1",
     "ip": "^1.1.8",

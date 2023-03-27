@@ -381,6 +381,30 @@ export class Venue {
     return result.cameraId as CameraId;
   }
 
+  async deleteCamera(cameraId: CameraId) {
+    const prismaCamera = this.prismaData.cameras.find(c => c.cameraId === cameraId);
+    if(!prismaCamera){
+      throw Error('no camera with that cameraId in prismaData for the venue');
+    }
+    const foundCamera = this.cameras.get(cameraId);
+    if(foundCamera){
+      log.info('camera was loaded. UNloading before removal');
+      foundCamera.unload();
+      this.cameras.delete(cameraId);
+    }
+
+    const deleteResponse = await prisma.camera.delete({
+      where: {
+        cameraId
+      }
+    });
+    const idx = this.prismaData.cameras.indexOf(prismaCamera);
+    this.prismaData.cameras.splice(idx, 1);
+
+    this._notifyStateUpdated('camera removed');
+    return deleteResponse;
+  }
+
   loadCamera(cameraId: CameraId, sender?: SenderClient) {
     if(this.cameras.has(cameraId)){
       throw Error('a camera with that id is already loaded');

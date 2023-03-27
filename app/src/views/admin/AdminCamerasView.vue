@@ -14,7 +14,15 @@
           v-for="camera in venueStore.currentVenue?.cameras"
           :key="camera.cameraId"
         >
-          <td>{{ camera.name }}</td>
+          <td>{{ camera.name }} sändare: {{ camera.senderAttached }}</td>
+          <td>
+            <button
+              @click="deleteCamera(camera.cameraId)"
+              class="btn btn-error"
+            >
+              Ta bort
+            </button>
+          </td>
           <td>
             <button
               v-for="p in camera.producers"
@@ -66,6 +74,7 @@ import { useAdminStore } from '@/stores/adminStore';
 import { useSoupStore } from '@/stores/soupStore';
 import { onBeforeMount, ref } from 'vue';
 import type { ProducerId } from 'schemas/mediasoup';
+import type { CameraId } from 'schemas';
 
 const videoTag = ref<HTMLVideoElement>();
 
@@ -81,6 +90,11 @@ async function consumeProducer(producerId: ProducerId) {
   }
   videoTag.value.srcObject = new MediaStream([track]);
   videoTag.value.play();
+}
+
+async function deleteCamera(cameraId: CameraId){
+  const response = adminStore.deleteCamera(cameraId);
+  console.log(response);
 }
 
 onBeforeMount(async ()=> {

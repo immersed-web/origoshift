@@ -1,6 +1,6 @@
 import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { defineStore } from 'pinia';
-import type { ConnectionId, SenderId } from 'schemas';
+import type { CameraId, ConnectionId, SenderId } from 'schemas';
 import { reactive, shallowReactive } from 'vue';
 import { useConnectionStore } from './connectionStore';
 import { useVenueStore } from './venueStore';
@@ -49,10 +49,14 @@ export const useAdminStore = defineStore('admin', () => {
     await connectionStore.client.admin.createCamera.mutate({name: cameraName, senderId});
   }
 
+  async function deleteCamera(cameraId: CameraId){
+    await connectionStore.client.admin.deleteCamera.mutate({cameraId});
+  }
+
 
   return {
     connectedSenders,
     createCameraFromSender,
-
+    deleteCamera,
   };
 });

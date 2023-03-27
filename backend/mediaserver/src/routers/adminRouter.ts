@@ -97,6 +97,11 @@ export const adminRouter = router({
       throw new TRPCError({code: 'INTERNAL_SERVER_ERROR', message: 'Kund inte skapa kamera! okänt fel :-('});
     }
   }),
+  deleteCamera: atLeastModeratorP.use(isVenueOwnerM).use(isUserClientM).input(z.object({
+    cameraId: CameraIdSchema,
+  })).mutation(async ({ ctx, input})=> {
+    return await ctx.venue.deleteCamera(input.cameraId);
+  }),
   addSenderToCamera: atLeastModeratorP.use(isVenueOwnerM).input(z.object({
     senderClientConnectionId: ConnectionIdSchema,
     cameraId: CameraIdSchema,

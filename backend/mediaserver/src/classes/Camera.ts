@@ -55,6 +55,10 @@ export class Camera {
     return { cameraId, name, clientIds, senderId, senderAttached, producers };
   }
 
+  unload() {
+    log.info('Unloading camera not implemented yet?');
+  }
+
   /**
    * Add a client to the camera. This function also takes care of setting the clients currentCamera field.
    */

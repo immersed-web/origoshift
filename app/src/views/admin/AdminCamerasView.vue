@@ -43,6 +43,20 @@
         autoplay
       />
     </div>
+    <div class="p-4 border-2">
+      <div
+        v-for="sender in venueStore.currentVenue?.detachedSenders"
+        :key="sender.connectionId"
+      >
+        {{ sender.username }}
+        <button
+          class="btn btn-primary"
+          @click="adminStore.createCameraFromSender(`camera_${sender.connectionId.substring(0, 5)}`, sender.senderId)"
+        >
+          Create camera
+        </button>
+      </div>
+    </div>
   </div>
   <pre>
         {{ venueStore.currentVenue }}
@@ -50,20 +64,6 @@
   <pre>
         {{ adminStore.connectedSenders }}
       </pre>
-  <div class="p-4 border-2">
-    <div
-      v-for="sender in venueStore.currentVenue?.detachedSenders"
-      :key="sender.connectionId"
-    >
-      {{ sender.username }}
-      <button
-        class="btn btn-primary"
-        @click="adminStore.createCameraFromSender(`camera_${sender.connectionId.substring(0, 5)}`, sender.senderId)"
-      >
-        Create camera
-      </button>
-    </div>
-  </div>
 </template>
 
 

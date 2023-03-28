@@ -6,8 +6,11 @@ const log = new Log('Index');
 process.env.DEBUG = 'Index*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import observerLogger from './mediasoupObservers';
-const printSoupStats = observerLogger();
+import { attachMediasoupObservers } from './mediasoupObservers';
+let printSoupStats : (() => void) | undefined;
+if(process.env.DEVELOPMENT){
+  printSoupStats = attachMediasoupObservers();
+}
 
 import { printClassInstances, printClientListeners } from './DebugObservers';
 import uWebSockets, { WebSocket } from 'uWebSockets.js';
@@ -54,7 +57,7 @@ if(stdin && stdin.isTTY){
         process.exit();
         break;
       case 'm':
-        printSoupStats();
+        printSoupStats?.();
         break;
       case 'c':
         printClassInstances(clientConnections);

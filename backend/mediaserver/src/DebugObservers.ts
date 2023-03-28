@@ -1,10 +1,11 @@
+import { Log } from 'debug-level';
+const log = new Log('Stats:Instances');
+process.env.DEBUG = 'Stats:Instances*, ' + process.env.DEBUG;
+log.enable(process.env.DEBUG);
+
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { SenderClient, UserClient, Venue } from './classes/InternalClasses';
 
-import { Log } from 'debug-level';
-const log = new Log('DebugObserver');
-process.env.DEBUG = 'DebugObserver*, ' + process.env.DEBUG;
-log.enable(process.env.DEBUG);
 //
 // @ts-expect-error: We allow reading private field here
 type venueDict = typeof Venue.venues extends Map<infer K, any>?Record<K, {clients: number, senders: number}>:never

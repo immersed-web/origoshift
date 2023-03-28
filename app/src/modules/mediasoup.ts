@@ -13,12 +13,6 @@ export function attachTransportEvents<Dir extends 'send'>(transport: soupTypes.T
 export function attachTransportEvents(transport: soupTypes.Transport, connectTransport: ConnectTransportFunction, createProducer?: CreateProducerFunction) {
   transport.on('connect', async ({dtlsParameters}, callback, errback) => {
     console.log('transport connect event trigered!');
-    // void (async () => {
-    // const connectTransportReq = createRequest('connectTransport', {
-    //   transportId: transport.id,
-    //   dtlsParameters,
-    // });
-    // const response = await socketutils.sendRequest(connectTransportReq);
     try{
       await connectTransport({transportId: transport.id as TransportId, dtlsParameters});
       callback();
@@ -26,7 +20,6 @@ export function attachTransportEvents(transport: soupTypes.Transport, connectTra
     } catch(e) {
       errback(e as Error);
     }
-    // })();
   });
 
   if (transport.direction === 'send') {
@@ -37,22 +30,9 @@ export function attachTransportEvents(transport: soupTypes.Transport, connectTra
     }, callback, errorback) => {
       console.log('transport produce event triggered!', {kind, rtpParameters, appData});
       try {
-        // const { producerInfo } = appData;
-        // // const response = await this.socket.request('createProducer', { transportId: transport.id, kind, rtpParameters });
-        // const createProducerReq = createRequest('createProducer', {
-        //   kind,
-        //   rtpParameters,
-        //   transportId: transport.id,
-        //   producerInfo,
-        // });
-        // const response = await socketutils.sendRequest(createProducerReq);
         const { producerInfo, producerId } = appData as ProduceAppData;
 
-        const createdProducerId = await createProducer?.({transportId: transport.id as TransportId, producerId, kind, rtpParameters, producerInfo});
-        // if (response.wasSuccess) {
-        //   const cbData = {
-        //     id: response.data.producerId,
-        //   };
+        const createdProducerId = await createProducer!({transportId: transport.id as TransportId, producerId, kind, rtpParameters, producerInfo});
         callback({ id: createdProducerId });
         return;
       } catch (err) {

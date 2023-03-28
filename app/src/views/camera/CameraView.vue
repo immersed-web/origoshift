@@ -147,6 +147,15 @@ async function startAudio(audioDevice: MediaDeviceInfo){
   });
   console.log(audioStream);
   audioTrack.value = audioStream.getAudioTracks()[0];
+  const producerInfo: ProducerInfo = {
+    // deviceId: pickedVideoInput.value?.deviceId,
+    isPaused: false,
+  };
+  const producerId = await soup.produce({
+    // producerId: restoredProducerId,
+    track: audioTrack.value,
+    producerInfo,
+  });
 
 }
 const videoTrack = shallowRef<MediaStreamTrack>();

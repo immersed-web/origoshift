@@ -6,7 +6,7 @@ log.enable(process.env.DEBUG);
 import { ConnectionId, JwtUserData, UserId, UserRole, VenueId, ConnectionIdSchema } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
 import type { types as soupClientTypes } from 'mediasoup-client';
-import { ConsumerId, CreateProducerPayload, ProducerId, TransportId  } from 'schemas/mediasoup';
+import { ConsumerId, CreateConsumerPayload, CreateProducerPayload, ProducerId, TransportId  } from 'schemas/mediasoup';
 import { SenderClient, UserClient, Venue } from './InternalClasses';
 import { CustomListenerSignature, FilteredEvents, NotifierInputData, NonFilteredEvents, NotifierSignature, SingleParamListenerSignature } from 'trpc/trpc-utils';
 import { randomUUID } from 'crypto';
@@ -19,7 +19,9 @@ import { keyBy } from 'lodash';
 type SoupObjectClosePayload =
       {type: 'transport', id: TransportId }
       | {type: 'producer', id: ProducerId }
-      | {type: 'consumer', id: ConsumerId }
+      | {type: 'consumer', consumerInfo: { consumerId: ConsumerId, producerId: ProducerId }}
+
+// type CreatedConsumerResponse = Pick<soupTypes.Consumer, 'id' | 'kind' | 'rtpParameters'> & { producerId: ProducerId}
 
 type ClientSoupEvents = FilteredEvents<{
   'producerCreated': (data: {producer: ReturnType<BaseClient['getPublicProducers']>[ProducerId], producingConnectionId: ConnectionId}) => void
@@ -98,15 +100,15 @@ export class BaseClient {
 
   notify = {
     venueStateUpdated: undefined as NotifierSignature<ReturnType<Venue['getPublicState']>>,
-    camera: {
-      newProducerInCamera: undefined as NotifierSignature<{added: true} & ReturnType<typeof this.getPublicProducers>[ProducerId]>,
-      producerRemovedInCamera: undefined as NotifierSignature<{added: false, producerId: ProducerId }>,
-    },
-    soup: {
-      soupObjectClosed: undefined as NotifierSignature<SoupObjectClosePayload>,
-      consumerPausedOrResumed: undefined as NotifierSignature<{consumerId: ConsumerId, wasPaused: boolean}>,
-      producerPausedOrResumed: undefined as NotifierSignature<{producerId: ProducerId, wasPaused: boolean}>,
-    },
+    // camera: {
+    newProducerInCamera: undefined as NotifierSignature<{added: true} & ReturnType<typeof this.getPublicProducers>[ProducerId]>,
+    producerRemovedInCamera: undefined as NotifierSignature<{added: false, producerId: ProducerId }>,
+    // },
+    // soup: {
+    soupObjectClosed: undefined as NotifierSignature<SoupObjectClosePayload>,
+    consumerPausedOrResumed: undefined as NotifierSignature<{consumerId: ConsumerId, wasPaused: boolean}>,
+    producerPausedOrResumed: undefined as NotifierSignature<{producerId: ProducerId, wasPaused: boolean}>,
+    // },
   };
 
 
@@ -281,6 +283,58 @@ export class BaseClient {
     return producer.id as ProducerId;
   }
 
+  async createConsumer(consumerOptions: {producerId: ProducerId, paused?: boolean}){
+    if(!this.receiveTransport){
+      throw Error('A transport is required to create a consumer');
+    }
+
+    if(!this.rtpCapabilities){
+      throw Error('rtpCapabilities of client unknown. Provide them before requesting to consume');
+    }
+    const { producerId, paused } = consumerOptions;
+    const canConsume = this.venue?.router.canConsume({ producerId, rtpCapabilities: this.rtpCapabilities});
+    if( !canConsume){
+      throw Error('Client is not capable of consuming the producer according to provided rtpCapabilities');
+    }
+
+    const consumer = await this.receiveTransport.consume({
+      producerId: producerId,
+      rtpCapabilities: this.rtpCapabilities,
+      paused,
+    });
+
+    const consumerId = consumer.id as ConsumerId;
+
+    this.consumers.set(producerId, consumer);
+
+    consumer.on('transportclose', () => {
+      log.info(`---consumer transport close--- clientConnection: ${this.connectionId} consumer_id: ${consumerId}`);
+      this.consumers.delete(producerId);
+      this.notify.soupObjectClosed?.({data: {type: 'consumer', consumerInfo: { consumerId, producerId }}, reason: 'transport for the consumer was closed'});
+    });
+
+    consumer.on('producerclose', () => {
+      log.info(`the producer associated with consumer ${consumer.id} closed so the consumer was also closed`);
+      this.consumers.delete(producerId);
+      if(!this.notify.soupObjectClosed){
+        log.info('NO NOTIFIER ATTACHED for Client!');
+      }
+      this.notify.soupObjectClosed?.({data: {type: 'consumer', consumerInfo: { consumerId, producerId }}, reason: 'transport for the consumer was closed'});
+    });
+
+    consumer.on('producerpause', () => {
+      log.info('producer was paused! Handler NOT IMPLEMENTED YET!');
+    });
+    consumer.on('producerresume', () => {
+      log.info('producer was resumed! Handler NOT IMPLEMENTED YET!');
+    });
+
+    const {id, kind, rtpParameters} = consumer;
+    return {
+      id: id as ConsumerId, producerId, kind, rtpParameters
+    };
+  }
+
   closeAllTransports() {
     if(this.sendTransport){
       this.sendTransport.close();
@@ -307,10 +361,10 @@ export class BaseClient {
 
   closeAllConsumers = () => {
     const consumerArray = Array.from(this.consumers.entries());
-    for(const [consumerKey, consumer] of consumerArray){
+    for(const [producerId, consumer] of consumerArray){
       consumer.close();
-      this.clientEvent.emit('soupObjectClosed', {type: 'consumer', id: consumer.id as ConsumerId, reason: 'closing all consumers for client'});
-      this.consumers.delete(consumerKey);
+      this.clientEvent.emit('soupObjectClosed', {type: 'consumer', consumerInfo: {consumerId: consumer.id as ConsumerId, producerId}, reason: 'closing all consumers for client'});
+      this.consumers.delete(producerId);
     }
   };
 }

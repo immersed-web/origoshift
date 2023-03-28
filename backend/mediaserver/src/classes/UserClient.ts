@@ -39,6 +39,7 @@ export class UserClient extends BaseClient {
     // this.userEvents = new TypedEmitter();
     // this.vrEvents = new TypedEmitter();
 
+    this.notify = {...this.notify, ...super.notify};
   }
   readonly clientType = 'client' as const satisfies ClientType;
 

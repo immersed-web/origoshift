@@ -28,7 +28,22 @@ export const useSoupStore = defineStore('soup', () =>{
 
   connectionStore.client.soup.subSoupObjectClosed.subscribe(undefined, {
     onData(data) {
-      console.log(data);
+      // console.log('SOUP OBJECT CLOSED!!!!');
+      console.log('soupObject closed: ',data);
+      if(data.data.type === 'consumer'){
+        const { consumerInfo: {consumerId, producerId} } = data.data;
+        const con = consumers.get(producerId);
+        if(con) {
+          con.close();
+          consumers.delete(producerId);
+        }
+      }
+    },
+    onError(err){
+      console.error(err);
+    },
+    onComplete() {
+      console.log('sub scompleted');
     },
   });
 
@@ -123,10 +138,30 @@ export const useSoupStore = defineStore('soup', () =>{
     return { track: consumer.track, consumerId};
   }
 
-  async function consumerCamera() {
+  async function consumeCurrentCamera() {
     if (!receiveTransport.value) {
       throw Error('No receiveTransport present. Needed to be able to consume');
     }
+    const localConsumersResponse: Record<ProducerId, {
+      track: soupTypes.Consumer['track'],
+      consumerId: ConsumerId,
+    }> = {};
+    const consumersResponse = await connectionStore.client.soup.consumeCurrentCamera.mutate();
+    for(const [key, consumerOptions] of Object.entries(consumersResponse)){
+      const consumer = await receiveTransport.value.consume(consumerOptions);
+      //Not a bug to use producerID! It's on purpose.
+      consumers.set(consumerOptions.producerId, consumer);
+
+      // const consumerId = consumer.id as ConsumerId;
+      // safe to unpause from server now
+      connectionStore.client.soup.pauseOrResumeConsumer.mutate({producerId: consumerOptions.producerId, pause: false});
+      localConsumersResponse[consumerOptions.producerId] = {
+        track: consumer.track,
+        consumerId: consumer.id as ConsumerId,
+      };
+    }
+    // console.log(consumers);
+    return localConsumersResponse;
   }
 
   async function pauseConsumer (producerId: ProducerId) {
@@ -191,6 +226,7 @@ export const useSoupStore = defineStore('soup', () =>{
     pauseProducer,
     resumeProducer,
     consume,
+    consumeCurrentCamera,
     pauseConsumer,
     resumeConsumer,
   };

@@ -13,8 +13,8 @@ import { types as soupTypes } from 'mediasoup';
 import type { UserClient } from 'classes/UserClient';
 import type { SenderClient } from 'classes/SenderClient';
 import { observable } from '@trpc/server/observable';
+import { BaseClient } from 'classes/BaseClient';
 
-type CreatedConsumerResponse = Pick<soupTypes.Consumer, 'id' | 'kind' | 'rtpParameters'> & { producerId: ProducerId}
 
 export const soupRouter = router({
   getRouterRTPCapabilities: clientInVenueP.query(({ctx}) => {
@@ -81,22 +81,12 @@ export const soupRouter = router({
     if(!ctx.currentCamera.producers){
       throw new TRPCError({code: 'NOT_FOUND', message: 'no producers in camera'});
     }
-    const createdConsumers: Record<ProducerId, CreatedConsumerResponse> = {};
+    const createdConsumers: Record<ProducerId, Awaited<ReturnType<BaseClient['createConsumer']>>> = {};
     for (const p of Object.values(ctx.currentCamera.producers)){
       const { producerId, kind, paused } = p;
-      const consumer = await client.receiveTransport.consume({producerId, rtpCapabilities: client.rtpCapabilities, paused});
-      client.consumers.set(producerId, consumer);
-
-      createdConsumers[producerId] = {
-        id: consumer.id,
-        kind: consumer.kind,
-        producerId: consumer.producerId as ProducerId,
-        rtpParameters: consumer.rtpParameters,
-      };
+      createdConsumers[producerId] = await client.createConsumer({producerId, paused});
     }
     return createdConsumers;
-
-    return 'NOT IMPLEMENTED YET :-(' as const;
   }),
   createConsumer: clientInVenueP.input(CreateConsumerPayloadSchema).mutation(async ({ctx, input}) => {
     log.info('received createConsumer request');
@@ -108,46 +98,8 @@ export const soupRouter = router({
     if(!client.rtpCapabilities){
       throw Error('rtpCapabilities of client unknown. Provide them before requesting to consume');
     }
-    const requestedProducerId = input.producerId;
-    const canConsume = ctx.venue.router.canConsume({producerId: requestedProducerId, rtpCapabilities: client.rtpCapabilities});
-    if( !canConsume){
-      throw new TRPCError({code: 'BAD_REQUEST', message: 'Client is not capable of consuming the producer according to provided rtpCapabilities'});
-    }
-
-    const consumer = await client.receiveTransport.consume({
-      producerId: requestedProducerId,
-      rtpCapabilities: client.rtpCapabilities,
-      paused: true,
-    });
-
-    const consumerId = consumer.id as ConsumerId;
-
-    client.consumers.set(requestedProducerId, consumer);
-
-    consumer.on('transportclose', () => {
-      console.log(`---consumer transport close--- clientConnection: ${ctx.connectionId} consumer_id: ${consumerId}`);
-
-      client.consumers.delete(requestedProducerId);
-      client.notify.soup.soupObjectClosed?.({data: {type: 'consumer', id: consumerId}, reason: 'transport for the consumer was closed'});
-    });
-
-    consumer.on('producerclose', () => {
-      console.log(`the producer associated with consumer ${consumer.id} closed so the consumer was also closed`);
-      client.consumers.delete(requestedProducerId);
-      client.notify.soup.soupObjectClosed?.({data: {type: 'consumer', id: consumerId}, reason: 'transport for the consumer was closed'});
-    });
-
-    consumer.on('producerpause', () => {
-      console.log('producer was paused! Handler NOT IMPLEMENTED YET!');
-    });
-    consumer.on('producerresume', () => {
-      console.log('producer was resumed! Handler NOT IMPLEMENTED YET!');
-    });
-
-    const {id, producerId, kind, rtpParameters} = consumer;
-    return {
-      id, producerId, kind, rtpParameters
-    };
+    const producerId = input.producerId;
+    return await ctx.client.createConsumer({producerId});
   }),
   pauseOrResumeConsumer: p.input(z.object({
     producerId: ProducerIdSchema,
@@ -164,8 +116,17 @@ export const soupRouter = router({
     }
   }),
   subSoupObjectClosed: p.subscription(({ctx}) => {
-    return observable<NotifierInputData<typeof ctx.client.notify.soup.soupObjectClosed>>(scriber =>{
-      ctx.client.notify.soup.soupObjectClosed = scriber.next;
+    log.info(`client (${ctx.clientType}) ${ctx.username} (${ctx.connectionId}) started susbscribing to soupObjectClosed`);
+    return observable<NotifierInputData<typeof ctx.client.notify.soupObjectClosed>>(scriber =>{
+      log.info(ctx.client.notify);
+      ctx.client.notify['soupObjectClosed'] = (d) => {
+        log.info(`soupObject closed triggered for client ${ctx.username} (${ctx.clientType})`);
+        scriber.next(d);
+      };
+      log.info(ctx.client.notify);
+      return () => {
+        ctx.client.notify.soupObjectClosed = undefined;
+      };
     });
   })
 });

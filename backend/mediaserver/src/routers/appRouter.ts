@@ -14,6 +14,7 @@ import { attachToEvent } from '../trpc/trpc-utils';
 import { userRouter } from './userRouter';
 import { senderRouter } from './senderRouter';
 import { adminRouter } from './adminRouter';
+import { cameraRouter } from './cameraRouter';
 
 const appRouterEvents = new TypedEmitter<{
   'heartbeat': (msg: string) => void
@@ -27,6 +28,7 @@ export const appRouter = router({
   sender: senderRouter,
   admin: adminRouter,
   venue: venueRouter,
+  camera: cameraRouter,
   soup: soupRouter,
   vr: vrRouter,
   greeting: procedure.query(({ctx}) => `Hello ${ctx.username}!`),

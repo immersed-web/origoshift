@@ -5,13 +5,16 @@ log.enable(process.env.DEBUG);
 
 import { TRPCError } from '@trpc/server';
 import {CreateProducerPayloadSchema, ConnectTransportPayloadSchema, ProducerId, RtpCapabilitiesSchema, CreateConsumerPayloadSchema, ProducerIdSchema, ConsumerId, ConsumerIdSchema } from 'schemas/mediasoup';
-import { z } from 'zod';
-import { procedure as p, clientInVenueP, router, userClientP, atLeastModeratorP } from '../trpc/trpc';
-import { attachToEvent, attachToFilteredEvent } from '../trpc/trpc-utils';
+import { ErrorMapCtx, z } from 'zod';
+import { procedure as p, clientInVenueP, router, userClientP, atLeastModeratorP, isUserClientM, isInCameraM } from '../trpc/trpc';
+import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
 import { CameraIdSchema } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
 import type { UserClient } from 'classes/UserClient';
 import type { SenderClient } from 'classes/SenderClient';
+import { observable } from '@trpc/server/observable';
+
+type CreatedConsumerResponse = Pick<soupTypes.Consumer, 'id' | 'kind' | 'rtpParameters'> & { producerId: ProducerId}
 
 export const soupRouter = router({
   getRouterRTPCapabilities: clientInVenueP.query(({ctx}) => {
@@ -65,7 +68,34 @@ export const soupRouter = router({
   closeProducer: clientInVenueP.input(z.object({producerId:z.string().uuid()})).mutation(({input, ctx}) => {
     return 'Not implemented yet' as const;
   }),
-  consumeCamera: clientInVenueP.input(z.object({cameraId: CameraIdSchema, producerId: ProducerIdSchema})).mutation(({ctx, input}) => {
+  consumeCurrentCamera: clientInVenueP.use(isInCameraM).mutation(async ({ctx}) => {
+    const client = ctx.client;
+    if(!client.receiveTransport){
+      throw new TRPCError({code:'PRECONDITION_FAILED', message:'A transport is required to create a consumer'});
+    }
+
+    if(!client.rtpCapabilities){
+      throw Error('rtpCapabilities of client unknown. Provide them before requesting to consume');
+    }
+
+    if(!ctx.currentCamera.producers){
+      throw new TRPCError({code: 'NOT_FOUND', message: 'no producers in camera'});
+    }
+    const createdConsumers: Record<ProducerId, CreatedConsumerResponse> = {};
+    for (const p of Object.values(ctx.currentCamera.producers)){
+      const { producerId, kind, paused } = p;
+      const consumer = await client.receiveTransport.consume({producerId, rtpCapabilities: client.rtpCapabilities, paused});
+      client.consumers.set(producerId, consumer);
+
+      createdConsumers[producerId] = {
+        id: consumer.id,
+        kind: consumer.kind,
+        producerId: consumer.producerId as ProducerId,
+        rtpParameters: consumer.rtpParameters,
+      };
+    }
+    return createdConsumers;
+
     return 'NOT IMPLEMENTED YET :-(' as const;
   }),
   createConsumer: clientInVenueP.input(CreateConsumerPayloadSchema).mutation(async ({ctx, input}) => {
@@ -85,46 +115,26 @@ export const soupRouter = router({
     }
 
     const consumer = await client.receiveTransport.consume({
-      producerId: input.producerId,
+      producerId: requestedProducerId,
       rtpCapabilities: client.rtpCapabilities,
       paused: true,
     });
 
     const consumerId = consumer.id as ConsumerId;
 
-    client.consumers.set(consumerId, consumer);
+    client.consumers.set(requestedProducerId, consumer);
 
     consumer.on('transportclose', () => {
       console.log(`---consumer transport close--- clientConnection: ${ctx.connectionId} consumer_id: ${consumerId}`);
-      // this.send(createMessage('notifyCloseEvent', {
-      //   objectType: 'consumer',
-      //   objectId: consumer.id,
-      // }));
-      // this.consumers.delete(consumer.id);
-      // this.onClientStateUpdated('transport for a consumer closed');
 
-      client.consumers.delete(consumerId);
-
-      client.clientEvent.emit('soupObjectClosed', {
-        type: 'consumer',
-        id: consumerId,
-        reason: 'transport for the consumer was closed'
-      });
+      client.consumers.delete(requestedProducerId);
+      client.notify.soup.soupObjectClosed?.({data: {type: 'consumer', id: consumerId}, reason: 'transport for the consumer was closed'});
     });
 
     consumer.on('producerclose', () => {
       console.log(`the producer associated with consumer ${consumer.id} closed so the consumer was also closed`);
-      // this.send(createMessage('notifyCloseEvent', {
-      //   objectType: 'consumer',
-      //   objectId: consumer.id
-      // }));
-      // this.consumers.delete(consumer.id);
-      client.consumers.delete(consumerId);
-      client.clientEvent.emit('soupObjectClosed', {
-        type: 'consumer',
-        id: consumerId,
-        reason: 'producer for the consumer was closed'
-      });
+      client.consumers.delete(requestedProducerId);
+      client.notify.soup.soupObjectClosed?.({data: {type: 'consumer', id: consumerId}, reason: 'transport for the consumer was closed'});
     });
 
     consumer.on('producerpause', () => {
@@ -138,26 +148,12 @@ export const soupRouter = router({
     return {
       id, producerId, kind, rtpParameters
     };
-
-    //         response = createResponse('createConsumer', msg.id, {
-    //           wasSuccess: true,
-    //           data: {
-    //             id, producerId, kind, rtpParameters
-    //           }
-    //         });
-    //       } catch (e) {
-    //         response = createResponse('createConsumer', msg.id, {
-    //           wasSuccess: false,
-    //           message: extractMessageFromCatch(e, 'failed to create consumer'),
-    //         });
-    //       }
-
   }),
   pauseOrResumeConsumer: p.input(z.object({
-    consumerId: ConsumerIdSchema,
+    producerId: ProducerIdSchema,
     pause: z.boolean(),
   })).mutation(({ctx, input}) => {
-    const consumer = ctx.client.consumers.get(input.consumerId);
+    const consumer = ctx.client.consumers.get(input.producerId);
     if(!consumer) {
       throw new TRPCError({code: 'NOT_FOUND', message: 'no consumer witht that id found'});
     }
@@ -168,7 +164,8 @@ export const soupRouter = router({
     }
   }),
   subSoupObjectClosed: p.subscription(({ctx}) => {
-    return attachToEvent(ctx.client.clientEvent, 'soupObjectClosed');
-    // return 'Not implemented yet' as const;
+    return observable<NotifierInputData<typeof ctx.client.notify.soup.soupObjectClosed>>(scriber =>{
+      ctx.client.notify.soup.soupObjectClosed = scriber.next;
+    });
   })
 });

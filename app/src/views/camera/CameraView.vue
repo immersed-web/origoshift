@@ -59,6 +59,18 @@
         autoplay
         ref="videoTag"
       />
+      <div
+        v-for="(stat, k) in soup.producersStats"
+        :key="k"
+      >
+        {{ k }}
+        <pre
+          v-for="(entry, key) in stat"
+          :key="key"
+        >
+        {{ key }}: {{ entry }}
+      </pre>
+      </div>
     </div>
   </template>
 </template>
@@ -79,6 +91,9 @@ import { useIntervalFn } from '@vueuse/core';
 
 const senderStore = useSenderStore();
 const venueStore = useVenueStore();
+
+const router = useRouter();
+const soup = useSoupStore();
 
 const { pause } = useIntervalFn(async () => {
   try {
@@ -104,9 +119,6 @@ const { pause } = useIntervalFn(async () => {
 onBeforeUnmount(() => {
   venueStore.leaveVenue();
 });
-
-const router = useRouter();
-const soup = useSoupStore();
 
 const videoTag = ref<HTMLVideoElement>();
 

@@ -86,7 +86,6 @@ export class BaseClient {
 
     this.clientEvent = new TypedEmitter();
 
-
     // this.event = new TypedEmitter();
     // this.soupEvents = new TypedEmitter();
     // this.venueEvents = new TypedEmitter();
@@ -98,9 +97,16 @@ export class BaseClient {
   connected = true;
 
   notify = {
-    newProducerInCamera: undefined as NotifierSignature<{added: true} & ReturnType<typeof this.getPublicProducers>[ProducerId]>,
-    producerRemovedInCamera: undefined as NotifierSignature<{added: false, producerId: ProducerId }>,
     venueStateUpdated: undefined as NotifierSignature<ReturnType<Venue['getPublicState']>>,
+    camera: {
+      newProducerInCamera: undefined as NotifierSignature<{added: true} & ReturnType<typeof this.getPublicProducers>[ProducerId]>,
+      producerRemovedInCamera: undefined as NotifierSignature<{added: false, producerId: ProducerId }>,
+    },
+    soup: {
+      soupObjectClosed: undefined as NotifierSignature<SoupObjectClosePayload>,
+      consumerPausedOrResumed: undefined as NotifierSignature<{consumerId: ConsumerId, wasPaused: boolean}>,
+      producerPausedOrResumed: undefined as NotifierSignature<{producerId: ProducerId, wasPaused: boolean}>,
+    },
   };
 
 
@@ -141,7 +147,7 @@ export class BaseClient {
   rtpCapabilities?: soupTypes.RtpCapabilities;
   receiveTransport?: soupTypes.WebRtcTransport;
   sendTransport?: soupTypes.WebRtcTransport;
-  consumers: Map<ConsumerId, soupTypes.Consumer> = new Map();
+  consumers: Map<ProducerId, soupTypes.Consumer> = new Map();
   producers: Map<ProducerId, soupTypes.Producer> = new Map();
 
   // soupEvents: TypedEmitter<ClientSoupEvents>;

@@ -11,7 +11,7 @@ import prismaClient from '../modules/prismaClient';
 import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSchema, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
 import { z } from 'zod';
-import { atLeastModeratorP, isUserClientM, isVenueOwnerM, procedure as p, router } from '../trpc/trpc';
+import { atLeastModeratorP, currentVenueAdminP, isUserClientM, isVenueOwnerM, procedure as p, router } from '../trpc/trpc';
 
 
 export const adminRouter = router({
@@ -25,7 +25,7 @@ export const adminRouter = router({
     ctx.client.loadPrismaDataAndNotifySelf('Venue created');
     return venueId;
   }),
-  updateVenue: p.use(isVenueOwnerM).use(isUserClientM).input(VenueUpdateSchema).mutation(async ({input, ctx}) =>{
+  updateVenue: currentVenueAdminP.input(VenueUpdateSchema).mutation(async ({input, ctx}) =>{
     await ctx.venue.update(input);
     ctx.client.loadPrismaDataAndNotifySelf('updated venue info/settings');
     ctx.venue._notifyStateUpdated('venue settings/data updated');
@@ -72,7 +72,7 @@ export const adminRouter = router({
   //     log.info('request received to join venue as sender:', input.venueId);
   //     await ctx.client.joinVenue(input.venueId);
   //   }),
-  createCamera: atLeastModeratorP.use(isVenueOwnerM).input(z.object({
+  createCamera: currentVenueAdminP.input(z.object({
     name: z.string(),
     senderId: SenderIdSchema.optional(),
   })).mutation(async ({ctx, input}) => {
@@ -97,12 +97,12 @@ export const adminRouter = router({
       throw new TRPCError({code: 'INTERNAL_SERVER_ERROR', message: 'Kund inte skapa kamera! okänt fel :-('});
     }
   }),
-  deleteCamera: atLeastModeratorP.use(isVenueOwnerM).use(isUserClientM).input(z.object({
+  deleteCamera: currentVenueAdminP.input(z.object({
     cameraId: CameraIdSchema,
   })).mutation(async ({ ctx, input})=> {
     return await ctx.venue.deleteCamera(input.cameraId);
   }),
-  addSenderToCamera: atLeastModeratorP.use(isVenueOwnerM).input(z.object({
+  addSenderToCamera: currentVenueAdminP.input(z.object({
     senderClientConnectionId: ConnectionIdSchema,
     cameraId: CameraIdSchema,
   })).mutation(({ctx, input}) => {

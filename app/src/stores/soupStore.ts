@@ -2,7 +2,8 @@ import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { soupDevice, attachTransportEvents, type ProduceAppData } from '@/modules/mediasoup';
 import type {types as soupTypes } from 'mediasoup-client';
-import { ref, shallowReactive, shallowRef } from 'vue';
+import { computed, reactive, ref, shallowReactive, shallowRef } from 'vue';
+import { useIntervalFn } from '@vueuse/core';
 import { useConnectionStore } from './connectionStore';
 import type { ConsumerId, ProducerId, ProducerInfo } from 'schemas/mediasoup';
 
@@ -11,6 +12,14 @@ export const useSoupStore = defineStore('soup', () =>{
   const sendTransport = shallowRef<soupTypes.Transport>();
   const receiveTransport = shallowRef<soupTypes.Transport>();
   const producers = shallowReactive<Map<ProducerId, soupTypes.Producer>>(new Map());
+  const producersStats = reactive<Record<ProducerId, Awaited<ReturnType<soupTypes.Producer['getStats']>>>>({});
+
+  useIntervalFn(() => {
+    producers.forEach(async (p, k) => {
+      const stats = await p.getStats();
+      producersStats[k] = stats;
+    });
+  }, 5000);
   // Perhaps unintuitive to have producerId as key.
   // But presumably the most common case is to need the consumer belonging to a specific producer.
   const consumers = shallowReactive<Map<ProducerId, soupTypes.Consumer>>(new Map());
@@ -109,9 +118,15 @@ export const useSoupStore = defineStore('soup', () =>{
 
     const consumerId = consumer.id as ConsumerId;
     // safe to unpause from server now
-    await connectionStore.client.soup.pauseOrResumeConsumer.mutate({consumerId, pause: false});
+    await connectionStore.client.soup.pauseOrResumeConsumer.mutate({producerId, pause: false});
 
-    return { track: consumer.track, consumerId: consumer.id as ConsumerId };
+    return { track: consumer.track, consumerId};
+  }
+
+  async function consumerCamera() {
+    if (!receiveTransport.value) {
+      throw Error('No receiveTransport present. Needed to be able to consume');
+    }
   }
 
   async function pauseConsumer (producerId: ProducerId) {
@@ -127,13 +142,13 @@ export const useSoupStore = defineStore('soup', () =>{
     if (!consumer) {
       throw new Error('no such consumer found (client-side)');
     }
-    const consumerId = consumer.id as ConsumerId;
+    // const consumerId = consumer.id as ConsumerId;
     if (wasPaused) {
       consumer.pause();
     } else {
       consumer.resume();
     }
-    await connectionStore.client.soup.pauseOrResumeConsumer.mutate({consumerId, pause: wasPaused});
+    await connectionStore.client.soup.pauseOrResumeConsumer.mutate({producerId, pause: wasPaused});
   }
 
   async function pauseProducer (producerId: ProducerId) {
@@ -169,6 +184,7 @@ export const useSoupStore = defineStore('soup', () =>{
     createSendTransport,
     createReceiveTransport,
     producers,
+    producersStats,
     consumers,
     produce,
     replaceProducerTrack,

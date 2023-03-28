@@ -28,10 +28,10 @@ export const cameraRouter = router({
     return foundCamera.getPublicState();
   }),
   subProducerAddedOrRemoved: userClientP.subscription(({ctx}) => {
-    type ProdAddRemoveInput = NotifierInputData<typeof ctx.client.notify.newProducerInCamera> | NotifierInputData<typeof ctx.client.notify.producerRemovedInCamera>;
+    type ProdAddRemoveInput = NotifierInputData<typeof ctx.client.notify.camera.newProducerInCamera> | NotifierInputData<typeof ctx.client.notify.camera.producerRemovedInCamera>;
     return observable<ProdAddRemoveInput>((scriber) => {
-      ctx.client.notify.newProducerInCamera = scriber.next;
-      ctx.client.notify.producerRemovedInCamera = scriber.next;
+      ctx.client.notify.camera.newProducerInCamera = scriber.next;
+      ctx.client.notify.camera.producerRemovedInCamera = scriber.next;
     });
     // return attachToFilteredEvent(ctx.client.clientEvent, '');
   }),

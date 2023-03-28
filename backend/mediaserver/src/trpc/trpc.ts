@@ -118,12 +118,7 @@ export const isVenueOwnerM = isInVenueM.unstable_pipe(({ctx, next, path}) => {
   return next();
 });
 
-// TODO: Implement this middleware
-// const isInCameraM = isInVenueM.unstable_pipe(({ctx, next}) => {
-//   if(ctx.venue.cameras)
-// })
-
-export const currentVenueAdminP = atLeastModeratorP.use(isUserClientM).use(isVenueOwnerM);
+export const currentVenueAdminP = atLeastModeratorP.use(isVenueOwnerM).use(isUserClientM);
 
 export const userInVenueP = procedure.use(isUserClientM).use(isInVenueM);
 

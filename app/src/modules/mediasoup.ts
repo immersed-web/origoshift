@@ -8,7 +8,9 @@ type CreateProducerFunction = (data: CreateProducerPayload) => Promise<ProducerI
 
 export type ProduceAppData = Pick<CreateProducerPayload, 'producerId' | 'producerInfo'>
 
-export const attachTransportEvents = (transport: soupTypes.Transport, connectTransport: ConnectTransportFunction, createProducer: CreateProducerFunction) => {
+export function attachTransportEvents<Dir extends 'recv'>(transport: soupTypes.Transport, connectTransport: ConnectTransportFunction): void;
+export function attachTransportEvents<Dir extends 'send'>(transport: soupTypes.Transport, connectTransport: ConnectTransportFunction, createProducer: CreateProducerFunction): void;
+export function attachTransportEvents(transport: soupTypes.Transport, connectTransport: ConnectTransportFunction, createProducer?: CreateProducerFunction) {
   transport.on('connect', async ({dtlsParameters}, callback, errback) => {
     console.log('transport connect event trigered!');
     // void (async () => {
@@ -46,7 +48,7 @@ export const attachTransportEvents = (transport: soupTypes.Transport, connectTra
         // const response = await socketutils.sendRequest(createProducerReq);
         const { producerInfo, producerId } = appData as ProduceAppData;
 
-        const createdProducerId = await createProducer({transportId: transport.id as TransportId, producerId, kind, rtpParameters, producerInfo});
+        const createdProducerId = await createProducer?.({transportId: transport.id as TransportId, producerId, kind, rtpParameters, producerInfo});
         // if (response.wasSuccess) {
         //   const cbData = {
         //     id: response.data.producerId,
@@ -74,4 +76,4 @@ export const attachTransportEvents = (transport: soupTypes.Transport, connectTra
         break;
     }
   });
-};
+}

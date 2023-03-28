@@ -40,7 +40,7 @@ export const useSoupStore = defineStore('soup', () =>{
     const transportOptions = await connectionStore.client.soup.createSendTransport.mutate();
     sendTransport.value = soupDevice.createSendTransport(transportOptions);
 
-    attachTransportEvents(sendTransport.value,
+    attachTransportEvents<'send'>(sendTransport.value,
       async (connectData) => {
         await connectionStore.client.soup.connectTransport.mutate(connectData);
       },
@@ -54,12 +54,9 @@ export const useSoupStore = defineStore('soup', () =>{
     const transportOptions = await connectionStore.client.soup.createReceiveTransport.mutate();
     receiveTransport.value = soupDevice.createRecvTransport(transportOptions);
 
-    attachTransportEvents(receiveTransport.value,
+    attachTransportEvents<'recv'>(receiveTransport.value,
       async (connectData) => {
         await connectionStore.client.soup.connectTransport.mutate(connectData);
-      },
-      (_ignoredArgs) => {
-        return Promise.resolve('DUMMY DATA. THIS SHOULD NEVER BE CALLED' as ProducerId);
       });
   }
   async function produce({track, producerInfo, producerId}: {track: MediaStreamTrack, producerId?: ProducerId, producerInfo: ProducerInfo}){

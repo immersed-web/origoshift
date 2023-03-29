@@ -36,6 +36,20 @@
       </tbody>
     </table>
     <div ref="mediaElements">
+      <ConsumerElement
+        v-for="[k, c] in soupStore.consumers"
+        :track="c.track"
+        :kind="c.kind"
+        :key="k"
+      />
+      <pre
+        v-for="[k, c] in soupStore.consumers"
+        :key="k"
+      >
+      {{ c.id }}
+      {{ c.kind }}
+      {{ c.track }}
+      </pre>
       <!-- <video
         ref="videoTag"
         autoplay
@@ -64,18 +78,16 @@
       </pre>
 </template>
 
-
 <script setup lang="ts">
 // import SenderList from '@/components/venue/SenderList.vue';
 import {useVenueStore} from '@/stores/venueStore';
 import { useAdminStore } from '@/stores/adminStore';
 import { useSoupStore } from '@/stores/soupStore';
 import { onBeforeMount, ref } from 'vue';
-import type { ProducerId } from 'schemas/mediasoup';
 import type { CameraId } from 'schemas';
 import { useConnectionStore } from '@/stores/connectionStore';
+import ConsumerElement from './components/ConsumerElement.vue';
 
-// const videoTag = ref<HTMLVideoElement>();
 const mediaElements = ref<HTMLDivElement>();
 
 const connection = useConnectionStore();
@@ -83,34 +95,9 @@ const venueStore = useVenueStore();
 const adminStore = useAdminStore();
 const soupStore = useSoupStore();
 
-async function consumeProducer(producerId: ProducerId) {
-  const { consumerId, track } = await  soupStore.consume(producerId);
-  // if(!videoTag.value){
-  //   console.error('no videoElemetn');
-  //   return;
-  // }
-  // videoTag.value.srcObject = new MediaStream([track]);
-  // videoTag.value.play();
-}
-
 async function consumeCamera(cameraId: CameraId){
   await connection.client.camera.joinCamera.mutate({cameraId});
-  const consumers = await soupStore.consumeCurrentCamera();
-  for (const [key, con] of Object.entries(consumers)) {
-    const { track, consumerId } = con;
-    const container = mediaElements.value!;
-    if(track.kind === 'video'){
-      const video = document.createElement('video') as unknown as HTMLVideoElement;
-      video.srcObject = new MediaStream([track]);
-      video.autoplay = true;
-      // video.play();
-      container.appendChild(video);
-    } else if (track.kind === 'audio'){
-      const audio = document.createElement('audio') as unknown as HTMLAudioElement;
-      audio.autoplay = true;
-      audio.srcObject = new MediaStream([track]);
-    }
-  }
+  await soupStore.consumeCurrentCamera();
 }
 
 async function deleteCamera(cameraId: CameraId){

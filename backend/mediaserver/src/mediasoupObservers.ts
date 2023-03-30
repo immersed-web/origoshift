@@ -5,7 +5,7 @@ process.env.DEBUG = 'Stats:Mediasoup*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 const observerLog = new Log('Observers:Mediasoup');
-// process.env.DEBUG = 'Observers:Mediasoup*, ' + process.env.DEBUG;
+process.env.DEBUG = 'Observers:Mediasoup*, ' + process.env.DEBUG;
 observerLog.enable(process.env.DEBUG);
 
 import {observer, types as mediasoupTypes} from 'mediasoup';

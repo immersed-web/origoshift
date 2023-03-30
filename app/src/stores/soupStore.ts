@@ -27,15 +27,34 @@ export const useSoupStore = defineStore('soup', () =>{
   const connectionStore = useConnectionStore();
 
   connectionStore.client.soup.subSoupObjectClosed.subscribe(undefined, {
-    onData(data) {
-      // console.log('SOUP OBJECT CLOSED!!!!');
-      console.log('soupObject closed: ',data);
-      if(data.data.type === 'consumer'){
-        const { consumerInfo: {consumerId, producerId} } = data.data;
-        const con = consumers.get(producerId);
-        if(con) {
-          con.close();
-          consumers.delete(producerId);
+    onData({data, reason}) {
+      console.log('soupObject closed: ', data);
+      switch (data.type){
+        case 'consumer': {
+          const { consumerInfo: {consumerId, producerId} } = data;
+          const con = consumers.get(producerId);
+          if(con) {
+            con.close();
+            consumers.delete(producerId);
+          }
+          break;
+        }
+        case 'producer': {
+          const localProducer = producers.get(data.id);
+          if(localProducer){
+            localProducer.close();
+            producers.delete(data.id);
+          }
+          break;
+        }
+        case 'transport': {
+          if(sendTransport.value?.id === data.id){
+            sendTransport.value?.close();
+            sendTransport.value = undefined;
+          } else if(receiveTransport.value?.id === data.id){
+            receiveTransport.value?.close();
+            receiveTransport.value = undefined;
+          }
         }
       }
     },
@@ -61,6 +80,9 @@ export const useSoupStore = defineStore('soup', () =>{
   }
 
   async function createSendTransport(){
+    if(sendTransport.value){
+      throw Error('local sendTransport already exists. Wont create a new one!');
+    }
     const transportOptions = await connectionStore.client.soup.createSendTransport.mutate();
     sendTransport.value = soupDevice.createSendTransport(transportOptions);
 
@@ -75,6 +97,9 @@ export const useSoupStore = defineStore('soup', () =>{
   }
 
   async function createReceiveTransport(){
+    if(receiveTransport.value){
+      throw Error('local receiveTransport already exists. Wont create a new one!');
+    }
     const transportOptions = await connectionStore.client.soup.createReceiveTransport.mutate();
     receiveTransport.value = soupDevice.createRecvTransport(transportOptions);
 
@@ -112,55 +137,72 @@ export const useSoupStore = defineStore('soup', () =>{
     return producer.replaceTrack({ track });
   }
 
-  // TODO: Check if already consuming that producer and if so return that consumer
   async function consume (producerId: ProducerId) {
     if (!producerId) {
       throw Error('consume called without producerId! Please provide one!');
     }
-    if (!receiveTransport.value) {
-      throw Error('No receiveTransport present. Needed to be able to consume');
-    }
+    // if (!receiveTransport.value) {
+    //   throw Error('No receiveTransport present. Needed to be able to consume');
+    // }
     const foundConsumer = consumers.get(producerId);
     if(foundConsumer){
       return { track: foundConsumer.track, consumerId: foundConsumer.id as ConsumerId};
     }
     const consumerOptions = await connectionStore.client.soup.createConsumer.mutate({producerId});
 
-    console.log('createConsumerRequest gave these options: ', consumerOptions);
-    const consumer = await receiveTransport.value.consume(consumerOptions);
-    //Not a bug to use producerID! It's on purpose.
-    consumers.set(producerId, consumer);
+    return await _handleReceivedConsumerOptions(consumerOptions);
+    // console.log('createConsumerRequest gave these options: ', consumerOptions);
+    // const consumer = await receiveTransport.value.consume(consumerOptions);
+    // //Not a bug to use producerID! It's on purpose.
+    // consumers.set(producerId, consumer);
 
-    const consumerId = consumer.id as ConsumerId;
-    // safe to unpause from server now
-    await connectionStore.client.soup.pauseOrResumeConsumer.mutate({producerId, pause: false});
+    // const consumerId = consumer.id as ConsumerId;
+    // // safe to unpause from server now
+    // await connectionStore.client.soup.pauseOrResumeConsumer.mutate({producerId, pause: false});
 
-    return { track: consumer.track, consumerId};
+    // return { track: consumer.track, consumerId};
   }
 
-  async function consumeCurrentCamera() {
+  async function _handleReceivedConsumerOptions(consumerOptions: RouterOutputs['soup']['createConsumer']){
     if (!receiveTransport.value) {
       throw Error('No receiveTransport present. Needed to be able to consume');
     }
+    if(consumerOptions.alreadyExisted){
+      console.log('consumer already existed in backend. Will try to keep using it');
+      const foundConsumer = consumers.get(consumerOptions.producerId);
+      if(foundConsumer){
+        console.log('consumer also already existed in frontend. Will keep it');
+        return {
+          track: foundConsumer.track,
+          consumerId: foundConsumer.id as ConsumerId,
+        };
+      }
+      console.error('consumer existed in backend but not in frontend. Not good!');
+    }
+    const consumer = await receiveTransport.value.consume(consumerOptions);
+    //Not a bug to use producerID! It's on purpose.
+    if(consumers.has(consumerOptions.producerId)){
+      throw Error('a new consumer was created in backend but one for that producer already existed in frontend. This is REEEEAAAAL BAAAD. What have you done Gunhaxxor?');
+    }
+    consumers.set(consumerOptions.producerId, consumer);
+
+    // safe to unpause from server now
+    connectionStore.client.soup.pauseOrResumeConsumer.mutate({producerId: consumerOptions.producerId, pause: false});
+    return {
+      track: consumer.track,
+      consumerId: consumer.id as ConsumerId,
+    };
+  }
+
+  async function consumeCurrentCamera() {
     const localConsumersResponse: Record<ProducerId, {
       track: soupTypes.Consumer['track'],
       consumerId: ConsumerId,
     }> = {};
     const consumersResponse = await connectionStore.client.soup.consumeCurrentCamera.mutate();
     for(const [key, consumerOptions] of Object.entries(consumersResponse)){
-      const consumer = await receiveTransport.value.consume(consumerOptions);
-      //Not a bug to use producerID! It's on purpose.
-      consumers.set(consumerOptions.producerId, consumer);
-
-      // const consumerId = consumer.id as ConsumerId;
-      // safe to unpause from server now
-      connectionStore.client.soup.pauseOrResumeConsumer.mutate({producerId: consumerOptions.producerId, pause: false});
-      localConsumersResponse[consumerOptions.producerId] = {
-        track: consumer.track,
-        consumerId: consumer.id as ConsumerId,
-      };
+      localConsumersResponse[consumerOptions.producerId] = await _handleReceivedConsumerOptions(consumerOptions);
     }
-    // console.log(consumers);
     return localConsumersResponse;
   }
 

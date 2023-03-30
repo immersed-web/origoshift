@@ -124,8 +124,8 @@ export class UserClient extends BaseClient {
     this.leaveCurrentVenue();
     const venue = Venue.getVenue(venueId);
     venue.addClient(this);
-    this.sendTransport = await venue.createWebRtcTransport();
-    this.receiveTransport = await venue.createWebRtcTransport();
+    // this.sendTransport = await venue.createWebRtcTransport();
+    // this.receiveTransport = await venue.createWebRtcTransport();
     this._onClientStateUpdated('user client joined venue');
     return venue.getPublicState();
   }
@@ -135,7 +135,7 @@ export class UserClient extends BaseClient {
       return false;
       // throw Error('cant leave a venue if you are not in one!');
     }
-    super._onLeavingVenue();
+    // super._onRemovedFromVenue();
     this.venue.removeClient(this);
     this._onClientStateUpdated('user client left a venue');
     return true;

@@ -106,7 +106,7 @@ export class SenderClient extends BaseClient{
       return false;
       // throw Error('cant leave a venue if you are not in one!');
     }
-    super._onLeavingVenue();
+    // super._onRemovedFromVenue();
     // this.teardownMediasoupObjects();
     this.venue.removeClient(this);
     // this._notifyClientStateUpdated('user client left a venue');

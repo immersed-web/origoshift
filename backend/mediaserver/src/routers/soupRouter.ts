@@ -84,6 +84,7 @@ export const soupRouter = router({
     const createdConsumers: Record<ProducerId, Awaited<ReturnType<BaseClient['createConsumer']>>> = {};
     for (const p of Object.values(ctx.currentCamera.producers)){
       const { producerId, kind, paused } = p;
+
       createdConsumers[producerId] = await client.createConsumer({producerId, paused});
     }
     return createdConsumers;

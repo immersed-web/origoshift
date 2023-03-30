@@ -21,7 +21,7 @@ type SoupObjectClosePayload =
       | {type: 'producer', id: ProducerId }
       | {type: 'consumer', consumerInfo: { consumerId: ConsumerId, producerId: ProducerId }}
 
-// type CreatedConsumerResponse = Pick<soupTypes.Consumer, 'id' | 'kind' | 'rtpParameters'> & { producerId: ProducerId}
+type CreateConsumerResponse = Pick<soupTypes.Consumer, 'kind' | 'rtpParameters'> & { alreadyExisted?: boolean, producerId: ProducerId, id: ConsumerId}
 
 type ClientSoupEvents = FilteredEvents<{
   'producerCreated': (data: {producer: ReturnType<BaseClient['getPublicProducers']>[ProducerId], producingConnectionId: ConnectionId}) => void
@@ -211,14 +211,16 @@ export class BaseClient {
     this.connected = false;
   }
 
-  protected _onLeavingVenue(){
+  /** clean up clients state related to venue when removed */
+  onRemovedFromVenue(){
     this.teardownMediasoupObjects();
   }
 
   /**
    * closes all mediasoup related object and instances.
    */
-  teardownMediasoupObjects() {
+  private teardownMediasoupObjects() {
+    log.info('Tearing down mediasoup objects for client');
     this.closeAllProducers();
     this.closeAllConsumers();
     this.closeAllTransports();
@@ -248,8 +250,14 @@ export class BaseClient {
       // }));
     });
     if(direction == 'receive'){
+      if(this.receiveTransport){
+        throw Error('receiveTransport already exists! No bueno');
+      }
       this.receiveTransport = transport;
     } else {
+      if(this.sendTransport){
+        throw Error('sendTransport already exists! No bueno');
+      }
       this.sendTransport = transport;
     }
     return this.getTransportOptions(transport);
@@ -283,7 +291,7 @@ export class BaseClient {
     return producer.id as ProducerId;
   }
 
-  async createConsumer(consumerOptions: {producerId: ProducerId, paused?: boolean}){
+  async createConsumer(consumerOptions: {producerId: ProducerId, paused?: boolean}): Promise<CreateConsumerResponse>{
     if(!this.receiveTransport){
       throw Error('A transport is required to create a consumer');
     }
@@ -292,6 +300,16 @@ export class BaseClient {
       throw Error('rtpCapabilities of client unknown. Provide them before requesting to consume');
     }
     const { producerId, paused } = consumerOptions;
+    const preExistingConsumer = this.consumers.get(producerId);
+    if(preExistingConsumer){
+      return {
+        alreadyExisted: true,
+        id: preExistingConsumer.id as ConsumerId,
+        producerId: preExistingConsumer.producerId as ProducerId,
+        kind: preExistingConsumer.kind,
+        rtpParameters: preExistingConsumer.rtpParameters,
+      };
+    }
     const canConsume = this.venue?.router.canConsume({ producerId, rtpCapabilities: this.rtpCapabilities});
     if( !canConsume){
       throw Error('Client is not capable of consuming the producer according to provided rtpCapabilities');

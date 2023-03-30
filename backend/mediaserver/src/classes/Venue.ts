@@ -220,6 +220,7 @@ export class Venue {
       // this._notifySenderAddedOrRemoved(client.getPublicState(), false, 'sender was removed');
       this._notifyStateUpdated('sender removed from venue');
     }
+    client.onRemovedFromVenue();
     client._setVenue(undefined);
 
     // If this was the last client in the venue, lets unload it!
@@ -284,9 +285,6 @@ export class Venue {
         transport.close();
       }
     });
-
-    // TODO: Why not work anymore????
-    // transport.on('close', () => gatheringLog('---transport close--- transport with id ' + transport.id + ' closed'));
 
     return transport;
   }

@@ -26,7 +26,7 @@
           <td>
             <button
               @click="consumeCamera(camera.cameraId)"
-              :disabled="!camera.senderAttached"
+              :disabled="!camera.isStreaming"
               class="btn btn-primary"
             >
               Consume

@@ -26,7 +26,7 @@ export class Camera {
   sender?: SenderClient;
   get producers() {
     if(!this.sender) {
-      return undefined;
+      return {};
     }
     return this.sender.getPublicProducers();
   }
@@ -53,7 +53,8 @@ export class Camera {
     const { cameraId, name, clientIds, senderId, producers } = this;
     // const senderState = this.sender?.getPublicState();
     const senderAttached = !!this.sender;
-    return { cameraId, name, clientIds, senderId, senderAttached, producers };
+    const isStreaming = Object.keys(producers).length !== 0;
+    return { cameraId, name, clientIds, senderId, senderAttached, isStreaming, producers };
   }
 
   unload() {

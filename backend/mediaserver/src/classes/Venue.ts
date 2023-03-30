@@ -14,6 +14,7 @@ import prisma from '../modules/prismaClient';
 
 import { Camera, VrSpace, type UserClient, SenderClient, BaseClient  } from './InternalClasses';
 import { computed, shallowReactive } from '@vue/reactivity';
+import { ProducerId } from 'schemas/mediasoup';
 // import { NotifierInputData } from 'trpc/trpc-utils';
 
 const basicUserSelect = {
@@ -388,7 +389,8 @@ export class Venue {
     }
     const foundCamera = this.cameras.get(cameraId);
     if(foundCamera){
-      log.info('camera was loaded. UNloading before removal');
+      log.info('camera was loaded. Unloading before removal');
+      foundCamera._closeAllConsumers();
       foundCamera.unload();
       this.cameras.delete(cameraId);
     }
@@ -403,6 +405,24 @@ export class Venue {
 
     this._notifyStateUpdated('camera removed');
     return deleteResponse;
+  }
+
+  /**
+   * Utility function for closing all consumers of a producer
+   * This function is primarily for situations where you cant have more fine grained control over consumers.
+   * For example admin consuming from several cameras without joining them. Then we still want to be able to close consumption.
+   * Try to avoid using this function if possible.
+   */
+  _closeAllConsumersOfProducer(producerId: ProducerId) {
+    this.clients.forEach(client => {
+      for (const testedProducerId of client.consumers.keys()) {
+        if(testedProducerId === producerId){
+          client.closeConsumer(testedProducerId, 'closing all consumers for that producer');
+          break;
+        }
+      }
+    });
+
   }
 
   loadCamera(cameraId: CameraId, sender?: SenderClient) {

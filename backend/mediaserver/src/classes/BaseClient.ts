@@ -335,16 +335,38 @@ export class BaseClient {
     };
   }
 
+  closeConsumer(producerId: ProducerId, reason = 'Closing consumer for client'){
+    const consumer = this.consumers.get(producerId);
+    if(!consumer){
+      throw Error('no consumer with that producerId found');
+    }
+    consumer.close();
+    // this.clientEvent.emit('soupObjectClosed', {type: 'consumer', consumerInfo: {consumerId: consumer.id as ConsumerId, producerId}, reason: 'closing all consumers for client'});
+    this.notify.soupObjectClosed?.({
+      data: {
+        type: 'consumer',
+        consumerInfo: {
+          producerId,
+          consumerId: consumer.id as ConsumerId
+        }
+      },
+      reason
+    });
+    this.consumers.delete(producerId);
+  }
+
   closeAllTransports() {
     if(this.sendTransport){
       this.sendTransport.close();
       // this.event.emit('transportClosed', this.sendTransport.id as TransportId);
-      this.clientEvent.emit('soupObjectClosed', {type: 'transport', id: this.sendTransport.id as TransportId, reason: 'closing all transports for client'});
+      // this.clientEvent.emit('soupObjectClosed', {type: 'transport', id: this.sendTransport.id as TransportId, reason: 'closing all transports for client'});
+      this.notify.soupObjectClosed?.({data: {type: 'transport', id: this.sendTransport.id as TransportId}, reason: 'closing all transports for client'});
       this.sendTransport = undefined;
     }
     if(this.receiveTransport){
       this.receiveTransport.close();
-      this.clientEvent.emit('soupObjectClosed', {type: 'transport', id: this.receiveTransport.id as TransportId, reason: 'closing all transports for client'});
+      // this.clientEvent.emit('soupObjectClosed', {type: 'transport', id: this.receiveTransport.id as TransportId, reason: 'closing all transports for client'});
+      this.notify.soupObjectClosed?.({data: {type: 'transport', id: this.receiveTransport.id as TransportId }, reason: 'closing all transports for client'});
       this.receiveTransport = undefined;
     }
   }
@@ -353,7 +375,8 @@ export class BaseClient {
     const producerArray = Array.from(this.producers.entries());
     for(const [producerKey, producer] of producerArray){
       producer.close();
-      this.clientEvent.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'closing all producers for client'});
+      // this.clientEvent.emit('soupObjectClosed', {type: 'producer', id: producer.id as ProducerId, reason: 'closing all producers for client'});
+      this.notify.soupObjectClosed?.({data: {type: 'producer', id: producer.id as ProducerId }, reason: 'closing all producers for client'});
       this.producers.delete(producerKey);
     }
     // this.room?.broadcastRoomState('a client closed all their producers');
@@ -362,9 +385,7 @@ export class BaseClient {
   closeAllConsumers = () => {
     const consumerArray = Array.from(this.consumers.entries());
     for(const [producerId, consumer] of consumerArray){
-      consumer.close();
-      this.clientEvent.emit('soupObjectClosed', {type: 'consumer', consumerInfo: {consumerId: consumer.id as ConsumerId, producerId}, reason: 'closing all consumers for client'});
-      this.consumers.delete(producerId);
+      this.closeConsumer(producerId, 'closing all consumers for client');
     }
   };
 }

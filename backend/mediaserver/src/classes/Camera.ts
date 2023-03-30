@@ -3,6 +3,7 @@ import { Log } from 'debug-level';
 import type { Camera as PrismaCamera } from 'database';
 import type { CameraId, SenderId  } from 'schemas';
 import {Venue, UserClient, SenderClient} from './InternalClasses';
+import { ProducerId } from 'schemas/mediasoup';
 
 const log = new Log('Camera');
 
@@ -56,6 +57,10 @@ export class Camera {
   }
 
   unload() {
+    this.clients.forEach(client => {
+      this.removeClient(client);
+      // TODO: Notify client they were kicked out of camera
+    });
     log.info('Unloading camera not implemented yet?');
   }
 
@@ -90,6 +95,12 @@ export class Camera {
     }
     this.sender = sender;
     sender._setCamera(this.cameraId);
+  }
+
+  _closeAllConsumers() {
+    if(this.sender){
+      this.sender.producers.forEach(p => this.venue._closeAllConsumersOfProducer(p.id as ProducerId));
+    }
   }
 
   // STATIC STUFF LAST

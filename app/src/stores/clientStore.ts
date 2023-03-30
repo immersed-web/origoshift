@@ -3,7 +3,7 @@ import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import type { ClientTransforms } from 'schemas';
 import { useConnectionStore } from './connectionStore';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 export const useClientStore = defineStore('client', () => {
 
@@ -16,9 +16,9 @@ export const useClientStore = defineStore('client', () => {
   const clientState = ref<RouterOutputs['user']['getClientState']>();
   const clientTransforms = ref<ClientTransforms>();
 
-  const initials = () => {
+  const initials = computed(() => {
     return clientState.value?.username ? clientState.value?.username.split(' ').map(n => n[0]).join('') : '';
-  };
+  });
 
   const fetchClientState = async () => {
     const receivedState = await connection.client.user.getClientState.query();

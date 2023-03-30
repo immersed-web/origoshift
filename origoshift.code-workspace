@@ -82,8 +82,10 @@
         "label": "dev terminals",
         "dependsOn": [
           "App",
+          "Fileserver",
           "Auth",
           "Mediaserver",
+          "Database",
           "Watcher"
         ],
         "problemMatcher": [],
@@ -106,6 +108,23 @@
         "isBackground": true,
         "options": {
           "cwd": "${workspaceFolder:app}",
+        },
+        "problemMatcher": [],
+        "presentation": {
+          "group": "dev-servers",
+        },
+      },
+      {
+        "label": "Fileserver",
+        "icon": {
+          "id": "file",
+          "color": "terminal.ansiGreen"
+        },
+        "type": "shell",
+        "command": "bash",
+        "isBackground": true,
+        "options": {
+          "cwd": "${workspaceFolder:backend}${pathSeparator}fileserver"
         },
         "problemMatcher": [],
         "presentation": {
@@ -153,6 +172,20 @@
         "presentation": {
           "group": "dev-servers",
         },
+      },
+      {
+        "label": "Database",
+        "icon": {
+          "id": "database",
+          "color": "terminal.ansiCyan"
+        },
+        "type": "shell",
+        "command": "bash",
+        "isBackground": true,
+        "options": {
+          "cwd": "${workspaceFolder:backend}${pathSeparator}database"
+        },
+        "problemMatcher": [],
       },
       {
         "label": "Watcher",

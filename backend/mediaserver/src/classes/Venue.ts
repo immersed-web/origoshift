@@ -213,6 +213,10 @@ export class Venue {
       // this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
       this._notifyStateUpdated('client removed from venue');
     } else {
+
+      // TODO: Make sure this is not race condition where it throws because it cant find the camera instance
+      // when using the camera getter
+      // Should we perhaps remove the throw?
       client.camera?.setSender(undefined);
       this.senderClients.delete(client.connectionId);
 

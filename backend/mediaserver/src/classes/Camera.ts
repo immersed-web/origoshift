@@ -62,6 +62,7 @@ export class Camera {
       this.removeClient(client);
       // TODO: Notify client they were kicked out of camera
     });
+    this.setSender(undefined);
     log.info('Unloading camera not implemented yet?');
   }
 

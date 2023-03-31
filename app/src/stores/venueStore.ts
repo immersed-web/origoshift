@@ -53,7 +53,10 @@ export const useVenueStore = defineStore('venue', () => {
   });
 
   const navmeshUrl = computed(() => {
-    if(currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl.indexOf('https://') === 0){
+    if(currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshUrl === ''){
+      return modelUrl.value;
+    }
+    else if(currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshUrl.indexOf('https://') === 0){
       return currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshUrl;
     }
     else {

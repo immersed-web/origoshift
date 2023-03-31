@@ -27,6 +27,7 @@
         id="navmesh"
         gltf-model="#navmesh-asset"
         scale="0.2 0.2 0.2"
+        :visible="showNavMesh"
       />
     </a-entity>
 
@@ -83,6 +84,7 @@ const clientStore = useClientStore();
 const props = defineProps({
   modelUrl: {type: String, required: true},
   navmeshUrl: {type: String, default: ''},
+  showNavMesh: {type: Boolean, default: false},
 });
 
 // A-frame

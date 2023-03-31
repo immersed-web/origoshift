@@ -11,7 +11,17 @@
       <div class="absolute top-5 right-5 z-10 rounded-md bg-base-100 text-xs p-2">
         <div class="flex flex-col">
           <div>Modell: {{ venueStore.modelUrl }}</div>
-          <div>Navmesh: {{ venueStore.navmeshUrl }}</div>
+          <div class="flex items-center">
+            <span>Navmesh: {{ venueStore.navmeshUrl }}</span>
+            <label class="label cursor-pointer">
+              <span class="material-icons mr-2">visibility</span>
+              <input
+                type="checkbox"
+                class="toggle toggle-success toggle-xs"
+                v-model="showNavMesh"
+              >
+            </label>
+          </div>
           <div>
             Clients:
             <div v-if="clientStore.clientTransforms">
@@ -41,6 +51,7 @@
       <VrAFrame
         :model-url="venueStore.modelUrl"
         :navmesh-url="venueStore.navmeshUrl"
+        :show-nav-mesh="showNavMesh"
       />
     </div>
   </div>
@@ -50,9 +61,12 @@
 import VrAFrame from '../components/lobby/VrAFrame.vue';
 import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
+import { ref } from 'vue';
 
 const venueStore = useVenueStore();
 const clientStore = useClientStore();
+
+const showNavMesh = ref<boolean>();
 
 </script>
 

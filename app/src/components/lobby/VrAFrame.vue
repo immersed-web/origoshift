@@ -21,13 +21,13 @@
       <a-entity
         id="model"
         gltf-model="#model-asset"
-        scale="0.04 0.04 0.04"
+        scale="0.2 0.2 0.2"
       />
       <a-entity
         id="navmesh"
         gltf-model="#navmesh-asset"
-        scale="0.04 0.04 0.04"
-        visible="false"
+        scale="0.2 0.2 0.2"
+        :visible="showNavMesh"
       />
     </a-entity>
 
@@ -54,7 +54,7 @@
       </a-camera>
 
       <!-- The avatars -->
-      <a-entity>
+      <a-entity v-if="clientStore.clientTransforms">
         <RemoteAvatar
           v-for="[id, transform] in Object.entries(clientStore.clientTransforms).filter(e => e[0] !== clientStore.clientState.connectionId)"
           :key="id"
@@ -84,6 +84,7 @@ const clientStore = useClientStore();
 const props = defineProps({
   modelUrl: {type: String, required: true},
   navmeshUrl: {type: String, default: ''},
+  showNavMesh: {type: Boolean, default: false},
 });
 
 // A-frame

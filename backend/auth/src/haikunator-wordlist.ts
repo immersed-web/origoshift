@@ -230,7 +230,6 @@ export default {
     'magiker',
     'mandel',
     'marmelad',
-    'marsvin',
     'matta',
     'modell',
     'moped',

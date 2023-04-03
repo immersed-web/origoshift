@@ -29,6 +29,12 @@ enum Role {
   guest
 }
 
+enum Visibility {
+  private
+  unlisted
+  public
+}
+
 model User {
   userId        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   updatedAt     DateTime @updatedAt
@@ -43,9 +49,13 @@ model User {
 model Venue {
   venueId          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name             String        @unique
-  startTime        DateTime
-  settings         Json
+  streamStartTime  DateTime?
+  doorsOpeningTime DateTime?
+  extraSettings    Json?
   virtualSpace     VirtualSpace?
+  visibility       Visibility    @default(public)
+  // allowGuests      Boolean       @default(true)
+  // publiclyListed   Boolean       @default(true)
   // owner            User          @relation(fields: [ownerId], references: [userId], onDelete: Cascade)
   // ownerId          String        @db.Uuid
   owners           User[]        @relation("usersOwningVenues")
@@ -58,7 +68,7 @@ model Venue {
 
 model VirtualSpace {
   vrId                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  settings              Json
+  extraSettings         Json?
   venue                 Venue                @relation(fields: [ownerVenueId], references: [venueId], onDelete: Cascade)
   ownerVenueId          String               @unique @db.Uuid
   virtualSpace3DModel   VirtualSpace3DModel? @relation(fields: [virtualSpace3DModelId], references: [modelId])

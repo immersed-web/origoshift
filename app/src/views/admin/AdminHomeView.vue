@@ -31,26 +31,28 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import VenueList from '@/components/venue/VenueList.vue';
-import { clientOrThrow, type RouterOutputs } from '@/modules/trpcClient';
+import type { RouterOutputs } from '@/modules/trpcClient';
 import { useClientStore } from '@/stores/clientStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useVenueStore } from '@/stores/venueStore';
+import { useConnectionStore } from '@/stores/connectionStore';
 import { onBeforeMount, ref } from 'vue';
 
 // Use imports
 const router = useRouter();
+const connectionStore = useConnectionStore();
 const clientStore = useClientStore();
 const authStore = useAuthStore();
 const venueStore = useVenueStore();
 
 const myVenues = ref<RouterOutputs['admin']['listMyVenues']>();
 onBeforeMount(async () => {
-  myVenues.value = await clientOrThrow.value.admin.listMyVenues.query();
+  myVenues.value = await connectionStore.client.admin.listMyVenues.query();
 });
 
 const loadedVenues = ref<RouterOutputs['venue']['listLoadedVenues']>();
 onBeforeMount(async () => {
-  loadedVenues.value = await clientOrThrow.value.venue.listLoadedVenues.query();
+  loadedVenues.value = await connectionStore.client.venue.listLoadedVenues.query();
 });
 
 // View functionality

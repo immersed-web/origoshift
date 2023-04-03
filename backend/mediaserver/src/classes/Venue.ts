@@ -73,6 +73,10 @@ export class Venue {
     }, {});
   }
 
+  get visibility() { return this.prismaData.visibility; }
+  // get allowGuests() { return this.prismaData.allowGuests; }
+  // get publiclyListed() { return this.prismaData.publiclyListed; }
+
 
   router: soupTypes.Router;
   vrSpace?: VrSpace;
@@ -310,9 +314,9 @@ export class Venue {
         //   //   navmeshUrl: 'google.se'
         //   // }
         // },
-        settings: {
-          cool: 'asdfasdf',
-        },
+        // settings: {
+        //   cool: 'asdfasdf',
+        // },
         venue: {
           connect: {venueId: this.prismaData.venueId},
         }
@@ -477,8 +481,8 @@ export class Venue {
               userId: owner
             }
           },
-          settings: {coolSetting: 'aaaww yeeeah'},
-          startTime: new Date(),
+          // settings: {coolSetting: 'aaaww yeeeah'},
+          // startTime: new Date(),
         }
       });
 

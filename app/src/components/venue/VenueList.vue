@@ -1,11 +1,11 @@
 <template>
   <div class="flex flex-wrap gap-2">
     <div
-      v-for="venue in clientStore.clientState?.ownedVenues"
+      v-for="venue in props.venues"
       :key="venue.venueId"
     >
       <VenueThumb
-        :venue="{venueId: venue.venueId as VenueId, name: venue.name}"
+        :venue="venue"
         @joined="joined"
       />
     </div>
@@ -13,24 +13,16 @@
 </template>
 
 <script setup lang="ts">
-
-// import { onBeforeMount, ref } from 'vue';
 import { useRouter } from 'vue-router';
-// import { clientOrThrow, type RouterOutputs } from '@/modules/trpcClient';
 import VenueThumb from '@/components/venue/VenueThumb.vue';
 import { useAuthStore } from '@/stores/authStore';
-import { useClientStore } from '@/stores/clientStore';
 import type { VenueId } from 'schemas';
+
+const props = defineProps<{ venues: {venueId: VenueId, name: string}[]}>();
 
 // Use imports
 const router = useRouter();
 const authStore = useAuthStore();
-const clientStore = useClientStore();
-
-// const myVenues = ref<RouterOutputs['admin']['listMyVenues']>();
-// onBeforeMount(async () => {
-//   myVenues.value = await clientOrThrow.value.admin.listMyVenues.query();
-// });
 
 const joined = async () => {
   router.push({name: authStore.routePrefix + 'Venue'});

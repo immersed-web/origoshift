@@ -7,6 +7,7 @@ import { computed, ref, shallowRef, type ShallowRef } from 'vue';
 import { useAuthStore } from './authStore';
 
 export const useConnectionStore = defineStore('connection', () => {
+  console.log('connection store initializing!!');
   const authStore = useAuthStore();
   const connected = ref(false);
   const connectionType = ref<ClientType>();
@@ -63,15 +64,15 @@ export const useConnectionStore = defineStore('connection', () => {
       }
     }, 1000);
 
-    const greetingResponse = await client.value.greeting.query();
-    console.log('greeting response: ', greetingResponse);
+    // const greetingResponse = await client.value.greeting.query();
+    // console.log('greeting response: ', greetingResponse);
   }
 
   function createSenderClient(){
     if(!authStore.isLoggedIn){
       console.error('Trying to create client when not logged in. Ignoring!');
     }
-    createTrpcClient(() => authStore.tokenOrThrow, 'sender');
+    createTrpcClient(() => authStore.tokenOrThrow(), 'sender');
     connectionType.value = 'sender';
     _initConnection();
   }
@@ -80,7 +81,7 @@ export const useConnectionStore = defineStore('connection', () => {
     if(!authStore.isLoggedIn){
       console.error('Trying to create client when not logged in. Ignoring!');
     }
-    createTrpcClient(() => authStore.tokenOrThrow, 'client');
+    createTrpcClient(() => authStore.tokenOrThrow(), 'client');
     connectionType.value = 'client';
     _initConnection();
   }

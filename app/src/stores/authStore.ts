@@ -21,12 +21,13 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const token = ref<string>();
-  const tokenOrThrow = computed(() => {
+  const tokenOrThrow = () => {
+    console.log('accessing tokenOrThrow');
     if(!token.value) {
       throw Error('token was undefined when trying to access it from authstore');
     }
     return token.value;
-  });
+  };
   const hasCookie = ref<boolean>(browserHasCookie());
 
   const userData = computed(() => {
@@ -49,6 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = computed(() => !!userId.value);
   const routePrefix = computed(() => role.value && hasAtLeastSecurityLevel(role.value, 'admin') ? 'admin' : 'user');
   async function autoGuest() {
+    await logout();
     await guestAutoToken((t) => token.value = t);
   }
   async function restoreFromSession(){

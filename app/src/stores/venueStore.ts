@@ -106,13 +106,6 @@ export const useVenueStore = defineStore('venue', () => {
     }
   }
 
-  // async function joinVenueAsSender(venueId: VenueId) {
-  //   await clientOrThrow.value.venue.loadVenue.mutate({venueId});
-  //   await clientOrThrow.value.venue.joinVenueAsSender.mutate({ venueId });
-  //   currentVenueId.value = venueId;
-  // }
-
-
   return {
     savedVenueId,
     currentVenue,

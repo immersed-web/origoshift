@@ -13,7 +13,7 @@ type ReceivedVirtualSpace = Exclude<Venue['prismaData']['virtualSpace'], null>;
 export class VrSpace {
   private _isOpen = false;
   private venue: Venue;
-  private prismaData: ReceivedVirtualSpace
+  private prismaData: ReceivedVirtualSpace;
   private clients: Venue['clients'];
 
   get vrSpaceId() {
@@ -49,8 +49,8 @@ export class VrSpace {
 
   getPublicState() {
     // return 'NOT IMPLEMENTED YET';
-    const {settings, ...returnState} = this.prismaData;
-    const s = settings as Record<string, unknown>;
+    const {extraSettings, ...returnState} = this.prismaData;
+    const s = extraSettings as Record<string, unknown>;
     return {...returnState, settings: s};
   }
 

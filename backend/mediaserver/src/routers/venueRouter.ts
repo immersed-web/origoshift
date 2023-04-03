@@ -6,19 +6,30 @@ log.enable(process.env.DEBUG);
 import { hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
 import { z } from 'zod';
 import { procedure as p, atLeastModeratorP, router, isInVenueM, atLeastSenderP, isUserClientM, isSenderClientM, isVenueOwnerM, clientInVenueP } from '../trpc/trpc';
-// import Venue from '../classes/Venue';
 import { BaseClient, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
+import { Visibility } from 'database';
 import { TRPCError } from '@trpc/server';
-import type { Prisma } from 'database';
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
 import { observable } from '@trpc/server/observable';
+import { uniqBy } from 'lodash';
 
 export const venueRouter = router({
-  listAllowedVenues: p.query(({ctx}) => {
-    return ctx.client.allowedVenues.map(({venueId, name}) => {
-      return {venueId: venueId as VenueId, name};
+  listAllowedVenues: p.query(async ({ctx}) => {
+    const publicVenues = await prismaClient.venue.findMany({
+      where: {
+        visibility: {
+          equals: Visibility.public
+        }
+      },
+      select: {
+        name: true,
+        venueId: true,
+      }
     });
+    const assembledVenues = uniqBy([...publicVenues, ...ctx.client.allowedVenues], 'venueId');
+
+    return assembledVenues as {name: string, venueId: VenueId}[];
   }),
   subClientAddedOrRemoved: p.use(isUserClientM).subscription(({ctx}) => {
     return attachToFilteredEvent(ctx.client.clientEvent, 'clientAddedOrRemoved', ctx.connectionId);

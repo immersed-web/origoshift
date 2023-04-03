@@ -21,29 +21,54 @@ declare module 'vue-router' {
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/',
-      redirect: {name: 'userHome'},
-    },
+    // {
+    //   path: '/',
+    //   redirect: {name: 'publicVenueList'},
+    // },
     {
       path: '/login',
       name: 'login',
       component:  () => import('@/views/LoginView.vue'),
     },
+    // public routes
     {
-      path: '/user/',
+      path: '/',
+      component: () => import('@/layouts/SimpleLayout.vue'),
+      children: [
+        // {
+        //   name: 'startPage',
+        //   path: '',
+        //   component: () => import('@/views/StartPage.vue'),
+        // },
+        {
+          name: 'venueList',
+          path: '',
+          meta: { requiredRole: 'guest', requiredConnection: 'client' },
+          component: () => import('@/views/public/VenueListView.vue'),
+        },
+      ],
+    },
+    // guest/user routes
+    {
+      path: '/',
       meta: { requiredRole: 'user', loginNeededRedirect: 'login', requiredConnection: 'client' },
       component:  () => import('@/layouts/LoggedInLayout.vue'),
       children: [
         {
           path: '',
           name: 'userHome',
-          component:  () => import('@/views/UserHomeView.vue'),
+          component:  () => import('@/views/user/UserHomeView.vue'),
+        },
+        {
+          path: 'camera/:cameraId',
+          name: 'cameraView',
+          props: true,
+          component: () => import('@/views/user/CameraView.vue'),
         },
         {
           path: 'venue',
           name: 'userVenue',
-          component:  () => import('@/views/UserVenueView.vue'),
+          component:  () => import('@/views/user/UserVenueView.vue'),
         },
         {
           path: 'lobby',
@@ -114,31 +139,39 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from) => {
-  // console.log('beforeEach: ', to, from);
-  const connectionStore = useConnectionStore();
+  console.log('beforeEach: ', to, from);
   const authStore = useAuthStore();
 
-  if(to.path === '/' && authStore.role){
-    return { name: hasAtLeastSecurityLevel(authStore.role, 'admin') ? 'adminHome' : 'userHome'};
-  }
+  // if(to.path === '/' && authStore.role){
+  //   return { name: hasAtLeastSecurityLevel(authStore.role, 'admin') ? 'adminHome' : 'userHome'};
+  // }
 
   if (to.meta.requiredRole) {
     // if not logged in we can try to restore from session
     if(!authStore.isLoggedIn && authStore.hasCookie) {
+      console.log('some kind of user role required. Found cookie. Trying to restore session.');
       await authStore.restoreFromSession();
+    }
+    if(to.meta.requiredRole === 'guest'){
+      console.log('creating guest because route requires at least guest');
+      await authStore.autoGuest();
     }
 
     if(!authStore.role || !hasAtLeastSecurityLevel(authStore.role, to.meta.requiredRole)){
-      console.log('Reroute to login', from, to);
-      return { name: to.meta.loginNeededRedirect || 'login'  /*, query: { next: to.fullPath } */ };
+      const redirect = to.meta.loginNeededRedirect || 'login';
+      console.log('No role or role too low. Redirecting to:', redirect);
+      return { name: redirect /*, query: { next: to.fullPath } */ };
     }
   }
   if(to.meta.requiredConnection) {
+    const connectionStore = useConnectionStore();
+    // console.log('Connection required. Creating if doesn\'t exist');
 
     if(!authStore.isLoggedIn){
-      throw Error('eeeeh. You are not logged but you shouldnt reach this code without being logged in. Something is wrooong');
+      throw Error('Eeeeh. You are not logged but you shouldnt even reach this code without being logged in. Something is wrooong');
     }
-    if(!connectionStore.connected){
+    if(!connectionStore.clientExists){
+      console.log('Connection required. Creating one');
       if(to.meta.requiredConnection === 'client'){
         connectionStore.createUserClient();
         const clientStore = useClientStore();
@@ -146,14 +179,14 @@ router.beforeEach(async (to, from) => {
       } else {
         connectionStore.createSenderClient();
       }
-      console.log('CONNECTED STATE IN NAV GUARD: ', connectionStore.connected);
+      // console.log('CONNECTED STATE IN NAV GUARD: ', connectionStore.connected);
     } else if(connectionStore.connectionType !== to.meta.requiredConnection){
       throw Error('you are already connected to the backend as the wrong type of client. Close the current connection before going to this route.');
     }
   }
   if(to.meta.mustBeInVenue){
-    const venueStore = useVenueStore();
     console.log('MUST BE IN VENUE FOR THIS ROUTE');
+    const venueStore = useVenueStore();
 
     if(!venueStore.currentVenue){
       // await connectionStore.firstConnectionEstablished;

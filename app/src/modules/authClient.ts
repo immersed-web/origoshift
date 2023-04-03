@@ -40,7 +40,7 @@ export const getToken = () => {
   // console.log('token getter called');
   return latestJwtToken;
 };
-let latestJwtToken: string;
+let latestJwtToken: string | undefined;
 // let prepopulatedLogin: () => Promise<void>;
 
 
@@ -84,6 +84,7 @@ const autoFetchJwt = async (assignFn: (receivedToken: string) => void, fetchFn: 
 };
 
 export const guestAutoToken =  async (assignFn?: (receivedToken: string) => void) => {
+  latestJwtToken = undefined;
   const combinedAssigner = (t: string) => {
     if(assignFn){
       assignFn(t);

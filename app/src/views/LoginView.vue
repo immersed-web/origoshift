@@ -10,6 +10,14 @@
             Logga in för att delta i kulturevenemang i VR/360.
           </p>
           <div>
+            <button
+              @click="guestContinue()"
+              class="btn btn-outline"
+            >
+              Fortsätt som Gäst
+            </button>
+          </div>
+          <div>
             <h2>Login för fuskare</h2>
             <div class="space-x-2">
               <button
@@ -89,6 +97,7 @@ import { useRouter } from 'vue-router';
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import { hasAtLeastSecurityLevel, type UserRole } from 'schemas';
+import { useConnectionStore } from '@/stores/connectionStore';
 
 // Router
 const router = useRouter();
@@ -96,9 +105,10 @@ const fromRoute = router.currentRoute.value.redirectedFrom;
 console.log('redirected from', fromRoute);
 
 // Stores
-// const clientStore = useClientStore();
 const authStore = useAuthStore();
+authStore.logout();
 
+console.log('authstore loaded');
 const props = defineProps<{
   redirectAfterLogin?: string
 }>();
@@ -137,7 +147,13 @@ const login = async () => {
       error.value = e.message;
     }
   }
+};
 
+const guestContinue = async () => {
+  await authStore.autoGuest();
+  // const connectionStore = useConnectionStore();
+  // connectionStore.createUserClient();
+  router.push({name: 'venueList'});
 };
 
 const loginDetails = (un: string, pwd: string) => {

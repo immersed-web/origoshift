@@ -111,7 +111,7 @@
         },
         "problemMatcher": [],
         "presentation": {
-          "group": "dev-servers",
+          "group": "dev-primary",
         },
       },
       {
@@ -128,7 +128,7 @@
         },
         "problemMatcher": [],
         "presentation": {
-          "group": "dev-servers",
+          "group": "dev-secondary",
         },
       },
       {
@@ -149,7 +149,7 @@
         },
         "problemMatcher": [],
         "presentation": {
-          "group": "dev-servers",
+          "group": "dev-secondary",
         },
       },
       {
@@ -170,7 +170,7 @@
         },
         "problemMatcher": [],
         "presentation": {
-          "group": "dev-servers",
+          "group": "dev-primary",
         },
       },
       {

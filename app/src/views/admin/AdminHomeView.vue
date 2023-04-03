@@ -8,7 +8,10 @@
         Mina event
       </h2>
       <div class="flex space-x-2">
-        <VenueList />
+        <VenueList
+          v-if="clientStore.clientState"
+          :venues="venuesAsArray"
+        />
         <div>
           <button
             class="btn btn-outline btn-primary"
@@ -36,7 +39,7 @@ import { useClientStore } from '@/stores/clientStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useVenueStore } from '@/stores/venueStore';
 import { useConnectionStore } from '@/stores/connectionStore';
-import { onBeforeMount, ref } from 'vue';
+import { computed, onBeforeMount, ref } from 'vue';
 
 // Use imports
 const router = useRouter();
@@ -44,6 +47,11 @@ const connectionStore = useConnectionStore();
 const clientStore = useClientStore();
 const authStore = useAuthStore();
 const venueStore = useVenueStore();
+
+const venuesAsArray = computed(() => {
+  if(!clientStore.clientState) return [];
+  return Object.values(clientStore.clientState?.ownedVenues);
+});
 
 const myVenues = ref<RouterOutputs['admin']['listMyVenues']>();
 onBeforeMount(async () => {

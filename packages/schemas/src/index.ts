@@ -102,6 +102,8 @@ export function hasAtLeastSecurityLevel(role: UserRole | undefined, minimumUserR
 export const UserRoleSchema = z.enum(roleHierarchy);
 export type UserRole = z.TypeOf<typeof UserRoleSchema>;
 
+export type { Visibility } from 'database'
+
 //Here we are creating Opaque type for the different types of id's. This is to prevent acidentally using ids for the wrong type of object.
 export const UuidSchema = z.string().uuid();
 export type Uuid = z.TypeOf<typeof UuidSchema>;

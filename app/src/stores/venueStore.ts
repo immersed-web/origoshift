@@ -84,9 +84,10 @@ export const useVenueStore = defineStore('venue', () => {
   }
 
   // TODO: Shouldn't have to redefine VenueUpdate type
-  async function updateVenue (name?: string, streamStartTime?: Date | null) {
+  async function updateVenue (name?: string, doorsOpeningTime?: Date | null, streamStartTime?: Date | null) {
     await connection.client.admin.updateVenue.mutate({
       name: name,
+      doorsOpeningTime: doorsOpeningTime,
       streamStartTime: streamStartTime,
     });
   }

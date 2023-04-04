@@ -130,6 +130,7 @@ export type SenderId = z.TypeOf<typeof SenderIdSchema>;
 // TODO: Make it unsatisfied when using fields that don't exist in Venue
 export const VenueUpdateSchema = z.object({
   name: z.string().optional(),
+  streamStartTime: z.date().nullable().optional()
 }) satisfies z.ZodType<Partial<Venue>>
 export type VenueUpdate = z.TypeOf<typeof VenueUpdateSchema>;
 

@@ -74,6 +74,7 @@ export class Venue {
   }
 
   get visibility() { return this.prismaData.visibility; }
+  get streamStartTime() { return this.prismaData.streamStartTime; }
   // get allowGuests() { return this.prismaData.allowGuests; }
   // get publiclyListed() { return this.prismaData.publiclyListed; }
 
@@ -106,14 +107,14 @@ export class Venue {
     return this.clients.size === 0 && this.senderClients.size === 0;
   }
   getPublicState() {
-    const {venueId, name, clientIds, owners} = this;
+    const {venueId, name, clientIds, owners, streamStartTime} = this;
     const cameras: Record<CameraId, ReturnType<Camera['getPublicState']>> = {};
     this.cameras.forEach(cam => cameras[cam.cameraId] = cam.getPublicState());
     const detachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string}> = {};
     this.detachedSenders.value.forEach(s => detachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username});
     // log.info('Detached senders:', this.detachedSenders.value);
     return {
-      venueId, name, clientIds, owners,
+      venueId, name, clientIds, owners, streamStartTime,
       vrSpace: this.vrSpace?.getPublicState(),
       detachedSenders,
       cameras
@@ -132,7 +133,9 @@ export class Venue {
   }
 
   async update (input: VenueUpdate) {
+    log.info('Update venue', input);
     if(input.name) { this.prismaData.name = input.name;}
+    if(input.streamStartTime) { this.prismaData.streamStartTime = input.streamStartTime;}
     await prisma.venue.update({where: {venueId: this.prismaData.venueId}, data: input});
   }
 

@@ -7,7 +7,6 @@
       v-if="venueStore.currentVenue"
       @submit.prevent="updateVenue"
     >
-      {{ values }}
       <div class="form-control w-full max-w-xs mb-2">
         <label class="label">
           <span class="label-text">Eventets namn</span>
@@ -27,6 +26,7 @@
           <button
             v-for="vo in visibilityOptions"
             :key="vo.option"
+            type="button"
             class="btn"
             :class="{'btn-primary': vo.option === values.visibility}"
             @click="values.visibility = vo.option"

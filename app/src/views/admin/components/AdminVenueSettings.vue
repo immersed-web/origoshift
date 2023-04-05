@@ -7,7 +7,7 @@
       v-if="venueStore.currentVenue"
       @submit.prevent="updateVenue"
     >
-      <div class="form-control w-full max-w-xs mb-2">
+      <div class="w-full max-w-xs mb-2 form-control">
         <label class="label">
           <span class="label-text">Eventets namn</span>
         </label>
@@ -15,10 +15,10 @@
           v-model="values.name"
           type="text"
           placeholder="Eventets namn"
-          class="input input-bordered w-full max-w-xs"
+          class="w-full max-w-xs input input-bordered"
         >
       </div>
-      <div class="form-control w-full max-w-xs mb-2">
+      <div class="w-full max-w-xs mb-2 form-control">
         <label class="label">
           <span class="label-text">Synlighet</span>
         </label>
@@ -36,8 +36,17 @@
           </button>
         </div>
       </div>
+      <div class="mb-2">
+        <label class="justify-start cursor-pointer label">
+          <input
+            class="mr-2 toggle toggle-primary"
+            type="checkbox"
+          >
+          <span class="label-text">Öppna dörrarna</span>
+        </label>
+      </div>
       <!-- Lobby/VR start time -->
-      <div class="form-control w-full max-w-xs mb-2">
+      <div class="w-full max-w-xs mb-2 form-control">
         <label class="label">
           <span class="label-text">Dörrarna/VR-lobbyn öppnar</span>
           <span class="material-icons">meeting_room</span>
@@ -46,11 +55,11 @@
           v-model="values.doorsOpeningTime"
           type="datetime-local"
           placeholder="Startdatum och -tid"
-          class="input input-bordered w-full max-w-xs"
+          class="w-full max-w-xs input input-bordered"
         >
       </div>
       <!-- Event streaming start time -->
-      <div class="form-control w-full max-w-xs mb-2">
+      <div class="w-full max-w-xs mb-2 form-control">
         <label class="label">
           <span class="label-text">Eventet/360-sändningen startar</span>
           <span class="material-icons">curtains</span>
@@ -59,10 +68,10 @@
           v-model="values.streamStartTime"
           type="datetime-local"
           placeholder="Startdatum och -tid"
-          class="input input-bordered w-full max-w-xs"
+          class="w-full max-w-xs input input-bordered"
         >
       </div>
-      <div class="form-control w-full max-w-xs">
+      <div class="w-full max-w-xs form-control">
         <button
           type="submit"
           class="btn btn-primary"

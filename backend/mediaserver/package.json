@@ -23,6 +23,7 @@
   "dependencies": {
     "@vue/reactivity": "^3.2.47",
     "database": "workspace:*",
+    "date-fns": "^2.29.3",
     "debug-level": "3.0.0-1",
     "ip": "^1.1.8",
     "lodash": "^4.17.21",

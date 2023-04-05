@@ -53,13 +53,13 @@
       <!-- Doors open -->
       <div class="flex-1">
         <div class="relative">
-          <div class="avatar placeholder z-10">
-            <div class="bg-primary text-neutral-content rounded-full w-10">
+          <div class="z-10 avatar placeholder">
+            <div class="w-10 rounded-full bg-primary text-neutral-content">
               <span class="material-icons">meeting_room</span>
             </div>
           </div>
-          <div class="h-full w-full absolute top-0 flex items-center">
-            <div class="bg-primary w-full h-2 z-0" />
+          <div class="absolute top-0 flex items-center w-full h-full">
+            <div class="z-0 w-full h-2 bg-primary" />
           </div>
         </div>
         <div>
@@ -75,13 +75,13 @@
       </div>
       <div class="flex-1">
         <div class="relative">
-          <div class="avatar placeholder z-10">
-            <div class="bg-primary text-neutral-content rounded-full w-10">
+          <div class="z-10 avatar placeholder">
+            <div class="w-10 rounded-full bg-primary text-neutral-content">
               <span class="material-icons">curtains</span>
             </div>
           </div>
-          <div class="h-full w-full absolute top-0 flex items-center">
-            <div class="bg-primary w-full h-2 z-0" />
+          <div class="absolute top-0 flex items-center w-full h-full">
+            <div class="z-0 w-full h-2 bg-primary" />
           </div>
         </div>
         <div>
@@ -96,13 +96,13 @@
       </div>
       <div class="flex-1">
         <div class="relative">
-          <div class="avatar placeholder z-10">
-            <div class="bg-primary text-neutral-content rounded-full w-10">
+          <div class="z-10 avatar placeholder">
+            <div class="w-10 rounded-full bg-primary text-neutral-content">
               <span class="material-icons">curtains_closed</span>
             </div>
           </div>
-          <div class="h-full w-full absolute top-0 flex items-center">
-            <div class="bg-primary w-full h-2 z-0" />
+          <div class="absolute top-0 flex items-center w-full h-full">
+            <div class="z-0 w-full h-2 bg-primary" />
           </div>
         </div>
         <div>
@@ -116,8 +116,8 @@
       </div>
       <div>
         <div class="relative">
-          <div class="avatar placeholder z-10">
-            <div class="bg-primary text-neutral-content rounded-full w-10">
+          <div class="z-10 avatar placeholder">
+            <div class="w-10 rounded-full bg-primary text-neutral-content">
               <span class="material-icons">door_front</span>
             </div>
           </div>

@@ -3,7 +3,7 @@ const log = new Log('Router:Venue');
 process.env.DEBUG = 'Router:Venue*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { VenueListInfo, VenueId, VenueIdSchema } from 'schemas';
+import { VenueListInfo, VenueIdSchema } from 'schemas';
 import { z } from 'zod';
 import { procedure as p, atLeastModeratorP, router, isInVenueM, isUserClientM, clientInVenueP } from '../trpc/trpc';
 import { BaseClient, UserClient, Venue } from '../classes/InternalClasses';

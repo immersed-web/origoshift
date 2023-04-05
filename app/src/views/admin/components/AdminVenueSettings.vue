@@ -22,6 +22,7 @@
       <div class="form-control w-full max-w-xs mb-2">
         <label class="label">
           <span class="label-text">Dörrarna/VR-lobbyn öppnar</span>
+          <span class="material-icons">meeting_room</span>
         </label>
         <input
           v-model="values.doorsOpeningTime"
@@ -33,7 +34,8 @@
       <!-- Event streaming start time -->
       <div class="form-control w-full max-w-xs mb-2">
         <label class="label">
-          <span class="label-text">Eventet/360-videon startar</span>
+          <span class="label-text">Eventet/360-sändningen startar</span>
+          <span class="material-icons">curtains</span>
         </label>
         <input
           v-model="values.streamStartTime"
@@ -72,7 +74,13 @@ const updateVenue = async () => {
 };
 
 // TODO: Shouldn't have to redefine VenueUpdate type
-const values = ref<{name?: string, doorsOpeningTime?: string, streamStartTime?: string}>({});
+const values = ref<{
+  name?: string,
+  doorsOpeningTime?: string,
+  streamStartTime?: string
+}>({});
+
+// TODO: could this perhaps fail? Should computed or watcher be used?
 onMounted(() => {
   values.value.name = venueStore.currentVenue?.name;
   values.value.doorsOpeningTime = venueStore.currentVenue?.doorsOpeningTime?.toLocaleDateString() + 'T' +venueStore.currentVenue?.doorsOpeningTime?.toLocaleTimeString();

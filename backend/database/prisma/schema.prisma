@@ -7,7 +7,7 @@ generator client {
 
 generator zod {
   provider    = "zod-prisma"
-  // output = "./zod"
+  output      = "../src/zod"
   modelSuffix = "SchemaGenerated"
 }
 

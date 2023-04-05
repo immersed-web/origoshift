@@ -1,0 +1,42 @@
+
+<template>
+  <div :class="{'flex-1': !props.last}">
+    <div class="relative">
+      <div class="avatar placeholder z-10">
+        <div class="bg-primary text-neutral-content rounded-full w-10">
+          <span class="material-icons">
+            {{ props.icon }}
+          </span>
+        </div>
+      </div>
+      <div
+        v-if="!props.last"
+        class="h-full w-full absolute top-0 flex items-center"
+      >
+        <div class="bg-primary w-full h-2 z-0" />
+      </div>
+    </div>
+    <div v-if="!props.last">
+      <div class="flex items-center text-sm">
+        {{ props.title }}
+      </div>
+      <p class="text-xs">
+        <slot />
+      </p>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+
+const props = defineProps<{
+  title?: string,
+  icon?: string,
+  last?: boolean
+}>();
+
+</script>
+
+<style scoped>
+
+</style>

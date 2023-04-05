@@ -1,6 +1,12 @@
 <template>
   <div>
-    <h1 class="text-5xl font-bold">
+    <h1 v-if="!clientStore.clientState?.currentVenueId">
+      Venue not loaded
+    </h1>
+    <h1
+      v-else
+      class="text-5xl font-bold"
+    >
       Loaded and joined venue: {{ clientStore.clientState?.currentVenueId }}
     </h1>
     <div class="flex space-x-2">
@@ -23,8 +29,19 @@
 import { useClientStore } from '@/stores/clientStore';
 import { useRouter } from 'vue-router';
 import { useConnectionStore } from '@/stores/connectionStore';
+import type { VenueId } from 'schemas';
+import { onMounted } from 'vue';
+import { useVenueStore } from '@/stores/venueStore';
 const connection = useConnectionStore();
+const venueStore = useVenueStore();
 
+const props = defineProps<{
+  venueId: VenueId
+}>();
+
+onMounted(() =>{
+  venueStore.joinVenue(props.venueId);
+});
 // Router
 const router = useRouter();
 

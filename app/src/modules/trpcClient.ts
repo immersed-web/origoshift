@@ -28,7 +28,24 @@ export const clientOrThrow: ComputedRef<CreateTRPCProxyClient<AppRouter>> = comp
   return trpcClient.value;
 });
 
-export let wsClient: ReturnType<typeof createWSClient> | undefined;
+let _wsClient: ReturnType<typeof createWSClient> | undefined;
+export function wsClient() {
+  return _wsClient;
+}
+
+export function closeClient() {
+  if(_wsClient){
+    console.log('closing wsLink!');
+    _wsClient.close();
+    // TODO: Create a pull request that makes the wsClient close if subscriptions are running. Then we wouldnt need to force quite like this:
+    try{
+      _wsClient.getConnection().close();
+    } catch(e){
+      console.error('trpc complains. I dont care...');
+      // WE expect TRPC to error because for some reason their implementation wont allow any completing the observer by anyone else then the client through unsubscribe.
+    }
+  }
+}
 
 let currentClientType: ClientType | undefined;
 
@@ -47,14 +64,14 @@ export const createTrpcClient = (getToken: () => string, clientType: ClientType 
   if(trpcClient.value && currentClientType === clientType){
     console.warn(`Eeeeeh. You are creating a new (${clientType}) trpc-client when there is already one running. Are you suuure you know what you are doing?? I am rather sure you dont wanna do this :-P`);
   }
-  if(wsClient){
+  if(_wsClient){
     console.log('closing previous wsLink!');
-    wsClient.close();
-    wsClient.getConnection().close();
+    _wsClient.close();
+    _wsClient.getConnection().close();
   }
   console.log('creating trpc client');
   // await loginWithAutoToken(username, password);
-  wsClient = createWSClient({
+  _wsClient = createWSClient({
     url: () => buildConnectionUrl(getToken(), clientType === 'sender'),
   });
   trpcClient.value = createTRPCProxyClient<AppRouter>({
@@ -65,7 +82,7 @@ export const createTrpcClient = (getToken: () => string, clientType: ClientType 
     // },
     links: [
       devtoolsLink(),
-      wsLink({client: wsClient}),
+      wsLink({client: _wsClient}),
     ],
   });
 

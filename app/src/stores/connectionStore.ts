@@ -1,4 +1,4 @@
-import { clientOrThrow, trpcClient, createTrpcClient, wsClient } from '@/modules/trpcClient';
+import { clientOrThrow, trpcClient, createTrpcClient, wsClient, closeClient } from '@/modules/trpcClient';
 import type { CreateTRPCProxyClient } from '@trpc/client';
 import type { AppRouter } from 'mediaserver';
 import { defineStore } from 'pinia';
@@ -12,23 +12,26 @@ export const useConnectionStore = defineStore('connection', () => {
   const connected = ref(false);
   const connectionType = ref<ClientType>();
 
-  // let _resolve: () => void;
-  // // let _reject: (reason?: any) => void;
-  // const firstConnectionEstablished = new Promise<void>((resolve, reject)=>{
-  //   _resolve = resolve;
-  //   // _reject = reject;
-  // });
-
-  // createTrpcClient(() => authStore.tokenOrThrow, 'user');
-  // Not possible at the moment because of unnamed exported types
+  // TODO: We cant have this getter throwing. As soon vue devtools loads we get a bunch of Errors.
+  // Basically, we cant have the implicit requirement to call init before trying to use the client.
   const client: ShallowRef<CreateTRPCProxyClient<AppRouter>> = shallowRef(clientOrThrow);
   const clientExists = computed(() => {
     return !!trpcClient.value;
   });
 
+  let connectionStatusChecker: ReturnType<typeof setInterval> | undefined;
+
+  async function close() {
+    closeClient();
+  }
+
   async function _initConnection () {
+    if(connectionStatusChecker){
+      clearInterval(connectionStatusChecker);
+    }
     // client.value.subHeartBeat.subscribe(undefined, {onData(data){connected.value = true;}, onStopped(){ connected.value = false;}, onComplete(){connected.value = false;}});
-    if(!wsClient){
+    const wsC = wsClient();
+    if(!wsC){
       throw Error('must create a trpc client (and thus implicitly a wsClient) before accessing the ws connection');
     }
     // reactiveWSConnection.value = wsClient.getConnection();
@@ -50,16 +53,17 @@ export const useConnectionStore = defineStore('connection', () => {
         // attachWsEvents(ws, wsClient);
       });
     }
-    let ws = wsClient.getConnection();
+    let ws = wsC.getConnection();
     attachWsEvents(ws);
     // NOTE: This was the only way I managed to reliably retrieve the (new) socket instance after connection is closed.
-    setInterval(() => {
+    connectionStatusChecker = setInterval(() => {
       if(ws.readyState === ws.CLOSED){
-        if(!wsClient){
+        const wsC = wsClient();
+        if(!wsC){
           console.error('wsClient undefined when trying to retrieve websocket connection');
           return;
         }
-        ws = wsClient?.getConnection();
+        ws = wsC.getConnection();
         attachWsEvents(ws);
       }
     }, 1000);
@@ -93,5 +97,6 @@ export const useConnectionStore = defineStore('connection', () => {
     connectionType,
     createSenderClient,
     createUserClient,
+    close,
   };
 });

@@ -1,47 +1,29 @@
 <template>
-  <div>
-    <button
-      class="btn btn-primary"
-      @click="loadAndJoinVenue(props.venue.venueId)"
-    >
-      {{ props.venue.name }}
-    </button>
-  </div>
+  <button
+    class="btn btn-primary"
+  >
+    {{ props.venue.name }}
+  </button>
 </template>
 
 <script setup lang="ts">
 
-import type { PropType } from 'vue';
-import type { RouterOutputs } from '@/modules/trpcClient';
-import { useVenueStore } from '@/stores/venueStore';
-import type { VenueId } from 'schemas/*';
+import type { ShortVenueInfo } from './VenueList.vue';
 
 // Use imports
 // const router = useRouter();
-const venueStore = useVenueStore();
+// const venueStore = useVenueStore();
 
+// type VenueInThumbButton = RouterOutputs['admin']['listMyVenues'][number]
 // Props & emits
-const props = defineProps({
-  venue: {type: Object as PropType<RouterOutputs['admin']['listMyVenues'][number]>, required: true},
-});
-const emit = defineEmits<{
-  (e: 'joined'): void,
+const props = defineProps<{
+  venue: ShortVenueInfo,
 }>();
 
-const loadAndJoinVenue = async (venueId: VenueId) => {
-  try{
-    await venueStore.loadVenue(venueId);
-  }catch(e) {
-    console.error(e);
-  }
-  try{
-    await venueStore.joinVenue(venueId);
-    emit('joined');
-  }
-  catch(e){
-    console.log(e);
-  }
-};
+// const emit = defineEmits<{
+//   (e: 'venuePicked', venue: VenueInThumbButton): void,
+// }>();
+
 
 </script>
 

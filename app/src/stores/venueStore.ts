@@ -24,10 +24,16 @@ export const useVenueStore = defineStore('venue', () => {
         }
       }
     },
+    onError(err){
+      console.error(err);
+    },
   });
   connection.client.venue.subVenueUnloaded.subscribe(undefined, {
     onData() {
       currentVenue.value = undefined;
+    },
+    onError(err) {
+      console.error(err);
     },
   });
   connection.client.venue.subVenueStateUpdated.subscribe(undefined, {

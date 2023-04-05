@@ -108,14 +108,14 @@ export class Venue {
     return this.clients.size === 0 && this.senderClients.size === 0;
   }
   getPublicState() {
-    const {venueId, name, clientIds, owners, doorsOpeningTime, streamStartTime} = this;
+    const {venueId, name, clientIds, owners, visibility, doorsOpeningTime, streamStartTime} = this;
     const cameras: Record<CameraId, ReturnType<Camera['getPublicState']>> = {};
     this.cameras.forEach(cam => cameras[cam.cameraId] = cam.getPublicState());
     const detachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string}> = {};
     this.detachedSenders.value.forEach(s => detachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username});
     // log.info('Detached senders:', this.detachedSenders.value);
     return {
-      venueId, name, clientIds, owners, doorsOpeningTime, streamStartTime,
+      venueId, name, clientIds, owners, visibility, doorsOpeningTime, streamStartTime,
       vrSpace: this.vrSpace?.getPublicState(),
       detachedSenders,
       cameras

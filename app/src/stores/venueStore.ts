@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { ref, computed } from 'vue';
-import type {} from 'database';
+import type { Visibility } from 'database';
 import type { VenueId } from 'schemas';
 import { useConnectionStore } from '@/stores/connectionStore';
 
@@ -90,9 +90,10 @@ export const useVenueStore = defineStore('venue', () => {
   }
 
   // TODO: Shouldn't have to redefine VenueUpdate type
-  async function updateVenue (name?: string, doorsOpeningTime?: Date | null, streamStartTime?: Date | null) {
+  async function updateVenue (name?: string, visibility?: Visibility, doorsOpeningTime?: Date | null, streamStartTime?: Date | null) {
     await connection.client.admin.updateVenue.mutate({
       name: name,
+      visibility: visibility,
       doorsOpeningTime: doorsOpeningTime,
       streamStartTime: streamStartTime,
     });

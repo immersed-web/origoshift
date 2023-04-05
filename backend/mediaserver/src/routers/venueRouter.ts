@@ -3,10 +3,10 @@ const log = new Log('Router:Venue');
 process.env.DEBUG = 'Router:Venue*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { hasAtLeastSecurityLevel, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
+import { VenueId, VenueIdSchema } from 'schemas';
 import { z } from 'zod';
-import { procedure as p, atLeastModeratorP, router, isInVenueM, atLeastSenderP, isUserClientM, isSenderClientM, isVenueOwnerM, clientInVenueP } from '../trpc/trpc';
-import { BaseClient, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
+import { procedure as p, atLeastModeratorP, router, isInVenueM, isUserClientM, clientInVenueP } from '../trpc/trpc';
+import { BaseClient, UserClient, Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
 import { Visibility } from 'database';
 import { TRPCError } from '@trpc/server';
@@ -57,7 +57,7 @@ export const venueRouter = router({
     });
   }),
   subVenueUnloaded: p.subscription(({ctx}) => {
-    attachToEvent(ctx.client.clientEvent, 'venueWasUnloaded');
+    return attachToEvent(ctx.client.clientEvent, 'venueWasUnloaded');
   }),
   subSomeClientStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to clientState`);

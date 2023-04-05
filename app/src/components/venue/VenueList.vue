@@ -6,27 +6,25 @@
     >
       <VenueThumb
         :venue="venue"
-        @joined="joined"
+        @click="emit('venuePicked', venue)"
       />
     </div>
   </div>
 </template>
 
+<script lang="ts">
+export type ShortVenueInfo = RouterOutputs['admin']['listMyVenues'][number];
+</script>
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
 import VenueThumb from '@/components/venue/VenueThumb.vue';
-import { useAuthStore } from '@/stores/authStore';
 import type { VenueId } from 'schemas';
+import type { RouterOutputs } from '@/modules/trpcClient';
 
 const props = defineProps<{ venues: {venueId: VenueId, name: string}[]}>();
 
-// Use imports
-const router = useRouter();
-const authStore = useAuthStore();
-
-const joined = async () => {
-  router.push({name: authStore.routePrefix + 'Venue'});
-};
+const emit = defineEmits<{
+  (e: 'venuePicked', venue: ShortVenueInfo): void,
+}>();
 
 </script>
 

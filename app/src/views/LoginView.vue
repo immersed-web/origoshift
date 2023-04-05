@@ -94,7 +94,7 @@
 // Imports
 import { useRouter } from 'vue-router';
 // import { useClientStore } from '@/stores/clientStore';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import { hasAtLeastSecurityLevel, type UserRole } from 'schemas';
 import { useConnectionStore } from '@/stores/connectionStore';
@@ -107,6 +107,10 @@ console.log('redirected from', fromRoute);
 // Stores
 const authStore = useAuthStore();
 authStore.logout();
+onMounted(() => {
+  const connection = useConnectionStore();
+  connection.close();
+});
 
 console.log('authstore loaded');
 const props = defineProps<{

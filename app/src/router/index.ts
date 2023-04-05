@@ -51,7 +51,7 @@ const router = createRouter({
     // guest/user routes
     {
       path: '/',
-      meta: { requiredRole: 'user', loginNeededRedirect: 'login', requiredConnection: 'client' },
+      meta: { requiredRole: 'guest', loginNeededRedirect: 'login', requiredConnection: 'client' },
       component:  () => import('@/layouts/LoggedInLayout.vue'),
       children: [
         {
@@ -66,9 +66,10 @@ const router = createRouter({
           component: () => import('@/views/user/CameraView.vue'),
         },
         {
-          path: 'venue',
+          path: 'venue/:venueId',
           name: 'userVenue',
           component:  () => import('@/views/user/UserVenueView.vue'),
+          props: true,
         },
         {
           path: 'lobby',

@@ -89,8 +89,13 @@ export const useVenueStore = defineStore('venue', () => {
     savedVenueId.value = currentVenue.value.venueId;
   }
 
-  async function updateVenue () {
-    await connection.client.admin.updateVenue.mutate({name: currentVenue.value?.name});
+  // TODO: Shouldn't have to redefine VenueUpdate type
+  async function updateVenue (name?: string, doorsOpeningTime?: Date | null, streamStartTime?: Date | null) {
+    await connection.client.admin.updateVenue.mutate({
+      name: name,
+      doorsOpeningTime: doorsOpeningTime,
+      streamStartTime: streamStartTime,
+    });
   }
 
   async function leaveVenue() {

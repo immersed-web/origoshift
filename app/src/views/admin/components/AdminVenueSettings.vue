@@ -35,15 +35,6 @@
           </button>
         </div>
       </div>
-      <div class="mb-2">
-        <label class="justify-start cursor-pointer label">
-          <input
-            class="mr-2 toggle toggle-primary"
-            type="checkbox"
-          >
-          <span class="label-text">Öppna dörrarna</span>
-        </label>
-      </div>
       <!-- Lobby/VR start time -->
       <div class="w-full max-w-xs mb-2 form-control">
         <label class="label">

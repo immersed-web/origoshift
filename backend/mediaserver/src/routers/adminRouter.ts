@@ -33,6 +33,9 @@ export const adminRouter = router({
   openVenueDoors: currentVenueAdminP.mutation(({ctx}) =>{
     ctx.venue.openDoors();
   }),
+  closeVenueDoors: currentVenueAdminP.mutation(({ctx}) =>{
+    ctx.venue.closeDoors();
+  }),
   deleteVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
     const venueId = input.venueId;
     if(Venue.venueIsLoaded({venueId})){

@@ -84,6 +84,9 @@ export class Venue {
   openDoors(){
     this._doorOpen = true;
   }
+  closeDoors(){
+    this._doorOpen = true;
+  }
 
   router: soupTypes.Router;
   vrSpace?: VrSpace;

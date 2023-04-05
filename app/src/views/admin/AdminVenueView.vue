@@ -1,10 +1,20 @@
 <template>
   <div>
-    <div class="flex mb-4">
-      <div class="flex-1">
+    <div class="flex items-center justify-between mb-4">
+      <div class="">
         <h1>
           {{ venueStore.currentVenue?.name }}
         </h1>
+      </div>
+      <div class="">
+        <label class="cursor-pointer label">
+          <input
+            class="mr-2 toggle toggle-primary"
+            type="checkbox"
+            v-model="doorToggle"
+          >
+          <span class="label-text">{{ doorToggle? 'Dörrar är nu öppna' : 'Dörrar är nu stängda' }}</span>
+        </label>
       </div>
       <div>
         <button
@@ -135,18 +145,33 @@
 </template>
 
 <script setup lang="ts">
-import { onUnmounted } from 'vue';
+import { onUnmounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useVenueStore } from '@/stores/venueStore';
 import AdminVenueSettings from './components/AdminVenueSettings.vue';
 import AdminVenueLobby from './components/AdminVenueLobby.vue';
 import AdminVenue360 from './components/AdminVenue360.vue';
+import { useConnectionStore } from '@/stores/connectionStore';
 
 // Router
 const router = useRouter();
 
 // Stores
+const connection = useConnectionStore();
 const venueStore = useVenueStore();
+
+const doorToggle = ref<boolean>(false);
+watch(doorToggle, async (doorState) => {
+  await updateDoors(doorState);
+});
+async function updateDoors(open: boolean){
+  if(open){
+    await connection.client.admin.openVenueDoors.mutate();
+  } else {
+    await connection.client.admin.closeVenueDoors.mutate();
+  }
+  console.log(open);
+}
 
 onUnmounted(async () => {
   // if(venueStore.currentVenue){

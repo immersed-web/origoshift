@@ -29,6 +29,28 @@
       </div>
     </div> -->
     <div class="flex justify-between">
+      <!-- Visibility -->
+      <div class="flex-1">
+        <div class="relative">
+          <div class="avatar placeholder z-10">
+            <div class="bg-primary text-neutral-content rounded-full w-10">
+              <span class="material-icons">{{ venueStore.currentVisibilityDetails?.icon }}</span>
+            </div>
+          </div>
+          <div class="h-full w-full absolute top-0 flex items-center">
+            <div class="bg-primary w-full h-2 z-0" />
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center text-sm">
+            Synlighet: {{ venueStore.currentVisibilityDetails?.name }}
+          </div>
+          <p class="text-xs">
+            {{ venueStore.currentVisibilityDetails?.description }}
+          </p>
+        </div>
+      </div>
+      <!-- Doors open -->
       <div class="flex-1">
         <div class="relative">
           <div class="avatar placeholder z-10">

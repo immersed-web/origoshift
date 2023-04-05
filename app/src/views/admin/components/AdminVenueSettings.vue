@@ -24,14 +24,15 @@
         </label>
         <div class="btn-group">
           <button
-            v-for="vo in visibilityOptions"
-            :key="vo.option"
+            v-for="vo in venueStore.visibilityOptions"
+            :key="vo.visibility"
             type="button"
             class="btn"
-            :class="{'btn-primary': vo.option === values.visibility}"
-            @click="values.visibility = vo.option"
+            :class="{'btn-primary': vo.visibility === values.visibility}"
+            @click="values.visibility = vo.visibility"
           >
-            {{ vo.description }}
+            <span class="material-icons mr-2">{{ vo.icon }}</span>
+            {{ vo.name }}
           </button>
         </div>
       </div>
@@ -92,25 +93,29 @@ const updateVenue = async () => {
   }
 };
 
-type OptionWithExtras = {
-  option: Visibility,
-  description: string
-}
-// const v : Visibility[] = ['private', 'unlisted', 'public'];
-const visibilityOptions : Ref<OptionWithExtras[]> = ref([
-  {
-    option: 'private',
-    description: 'Privat',
-  },
-  {
-    option: 'unlisted',
-    description: 'Olistad',
-  },
-  {
-    option: 'public',
-    description: 'Publik',
-  },
-] as OptionWithExtras[]);
+// type OptionWithExtras = {
+//   option: Visibility,
+//   description: string,
+//   icon: string
+// }
+// // const v : Visibility[] = ['private', 'unlisted', 'public'];
+// const visibilityOptions : Ref<OptionWithExtras[]> = ref([
+//   {
+//     option: 'private',
+//     description: 'Privat',
+//     icon: 'lock',
+//   },
+//   {
+//     option: 'unlisted',
+//     description: 'Länk',
+//     icon: 'link',
+//   },
+//   {
+//     option: 'public',
+//     description: 'Publik',
+//     icon: 'list',
+//   },
+// ] as OptionWithExtras[]);
 
 
 // TODO: Shouldn't have to redefine VenueUpdate type

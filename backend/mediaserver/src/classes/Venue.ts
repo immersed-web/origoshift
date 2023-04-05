@@ -7,7 +7,7 @@ import mediasoupConfig from '../mediasoupConfig';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
 
 import {types as soupTypes} from 'mediasoup';
-import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate, SenderId  } from 'schemas';
+import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate, SenderId, hasAtLeastSecurityLevel  } from 'schemas';
 
 import { Prisma } from 'database';
 import prisma from '../modules/prismaClient';
@@ -15,6 +15,7 @@ import prisma from '../modules/prismaClient';
 import { Camera, VrSpace, type UserClient, SenderClient, BaseClient  } from './InternalClasses';
 import { computed, shallowReactive } from '@vue/reactivity';
 import { ProducerId } from 'schemas/mediasoup';
+import { isPast } from 'date-fns';
 // import { NotifierInputData } from 'trpc/trpc-utils';
 
 const basicUserSelect = {
@@ -74,11 +75,15 @@ export class Venue {
   }
 
   get visibility() { return this.prismaData.visibility; }
+  private _doorOpen = false;
   get doorsOpeningTime() { return this.prismaData.doorsOpeningTime; }
   get streamStartTime() { return this.prismaData.streamStartTime; }
   // get allowGuests() { return this.prismaData.allowGuests; }
   // get publiclyListed() { return this.prismaData.publiclyListed; }
 
+  openDoors(){
+    this._doorOpen = true;
+  }
 
   router: soupTypes.Router;
   vrSpace?: VrSpace;
@@ -192,6 +197,15 @@ export class Venue {
       // this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
     }
     else {
+      if(!hasAtLeastSecurityLevel(client.role, 'moderator')){
+        let doorsAreOpen = this._doorOpen;
+        if(this.doorsOpeningTime && isPast(this.doorsOpeningTime) ){
+          doorsAreOpen = true;
+        }
+        if(!doorsAreOpen){
+          throw Error('doors are not open');
+        }
+      }
       this.clients.set(client.connectionId, client);
       this._notifyStateUpdated('Client added to Venue');
     //   this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);

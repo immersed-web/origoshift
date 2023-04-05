@@ -135,6 +135,9 @@ export type SenderId = z.TypeOf<typeof SenderIdSchema>;
 //   streamStartTime: true,
 // })
 
+
+export type VenueListInfo = Pick<Venue,  'venueId' | 'name' | 'doorsOpeningTime' | 'streamStartTime' | 'visibility'>
+
 // TODO: Make it unsatisfied when using fields that don't exist in Venue
 export const VenueUpdateSchema = z.object({
   name: z.string().optional(),

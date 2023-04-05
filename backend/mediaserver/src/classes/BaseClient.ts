@@ -3,7 +3,7 @@ const log = new Log('BaseClient');
 process.env.DEBUG = 'BaseClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { ConnectionId, JwtUserData, UserId, UserRole, VenueId, ConnectionIdSchema } from 'schemas';
+import { ConnectionId, JwtUserData, UserId, UserRole, VenueId, ConnectionIdSchema, VenueListInfo } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
 import type { types as soupClientTypes } from 'mediasoup-client';
 import { ConsumerId, CreateConsumerPayload, CreateProducerPayload, ProducerId, TransportId  } from 'schemas/mediasoup';
@@ -52,7 +52,16 @@ export type AllClientEvents = ClientSoupEvents & ClientVenueEvents & ClientClien
 const userQuery = {
   select: {
     ...userSelectAll,
-    ...userDeselectPassword
+    ...userDeselectPassword,
+    allowedVenues: {
+      select: {
+        venueId: true,
+        name: true,
+        doorsOpeningTime: true,
+        streamStartTime: true,
+        visibility: true,
+      } satisfies Record<keyof VenueListInfo, true>
+    }
   }
 } satisfies Prisma.UserArgs;
 type UserResponse = Prisma.UserGetPayload<typeof userQuery>

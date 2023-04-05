@@ -2,7 +2,8 @@ import { Prisma } from '@prisma/client'
 
 export * from '@prisma/client'
 
-export * from './zod';
+// TODO: We really would like to use this but faaacking zod once again complains about infer not being found... Sigh
+// export * from './zod';
 
 
 export const userSelectAll = {

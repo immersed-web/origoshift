@@ -25,7 +25,8 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
     "prisma": "4",
-    "ts-node": "^10.7.0"
+    "ts-node": "^10.7.0",
+    "zod-prisma": "^0.5.4"
   },
   "dependencies": {
     "@prisma/client": "4",

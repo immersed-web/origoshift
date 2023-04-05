@@ -28,39 +28,79 @@
         </div>
       </div>
     </div> -->
-    <div>
-      <ul class="steps w-full">
-        <li class="step step-info">
+    <div class="flex justify-between">
+      <div class="flex-1">
+        <div class="relative">
+          <div class="avatar placeholder z-10">
+            <div class="bg-primary text-neutral-content rounded-full w-10">
+              <span class="material-icons">meeting_room</span>
+            </div>
+          </div>
+          <div class="h-full w-full absolute top-0 flex items-center">
+            <div class="bg-primary w-full h-2 z-0" />
+          </div>
+        </div>
+        <div>
           <div class="flex items-center text-sm">
-            <span class="mr-2 material-icons">meeting_room</span>
             {{ venueStore.currentVenue?.doorsOpeningTime?.toLocaleString() }}
           </div>
-          <span class="text-xs">
-            Dörrarna till eventet öppnas <i>automatiskt</i> den angivna tiden.<br>
-            Om eventet har en VR-lobby har besökaren möjlighet att gå in i denna.
-          </span>
-        </li>
-        <li class="step step-info">
+          <ol class="text-xs">
+            <li>Dörrarna till eventet öppnas <i>automatiskt</i> den angivna tiden.</li>
+            <li>Om eventet har en VR-lobby har besökaren möjlighet att gå in i denna.</li>
+            <li>Samtliga besökare slussas automatiskt vidare till 360-sändningen när eventet startar.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="flex-1">
+        <div class="relative">
+          <div class="avatar placeholder z-10">
+            <div class="bg-primary text-neutral-content rounded-full w-10">
+              <span class="material-icons">curtains</span>
+            </div>
+          </div>
+          <div class="h-full w-full absolute top-0 flex items-center">
+            <div class="bg-primary w-full h-2 z-0" />
+          </div>
+        </div>
+        <div>
           <div class="flex items-center text-sm">
-            <span class="mr-2 material-icons">curtains</span>
             {{ venueStore.currentVenue?.streamStartTime?.toLocaleString() }}
           </div>
-          <span class="text-xs">
-            Eventets/360-sändningens <i>planerade</i> starttid, synlig för besökarna.<br>
-            Ni startar eventet <i>manuellt</i> när föreställningen startar.
-          </span>
-        </li>
-        <li class="step step-info">
+          <ol class="text-xs">
+            <li>360-sändningens <i>planerade</i> starttid, synlig för besökarna.</li>
+            <li>Ni startar sändningen <i>manuellt</i> när ni är redo.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="flex-1">
+        <div class="relative">
+          <div class="avatar placeholder z-10">
+            <div class="bg-primary text-neutral-content rounded-full w-10">
+              <span class="material-icons">curtains_closed</span>
+            </div>
+          </div>
+          <div class="h-full w-full absolute top-0 flex items-center">
+            <div class="bg-primary w-full h-2 z-0" />
+          </div>
+        </div>
+        <div>
           <div class="flex items-center text-sm">
-            <span class="mr-2 material-icons">curtains_closed</span>
             Manuellt avslut
           </div>
-          <span class="text-xs">
-            Eventet/360-sändningen avslutas.<br>
-            Ni avslutar eventet <i>manuellt</i> när föreställningen är slut.
-          </span>
-        </li>
-      </ul>
+          <ol class="text-xs">
+            <li>Ni avslutar sändningen <i>manuellt</i>.</li>
+          </ol>
+        </div>
+      </div>
+      <div>
+        <div class="relative">
+          <div class="avatar placeholder z-10">
+            <div class="bg-primary text-neutral-content rounded-full w-10">
+              <span class="material-icons">door_front</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="divider" />
     <div class="flex items-stretch">

@@ -32,6 +32,7 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import type { VenueId } from 'schemas';
 import { onMounted } from 'vue';
 import { useVenueStore } from '@/stores/venueStore';
+import { useIntervalFn } from '@vueuse/core';
 const connection = useConnectionStore();
 const venueStore = useVenueStore();
 
@@ -39,8 +40,17 @@ const props = defineProps<{
   venueId: VenueId
 }>();
 
+
+const { pause } = useIntervalFn(async () => {
+  try {
+    await venueStore.joinVenue(props.venueId);
+    pause();
+  }catch(e){
+    console.log('failed to join venue. Will retry soon.');
+  }
+
+}, 5000);
 onMounted(() =>{
-  venueStore.joinVenue(props.venueId);
 });
 // Router
 const router = useRouter();

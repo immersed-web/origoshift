@@ -12,18 +12,15 @@
   </div>
 </template>
 
-<script lang="ts">
-export type ShortVenueInfo = RouterOutputs['admin']['listMyVenues'][number];
-</script>
 <script setup lang="ts">
 import VenueThumb from '@/components/venue/VenueThumb.vue';
-import type { VenueId } from 'schemas';
+import type { VenueId, VenueListInfo } from 'schemas';
 import type { RouterOutputs } from '@/modules/trpcClient';
 
-const props = defineProps<{ venues: {venueId: VenueId, name: string}[]}>();
+const props = defineProps<{ venues: VenueListInfo[]}>();
 
 const emit = defineEmits<{
-  (e: 'venuePicked', venue: ShortVenueInfo): void,
+  (e: 'venuePicked', venue: VenueListInfo): void,
 }>();
 
 </script>

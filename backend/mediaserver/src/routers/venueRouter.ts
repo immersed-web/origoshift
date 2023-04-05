@@ -3,7 +3,7 @@ const log = new Log('Router:Venue');
 process.env.DEBUG = 'Router:Venue*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { VenueId, VenueIdSchema } from 'schemas';
+import { VenueListInfo, VenueId, VenueIdSchema } from 'schemas';
 import { z } from 'zod';
 import { procedure as p, atLeastModeratorP, router, isInVenueM, isUserClientM, clientInVenueP } from '../trpc/trpc';
 import { BaseClient, UserClient, Venue } from '../classes/InternalClasses';
@@ -25,11 +25,36 @@ export const venueRouter = router({
       select: {
         name: true,
         venueId: true,
-      }
+        doorsOpeningTime: true,
+        streamStartTime: true,
+        visibility: true,
+      } satisfies Record<keyof VenueListInfo, true>
     });
     const assembledVenues = uniqBy([...publicVenues, ...ctx.client.allowedVenues], 'venueId');
 
-    return assembledVenues as {name: string, venueId: VenueId}[];
+    return assembledVenues;
+  }),
+  getVenueListInfo: p.input(z.object({
+    venueId: VenueIdSchema,
+  })).query(async ({input, ctx}) => {
+    try {
+      const venueInfo = await prismaClient.venue.findUniqueOrThrow({
+        where: {
+          venueId: input.venueId
+        },
+        select: {
+          venueId: true,
+          name: true,
+          doorsOpeningTime: true,
+          streamStartTime: true,
+          visibility: true,
+        } satisfies Record<keyof VenueListInfo, true>
+      });
+      return venueInfo;
+    } catch(e) {
+      log.error(e);
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'didn\'t find that Venue'});
+    }
   }),
   subClientAddedOrRemoved: p.use(isUserClientM).subscription(({ctx}) => {
     return attachToFilteredEvent(ctx.client.clientEvent, 'clientAddedOrRemoved', ctx.connectionId);

@@ -135,6 +135,9 @@ export type SenderId = z.TypeOf<typeof SenderIdSchema>;
 //   streamStartTime: true,
 // })
 
+
+export type VenueListInfo = Pick<Venue,  'venueId' | 'name' | 'doorsOpeningTime' | 'streamStartTime' | 'visibility'>
+
 export const visibilityOptions = ['private', 'unlisted', 'public'] as const satisfies Readonly<Visibility[]>
 const VisibilitySchema = z.enum(visibilityOptions);
 

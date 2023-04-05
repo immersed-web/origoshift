@@ -179,7 +179,7 @@ importers:
       '@types/bcrypt': ^5.0.0
       bcrypt: ^5.0.1
       prisma: '4'
-      ts-node: ^10.7.0
+      ts-node: ^10.9.1
       zod-prisma: ^0.5.4
     dependencies:
       '@prisma/client': 4.9.0_prisma@4.9.0

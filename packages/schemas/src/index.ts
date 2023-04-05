@@ -127,12 +127,12 @@ export type Vr3DModelId = z.TypeOf<typeof Vr3DModelIdSchema>;
 export const SenderIdSchema = UuidSchema.brand<'SenderId'>();
 export type SenderId = z.TypeOf<typeof SenderIdSchema>;
 
-// TODO: Make it unsatisfied when using fields that don't exist in Venue
-export const VenueUpdateSchema = z.object({
-  name: z.string().optional(),
-  doorsOpeningTime: z.date().nullable().optional(),
-  streamStartTime: z.date().nullable().optional()
-}) satisfies z.ZodType<Partial<Venue>>
+import { VenueSchemaGenerated } from 'database'
+export const VenueUpdateSchema = VenueSchemaGenerated.pick({
+  name: true,
+  doorsOpeningTime: true,
+  streamStartTime: true,
+})
 export type VenueUpdate = z.TypeOf<typeof VenueUpdateSchema>;
 
 export const VirtualSpace3DModelCreateSchema = z.object({

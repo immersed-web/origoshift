@@ -1,11 +1,19 @@
 import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
-import { ref, computed } from 'vue';
+import { ref, computed, type Ref } from 'vue';
 import type { Visibility } from 'database';
 import type { VenueId } from 'schemas';
 import { useConnectionStore } from '@/stores/connectionStore';
 
 type _ReceivedVenueState = RouterOutputs['venue']['joinVenue'];
+
+export type VisibilityDetails = {
+  visibility: Visibility,
+  name: string,
+  icon: string,
+  description: string
+}
+
 export const useVenueStore = defineStore('venue', () => {
   // console.log('VENUESTORE USE FUNCTION TRIGGERED');
   const connection = useConnectionStore();
@@ -118,6 +126,31 @@ export const useVenueStore = defineStore('venue', () => {
     }
   }
 
+  const visibilityOptions : Ref<VisibilityDetails[]> = ref([
+    {
+      visibility: 'private',
+      name: 'Privat',
+      icon: 'lock',
+      description: 'Endast du kan se detta event.',
+    },
+    {
+      visibility: 'unlisted',
+      name: 'Länk',
+      icon: 'link',
+      description: 'Alla med länken kan se och delta i eventet.',
+    },
+    {
+      visibility: 'public',
+      name: 'Publik',
+      icon: 'list',
+      description: 'Eventet listas öppet på webbplatsen.',
+    },
+  ] as VisibilityDetails[]);
+
+  const currentVisibilityDetails = computed(() => {
+    return visibilityOptions.value.find(o => o.visibility === currentVenue.value?.visibility);
+  });
+
   return {
     savedVenueId,
     currentVenue,
@@ -129,6 +162,8 @@ export const useVenueStore = defineStore('venue', () => {
     deleteCurrentVenue,
     modelUrl,
     navmeshUrl,
+    visibilityOptions,
+    currentVisibilityDetails,
   };
 }, {
   persist: {

@@ -5,6 +5,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator zod {
+  provider    = "zod-prisma"
+  // output = "./zod"
+  modelSuffix = "SchemaGenerated"
+}
+
 datasource db {
   provider = "postgresql"
   // The env var will be replaced when the prismaclient is used. That is, the env var needs to be available when USING the client, not when generating the client.
@@ -36,7 +42,7 @@ enum Visibility {
 }
 
 model User {
-  userId        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
   updatedAt     DateTime @updatedAt
   username      String   @unique
   password      String
@@ -47,7 +53,7 @@ model User {
 }
 
 model Venue {
-  venueId          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  venueId          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
   name             String        @unique
   streamStartTime  DateTime?
   doorsOpeningTime DateTime?
@@ -67,16 +73,16 @@ model Venue {
 }
 
 model VirtualSpace {
-  vrId                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vrId                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
   extraSettings         Json?
   venue                 Venue                @relation(fields: [ownerVenueId], references: [venueId], onDelete: Cascade)
-  ownerVenueId          String               @unique @db.Uuid
+  ownerVenueId          String               @unique @db.Uuid ///@zod.uuid()
   virtualSpace3DModel   VirtualSpace3DModel? @relation(fields: [virtualSpace3DModelId], references: [modelId])
-  virtualSpace3DModelId String?              @db.Uuid
+  virtualSpace3DModelId String?              @db.Uuid ///@zod.uuid()
 }
 
 model VirtualSpace3DModel {
-  modelId       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  modelId       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
   modelUrl      String
   navmeshUrl    String
   public        Boolean        @default(false)
@@ -85,11 +91,11 @@ model VirtualSpace3DModel {
 }
 
 model Camera {
-  cameraId String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cameraId String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
   name     String
   venue    Venue   @relation(fields: [venueId], references: [venueId], onDelete: Cascade)
-  venueId  String  @db.Uuid
-  senderId String? @unique @db.Uuid
+  venueId  String  @db.Uuid ///@zod.uuid()
+  senderId String? @unique @db.Uuid ///@zod.uuid()
   settings Json
 
   @@unique([name, venueId]) // We allow duplicate camera names as long as they are at different venues

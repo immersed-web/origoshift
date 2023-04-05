@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { JwtPayload as JwtShapeFromLib } from 'jsonwebtoken'
-import { Role, Venue, VirtualSpace3DModel } from "database";
+import { Role, Venue, VirtualSpace3DModel, Visibility } from "database";
 import { toZod } from "tozod";
 
 type RemoveIndex<T> = {
@@ -135,9 +135,13 @@ export type SenderId = z.TypeOf<typeof SenderIdSchema>;
 //   streamStartTime: true,
 // })
 
+export const visibilityOptions = ['private', 'unlisted', 'public'] as const satisfies Readonly<Visibility[]>
+const VisibilitySchema = z.enum(visibilityOptions);
+
 // TODO: Make it unsatisfied when using fields that don't exist in Venue
 export const VenueUpdateSchema = z.object({
   name: z.string().optional(),
+  visibility: VisibilitySchema.optional(),
   doorsOpeningTime: z.date().nullable().optional(),
   streamStartTime: z.date().nullable().optional()
 }) satisfies z.ZodType<Partial<Venue>>

@@ -143,7 +143,7 @@ const VisibilitySchema = z.enum(visibilityOptions);
 
 // TODO: Make it unsatisfied when using fields that don't exist in Venue
 export const VenueUpdateSchema = z.object({
-  name: z.string().optional(),
+  name: z.string().nonempty().optional(),
   visibility: VisibilitySchema.optional(),
   doorsOpeningTime: z.date().nullable().optional(),
   streamStartTime: z.date().nullable().optional()

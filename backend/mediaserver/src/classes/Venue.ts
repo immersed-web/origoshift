@@ -143,9 +143,10 @@ export class Venue {
 
   async update (input: VenueUpdate) {
     log.info('Update venue', input);
-    if(input.name) { this.prismaData.name = input.name;}
-    if(input.doorsOpeningTime) { this.prismaData.doorsOpeningTime = input.doorsOpeningTime;}
-    if(input.streamStartTime) { this.prismaData.streamStartTime = input.streamStartTime;}
+    // if(input.name) { this.prismaData.name = input.name;}
+    // if(input.doorsOpeningTime) { this.prismaData.doorsOpeningTime = input.doorsOpeningTime;}
+    // if(input.streamStartTime) { this.prismaData.streamStartTime = input.streamStartTime;}
+    this.prismaData = { ...this.prismaData, ...input};
     await prisma.venue.update({where: {venueId: this.prismaData.venueId}, data: input});
   }
 

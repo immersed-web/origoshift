@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="!clientStore.clientState?.currentVenueId">
+    <div v-if="!venueStore.currentVenue">
       <h1 class="my-6">
         Väntar på att eventet öppnar...
       </h1>
@@ -19,16 +19,19 @@
         Loaded and joined venue: {{ clientStore.clientState?.currentVenueId }}
       </h1>
       <div class="flex space-x-2">
-        <button
+        <!-- <button
           class="btn btn-primary"
           @click="openLobby"
         >
           Gå in i VR-lobby
-        </button>
+        </button> -->
         <button
+          v-for="camera in venueStore.currentVenue.cameras"
+          :key="camera.cameraId"
+          @click="router.push({name: 'userCamera', params: {cameraId: camera.cameraId}})"
           class="btn btn-primary"
         >
-          Gå in i 360
+          {{ camera.name }}
         </button>
       </div>
     </div>
@@ -54,6 +57,7 @@ const venueInfo = shallowRef<VenueListInfo>({});
 
 const { pause } = useIntervalFn(async () => {
   try {
+    console.log('trying to join venue:', props.venueId);
     await venueStore.joinVenue(props.venueId);
     pause();
   }catch(e){
@@ -61,7 +65,7 @@ const { pause } = useIntervalFn(async () => {
     console.log('failed to join venue. Will retry soon.');
   }
 
-}, 5000);
+}, 5000, { immediateCallback: true});
 onMounted(async () =>{
   venueInfo.value = await connection.client.venue.getVenueListInfo.query({venueId: props.venueId});
 });

@@ -86,7 +86,7 @@ import { useSoupStore } from '@/stores/soupStore';
 import { onBeforeMount, ref } from 'vue';
 import type { CameraId } from 'schemas';
 import { useConnectionStore } from '@/stores/connectionStore';
-import ConsumerElement from './components/ConsumerElement.vue';
+import ConsumerElement from '@/components/ConsumerElement.vue';
 
 const mediaElements = ref<HTMLDivElement>();
 

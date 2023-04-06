@@ -61,9 +61,9 @@ const router = createRouter({
         },
         {
           path: 'camera/:cameraId',
-          name: 'cameraView',
+          name: 'userCamera',
           props: true,
-          component: () => import('@/views/user/CameraView.vue'),
+          component: () => import('@/views/user/UserCameraView.vue'),
         },
         {
           path: 'venue/:venueId',
@@ -108,18 +108,17 @@ const router = createRouter({
       ],
     },
     {
-      name: 'cameraLogin', path: '/camera/login', component: () => import('@/views/LoginView.vue'),
+      name: 'cameraLogin', path: '/send/login', component: () => import('@/views/LoginView.vue'),
     },
     {
-      name: 'camera',
-      path: '/camera',
+      path: '/send',
       meta: { requiredRole: 'sender', requiredConnection: 'sender', loginNeededRedirect: 'cameraLogin'},
       children: [
         {
-          name: 'cameraHome', path: '', component: () => import('@/views/camera/CameraView.vue'),
+          name: 'senderHome', path: '', component: () => import('@/views/sender/SenderCameraView.vue'),
         },
         {
-          name: 'cameraPickVenue', path: 'choose-venue', component: () => import('@/views/camera/VenuePickView.vue'),
+          name: 'senderPickVenue', path: 'choose-venue', component: () => import('@/views/sender/SenderPickVenueView.vue'),
         },
       ],
     },

@@ -33,7 +33,7 @@ onBeforeMount(async () => {
 
 function tryToJoinAndEnterCamera(venue: Venue){
   senderStore.savedPickedVenueId = venue.venueId as VenueId;
-  router.push({name: 'cameraHome'});
+  router.push({name: 'senderHome'});
   // const tryToJoin = async () => {
   //   try {
   //     senderStore.savedPickedVenueId = venue.venueId as VenueId;

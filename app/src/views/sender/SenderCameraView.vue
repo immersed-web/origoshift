@@ -4,7 +4,7 @@
     {{ senderStore.senderId }}
   </pre>
   <button
-    @click="$router.replace({name: 'cameraPickVenue'})"
+    @click="$router.replace({name: 'senderPickVenue'})"
     class="btn"
   >
     Byt evenemang

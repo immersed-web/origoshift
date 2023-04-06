@@ -21,21 +21,21 @@ export const useVenueStore = defineStore('venue', () => {
   // const persistedVenueId = useLocalStorage<VenueId>('savedVenueId', null);
   const savedVenueId = ref<VenueId>();
 
-  connection.client.venue.subClientAddedOrRemoved.subscribe(undefined, {
-    onData(data){
-      if(data.added){
-        currentVenue.value?.clientIds.push(data.client.connectionId);
-      } else {
-        const idx = currentVenue.value?.clientIds.indexOf(data.client.connectionId);
-        if(idx !== undefined){
-          currentVenue.value?.clientIds.splice(idx, 1);
-        }
-      }
-    },
-    onError(err){
-      console.error(err);
-    },
-  });
+  // connection.client.venue.subClientAddedOrRemoved.subscribe(undefined, {
+  //   onData(data){
+  //     if(data.added){
+  //       currentVenue.value?.clientIds.push(data.client.connectionId);
+  //     } else {
+  //       const idx = currentVenue.value?.clientIds.indexOf(data.client.connectionId);
+  //       if(idx !== undefined){
+  //         currentVenue.value?.clientIds.splice(idx, 1);
+  //       }
+  //     }
+  //   },
+  //   onError(err){
+  //     console.error(err);
+  //   },
+  // });
   connection.client.venue.subVenueUnloaded.subscribe(undefined, {
     onData() {
       currentVenue.value = undefined;

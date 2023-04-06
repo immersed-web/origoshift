@@ -5,7 +5,7 @@
         Väntar på att eventet öppnar...
       </h1>
       <div>
-        <p v-if="venueInfo.doorsOpeningTime">
+        <p v-if="venueInfo?.doorsOpeningTime">
           Dörrarna öppnas: {{ venueInfo.doorsOpeningTime }}
         </p>
       </div>
@@ -28,7 +28,7 @@
         <button
           v-for="camera in venueStore.currentVenue.cameras"
           :key="camera.cameraId"
-          @click="router.push({name: 'userCamera', params: {cameraId: camera.cameraId}})"
+          @click="router.push({name: 'userCamera', params: {venueId: props.venueId, cameraId: camera.cameraId}})"
           class="btn btn-primary"
         >
           {{ camera.name }}
@@ -53,7 +53,7 @@ const props = defineProps<{
   venueId: VenueId
 }>();
 
-const venueInfo = shallowRef<VenueListInfo>({});
+const venueInfo = shallowRef<VenueListInfo>();
 
 const { pause } = useIntervalFn(async () => {
   try {

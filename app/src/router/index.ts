@@ -55,21 +55,27 @@ const router = createRouter({
       component:  () => import('@/layouts/LoggedInLayout.vue'),
       children: [
         {
+          path: 'venue/:venueId',
+          props: true,
+          children: [
+            {
+              path: '',
+              name: 'userVenue',
+              component:  () => import('@/views/user/UserVenueView.vue'),
+              props: true,
+            },
+            {
+              path: ':cameraId',
+              name: 'userCamera',
+              props: true,
+              component: () => import('@/views/user/UserCameraView.vue'),
+            },
+          ],
+        },
+        {
           path: '',
           name: 'userHome',
           component:  () => import('@/views/user/UserHomeView.vue'),
-        },
-        {
-          path: 'camera/:cameraId',
-          name: 'userCamera',
-          props: true,
-          component: () => import('@/views/user/UserCameraView.vue'),
-        },
-        {
-          path: 'venue/:venueId',
-          name: 'userVenue',
-          component:  () => import('@/views/user/UserVenueView.vue'),
-          props: true,
         },
         {
           path: 'lobby',
@@ -108,7 +114,10 @@ const router = createRouter({
       ],
     },
     {
-      name: 'cameraLogin', path: '/send/login', component: () => import('@/views/LoginView.vue'),
+      name: 'cameraLogin',
+      path: '/send/login',
+      meta: {afterLoginRedirect: 'senderHome'},
+      component: () => import('@/views/LoginView.vue'),
     },
     {
       path: '/send',

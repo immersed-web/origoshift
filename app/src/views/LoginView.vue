@@ -99,24 +99,26 @@ import { useAuthStore } from '@/stores/authStore';
 import { hasAtLeastSecurityLevel, type UserRole } from 'schemas';
 import { useConnectionStore } from '@/stores/connectionStore';
 
+// const props = defineProps<{
+//   redirectAfterLogin?: string
+// }>();
+
 // Router
 const router = useRouter();
 const fromRoute = router.currentRoute.value.redirectedFrom;
 console.log('redirected from', fromRoute);
+const defaultLoginRedirect = router.currentRoute.value.meta.afterLoginRedirect;
+console.log('explicit redirect after login:', defaultLoginRedirect);
 
 // Stores
 const authStore = useAuthStore();
 authStore.logout();
+console.log('authstore loaded');
+
 onMounted(() => {
   const connection = useConnectionStore();
   connection.close();
 });
-
-console.log('authstore loaded');
-const props = defineProps<{
-  redirectAfterLogin?: string
-}>();
-
 // View / components functionality
 const username = ref('superadmin');
 const password = ref('bajskorv');
@@ -127,9 +129,9 @@ const login = async () => {
     // await clientStore.login(username.value, password.value);
     await authStore.login(username.value, password.value);
     // console.log('Login as role', authStore.role);
-    if(props.redirectAfterLogin){
+    if(defaultLoginRedirect){
       // console.log('redirectAfterLogin', props.redirectAfterLogin);
-      router.push({name: props.redirectAfterLogin});
+      router.push({name: defaultLoginRedirect});
     } else if(fromRoute && fromRoute.path !== '/'){
       // console.log('fromRoute', fromRoute);
       router.push(fromRoute);

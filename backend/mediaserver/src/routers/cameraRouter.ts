@@ -9,7 +9,7 @@ import { CameraIdSchema } from 'schemas';
 import { TRPCError } from '@trpc/server';
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from 'trpc/trpc-utils';
 import { observable } from '@trpc/server/observable';
-import { ConnectionIdSchema } from 'schemas/*';
+import { ConnectionIdSchema } from 'schemas';
 
 
 

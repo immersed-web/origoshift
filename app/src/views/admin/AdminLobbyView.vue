@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import VrAFrame from '../components/lobby/VrAFrame.vue';
+import VrAFrame from '../../components/lobby/VrAFrame.vue';
 import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
 import { ref } from 'vue';

@@ -79,8 +79,8 @@ const router = createRouter({
         },
         {
           path: 'lobby',
-          name: 'lobby',
-          component:  () => import('@/views/LobbyView.vue'),
+          name: 'userLobby',
+          component:  () => import('@/views/user/UserLobbyView.vue'),
         },
       ],
     },
@@ -103,6 +103,11 @@ const router = createRouter({
               path: 'venue',
               name: 'adminVenue',
               component:  () => import('@/views/admin/AdminVenueView.vue'),
+            },
+            {
+              path: 'lobby',
+              name: 'adminLobby',
+              component:  () => import('@/views/admin/AdminLobbyView.vue'),
             },
             {
               path: 'cameras',

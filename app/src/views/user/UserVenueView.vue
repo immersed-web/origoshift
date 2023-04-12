@@ -19,12 +19,12 @@
         Loaded and joined venue: {{ clientStore.clientState?.currentVenueId }}
       </h1>
       <div class="flex space-x-2">
-        <!-- <button
+        <button
           class="btn btn-primary"
           @click="openLobby"
         >
           Gå in i VR-lobby
-        </button> -->
+        </button>
         <button
           v-for="camera in venueStore.currentVenue.cameras"
           :key="camera.cameraId"
@@ -76,9 +76,8 @@ const router = useRouter();
 const clientStore = useClientStore();
 
 const openLobby = async () => {
-  await connection.client.vr.openVrSpace.mutate();
   await connection.client.vr.enterVrSpace.mutate();
-  router.push({name: 'lobby'});
+  router.push({name: 'userLobby'});
 };
 
 </script>

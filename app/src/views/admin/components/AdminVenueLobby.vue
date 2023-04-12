@@ -74,7 +74,7 @@ const venueStore = useVenueStore();
 const openVirtualSpace = async () => {
   await connectionStore.client.vr.openVrSpace.mutate();
   await connectionStore.client.vr.enterVrSpace.mutate();
-  router.push({name: 'lobby'});
+  router.push({name: 'adminLobby'});
 };
 
 const createVirtualSpace = async () => {

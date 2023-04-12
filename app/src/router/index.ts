@@ -161,7 +161,7 @@ router.beforeEach(async (to, from) => {
 
   if (to.meta.requiredRole) {
     // if not logged in we can try to restore from session
-    if(!authStore.isLoggedIn && authStore.hasCookie) {
+    if(!authStore.isAuthenticated && authStore.hasCookie) {
       console.log('some kind of user role required. Found cookie. Trying to restore session.');
       await authStore.restoreFromSession();
     }
@@ -180,7 +180,7 @@ router.beforeEach(async (to, from) => {
     const connectionStore = useConnectionStore();
     // console.log('Connection required. Creating if doesn\'t exist');
 
-    if(!authStore.isLoggedIn){
+    if(!authStore.isAuthenticated){
       throw Error('Eeeeh. You are not logged but you shouldnt even reach this code without being logged in. Something is wrooong');
     }
     if(!connectionStore.clientExists){

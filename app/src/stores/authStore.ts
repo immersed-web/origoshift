@@ -47,7 +47,14 @@ export const useAuthStore = defineStore('auth', () => {
   const userId = computed(() => userData.value?.userId);
   const username = computed(() => userData.value?.username);
   const role = computed(() => userData.value?.role);
-  const isLoggedIn = computed(() => !!userId.value);
+  /**
+   * Has a user id. Can be any role, including guest.
+   */
+  const isAuthenticated = computed(() => !!userId.value);
+  /**
+   * Has a user id. Can be any role, including guest.
+   */
+  const isNotGuest = computed(() => isAuthenticated.value && hasAtLeastSecurityLevel(role.value, 'user'));
   const routePrefix = computed(() => role.value && hasAtLeastSecurityLevel(role.value, 'admin') ? 'admin' : 'user');
   async function autoGuest() {
     await logout();
@@ -74,7 +81,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    isLoggedIn,
+    isAuthenticated,
+    isNotGuest,
     token,
     tokenOrThrow,
     hasCookie,

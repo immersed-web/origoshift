@@ -607,10 +607,12 @@ export class Venue {
     return deletedVenue;
   }
 
+  // static async clientRequestLoadVenue()
   static async loadVenue(venueId: VenueId, ownerId: UserId, worker?: soupTypes.Worker) {
     try {
       if(Venue.venues.has(venueId)){
-        throw new Error('Venue with that venueId already loaded');
+        log.warn('Venue with that venueId already loaded');
+        // throw new Error('Venue with that venueId already loaded');
       }
       const dbResponse = await prisma.venue.findUniqueOrThrow({
         where: {
@@ -637,6 +639,7 @@ export class Venue {
       return venue;
     } catch (e) {
       log.error('failed to load venue');
+      log.error(e);
       throw e;
     }
   }

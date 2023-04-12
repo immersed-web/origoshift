@@ -70,6 +70,11 @@ export const useVenueStore = defineStore('venue', () => {
   });
 
 
+  async function loadAndJoinVenue (venueId: VenueId) {
+    currentVenue.value = await connection.client.venue.loadAndJoinVenue.mutate({venueId});
+    savedVenueId.value = currentVenue.value.venueId;
+  }
+
   async function joinVenue (venueId: VenueId) {
     currentVenue.value = await connection.client.venue.joinVenue.mutate({venueId});
     savedVenueId.value = currentVenue.value.venueId;
@@ -113,6 +118,7 @@ export const useVenueStore = defineStore('venue', () => {
   return {
     savedVenueId,
     currentVenue,
+    loadAndJoinVenue,
     joinVenue,
     leaveVenue,
     modelUrl,

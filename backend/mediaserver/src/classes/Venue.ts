@@ -627,7 +627,10 @@ export class Venue {
         include: venueIncludeStuff,
       });
       if(!dbResponse.owners.find(u => u.userId === ownerId)){
-        throw Error('you are not owner of the venue! Not allowed!');
+        // throw Error('you are not owner of the venue! Not allowed!');
+        if(dbResponse.doorsOpeningTime && !isPast(dbResponse.doorsOpeningTime?.getTime())){
+          throw Error('You are not owner of the venue AND the doors opening time has not passed / is not set.');
+        }
       }
 
       if(!worker){

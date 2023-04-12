@@ -58,7 +58,8 @@ const venueInfo = shallowRef<VenueListInfo>();
 const { pause } = useIntervalFn(async () => {
   try {
     console.log('trying to join venue:', props.venueId);
-    await venueStore.joinVenue(props.venueId);
+    // await venueStore.joinVenue(props.venueId);
+    await venueStore.loadAndJoinVenue(props.venueId);
     pause();
   }catch(e){
     console.error(e);

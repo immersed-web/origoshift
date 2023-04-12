@@ -62,6 +62,11 @@ export const venueRouter = router({
   listLoadedVenues: p.query(({ctx}) => {
     return Venue.getLoadedVenues();
   }),
+  loadAndJoinVenue: p.input(z.object({venueId: VenueIdSchema})).mutation(async ({input, ctx}) => {
+    await Venue.loadVenue(input.venueId, ctx.userId);
+    const vState = await ctx.client.joinVenue(input.venueId);
+    return vState;
+  }),
   joinVenue: p.input(
     z.object({
       venueId: VenueIdSchema

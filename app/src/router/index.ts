@@ -51,7 +51,7 @@ const router = createRouter({
     {
       path: '/',
       meta: { requiredRole: 'guest', loginNeededRedirect: 'login', requiredConnection: 'client' },
-      component:  () => import('@/layouts/LoggedInLayout.vue'),
+      component:  () => import('@/layouts/HeaderLayout.vue'),
       children: [
         {
           path: 'venue/:venueId',
@@ -86,7 +86,7 @@ const router = createRouter({
     {
       path: '/admin/',
       meta: { requiredRole: 'admin', loginNeededRedirect: 'login', requiredConnection: 'client' },
-      component:  () => import('@/layouts/LoggedInLayout.vue'),
+      component:  () => import('@/layouts/HeaderLayout.vue'),
       children: [
         {
           path: '',

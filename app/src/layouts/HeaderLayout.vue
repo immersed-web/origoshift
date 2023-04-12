@@ -1,7 +1,6 @@
 <template>
   <div class="flex flex-col">
-    <LoggedInHeader
-      v-if="authStore.isNotGuest"
+    <DefaultHeader
       class="flex-none"
     />
     <ColumnCenter class="mt-10">
@@ -14,7 +13,7 @@
 
 import { useAuthStore } from '@/stores/authStore';
 
-import LoggedInHeader from '@/components/layout/LoggedInHeader.vue';
+import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import ColumnCenter from '@/components/layout/ColumnCenter.vue';
 
 const authStore = useAuthStore();

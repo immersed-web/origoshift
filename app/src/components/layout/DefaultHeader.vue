@@ -9,7 +9,10 @@
       </RouterLink>
     </div>
     <div class="flex-none">
-      <div class="text-black dropdown dropdown-end">
+      <div
+        v-if="authStore.isNotGuest"
+        class="text-black dropdown dropdown-end"
+      >
         <label
           tabindex="0"
           class="btn btn-ghost btn-circle avatar"

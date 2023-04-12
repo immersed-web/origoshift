@@ -16,7 +16,7 @@
       <h1
         class="text-5xl font-bold"
       >
-        Joined venue: {{ venueStore.currentVenue.name }} {{ venueStore.currentVenue.venueId }}
+        {{ venueStore.currentVenue.name }}
       </h1>
       <div class="flex space-x-2">
         <button

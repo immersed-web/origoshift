@@ -1,5 +1,4 @@
 <template>
-  <LoggedInHeader />
   <pre>
     {{ senderStore.senderId }}
   </pre>
@@ -79,7 +78,6 @@
 </style>
 
 <script setup lang="ts">
-import LoggedInHeader from '@/components/layout/LoggedInHeader.vue';
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { isTRPCClientError } from '@/modules/trpcClient';

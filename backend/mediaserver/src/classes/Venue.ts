@@ -610,8 +610,10 @@ export class Venue {
   // static async clientRequestLoadVenue()
   static async loadVenue(venueId: VenueId, ownerId: UserId, worker?: soupTypes.Worker) {
     try {
-      if(Venue.venues.has(venueId)){
+      const loadedVenue = Venue.venues.get(venueId);
+      if(loadedVenue){
         log.warn('Venue with that venueId already loaded');
+        return loadedVenue;
         // throw new Error('Venue with that venueId already loaded');
       }
       const dbResponse = await prisma.venue.findUniqueOrThrow({

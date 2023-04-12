@@ -71,8 +71,11 @@
     </div>
   </div>
   <pre>
-        {{ venueStore.currentVenue }}
-      </pre>
+    {{ adminStore.adminOnlyVenueState }}
+  </pre>
+  <pre>
+    {{ venueStore.currentVenue }}
+  </pre>
   <pre>
         <!-- {{ adminStore.connectedSenders }} -->
       </pre>

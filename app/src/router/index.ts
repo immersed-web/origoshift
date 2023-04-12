@@ -166,8 +166,8 @@ router.beforeEach(async (to, from) => {
       console.log('some kind of user role required. Found cookie. Trying to restore session.');
       await authStore.restoreFromSession();
     }
-    if(to.meta.requiredRole === 'guest'){
-      console.log('creating guest because route requires at least guest');
+    if(!authStore.isNotGuest && to.meta.requiredRole === 'guest'){
+      console.log('creating guest because not logged in and route requires at least guest');
       await authStore.autoGuest();
     }
 

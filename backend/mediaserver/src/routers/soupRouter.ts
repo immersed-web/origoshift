@@ -60,7 +60,8 @@ export const soupRouter = router({
     }
     const producerId = await client.createProducer(input);
     log.info('gonna emit producerCreated');
-    ctx.venue._notifyStateUpdated('producer added');
+    // ctx.venue._notifyStateUpdated('producer added');
+    ctx.venue._notifyAdminOnlyState('producer added');
     // ctx.venue.emitToAllClients('producerCreated', {producingConnectionId: ctx.connectionId, producer: {producerId, paused: input.producerInfo.isPaused, kind: input.kind}});
     // ctx.venue.emitToAllClients('someClientStateUpdated', { clientState: client.getPublicState(), reason: `client (${client.clientType}) created producer` });
     return producerId;
@@ -83,7 +84,7 @@ export const soupRouter = router({
     }
     const createdConsumers: Record<ProducerId, Awaited<ReturnType<BaseClient['createConsumer']>>> = {};
     for (const p of Object.values(ctx.currentCamera.producers)){
-      const { producerId, kind, paused } = p;
+      const { producerId, paused } = p;
 
       createdConsumers[producerId] = await client.createConsumer({producerId, paused});
     }

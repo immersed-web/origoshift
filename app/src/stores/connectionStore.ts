@@ -73,7 +73,7 @@ export const useConnectionStore = defineStore('connection', () => {
   }
 
   function createSenderClient(){
-    if(!authStore.isLoggedIn){
+    if(!authStore.isAuthenticated){
       console.error('Trying to create client when not logged in. Ignoring!');
     }
     createTrpcClient(() => authStore.tokenOrThrow(), 'sender');
@@ -82,7 +82,7 @@ export const useConnectionStore = defineStore('connection', () => {
   }
 
   function createUserClient() {
-    if(!authStore.isLoggedIn){
+    if(!authStore.isAuthenticated){
       console.error('Trying to create client when not logged in. Ignoring!');
     }
     createTrpcClient(() => authStore.tokenOrThrow(), 'client');

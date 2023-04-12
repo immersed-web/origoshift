@@ -31,47 +31,52 @@
       <StepsItem
         :title="'Synlighet: ' + venueStore.currentVisibilityDetails?.name"
         :icon="venueStore.currentVisibilityDetails?.icon"
+        :tooltip="venueStore.currentVisibilityDetails?.description"
       >
-        {{ venueStore.currentVisibilityDetails?.description }}
+        <!-- {{ venueStore.currentVisibilityDetails?.description }} -->
       </StepsItem>
 
       <!-- Doors open -->
       <StepsItem
         :title="venueStore.currentVenue?.doorsOpeningTime?.toLocaleString()"
         icon="meeting_room"
+        tooltip="Dörrarna till eventet öppnas automatiskt den angivna tiden. Om eventet har en VR-lobby har besökaren möjlighet att gå in i denna."
       >
-        <ol class="text-xs">
+        <!-- <ol>
           <li>Dörrarna till eventet öppnas <i>automatiskt</i> den angivna tiden.</li>
           <li>Om eventet har en VR-lobby har besökaren möjlighet att gå in i denna.</li>
           <li>Samtliga besökare slussas automatiskt vidare till 360-sändningen när eventet startar.</li>
-        </ol>
+        </ol> -->
       </StepsItem>
 
       <!-- Streaming starts -->
       <StepsItem
         :title="venueStore.currentVenue?.streamStartTime?.toLocaleString()"
         icon="curtains"
+        tooltip="360-sändningens planerade starttid, synlig för besökarna. Ni startar sändningen manuellt när ni är redo, varpå samtliga besökare automatiskt slussas in."
       >
-        <ol class="text-xs">
+        <!-- <ol class="text-xs">
           <li>360-sändningens <i>planerade</i> starttid, synlig för besökarna.</li>
           <li>Ni startar sändningen <i>manuellt</i> när ni är redo.</li>
-        </ol>
+        </ol> -->
       </StepsItem>
 
       <!-- Event ends -->
       <StepsItem
         title="Manuellt avslut"
         icon="curtains_closed"
+        tooltip="Ni avslutar sändningen manuellt."
       >
-        <ol class="text-xs">
+        <!-- <ol class="text-xs">
           <li>Ni avslutar sändningen <i>manuellt</i>.</li>
-        </ol>
+        </ol> -->
       </StepsItem>
 
       <!-- Event has ended -->
       <StepsItem
         icon="door_front"
         :last="true"
+        tooltip="Eventet är avslutat."
       />
     </StepsContainer>
 

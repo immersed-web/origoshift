@@ -1,6 +1,10 @@
 
 <template>
-  <div :class="{'flex-1': !props.last}">
+  <div
+    class="tooltip tooltip-bottom text-left"
+    :data-tip="props.tooltip"
+    :class="{'flex-1': !props.last}"
+  >
     <div class="relative">
       <div class="avatar placeholder z-10">
         <div class="bg-primary text-neutral-content rounded-full w-10">
@@ -28,12 +32,19 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+
 
 const props = defineProps<{
   title?: string,
   icon?: string,
+  tooltip?: string,
   last?: boolean
 }>();
+
+const tooltip = computed(() => {
+  return 'rad_1_\a_rad_2';
+});
 
 </script>
 

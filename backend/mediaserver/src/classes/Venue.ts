@@ -247,11 +247,10 @@ export class Venue {
         }
       }
       this.senderClients.set(client.connectionId, client);
-      this.tryMatchCamera(client);
       // this._notifyStateUpdated('sender added to venue');
+      client._setVenue(this.venueId);
+      this.tryMatchCamera(client);
       this._notifyAdminOnlyState('sender added to venue');
-      // this._notifySenderAddedOrRemoved(client.getPublicState(), true, 'sender was added');
-      // this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
     }
     else {
       log.info('client wants to join');
@@ -267,10 +266,9 @@ export class Venue {
         }
       }
       this.clients.set(client.connectionId, client);
+      client._setVenue(this.venueId);
       this._notifyStateUpdated('Client added to Venue');
-    //   this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
     }
-    client._setVenue(this.venueId);
     log.info(`Client (${client.clientType}) ${client.username} added to the venue ${this.prismaData.name}`);
 
     // this._notifyClients('venueStateUpdated', this.getPublicState(), 'because I wanna');
@@ -306,7 +304,7 @@ export class Venue {
 
       // this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
       // this._notifySenderAddedOrRemoved(client.getPublicState(), false, 'sender was removed');
-      this._notifyStateUpdated('sender removed from venue');
+      this._notifyAdminOnlyState('sender removed from venue');
     }
     client.onRemovedFromVenue();
     client._setVenue(undefined);
@@ -476,7 +474,7 @@ export class Venue {
     const foundCamera = this.cameras.get(cameraId);
     if(foundCamera){
       log.info('camera was loaded. Unloading before removal');
-      foundCamera._closeAllConsumers();
+      // foundCamera._closeAllConsumers();
       foundCamera.unload();
       this.cameras.delete(cameraId);
     }

@@ -26,7 +26,7 @@ export class Camera {
   sender?: SenderClient;
   get producers() {
     if(!this.sender) {
-      return {};
+      return undefined;
     }
     return this.sender.getPublicProducers();
   }
@@ -53,11 +53,12 @@ export class Camera {
     const { cameraId, name, clientIds, senderId, producers } = this;
     // const senderState = this.sender?.getPublicState();
     const senderAttached = !!this.sender;
-    const isStreaming = Object.keys(producers).length !== 0;
+    const isStreaming = !!producers?.videoProducer || !!producers?.audioProducer;
     return { cameraId, name, clientIds, senderId, senderAttached, isStreaming, producers };
   }
 
   unload() {
+    this._closeAllConsumers();
     this.clients.forEach(client => {
       this.removeClient(client);
       // TODO: Notify client they were kicked out of camera
@@ -99,9 +100,16 @@ export class Camera {
     sender._setCamera(this.cameraId);
   }
 
+  // TODO: We probably want to have more lean housekeeping and not manually find all consumers of the producers...
   _closeAllConsumers() {
     if(this.sender){
-      this.sender.producers.forEach(p => this.venue._closeAllConsumersOfProducer(p.id as ProducerId));
+      if(this.sender.videoProducer){
+        this.venue._closeAllConsumersOfProducer(this.sender.videoProducer.id as ProducerId);
+      }
+      if(this.sender.audioProducer){
+        this.venue._closeAllConsumersOfProducer(this.sender.audioProducer.id as ProducerId);
+      }
+      // this.sender.producers.forEach(p => this.venue._closeAllConsumersOfProducer(p.id as ProducerId));
     }
   }
 

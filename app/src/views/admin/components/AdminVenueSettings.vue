@@ -31,7 +31,7 @@
             :class="{'btn-primary': vo.visibility === values.visibility}"
             @click="values.visibility = vo.visibility"
           >
-            <span class="material-icons mr-2">{{ vo.icon }}</span>
+            <span class="mr-2 material-icons">{{ vo.icon }}</span>
             {{ vo.name }}
           </button>
         </div>
@@ -75,16 +75,18 @@
 </template>
 
 <script setup lang="ts">
+import { useAdminStore } from '@/stores/adminStore';
 import { useVenueStore } from '@/stores/venueStore';
 import type { Visibility } from 'database';
 import { type Ref, ref, onMounted } from 'vue';
 
 // Use imports
 const venueStore = useVenueStore();
+const adminStore = useAdminStore();
 
 const updateVenue = async () => {
   if(venueStore.currentVenue){
-    venueStore.updateVenue(
+    adminStore.updateVenue(
       values.value.name,
       values.value.visibility,
       values.value.doorsOpeningTime ? new Date(values.value.doorsOpeningTime) : undefined,
@@ -92,31 +94,6 @@ const updateVenue = async () => {
     );
   }
 };
-
-// type OptionWithExtras = {
-//   option: Visibility,
-//   description: string,
-//   icon: string
-// }
-// // const v : Visibility[] = ['private', 'unlisted', 'public'];
-// const visibilityOptions : Ref<OptionWithExtras[]> = ref([
-//   {
-//     option: 'private',
-//     description: 'Privat',
-//     icon: 'lock',
-//   },
-//   {
-//     option: 'unlisted',
-//     description: 'Länk',
-//     icon: 'link',
-//   },
-//   {
-//     option: 'public',
-//     description: 'Publik',
-//     icon: 'list',
-//   },
-// ] as OptionWithExtras[]);
-
 
 // TODO: Shouldn't have to redefine VenueUpdate type
 const values = ref<{

@@ -102,6 +102,7 @@ import AdminVenue360 from './components/AdminVenue360.vue';
 import { useConnectionStore } from '@/stores/connectionStore';
 import StepsContainer from '@/components/design/StepsContainer.vue';
 import StepsItem from '@/components/design/StepsItem.vue';
+import { useAdminStore } from '@/stores/adminStore';
 
 // Router
 const router = useRouter();
@@ -109,6 +110,7 @@ const router = useRouter();
 // Stores
 const connection = useConnectionStore();
 const venueStore = useVenueStore();
+const adminStore = useAdminStore();
 
 const doorToggle = ref<boolean>(false);
 watch(doorToggle, async (doorState) => {
@@ -131,7 +133,7 @@ onUnmounted(async () => {
 });
 
 const deleteVenue = async () => {
-  await venueStore.deleteCurrentVenue();
+  await adminStore.deleteCurrentVenue();
   router.push({name: 'adminHome'});
 };
 

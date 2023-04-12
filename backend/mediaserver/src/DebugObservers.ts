@@ -29,6 +29,7 @@ export const printClassInstances = (clientList: Map<any, any>) => {
     for(const [clientKey, client] of venue.clients.entries()) {
       totalNrOf.venueClients[venueKey].clients++;
     }
+    // @ts-expect-error: In ooonly this specific case we want to ignore the private field (ws). But never elsewhere
     for(const [senderKey, client] of venue.senderClients.entries()) {
       totalNrOf.venueClients[venueKey].senders++;
     }

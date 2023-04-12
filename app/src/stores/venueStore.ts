@@ -5,7 +5,7 @@ import type { Visibility } from 'database';
 import type { VenueId } from 'schemas';
 import { useConnectionStore } from '@/stores/connectionStore';
 
-type _ReceivedVenueState = RouterOutputs['venue']['joinVenue'];
+type _ReceivedPublicVenueState = RouterOutputs['venue']['joinVenue'];
 
 export type VisibilityDetails = {
   visibility: Visibility,
@@ -17,25 +17,12 @@ export type VisibilityDetails = {
 export const useVenueStore = defineStore('venue', () => {
   // console.log('VENUESTORE USE FUNCTION TRIGGERED');
   const connection = useConnectionStore();
-  const currentVenue = ref<_ReceivedVenueState>();
-  // const persistedVenueId = useLocalStorage<VenueId>('savedVenueId', null);
+  // const authStore = useAuthStore();
+
+  const currentVenue = ref<_ReceivedPublicVenueState>();
   const savedVenueId = ref<VenueId>();
 
-  // connection.client.venue.subClientAddedOrRemoved.subscribe(undefined, {
-  //   onData(data){
-  //     if(data.added){
-  //       currentVenue.value?.clientIds.push(data.client.connectionId);
-  //     } else {
-  //       const idx = currentVenue.value?.clientIds.indexOf(data.client.connectionId);
-  //       if(idx !== undefined){
-  //         currentVenue.value?.clientIds.splice(idx, 1);
-  //       }
-  //     }
-  //   },
-  //   onError(err){
-  //     console.error(err);
-  //   },
-  // });
+
   connection.client.venue.subVenueUnloaded.subscribe(undefined, {
     onData() {
       currentVenue.value = undefined;
@@ -44,6 +31,7 @@ export const useVenueStore = defineStore('venue', () => {
       console.error(err);
     },
   });
+
   connection.client.venue.subVenueStateUpdated.subscribe(undefined, {
     onData(data){
       console.log('received venuestate updated:', data);
@@ -81,30 +69,10 @@ export const useVenueStore = defineStore('venue', () => {
     }
   });
 
-  async function createVenue () {
-    const venueId = await connection.client.admin.createNewVenue.mutate({name: `event-${Math.trunc(Math.random() * 1000)}`});
-    await loadVenue(venueId);
-    await joinVenue(venueId);
-    console.log('Created, loaded and joined venue', venueId);
-  }
-
-  async function loadVenue (venueId: VenueId) {
-    return await connection.client.admin.loadVenue.mutate({venueId});
-  }
 
   async function joinVenue (venueId: VenueId) {
     currentVenue.value = await connection.client.venue.joinVenue.mutate({venueId});
     savedVenueId.value = currentVenue.value.venueId;
-  }
-
-  // TODO: Shouldn't have to redefine VenueUpdate type
-  async function updateVenue (name?: string, visibility?: Visibility, doorsOpeningTime?: Date | null, streamStartTime?: Date | null) {
-    await connection.client.admin.updateVenue.mutate({
-      name: name,
-      visibility: visibility,
-      doorsOpeningTime: doorsOpeningTime,
-      streamStartTime: streamStartTime,
-    });
   }
 
   async function leaveVenue() {
@@ -116,15 +84,6 @@ export const useVenueStore = defineStore('venue', () => {
     currentVenue.value = undefined;
   }
 
-  async function deleteCurrentVenue() {
-
-    if(currentVenue.value?.venueId){
-      const venueId = currentVenue.value.venueId;
-      await leaveVenue();
-      // TODO: Make all other clients leave venue, too
-      await connection.client.admin.deleteVenue.mutate({venueId});
-    }
-  }
 
   const visibilityOptions : Ref<VisibilityDetails[]> = ref([
     {
@@ -154,12 +113,8 @@ export const useVenueStore = defineStore('venue', () => {
   return {
     savedVenueId,
     currentVenue,
-    createVenue,
-    loadVenue,
     joinVenue,
-    updateVenue,
     leaveVenue,
-    deleteCurrentVenue,
     modelUrl,
     navmeshUrl,
     visibilityOptions,

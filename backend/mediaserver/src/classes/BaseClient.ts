@@ -109,6 +109,7 @@ export class BaseClient {
 
   notify = {
     venueStateUpdated: undefined as NotifierSignature<ReturnType<Venue['getPublicState']>>,
+    venueStateUpdatedAdminOnly: undefined as NotifierSignature<ReturnType<Venue['getAdminOnlyState']>>,
     // camera: {
     newProducerInCamera: undefined as NotifierSignature<{added: true} & ReturnType<typeof this.getPublicProducers>[ProducerId]>,
     producerRemovedInCamera: undefined as NotifierSignature<{added: false, producerId: ProducerId }>,
@@ -126,12 +127,14 @@ export class BaseClient {
   */
   connectionId: ConnectionId;
   prismaData?: UserResponse;
+  // TODO: Might be a good idea to make this a (reactive?) map so we can do more performant comparisons.
   get allowedVenues(){
     if(!this.prismaData){
       return [];
     }
     return [...this.prismaData.allowedVenues, ...this.prismaData.ownedVenues];
   }
+  // TODO: Might be a good idea to make this a (reactive?) map so we can do more performant comparisons.
   get ownedVenues() {
     if(!this.prismaData) {
       return [];

@@ -5,7 +5,7 @@ log.enable(process.env.DEBUG);
 
 import { TRPCError } from '@trpc/server';
 import { observable } from '@trpc/server/observable';
-import { Camera, loadUserPrismaData, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
+import { BaseClient, Camera, loadUserPrismaData, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import { Prisma } from 'database';
 import prismaClient from '../modules/prismaClient';
 import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSchema, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
@@ -31,9 +31,11 @@ export const adminRouter = router({
     ctx.venue._notifyStateUpdated('venue settings/data updated');
   }),
   openVenueDoors: currentVenueAdminP.mutation(({ctx}) =>{
+    log.info('opening doors');
     ctx.venue.openDoors();
   }),
   closeVenueDoors: currentVenueAdminP.mutation(({ctx}) =>{
+    log.info('closing doors');
     ctx.venue.closeDoors();
   }),
   deleteVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
@@ -52,7 +54,13 @@ export const adminRouter = router({
   }),
   loadVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input, ctx}) => {
     const venue = await Venue.loadVenue(input.venueId, ctx.userId);
-    return venue.getPublicState();
+    return {publicVenueState: venue.getPublicState(), adminOnlyVenueState: venue.getAdminOnlyState()};
+  }),
+  loadAndJoinVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input, ctx}) => {
+    const venue = await Venue.loadVenue(input.venueId, ctx.userId);
+    const vState = await ctx.client.joinVenue(input.venueId);
+    const adminOnlyState = venue.getAdminOnlyState();
+    return {publicVenueState: vState, adminOnlyVenueState: adminOnlyState};
   }),
   listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
     return ctx.client.ownedVenues.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));
@@ -85,13 +93,7 @@ export const adminRouter = router({
     try{
       const { name, senderId } = input;
       const cId = await ctx.venue.createNewCamera(name, senderId);
-      let sender: SenderClient | undefined = undefined;
-      for(const s of ctx.venue.senderClients.values()){
-        if(s.senderId === senderId){
-          sender = s;
-        }
-      }
-      ctx.venue.loadCamera(cId, sender);
+      ctx.venue.loadCamera(cId, senderId);
     } catch(e) {
       // log.error('FAILED TO CREATE CAMERA!!!');
       if(e instanceof Prisma.PrismaClientKnownRequestError){
@@ -108,18 +110,17 @@ export const adminRouter = router({
   })).mutation(async ({ ctx, input})=> {
     return await ctx.venue.deleteCamera(input.cameraId);
   }),
-  addSenderToCamera: currentVenueAdminP.input(z.object({
+  setSenderForCamera: currentVenueAdminP.input(z.object({
     senderClientConnectionId: ConnectionIdSchema,
     cameraId: CameraIdSchema,
   })).mutation(({ctx, input}) => {
-    const foundCamera = ctx.venue.cameras.get(input.cameraId);
-    if(!foundCamera){
-      throw new TRPCError({code: 'NOT_FOUND', message: 'no camera with that id in venue'});
-    }
-    const foundSender = ctx.venue.senderClients.get(input.senderClientConnectionId);
-    if(!foundSender){
-      throw new TRPCError({code: 'NOT_FOUND', message: 'No sender with that id in venue'});
-    }
-    foundCamera.setSender(foundSender);
+    ctx.venue.setSenderForCamera(input.senderClientConnectionId, input.cameraId);
+  }),
+  subVenueStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
+    log.info(`attching (admin)venueStateUpdated notifier for client: ${ctx.username} (${ctx.connectionId})`);
+    return observable<NotifierInputData<BaseClient['notify']['venueStateUpdatedAdminOnly']>>((scriber) => {
+      ctx.client.notify.venueStateUpdatedAdminOnly = scriber.next;
+      return () => ctx.client.notify.venueStateUpdatedAdminOnly = undefined;
+    });
   }),
 });

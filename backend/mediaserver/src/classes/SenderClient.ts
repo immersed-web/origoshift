@@ -91,11 +91,6 @@ export class SenderClient extends BaseClient{
   async joinVenue(venueId: VenueId){
     this.leaveCurrentVenue();
     const venue = Venue.getVenue(venueId);
-    for(const v of venue.senderClients.values()){
-      if(v.senderId === this.senderId){
-        throw Error('already joined with that senderId!');
-      }
-    }
     venue.addClient(this);
     this._notifyStateUpdated('sender client joined venue');
     return venue.getPublicState();
@@ -104,7 +99,6 @@ export class SenderClient extends BaseClient{
   leaveCurrentVenue() {
     if(!this.venue) {
       return false;
-      // throw Error('cant leave a venue if you are not in one!');
     }
     // super._onRemovedFromVenue();
     // this.teardownMediasoupObjects();

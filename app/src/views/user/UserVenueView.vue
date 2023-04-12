@@ -16,7 +16,7 @@
       <h1
         class="text-5xl font-bold"
       >
-        Loaded and joined venue: {{ clientStore.clientState?.currentVenueId }}
+        Joined venue: {{ venueStore.currentVenue.name }} {{ venueStore.currentVenue.venueId }}
       </h1>
       <div class="flex space-x-2">
         <!-- <button

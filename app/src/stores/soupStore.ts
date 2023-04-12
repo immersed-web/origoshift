@@ -86,7 +86,8 @@ export const useSoupStore = defineStore('soup', () =>{
 
   async function createSendTransport(){
     if(sendTransport.value){
-      throw Error('local sendTransport already exists. Wont create a new one!');
+      // throw Error('local sendTransport already exists. Wont create a new one!');
+      console.warn('local sendTransport already exists. Wont create a new one!');
     }
     const transportOptions = await connectionStore.client.soup.createSendTransport.mutate();
     sendTransport.value = soupDevice.createSendTransport(transportOptions);
@@ -103,7 +104,8 @@ export const useSoupStore = defineStore('soup', () =>{
 
   async function createReceiveTransport(){
     if(receiveTransport.value){
-      throw Error('local receiveTransport already exists. Wont create a new one!');
+      // throw Error('local receiveTransport already exists. Wont create a new one!');
+      console.warn('local receiveTransport already exists. Wont create a new one!');
     }
     const transportOptions = await connectionStore.client.soup.createReceiveTransport.mutate();
     receiveTransport.value = soupDevice.createRecvTransport(transportOptions);

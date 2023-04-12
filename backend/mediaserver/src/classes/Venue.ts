@@ -100,8 +100,17 @@ export class Venue {
   }
 
   // senderClients: Map<ConnectionId, SenderClient> = new Map();
-  senderClients  = shallowReactive<Map<ConnectionId, SenderClient>>(new Map());
-  detachedSenders = computed(() => {
+  private senderClients  = shallowReactive<Map<ConnectionId, SenderClient>>(new Map());
+  senderClientIds = computed(() => {
+    return Array.from(this.senderClients.keys());
+  });
+  //TODO: Find a way to use reactivity or memoization smoothly for backend instead of getters. We want to avoid unneccesary deep reactivity for performance
+  get detachedSenders() {
+    // log.info('detachedSenders recalculated!');
+    const senderArray = Array.from(this.senderClients.entries());
+    const sendersWithoutCameraArray: typeof senderArray = senderArray.filter(([k, sender]) => !sender.camera);
+    return new Map(sendersWithoutCameraArray);
+    // TODO: Verify that my new version above works and that the old one below is unneccesary
     const sendersInCamsConnectionIds = [] as ConnectionId[];
     this.cameras.forEach(c => {
       if(c.sender) {
@@ -110,30 +119,47 @@ export class Venue {
     });
     const sendersConnectionIds = Array.from(this.senderClients.entries());
     return new Map(sendersConnectionIds.filter(([sId, sender]) => !sendersInCamsConnectionIds.includes(sId)));
-  });
+  }
 
   get _isEmpty() {
     return this.clients.size === 0 && this.senderClients.size === 0;
   }
   getPublicState() {
-    const {venueId, name, clientIds, owners, visibility, doorsOpeningTime, streamStartTime} = this;
+    const {venueId, name, visibility, doorsOpeningTime, streamStartTime} = this;
+    // log.info('Detached senders:', this.detachedSenders.value);
+    // const cameraIds = Array.from(this.cameras.keys());
+    const cameras: Record<CameraId, {
+      cameraId: CameraId,
+      name: string,
+    }> = {};
+    this.cameras.forEach((c) => {
+      cameras[c.cameraId] = {
+        cameraId: c.cameraId,
+        name: c.name,
+      };
+    });
+    return {
+      venueId, name, visibility, doorsOpeningTime, streamStartTime,
+      vrSpace: this.vrSpace?.getPublicState(),
+      cameras,
+    };
+  }
+
+  getAdminOnlyState() {
+    const { clientIds, owners } = this;
+    const detachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string}> = {};
+    this.detachedSenders.forEach(s => detachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username});
     const cameras: Record<CameraId, ReturnType<Camera['getPublicState']>> = {};
     this.cameras.forEach(cam => cameras[cam.cameraId] = cam.getPublicState());
-    const detachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string}> = {};
-    this.detachedSenders.value.forEach(s => detachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username});
-    // log.info('Detached senders:', this.detachedSenders.value);
-    return {
-      venueId, name, clientIds, owners, visibility, doorsOpeningTime, streamStartTime,
-      vrSpace: this.vrSpace?.getPublicState(),
-      detachedSenders,
-      cameras
-    };
+
+    // const publicState =  this.getPublicState();
+    return { clientIds, owners ,detachedSenders, cameras };
   }
 
   //
   // NOTE: It's important we release all references here!
   unload() {
-    log.info(`unloading ${this.prismaData.name} (${this.venueId})`);
+    log.info(`*****UNLOADING VENUE: ${this.name} (${this.venueId})`);
     this.emitToAllClients('venueWasUnloaded', this.venueId);
     this.router.close();
     // this.cameras.forEach(room => room.destroy());
@@ -151,30 +177,52 @@ export class Venue {
   }
 
   _notifyStateUpdated(reason?: string){
-    const data = this.getPublicState();
-    this.clients.forEach(c => c.notify.venueStateUpdated?.({data, reason}));
+    const publicState = this.getPublicState();
+    // const adminOnlyState = this.getAdminOnlyState();
+    this.clients.forEach(c => {
+      // if(
+      //   hasAtLeastSecurityLevel(c.role, 'moderator')
+      //   && -1 !== c.ownedVenues.findIndex((v) => v.venueId === this.venueId)
+      // ){
+
+      //   // c.notify.venueStateUpdatedAdminOnly?.({data: adminOnlyState, reason});
+      // }else {
+      //   c.notify.venueStateUpdated?.({data: publicState, reason});
+      // }
+      log.info(`notifying venuestate to client ${c.username} (${c.connectionId})`);
+      c.notify.venueStateUpdated?.({data: publicState, reason});
+    });
     this.senderClients.forEach(s => {
       log.info(`notifying venuestate to sender ${s.username} (${s.connectionId})`);
       if(!s.notify.venueStateUpdated){
         log.warn('sender didnt have subscriver attached');
         return;
       }
-      s.notify.venueStateUpdated({data, reason});
+      s.notify.venueStateUpdated({data: publicState, reason});
     });
   }
 
-  _notifySenderAddedOrRemoved(senderState: ReturnType<SenderClient['getPublicState']>, added: boolean, reason?: string){
-    log.info('Notifying SenderAddedOrRemoved to clients!!!');
-    log.info(this.clients.size);
+  _notifyAdminOnlyState(reason?: string){
+    const data = this.getAdminOnlyState();
     this.clients.forEach(c => {
-      log.info(`notifying client ${c.username} (${c.connectionId}) (${c.clientType})`);
-      if(!c.notify.senderAddedOrRemoved){
-        log.warn('client didnt have observer attached');
-        return;
+      if(hasAtLeastSecurityLevel(c.role, 'moderator')){
+        c.notify.venueStateUpdatedAdminOnly?.({data, reason});
       }
-      c.notify.senderAddedOrRemoved({data: {senderState, added}, reason});
     });
   }
+
+  // _notifySenderAddedOrRemoved(senderState: ReturnType<SenderClient['getPublicState']>, added: boolean, reason?: string){
+  //   log.info('Notifying SenderAddedOrRemoved to clients!!!');
+  //   log.info(this.clients.size);
+  //   this.clients.forEach(c => {
+  //     log.info(`notifying client ${c.username} (${c.connectionId}) (${c.clientType})`);
+  //     if(!c.notify.senderAddedOrRemoved){
+  //       log.warn('client didnt have observer attached');
+  //       return;
+  //     }
+  //     c.notify.senderAddedOrRemoved({data: {senderState, added}, reason});
+  //   });
+  // }
 
 
   // _notifyClients<K extends NotifyKey, Input extends NotifyInput<K>['data']>(key: K extends NotifyKey ? K : never, data: Input, reason?: string){
@@ -192,16 +240,24 @@ export class Venue {
    * @param client the client instance to add to the venue
    */
   addClient ( client : UserClient | SenderClient){
-    // TODO: We should probably decide on where and when we trigger different notifiers. As of now we do both stateupdate and senderaddedremoved
     if(client.clientType === 'sender'){
+      for(const v of this.senderClients.values()){
+        if(v.senderId === client.senderId){
+          throw Error('already joined with that senderId!');
+        }
+      }
       this.senderClients.set(client.connectionId, client);
       this.tryMatchCamera(client);
-      this._notifyStateUpdated('sender added to venue');
+      // this._notifyStateUpdated('sender added to venue');
+      this._notifyAdminOnlyState('sender added to venue');
       // this._notifySenderAddedOrRemoved(client.getPublicState(), true, 'sender was added');
       // this.emitToAllClients('senderAddedOrRemoved', {client: client.getPublicState(), added: true}, client.connectionId);
     }
     else {
+      log.info('client wants to join');
+      log.info('doors:', this._doorOpen);
       if(!hasAtLeastSecurityLevel(client.role, 'moderator')){
+        log.info('requsting client is below moderator');
         let doorsAreOpen = this._doorOpen;
         if(this.doorsOpeningTime && isPast(this.doorsOpeningTime) ){
           doorsAreOpen = true;
@@ -244,6 +300,7 @@ export class Venue {
       // TODO: Make sure this is not race condition where it throws because it cant find the camera instance
       // when using the camera getter
       // Should we perhaps remove the throw?
+      log.info('TRYING TO READ CAMERA GETTER OF CLIENT:', client.username);
       client.camera?.setSender(undefined);
       this.senderClients.delete(client.connectionId);
 
@@ -433,6 +490,7 @@ export class Venue {
     this.prismaData.cameras.splice(idx, 1);
 
     this._notifyStateUpdated('camera removed');
+    this._notifyAdminOnlyState('camera removed');
     return deleteResponse;
   }
 
@@ -454,7 +512,7 @@ export class Venue {
 
   }
 
-  loadCamera(cameraId: CameraId, sender?: SenderClient) {
+  loadCamera(cameraId: CameraId, senderId?: SenderId) {
     if(this.cameras.has(cameraId)){
       throw Error('a camera with that id is already loaded');
     }
@@ -462,19 +520,31 @@ export class Venue {
     if(!prismaCamera){
       throw Error('no prisma data for a camera with that Id in venue prismaData');
     }
-    // Try to auto connect to sender from senderId
-    if(!sender && prismaCamera.senderId){
+    let maybeSender: SenderClient | undefined = undefined;
+    if(prismaCamera.senderId || senderId){
       for(const s of this.senderClients.values()){
+        // senderId explicitly provided
+        if(s.senderId === senderId){
+          log.info('Provided senderId matched. Attaching camera to it.');
+          maybeSender = s;
+          break;
+        }
+        // Try to auto connect to sender from senderId
         if(s.senderId === prismaCamera.senderId){
           log.info('Found matched sender. Attaching camera to it.');
-          sender = s;
+          maybeSender = s;
+          break;
         }
       }
     }
-    const camera = new Camera(prismaCamera, this, sender);
+    const camera = new Camera(prismaCamera, this, maybeSender);
     this.cameras.set(camera.cameraId, camera);
+    if(maybeSender){
+      this.senderClients.set(maybeSender.connectionId, maybeSender);
+    }
 
     this._notifyStateUpdated('camera loaded');
+    this._notifyAdminOnlyState('camera loaded');
   }
 
   tryMatchCamera(senderClient: SenderClient){
@@ -488,6 +558,18 @@ export class Venue {
         break;
       }
     }
+  }
+
+  setSenderForCamera(senderConnectionId: ConnectionId, cameraId: CameraId){
+    const foundSender = this.senderClients.get(senderConnectionId);
+    if(!foundSender){
+      throw Error('No sender with that connectionId in venue');
+    }
+    const foundCamera = this.cameras.get(cameraId);
+    if(!foundCamera){
+      throw Error('No camera with that cameraId in venue');
+    }
+    foundCamera.setSender(foundSender);
   }
 
   // Static stuff for global housekeeping
@@ -549,7 +631,7 @@ export class Venue {
       }
       const router = await worker.createRouter(mediasoupConfig.router);
       const venue = new Venue(dbResponse, router);
-      log.info(`loading ${venue.prismaData.name} (${venue.prismaData.venueId})`);
+      log.info(`*****LOADING VENUE: ${venue.name} (${venue.venueId})`);
 
       Venue.venues.set(venue.venueId, venue);
       return venue;

@@ -9,7 +9,7 @@
     </thead>
     <tbody class="border">
       <tr
-        v-for="sender in venueStore.currentVenue?.detachedSenders"
+        v-for="sender in adminStore.adminOnlyVenueState?.detachedSenders"
         :key="sender.connectionId"
       >
         <td>{{ sender.connectionId.substring(0, 5) }}...</td>
@@ -21,10 +21,10 @@
 
 <script setup lang="ts">
 import { useAdminStore } from '@/stores/adminStore';
-import { useVenueStore } from '@/stores/venueStore';
+// import { useVenueStore } from '@/stores/venueStore';
 
 // Use imports
-const venueStore = useVenueStore();
+// const venueStore = useVenueStore();
 const adminStore = useAdminStore();
 
 </script>

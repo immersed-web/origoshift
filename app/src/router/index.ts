@@ -5,11 +5,10 @@ import { useClientStore } from '@/stores/clientStore';
 import { hasAtLeastSecurityLevel, type UserRole, type ClientType } from 'schemas';
 import { createRouter, createWebHistory } from 'vue-router';
 import { useVenueStore } from '@/stores/venueStore';
+import { useAdminStore } from '@/stores/adminStore';
 
 declare module 'vue-router' {
   interface RouteMeta {
-    // noAuth?: boolean
-    // requiresAuth?: boolean
     requiredConnection?: ClientType
     requiredRole?: UserRole
     afterLoginRedirect?: string
@@ -204,13 +203,15 @@ router.beforeEach(async (to, from) => {
         return { name: routeName};
       }
       if(hasAtLeastSecurityLevel(authStore.role, 'moderator')){
+        const adminStore = useAdminStore();
         try{
-          await venueStore.loadVenue(venueStore.savedVenueId);
+          await adminStore.loadAndJoinVenue(venueStore.savedVenueId);
         } catch (e) {
           console.warn('nav guard tried to load venue that was already loaded');
         }
+      }else{
+        await venueStore.joinVenue(venueStore.savedVenueId);
       }
-      await venueStore.joinVenue(venueStore.savedVenueId);
     }
   }
 });

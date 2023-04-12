@@ -42,6 +42,7 @@ import { useVenueStore } from '@/stores/venueStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { computed, onBeforeMount, ref } from 'vue';
 import type { VenueId } from 'schemas/*';
+import { useAdminStore } from '@/stores/adminStore';
 
 // Use imports
 const router = useRouter();
@@ -49,6 +50,7 @@ const connectionStore = useConnectionStore();
 const clientStore = useClientStore();
 const authStore = useAuthStore();
 const venueStore = useVenueStore();
+const adminStore = useAdminStore();
 
 const venuesAsArray = computed(() => {
   if(!clientStore.clientState) return [];
@@ -67,25 +69,27 @@ onBeforeMount(async () => {
 
 // View functionality
 async function createVenue () {
-  await venueStore.createVenue();
+  await adminStore.createVenue();
   router.push({name: authStore.routePrefix + 'Venue'});
 
   // clientStore.createVenue();
 }
 
 const loadAndJoinVenue = async (venueId: VenueId) => {
-  try{
-    await venueStore.loadVenue(venueId);
-  }catch(e) {
-    console.error(e);
-  }
-  try{
-    await venueStore.joinVenue(venueId);
-    router.push({name: authStore.routePrefix + 'Venue'});
-  }
-  catch(e){
-    console.log(e);
-  }
+  // try{
+  //   await venueStore.loadVenue(venueId);
+  // }catch(e) {
+  //   console.error(e);
+  // }
+  // try{
+  //   await venueStore.joinVenue(venueId);
+  //   router.push({name: authStore.routePrefix + 'Venue'});
+  // }
+  // catch(e){
+  //   console.log(e);
+  // }
+  await adminStore.loadAndJoinVenue(venueId);
+  router.push({name: authStore.routePrefix + 'Venue'});
 };
 
 </script>

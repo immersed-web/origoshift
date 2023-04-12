@@ -11,7 +11,7 @@
       </thead>
       <tbody>
         <tr
-          v-for="camera in venueStore.currentVenue?.cameras"
+          v-for="camera in adminStore.adminOnlyVenueState?.cameras"
           :key="camera.cameraId"
         >
           <td>{{ camera.name }} sändare: {{ camera.senderAttached }}</td>
@@ -57,7 +57,7 @@
     </div>
     <div class="p-4 border-2">
       <div
-        v-for="sender in venueStore.currentVenue?.detachedSenders"
+        v-for="sender in adminStore.adminOnlyVenueState?.detachedSenders"
         :key="sender.connectionId"
       >
         {{ sender.username }}
@@ -74,7 +74,7 @@
         {{ venueStore.currentVenue }}
       </pre>
   <pre>
-        {{ adminStore.connectedSenders }}
+        <!-- {{ adminStore.connectedSenders }} -->
       </pre>
 </template>
 

@@ -6,16 +6,6 @@
           {{ venueStore.currentVenue?.name }}
         </h1>
       </div>
-      <div class="">
-        <label class="cursor-pointer label">
-          <input
-            class="mr-2 toggle toggle-primary"
-            type="checkbox"
-            v-model="doorToggle"
-          >
-          <span class="label-text">{{ doorToggle? 'Dörrar är nu öppna' : 'Dörrar är nu stängda' }}</span>
-        </label>
-      </div>
       <div>
         <button
           class="btn btn-error"
@@ -38,15 +28,26 @@
 
       <!-- Doors open -->
       <StepsItem
+        v-if="venueStore.currentVenue?.doorsOpeningTime"
         :title="venueStore.currentVenue?.doorsOpeningTime?.toLocaleString()"
         icon="meeting_room"
         tooltip="Dörrarna till eventet öppnas automatiskt den angivna tiden. Om eventet har en VR-lobby har besökaren möjlighet att gå in i denna."
+      />
+      <StepsItem
+        v-else
+        title="Manuell dörröppning"
+        icon="meeting_room"
+        tooltip="Ni öppnar manuellt dörrarna när ni önskar. Om eventet har en VR-lobby har besökaren möjlighet att gå in i denna."
       >
-        <!-- <ol>
-          <li>Dörrarna till eventet öppnas <i>automatiskt</i> den angivna tiden.</li>
-          <li>Om eventet har en VR-lobby har besökaren möjlighet att gå in i denna.</li>
-          <li>Samtliga besökare slussas automatiskt vidare till 360-sändningen när eventet startar.</li>
-        </ol> -->
+        <label class="cursor-pointer label flex justify-start gap-2">
+          <span>Öppen dörr:</span>
+          <input
+            class="mr-2 toggle toggle-primary toggle-sm"
+            type="checkbox"
+            v-model="doorToggle"
+          >
+          <!-- <span class="label-text">{{ doorToggle? 'Dörrar är nu öppna' : 'Dörrar är nu stängda' }}</span> -->
+        </label>
       </StepsItem>
 
       <!-- Streaming starts -->

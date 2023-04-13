@@ -66,7 +66,21 @@ export const soupRouter = router({
     // ctx.venue.emitToAllClients('someClientStateUpdated', { clientState: client.getPublicState(), reason: `client (${client.clientType}) created producer` });
     return producerId;
   }),
-  closeProducer: clientInVenueP.input(z.object({producerId:z.string().uuid()})).mutation(({input, ctx}) => {
+  closeVideoProducer: clientInVenueP.mutation(({ctx}) =>{
+    if(!ctx.client.videoProducer){
+      throw new TRPCError({code: 'NOT_FOUND', message: 'no videoProducer exists. can\t close'});
+    }
+    ctx.client.videoProducer.close();
+    ctx.client.videoProducer = undefined;
+  }),
+  closeAudioProducer: clientInVenueP.mutation(({ctx}) =>{
+    if(!ctx.client.audioProducer){
+      throw new TRPCError({code: 'NOT_FOUND', message: 'no audioProducer exists. can\t close'});
+    }
+    ctx.client.audioProducer.close();
+    ctx.client.audioProducer = undefined;
+  }),
+  closeProducer: clientInVenueP.input(z.object({producerId: ProducerIdSchema})).mutation(({input, ctx}) => {
     return 'Not implemented yet' as const;
   }),
   createConsumer: clientInVenueP.input(CreateConsumerPayloadSchema).mutation(async ({ctx, input}) => {

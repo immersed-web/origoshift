@@ -29,7 +29,7 @@
         Permission state: {{ permissionState }}
         Video info: {{ videoInfo }}
         Mediasoup device loaded: {{ soup.deviceLoaded }}
-  </pre>
+      </pre>
       <select
         v-model="pickedVideoInput"
         class="select select-primary"
@@ -58,17 +58,13 @@
         autoplay
         ref="videoTag"
       />
-      <div
-        v-for="(stat, k) in soup.producersStats"
-        :key="k"
-      >
-        {{ k }}
+      <div v-if="soup.videoProducer.stats">
         <pre
-          v-for="(entry, key) in stat"
+          v-for="(entry, key) in soup.videoProducer.stats"
           :key="key"
         >
-        {{ key }}: {{ entry }}
-      </pre>
+          {{ key }}: {{ entry }}
+        </pre>
       </div>
     </div>
   </template>

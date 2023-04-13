@@ -7,19 +7,38 @@ import { useIntervalFn } from '@vueuse/core';
 import { useConnectionStore } from './connectionStore';
 import type { ConsumerId, ProducerId, ProducerInfo } from 'schemas/mediasoup';
 
+type ProducerData = {
+  producer?: soupTypes.Producer,
+  stats?: Awaited<ReturnType<soupTypes.Producer['getStats']>> | undefined,
+}
 export const useSoupStore = defineStore('soup', () =>{
   const deviceLoaded = ref(false);
   const sendTransport = shallowRef<soupTypes.Transport>();
   const receiveTransport = shallowRef<soupTypes.Transport>();
-  const producers = shallowReactive<Map<ProducerId, soupTypes.Producer>>(new Map());
-  const producersStats = reactive<Record<ProducerId, Awaited<ReturnType<soupTypes.Producer['getStats']>>>>({});
+  // const producers = shallowReactive<Map<ProducerId, soupTypes.Producer>>(new Map());
+  const videoProducer: ProducerData = reactive({
+    producer: undefined,
+    stats: undefined,
+  });
+  const audioProducer: ProducerData = reactive({
+    producer: undefined,
+    stats: undefined,
+  });
+  // const producersStats = reactive<Record<ProducerId, >>({});
 
-  useIntervalFn(() => {
-    producers.forEach(async (p, k) => {
-      const stats = await p.getStats();
-      producersStats[k] = stats;
-    });
+  useIntervalFn(async () => {
+    if(videoProducer.producer){
+      videoProducer.stats = await videoProducer.producer.getStats();
+    }
+    if(audioProducer.producer){
+      audioProducer.stats = await audioProducer.producer.getStats();
+    }
+    // producers.forEach(async (p, k) => {
+    //   const stats = await p.getStats();
+    //   producersStats[k] = stats;
+    // });
   }, 5000);
+
   // Perhaps unintuitive to have producerId as key.
   // But presumably the most common case is to need the consumer belonging to a specific producer.
   const consumers = shallowReactive<Map<ProducerId, soupTypes.Consumer>>(new Map());
@@ -28,7 +47,7 @@ export const useSoupStore = defineStore('soup', () =>{
 
   connectionStore.client.soup.subSoupObjectClosed.subscribe(undefined, {
     onData({data, reason}) {
-      console.log('soupObject closed: ', data);
+      console.log(`soupObject closed (${reason}): `, data);
       switch (data.type){
         case 'consumer': {
           const { consumerInfo: {consumerId, producerId} } = data;
@@ -40,11 +59,20 @@ export const useSoupStore = defineStore('soup', () =>{
           break;
         }
         case 'producer': {
-          const localProducer = producers.get(data.id);
-          if(localProducer){
-            localProducer.close();
-            producers.delete(data.id);
+          if(videoProducer.producer?.id === data.id){
+            videoProducer.producer.close();
+            videoProducer.producer = undefined;
+            videoProducer.stats = undefined;
+          } else if(audioProducer.producer?.id === data.id){
+            audioProducer.producer.close();
+            audioProducer.producer = undefined;
+            audioProducer.stats = undefined;
           }
+          // const localProducer = producers.get(data.id);
+          // if(localProducer){
+          //   localProducer.close();
+          //   producers.delete(data.id);
+          // }
           break;
         }
         case 'transport': {
@@ -121,6 +149,11 @@ export const useSoupStore = defineStore('soup', () =>{
     if(!sendTransport.value){
       throw Error('no transport. Cant produce');
     }
+    if(track.kind === 'video' && videoProducer.producer){
+      closeVideoProducer();
+    } else if(track.kind === 'audio' && audioProducer.producer) {
+      closeAudioProducer();
+    }
     const appData: ProduceAppData = {
       producerInfo,
       producerId,
@@ -132,18 +165,58 @@ export const useSoupStore = defineStore('soup', () =>{
       }],
       appData,
     });
-    producers.set(producer.id as ProducerId, producer);
+    if(producer.kind === 'video'){
+      videoProducer.producer = producer;
+    } else {
+      audioProducer.producer = producer;
+    }
     return producer.id as ProducerId;
   }
 
+  async function closeVideoProducer(){
+    if(!videoProducer.producer){
+      console.warn('tried to close videoProducer, but no videoProducer existed');
+      return;
+    }
+    videoProducer.producer.close();
+    videoProducer.producer = undefined;
+    videoProducer.stats = undefined;
+    connectionStore.client.soup.closeVideoProducer.mutate();
+  }
 
-  async function replaceProducerTrack (producerId: ProducerId, track: MediaStreamTrack) {
-    const producer = producers.get(producerId);
-    if (!producer) {
-      throw new Error('no producer with that id found');
+  async function closeAudioProducer(){
+    if(!audioProducer.producer){
+      console.warn('tried to close audioProducer, but no audioProducer existed');
+      return;
+    }
+    audioProducer.producer.close();
+    audioProducer.producer = undefined;
+    audioProducer.stats = undefined;
+    connectionStore.client.soup.closeAudioProducer.mutate();
+  }
+
+  async function replaceVideoProducerTrack (producerId: ProducerId, track: MediaStreamTrack) {
+    if(track.kind !== 'video'){
+      throw Error('the new track must be of kind video');
+    }
+    // const producer = producers.get(producerId);
+    if (!videoProducer.producer) {
+      throw new Error('no videoProducer exists, can\'t replace track');
     }
     console.log('replacing producer track');
-    return producer.replaceTrack({ track });
+    return videoProducer.producer.replaceTrack({ track });
+  }
+
+  async function replaceAudioProducerTrack (producerId: ProducerId, track: MediaStreamTrack) {
+    if(track.kind !== 'audio'){
+      throw Error('the new track must be of kind video');
+    }
+    // const producer = producers.get(producerId);
+    if (!audioProducer.producer) {
+      throw new Error('no audioProducer exists, can\'t replace track');
+    }
+    console.log('replacing producer track');
+    return audioProducer.producer.replaceTrack({ track });
   }
 
   async function consume (producerId: ProducerId) {
@@ -223,25 +296,39 @@ export const useSoupStore = defineStore('soup', () =>{
     await connectionStore.client.soup.pauseOrResumeConsumer.mutate({producerId, pause: wasPaused});
   }
 
-  async function pauseProducer (producerId: ProducerId) {
-    pauseResumeProducer(producerId, true);
+  async function pauseVideoProducer () {
+    pauseResumeProducer('video', true);
   }
 
-  async function resumeProducer (producerId: ProducerId) {
-    pauseResumeProducer(producerId, false);
+  async function resumeVideoProducer () {
+    pauseResumeProducer('video', false);
   }
 
-  async function pauseResumeProducer (producerId: ProducerId, wasPaused: boolean) {
-    const producer = producers.get(producerId);
+  async function pauseAudioProducer () {
+    pauseResumeProducer('audio', true);
+  }
+
+  async function resumeAudioProducer () {
+    pauseResumeProducer('audio', false);
+  }
+
+  async function pauseResumeProducer (type: 'video' | 'audio', wasPaused: boolean) {
+    let producer: soupTypes.Producer | undefined;
+    if(type === 'video'){
+      producer = videoProducer.producer;
+    } else {
+      producer = audioProducer.producer;
+    }
+    // const producer = producers.get(producerId);
     if (!producer) {
-      throw Error('no such producer found (client-side)');
+      throw Error('no such producer exists (client-side)');
     }
     if (wasPaused) {
       producer.pause();
     } else {
       producer.resume();
     }
-    // TODO: Implement
+    // TODO: signal changed pause state to backend
     // const pauseReq = createRequest('notifyPauseResumeRequest', {
     //   objectType: 'producer',
     //   objectId: producer.id,
@@ -255,13 +342,18 @@ export const useSoupStore = defineStore('soup', () =>{
     deviceLoaded,
     createSendTransport,
     createReceiveTransport,
-    producers,
-    producersStats,
+    videoProducer,
+    audioProducer,
+    // producers,
+    // producersStats,
     consumers,
     produce,
-    replaceProducerTrack,
-    pauseProducer,
-    resumeProducer,
+    replaceVideoProducerTrack,
+    replaceAudioProducerTrack,
+    pauseVideoProducer,
+    resumeVideoProducer,
+    pauseAudioProducer,
+    resumeAudioProducer,
     consume,
     pauseConsumer,
     resumeConsumer,

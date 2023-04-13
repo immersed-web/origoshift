@@ -263,7 +263,6 @@ export const useSoupStore = defineStore('soup', () =>{
     pauseProducer,
     resumeProducer,
     consume,
-    consumeCurrentCamera,
     pauseConsumer,
     resumeConsumer,
   };

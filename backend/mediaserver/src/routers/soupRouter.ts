@@ -69,27 +69,6 @@ export const soupRouter = router({
   closeProducer: clientInVenueP.input(z.object({producerId:z.string().uuid()})).mutation(({input, ctx}) => {
     return 'Not implemented yet' as const;
   }),
-  consumeCurrentCamera: clientInVenueP.use(isInCameraM).mutation(async ({ctx}) => {
-    const client = ctx.client;
-    if(!client.receiveTransport){
-      throw new TRPCError({code:'PRECONDITION_FAILED', message:'A transport is required to create a consumer'});
-    }
-
-    if(!client.rtpCapabilities){
-      throw Error('rtpCapabilities of client unknown. Provide them before requesting to consume');
-    }
-
-    if(!ctx.currentCamera.producers){
-      throw new TRPCError({code: 'NOT_FOUND', message: 'no producers in camera'});
-    }
-    const createdConsumers: Record<ProducerId, Awaited<ReturnType<BaseClient['createConsumer']>>> = {};
-    for (const p of Object.values(ctx.currentCamera.producers)){
-      const { producerId, paused } = p;
-
-      createdConsumers[producerId] = await client.createConsumer({producerId, paused});
-    }
-    return createdConsumers;
-  }),
   createConsumer: clientInVenueP.input(CreateConsumerPayloadSchema).mutation(async ({ctx, input}) => {
     log.info('received createConsumer request');
     const client = ctx.client;
@@ -122,7 +101,7 @@ export const soupRouter = router({
     return observable<NotifierInputData<typeof ctx.client.notify.soupObjectClosed>>(scriber =>{
       log.info(ctx.client.notify);
       ctx.client.notify['soupObjectClosed'] = (d) => {
-        log.info(`soupObject closed triggered for client ${ctx.username} (${ctx.clientType})`);
+        log.info(`soupObject ${d.data.type} closed triggered for client ${ctx.username} (${ctx.clientType})`);
         scriber.next(d);
       };
       log.info(ctx.client.notify);

@@ -2,7 +2,7 @@
 import { Log } from 'debug-level';
 import type { Camera as PrismaCamera } from 'database';
 import type { CameraId, SenderId  } from 'schemas';
-import {Venue, UserClient, SenderClient} from './InternalClasses';
+import {Venue, UserClient, SenderClient, BaseClient} from './InternalClasses';
 import { ProducerId } from 'schemas/mediasoup';
 
 const log = new Log('Camera');
@@ -26,7 +26,10 @@ export class Camera {
   sender?: SenderClient;
   get producers() {
     if(!this.sender) {
-      return undefined;
+      // return undefined;
+      const emptyProducers: ReturnType<BaseClient['getPublicProducers']> = {
+      };
+      return emptyProducers;
     }
     return this.sender.getPublicProducers();
   }
@@ -58,13 +61,18 @@ export class Camera {
   }
 
   unload() {
-    this._closeAllConsumers();
+    // this._closeAllConsumers();
     this.clients.forEach(client => {
       this.removeClient(client);
       // TODO: Notify client they were kicked out of camera
     });
     this.setSender(undefined);
-    log.info('Unloading camera not implemented yet?');
+  }
+
+  _notifyStateUpdated(reason?: string) {
+    this.clients.forEach(client => {
+      client.notify.cameraStateUpdated?.({data: this.getPublicState(), reason});
+    });
   }
 
   /**
@@ -77,13 +85,18 @@ export class Camera {
     }
     this.clients.set(client.connectionId, client);
     client._setCamera(this.cameraId);
+
+    this._notifyStateUpdated('client added to camera');
   }
 
   removeClient(client: UserClient){
+    //TODO: If we rebuild so some producers can cover over many cameras this will have to be changed.
+    client.closeAllConsumers();
     const wasRemoved = this.clients.delete(client.connectionId);
     if(wasRemoved){
       client._setCamera();
     }
+    this._notifyStateUpdated('client removed from camera');
     return wasRemoved;
   }
 
@@ -98,10 +111,11 @@ export class Camera {
     }
     this.sender = sender;
     sender._setCamera(this.cameraId);
+    this._notifyStateUpdated('sender attached to camera');
   }
 
   // TODO: We probably want to have more lean housekeeping and not manually find all consumers of the producers...
-  _closeAllConsumers() {
+  private _closeAllConsumers() {
     if(this.sender){
       if(this.sender.videoProducer){
         this.venue._closeAllConsumersOfProducer(this.sender.videoProducer.id as ProducerId);
@@ -112,8 +126,5 @@ export class Camera {
       // this.sender.producers.forEach(p => this.venue._closeAllConsumersOfProducer(p.id as ProducerId));
     }
   }
-
-  // STATIC STUFF LAST
-
 
 }

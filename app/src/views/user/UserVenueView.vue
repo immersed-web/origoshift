@@ -55,18 +55,20 @@ const props = defineProps<{
 
 const venueInfo = shallowRef<VenueListInfo>();
 
-const { pause } = useIntervalFn(async () => {
-  try {
-    console.log('trying to join venue:', props.venueId);
-    // await venueStore.joinVenue(props.venueId);
-    await venueStore.loadAndJoinVenue(props.venueId);
-    pause();
-  }catch(e){
-    console.error(e);
-    console.log('failed to join venue. Will retry soon.');
-  }
+if(venueStore.currentVenue?.venueId !== props.venueId){
+  const { pause } = useIntervalFn(async () => {
+    try {
+      console.log('trying to join venue:', props.venueId);
+      // await venueStore.joinVenue(props.venueId);
+      await venueStore.loadAndJoinVenue(props.venueId);
+      pause();
+    }catch(e){
+      console.error(e);
+      console.log('failed to join venue. Will retry soon.');
+    }
 
-}, 5000, { immediateCallback: true});
+  }, 5000, { immediateCallback: true});
+}
 onMounted(async () =>{
   venueInfo.value = await connection.client.venue.getVenueListInfo.query({venueId: props.venueId});
 });
@@ -74,7 +76,7 @@ onMounted(async () =>{
 const router = useRouter();
 
 // Stores
-const clientStore = useClientStore();
+// const clientStore = useClientStore();
 
 const openLobby = async () => {
   await connection.client.vr.enterVrSpace.mutate();

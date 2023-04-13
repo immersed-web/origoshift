@@ -175,7 +175,8 @@ export class UserClient extends BaseClient {
     if(!this.currentCamera){
       return false;
     }
-    this.currentCamera.removeClient(this);
+    const wasRemoved = this.currentCamera.removeClient(this);
     this._onClientStateUpdated('user client left camera');
+    return wasRemoved;
   }
 }

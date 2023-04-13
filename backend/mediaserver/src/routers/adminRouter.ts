@@ -102,7 +102,7 @@ export const adminRouter = router({
           throw new TRPCError({code: 'CONFLICT', message: 'upptaget kameranamn!'});
         }
       }
-      throw new TRPCError({code: 'INTERNAL_SERVER_ERROR', message: 'Kund inte skapa kamera! okänt fel :-('});
+      throw new TRPCError({code: 'INTERNAL_SERVER_ERROR', message: 'Kunde inte skapa kamera! okänt fel 😥'});
     }
   }),
   deleteCamera: currentVenueAdminP.input(z.object({

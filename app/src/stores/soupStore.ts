@@ -88,6 +88,7 @@ export const useSoupStore = defineStore('soup', () =>{
     if(sendTransport.value){
       // throw Error('local sendTransport already exists. Wont create a new one!');
       console.warn('local sendTransport already exists. Wont create a new one!');
+      return;
     }
     const transportOptions = await connectionStore.client.soup.createSendTransport.mutate();
     sendTransport.value = soupDevice.createSendTransport(transportOptions);
@@ -106,6 +107,7 @@ export const useSoupStore = defineStore('soup', () =>{
     if(receiveTransport.value){
       // throw Error('local receiveTransport already exists. Wont create a new one!');
       console.warn('local receiveTransport already exists. Wont create a new one!');
+      return;
     }
     const transportOptions = await connectionStore.client.soup.createReceiveTransport.mutate();
     receiveTransport.value = soupDevice.createRecvTransport(transportOptions);
@@ -153,6 +155,7 @@ export const useSoupStore = defineStore('soup', () =>{
     // }
     const foundConsumer = consumers.get(producerId);
     if(foundConsumer){
+      console.log('re-using already existing consumer');
       return { track: foundConsumer.track, consumerId: foundConsumer.id as ConsumerId};
     }
     const consumerOptions = await connectionStore.client.soup.createConsumer.mutate({producerId});
@@ -187,10 +190,7 @@ export const useSoupStore = defineStore('soup', () =>{
       console.error('consumer existed in backend but not in frontend. Not good!');
     }
     const consumer = await receiveTransport.value.consume(consumerOptions);
-    //Not a bug to use producerID! It's on purpose.
-    if(consumers.has(consumerOptions.producerId)){
-      throw Error('a new consumer was created in backend but one for that producer already existed in frontend. This is REEEEAAAAL BAAAD. What have you done Gunhaxxor?');
-    }
+    console.assert(!consumers.has(consumerOptions.producerId), 'a new consumer was created in backend but one for that producer already existed in frontend. This is REEEEAAAAL BAAAD. What have you done Gunhaxxor?');
     consumers.set(consumerOptions.producerId, consumer);
 
     // safe to unpause from server now
@@ -199,18 +199,6 @@ export const useSoupStore = defineStore('soup', () =>{
       track: consumer.track,
       consumerId: consumer.id as ConsumerId,
     };
-  }
-
-  async function consumeCurrentCamera() {
-    const localConsumersResponse: Record<ProducerId, {
-      track: soupTypes.Consumer['track'],
-      consumerId: ConsumerId,
-    }> = {};
-    const consumersResponse = await connectionStore.client.soup.consumeCurrentCamera.mutate();
-    for(const [key, consumerOptions] of Object.entries(consumersResponse)){
-      localConsumersResponse[consumerOptions.producerId] = await _handleReceivedConsumerOptions(consumerOptions);
-    }
-    return localConsumersResponse;
   }
 
   async function pauseConsumer (producerId: ProducerId) {

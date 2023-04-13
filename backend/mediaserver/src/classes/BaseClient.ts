@@ -7,7 +7,7 @@ import { ConnectionId, JwtUserData, UserId, UserRole, VenueId, ConnectionIdSchem
 import { types as soupTypes } from 'mediasoup';
 import type { types as soupClientTypes } from 'mediasoup-client';
 import { ConsumerId, CreateConsumerPayload, CreateProducerPayload, ProducerId, TransportId  } from 'schemas/mediasoup';
-import { SenderClient, UserClient, Venue } from './InternalClasses';
+import { SenderClient, UserClient, Venue, Camera } from './InternalClasses';
 import { CustomListenerSignature, FilteredEvents, NotifierInputData, NonFilteredEvents, NotifierSignature, SingleParamListenerSignature } from 'trpc/trpc-utils';
 import { randomUUID } from 'crypto';
 import { Prisma, userDeselectPassword, userSelectAll } from 'database';
@@ -124,8 +124,9 @@ export class BaseClient {
     venueStateUpdated: undefined as NotifierSignature<ReturnType<Venue['getPublicState']>>,
     venueStateUpdatedAdminOnly: undefined as NotifierSignature<ReturnType<Venue['getAdminOnlyState']>>,
     // camera: {
-    newProducerInCamera: undefined as NotifierSignature<{added: true} & ReturnType<typeof this.getPublicProducers>['videoProducer']>,
-    producerRemovedInCamera: undefined as NotifierSignature<{added: false, producerId: ProducerId }>,
+    cameraStateUpdated: undefined as NotifierSignature<ReturnType<Camera['getPublicState']>>,
+    // newProducerInCamera: undefined as NotifierSignature<{added: true} & ReturnType<typeof this.getPublicProducers>['videoProducer']>,
+    // producerRemovedInCamera: undefined as NotifierSignature<{added: false, producerId: ProducerId }>,
     // },
     // soup: {
     soupObjectClosed: undefined as NotifierSignature<SoupObjectClosePayload>,
@@ -362,6 +363,7 @@ export class BaseClient {
     const { producerId, paused } = consumerOptions;
     const preExistingConsumer = this.consumers.get(producerId);
     if(preExistingConsumer){
+      log.info('consumer already existed for that producer. Returning existing one to client');
       return {
         alreadyExisted: true,
         id: preExistingConsumer.id as ConsumerId,

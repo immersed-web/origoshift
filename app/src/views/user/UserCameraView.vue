@@ -12,26 +12,26 @@
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useSoupStore } from '@/stores/soupStore';
 import type { CameraId, VenueId } from 'schemas';
-import { onMounted, ref, watch } from 'vue';
+import { onBeforeMount, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue';
 import ConsumerElement from '@/components/ConsumerElement.vue';
 import { useVenueStore } from '@/stores/venueStore';
+import { useCameraStore } from '@/stores/cameraStore';
 
 const props = defineProps<{
   venueId: VenueId,
   cameraId: CameraId,
 }>();
 
-const connectionStore = useConnectionStore();
 const soup = useSoupStore();
 const venueStore = useVenueStore();
+const camera = useCameraStore();
 
-const cProducers = ref();
-watch(cProducers, (newProducers) => {
-  console.log('cameraProducers were updated', newProducers);
-  const consumers = soup.consumeCurrentCamera();
+watch(() => camera.producers, (updatedProducers) => {
+  console.log('cameraProducers were updated:', toRaw(updatedProducers));
+  camera.consumeCurrentCamera();
 });
 
-onMounted(async () => {
+onBeforeMount(async () => {
   if(!venueStore.currentVenue){
     await venueStore.joinVenue(props.venueId);
   }
@@ -39,9 +39,12 @@ onMounted(async () => {
     await soup.loadDevice();
   }
   await soup.createReceiveTransport();
-  const joinResponse = await connectionStore.client.camera.joinCamera.mutate({ cameraId: props.cameraId });
-  cProducers.value = venueStore.currentVenue?.cameras[props.cameraId].producers;
-  // const consumers = soup.consumeCurrentCamera();
+
+  await camera.joinCamera(props.cameraId);
+});
+
+onBeforeUnmount(() => {
+  camera.leaveCurrentCamera();
 });
 
 

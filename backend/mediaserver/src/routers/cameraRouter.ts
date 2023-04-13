@@ -20,6 +20,10 @@ export const cameraRouter = router({
   joinCamera: userInVenueP.input(z.object({
     cameraId: CameraIdSchema
   })).mutation(({ctx, input}) => {
+    if(ctx.client.currentCamera){
+      log.info('was already in a camera. leaving that camera first');
+      ctx.client.leaveCurrentCamera();
+    }
     const foundCamera = ctx.venue.cameras.get(input.cameraId);
     if(!foundCamera) {
       throw new TRPCError({ code: 'NOT_FOUND', message: 'no camera with that Id found in venue'});
@@ -27,13 +31,16 @@ export const cameraRouter = router({
     foundCamera.addClient(ctx.client);
     return foundCamera.getPublicState();
   }),
-  subProducerAddedOrRemoved: userClientP.subscription(({ctx}) => {
-    type ProdAddRemoveInput = NotifierInputData<typeof ctx.client.notify.newProducerInCamera> | NotifierInputData<typeof ctx.client.notify.producerRemovedInCamera>;
-    return observable<ProdAddRemoveInput>((scriber) => {
-      ctx.client.notify.newProducerInCamera = scriber.next;
-      ctx.client.notify.producerRemovedInCamera = scriber.next;
-    });
-    // return attachToFilteredEvent(ctx.client.clientEvent, '');
+  leaveCurrentCamera: userInVenueP.use(isInCameraM).mutation(({ctx}) => {
+    return ctx.client.leaveCurrentCamera();
   }),
+  subCameraStateUpdated: p.subscription(({ctx}) => {
+    return observable<NotifierInputData<typeof ctx.client.notify.cameraStateUpdated>>(scriber => {
+      ctx.client.notify.cameraStateUpdated = scriber.next;
 
+      return () =>{
+        ctx.client.notify.cameraStateUpdated = undefined;
+      };
+    });
+  })
 });

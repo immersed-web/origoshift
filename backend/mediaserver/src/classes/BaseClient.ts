@@ -398,8 +398,9 @@ export class BaseClient {
       this.consumers.delete(producerId);
       if(!this.notify.soupObjectClosed){
         log.info('NO NOTIFIER ATTACHED for Client!');
+        return;
       }
-      this.notify.soupObjectClosed?.({data: {type: 'consumer', consumerInfo: { consumerId, producerId }}, reason: 'transport for the consumer was closed'});
+      this.notify.soupObjectClosed({data: {type: 'consumer', consumerInfo: { consumerId, producerId }}, reason: 'transport for the consumer was closed'});
     });
 
     consumer.on('producerpause', () => {

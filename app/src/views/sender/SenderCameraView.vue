@@ -185,13 +185,17 @@ async function startVideo(videoDevice: MediaDeviceInfo){
     // deviceId: pickedVideoInput.value?.deviceId,
     isPaused: false,
   };
-  // const restoredProducerId = senderStore.savedProducers.get(deviceId)?.producerId;
-  const producerId = await soup.produce({
-    // producerId: restoredProducerId,
-    track: videoTrack.value,
-    producerInfo,
-  });
-  // senderStore.savedProducers.set(deviceId, {deviceId, producerId, type: 'video'});
+  if(soup.videoProducer.producer){
+    await soup.replaceVideoProducerTrack(videoTrack.value);
+  }else{
+    // const restoredProducerId = senderStore.savedProducers.get(deviceId)?.producerId;
+    await soup.produce({
+      // producerId: restoredProducerId,
+      track: videoTrack.value,
+      producerInfo,
+    });
+    // senderStore.savedProducers.set(deviceId, {deviceId, producerId, type: 'video'});
+  }
 }
 
 const permissionState = ref();

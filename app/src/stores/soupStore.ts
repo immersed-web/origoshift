@@ -195,7 +195,7 @@ export const useSoupStore = defineStore('soup', () =>{
     connectionStore.client.soup.closeAudioProducer.mutate();
   }
 
-  async function replaceVideoProducerTrack (producerId: ProducerId, track: MediaStreamTrack) {
+  async function replaceVideoProducerTrack (track: MediaStreamTrack) {
     if(track.kind !== 'video'){
       throw Error('the new track must be of kind video');
     }
@@ -207,7 +207,7 @@ export const useSoupStore = defineStore('soup', () =>{
     return videoProducer.producer.replaceTrack({ track });
   }
 
-  async function replaceAudioProducerTrack (producerId: ProducerId, track: MediaStreamTrack) {
+  async function replaceAudioProducerTrack (track: MediaStreamTrack) {
     if(track.kind !== 'audio'){
       throw Error('the new track must be of kind video');
     }

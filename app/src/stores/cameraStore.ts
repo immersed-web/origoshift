@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { useConnectionStore } from './connectionStore';
 import type { CameraId } from 'schemas';
 import type { RouterOutputs } from '@/modules/trpcClient';
-import { computed, reactive, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useSoupStore } from './soupStore';
 import { toReactive } from '@vueuse/core';
 

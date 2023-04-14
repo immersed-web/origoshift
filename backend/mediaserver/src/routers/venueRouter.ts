@@ -30,7 +30,7 @@ export const venueRouter = router({
         visibility: true,
       } satisfies Record<keyof VenueListInfo, true>
     });
-    const assembledVenues = uniqBy([...publicVenues, ...ctx.client.allowedVenues], 'venueId');
+    const assembledVenues = uniqBy([...publicVenues, ...ctx.client.allowedVenues.value], 'venueId');
 
     return assembledVenues;
   }),

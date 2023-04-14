@@ -45,7 +45,7 @@ export const adminRouter = router({
     }
     if(
       !hasAtLeastSecurityLevel(ctx.role, 'admin')
-      && -1 === ctx.client.ownedVenues.findIndex(v => v.venueId === venueId)){
+      && -1 === ctx.client.ownedVenues.value.findIndex(v => v.venueId === venueId)){
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You are not owner or dont have high enough permission. Now Cry!'});
     }
 
@@ -63,7 +63,7 @@ export const adminRouter = router({
     return {publicVenueState: vState, adminOnlyVenueState: adminOnlyState};
   }),
   listMyVenues: atLeastModeratorP.query(async ({ctx}) => {
-    return ctx.client.ownedVenues.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));
+    return ctx.client.ownedVenues.value.map(({venueId, name}) => ({venueId: venueId as VenueId, name}));
   }),
   subSenderAddedOrRemoved: p.use(isVenueOwnerM).use(isUserClientM).subscription(({ctx}) => {
     return observable<NotifierInputData<UserClient['notify']['senderAddedOrRemoved']>>((scriber) => {

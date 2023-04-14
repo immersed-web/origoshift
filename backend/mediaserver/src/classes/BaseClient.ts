@@ -15,7 +15,7 @@ import prismaClient from '../modules/prismaClient';
 import { ListenerSignature, TypedEmitter } from 'tiny-typed-emitter';
 import { observable } from '@trpc/server/observable';
 import { keyBy } from 'lodash';
-import { computed, shallowRef } from '@vue/reactivity';
+import { computed, ref, shallowRef } from '@vue/reactivity';
 
 type SoupObjectClosePayload =
       {type: 'transport', id: TransportId }
@@ -106,7 +106,7 @@ export class BaseClient {
     // super();
     this.connectionId = connectionId;
     this.jwtUserData = jwtUserData;
-    this.prismaData = prismaData;
+    this.prismaData.value = prismaData;
 
 
     this.clientEvent = new TypedEmitter();
@@ -141,21 +141,20 @@ export class BaseClient {
   * The id of the actual connection. This differs from the userId, as a user could potentially have multiple concurrent active connections
   */
   connectionId: ConnectionId;
-  prismaData?: UserResponse;
-  // TODO: Might be a good idea to make this a (reactive?) map so we can do more performant comparisons.
-  get allowedVenues(){
-    if(!this.prismaData){
+  // prismaData?: UserResponse;
+  prismaData = ref<UserResponse>();
+  allowedVenues= computed(() => {
+    if(!this.prismaData.value){
       return [];
     }
-    return [...this.prismaData.allowedVenues, ...this.prismaData.ownedVenues];
-  }
-  // TODO: Might be a good idea to make this a (reactive?) map so we can do more performant comparisons.
-  get ownedVenues() {
-    if(!this.prismaData) {
+    return [...this.prismaData.value.allowedVenues, ...this.prismaData.value.ownedVenues];
+  });
+  ownedVenues = computed(() => {
+    if(!this.prismaData.value) {
       return [];
     }
-    return this.prismaData.ownedVenues;
-  }
+    return this.prismaData.value.ownedVenues;
+  });
 
   jwtUserData: JwtUserData;
 
@@ -250,7 +249,7 @@ export class BaseClient {
     // const ownedVenues = this.ownedVenues.map(v => v.venueId);
 
     // const ownedVenues = keyBy(this.ownedVenues, (v) => v.venueId);
-    const ownedVenues = this.ownedVenues.reduce<Record<VenueId, {venueId: VenueId, name: string}>>((acc, venue) => {
+    const ownedVenues = this.ownedVenues.value.reduce<Record<VenueId, {venueId: VenueId, name: string}>>((acc, venue) => {
       const {venueId, name} = venue;
       acc[venueId as VenueId] = {venueId: venueId as VenueId, name};
       return acc;

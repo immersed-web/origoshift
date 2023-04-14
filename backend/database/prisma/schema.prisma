@@ -95,8 +95,9 @@ model Camera {
   name     String
   venue    Venue   @relation(fields: [venueId], references: [venueId], onDelete: Cascade)
   venueId  String  @db.Uuid ///@zod.uuid()
-  senderId String? @unique @db.Uuid ///@zod.uuid()
+  senderId String? @db.Uuid ///@zod.uuid()
   settings Json
 
   @@unique([name, venueId]) // We allow duplicate camera names as long as they are at different venues
+  @@unique([senderId, venueId]) // We allow a sender to be associated with different cameras in different venues
 }

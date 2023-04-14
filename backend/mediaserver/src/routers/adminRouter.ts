@@ -92,10 +92,12 @@ export const adminRouter = router({
   })).mutation(async ({ctx, input}) => {
     try{
       const { name, senderId } = input;
+      log.info(`received request to create camera with name ${name} and senderId ${senderId}`);
       const cId = await ctx.venue.createNewCamera(name, senderId);
       ctx.venue.loadCamera(cId, senderId);
     } catch(e) {
-      // log.error('FAILED TO CREATE CAMERA!!!');
+      log.error('FAILED TO CREATE CAMERA!!!');
+      log.error(e);
       if(e instanceof Prisma.PrismaClientKnownRequestError){
         if(e.code === 'P2002'){
           // log.error('Is Prisma error! prisma message: ', e.message);

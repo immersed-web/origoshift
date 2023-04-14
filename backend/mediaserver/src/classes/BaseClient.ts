@@ -15,6 +15,7 @@ import prismaClient from '../modules/prismaClient';
 import { ListenerSignature, TypedEmitter } from 'tiny-typed-emitter';
 import { observable } from '@trpc/server/observable';
 import { keyBy } from 'lodash';
+import { computed, shallowRef } from '@vue/reactivity';
 
 type SoupObjectClosePayload =
       {type: 'transport', id: TransportId }
@@ -24,7 +25,7 @@ type SoupObjectClosePayload =
 type CreateConsumerResponse = Pick<soupTypes.Consumer, 'kind' | 'rtpParameters'> & { alreadyExisted?: boolean, producerId: ProducerId, id: ConsumerId}
 
 type ClientSoupEvents = FilteredEvents<{
-  'producerCreated': (data: {producer: ReturnType<BaseClient['getPublicProducers']>['videoProducer'], producingConnectionId: ConnectionId}) => void
+  'producerCreated': (data: {producer: PublicProducers['videoProducer'], producingConnectionId: ConnectionId}) => void
 }, ConnectionId>
 & NonFilteredEvents<{
   'soupObjectClosed': (data: SoupObjectClosePayload & { reason: string}) => void
@@ -77,7 +78,7 @@ export async function loadUserPrismaData(userId: UserId){
   return response;
 }
 
-type PublicProducers = {
+export type PublicProducers = {
   videoProducer?: {
     producerId: ProducerId,
     // kind: Extract<soupTypes.MediaKind, 'video'>,
@@ -177,8 +178,10 @@ export class BaseClient {
   sendTransport?: soupTypes.WebRtcTransport;
   consumers: Map<ProducerId, soupTypes.Consumer> = new Map();
   // producers: Map<ProducerId, soupTypes.Producer> = new Map();
-  videoProducer?: soupTypes.Producer;
-  audioProducer?: soupTypes.Producer;
+  // videoProducer?: soupTypes.Producer;
+  // audioProducer?: soupTypes.Producer;
+  videoProducer = shallowRef<soupTypes.Producer>();
+  audioProducer = shallowRef<soupTypes.Producer>();
 
   // soupEvents: TypedEmitter<ClientSoupEvents>;
   // venueEvents: TypedEmitter<ClientVenueEvents>;
@@ -204,28 +207,44 @@ export class BaseClient {
     }
   }
 
-  getPublicProducers(): PublicProducers{
-    let videoProducer = undefined;
-    if( this.videoProducer) {
-      const {id, paused } = this.videoProducer;
-      videoProducer = {producerId: id as ProducerId, paused};
+
+  publicProducers = computed(() => {
+    const pProducers: PublicProducers = {};
+    // let videoProducer = undefined;
+    if( this.videoProducer.value) {
+      const {id, paused } = this.videoProducer.value;
+      pProducers.videoProducer = {producerId: id as ProducerId, paused};
     }
-    let audioProducer = undefined;
-    if( this.audioProducer) {
-      const {id, paused } = this.audioProducer;
-      audioProducer = {producerId: id as ProducerId, paused};
+    // let audioProducer = undefined;
+    if( this.audioProducer.value) {
+      const {id, paused } = this.audioProducer.value;
+      pProducers.audioProducer = {producerId: id as ProducerId, paused};
     }
-    return {
-      videoProducer,
-      audioProducer,
-    };
-    // const producerObj: Record<ProducerId, {producerId: ProducerId, kind: soupTypes.MediaKind, paused: boolean }> = {};
-    // this.producers.forEach((p) => {
-    //   const pId = p.id as ProducerId;
-    //   producerObj[pId] = { producerId: pId, kind: p.kind, paused: p.paused};
-    // });
-    // return producerObj;
-  }
+    return pProducers;
+  });
+
+  // getPublicProducers(): PublicProducers{
+  //   let videoProducer = undefined;
+  //   if( this.videoProducer) {
+  //     const {id, paused } = this.videoProducer;
+  //     videoProducer = {producerId: id as ProducerId, paused};
+  //   }
+  //   let audioProducer = undefined;
+  //   if( this.audioProducer) {
+  //     const {id, paused } = this.audioProducer;
+  //     audioProducer = {producerId: id as ProducerId, paused};
+  //   }
+  //   return {
+  //     videoProducer,
+  //     audioProducer,
+  //   };
+  //   // const producerObj: Record<ProducerId, {producerId: ProducerId, kind: soupTypes.MediaKind, paused: boolean }> = {};
+  //   // this.producers.forEach((p) => {
+  //   //   const pId = p.id as ProducerId;
+  //   //   producerObj[pId] = { producerId: pId, kind: p.kind, paused: p.paused};
+  //   // });
+  //   // return producerObj;
+  // }
 
   getPublicState(){
     // const ownedVenues = this.ownedVenues.map(v => v.venueId);
@@ -242,7 +261,7 @@ export class BaseClient {
       username: this.username,
       role: this.role,
       currentVenueId: this.venue?.venueId,
-      producers: this.getPublicProducers(),
+      producers: this.publicProducers.value,
       ownedVenues
     };
   }
@@ -322,10 +341,10 @@ export class BaseClient {
       throw Error('no transport. Cant produce');
     }
     const {kind, rtpParameters, producerInfo, producerId} = produceOptions;
-    if(kind === 'video' && this.videoProducer){
+    if(kind === 'video' && this.videoProducer.value){
       throw Error('A videoproducer already exists. Only one videoproducer per client allowed');
     }
-    if(kind === 'audio' && this.audioProducer){
+    if(kind === 'audio' && this.audioProducer.value){
       throw Error('A videoproducer already exists. Only one videoproducer per client allowed');
     }
     const appData = { producerInfo };
@@ -333,10 +352,10 @@ export class BaseClient {
     producer.on('transportclose', () => {
       console.log(`transport for producer ${producer.id} was closed`);
       // this.producers.delete(producer.id as ProducerId);
-      if(producer.kind === 'video' && this.videoProducer?.id === producer.id){
-        this.videoProducer = undefined;
-      } else if(producer.kind === 'audio' && this.audioProducer?.id === producer.id){
-        this.videoProducer = undefined;
+      if(producer.kind === 'video' && this.videoProducer.value?.id === producer.id){
+        this.videoProducer.value = undefined;
+      } else if(producer.kind === 'audio' && this.audioProducer.value?.id === producer.id){
+        this.videoProducer.value = undefined;
       }else {
         throw Error('the closed producer wasnt one of the clients producers');
       }
@@ -344,9 +363,9 @@ export class BaseClient {
       this.notify.soupObjectClosed?.({data: {type: 'producer', id: producer.id as ProducerId}, reason: 'transport was closed'});
     });
     if(kind === 'video'){
-      this.videoProducer = producer;
+      this.videoProducer.value = producer;
     } else{
-      this.audioProducer = producer;
+      this.audioProducer.value = producer;
     }
     // this.producers.set(producer.id as ProducerId, producer);
     return producer.id as ProducerId;
@@ -453,7 +472,7 @@ export class BaseClient {
   }
 
   closeAllProducers = () => {
-    const producerArray = [this.videoProducer, this.audioProducer];
+    const producerArray = [this.videoProducer.value, this.audioProducer.value];
     for(const producer of producerArray){
       if(!producer){
         continue;
@@ -461,8 +480,8 @@ export class BaseClient {
       producer.close();
       this.notify.soupObjectClosed?.({data: {type: 'producer', id: producer.id as ProducerId }, reason: 'closing all producers for client'});
     }
-    this.videoProducer = undefined;
-    this.audioProducer = undefined;
+    this.videoProducer.value = undefined;
+    this.audioProducer.value = undefined;
   };
 
   closeAllConsumers = () => {

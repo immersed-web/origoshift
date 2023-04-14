@@ -111,14 +111,14 @@ export class Venue {
     const sendersWithoutCameraArray: typeof senderArray = senderArray.filter(([k, sender]) => !sender.camera);
     return new Map(sendersWithoutCameraArray);
     // TODO: Verify that my new version above works and that the old one below is unneccesary
-    const sendersInCamsConnectionIds = [] as ConnectionId[];
-    this.cameras.forEach(c => {
-      if(c.sender) {
-        sendersInCamsConnectionIds.push(c.sender.connectionId);
-      }
-    });
-    const sendersConnectionIds = Array.from(this.senderClients.entries());
-    return new Map(sendersConnectionIds.filter(([sId, sender]) => !sendersInCamsConnectionIds.includes(sId)));
+    // const sendersInCamsConnectionIds = [] as ConnectionId[];
+    // this.cameras.forEach(c => {
+    //   if(c.sender) {
+    //     sendersInCamsConnectionIds.push(c.sender.connectionId);
+    //   }
+    // });
+    // const sendersConnectionIds = Array.from(this.senderClients.entries());
+    // return new Map(sendersConnectionIds.filter(([sId, sender]) => !sendersInCamsConnectionIds.includes(sId)));
   }
 
   get _isEmpty() {

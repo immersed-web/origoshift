@@ -82,6 +82,11 @@ export class SenderClient extends BaseClient{
     // this.senderClientEvent.emit('myStateUpdated', {myState: this.getPublicState(), reason});
   }
 
+  // notifyCameraProducersUpdated() {
+  //   if(!this.camera) return;
+  //   this.camera.
+  // }
+
   unload() {
     log.info(`unloading sender client ${ this.username } ${this.connectionId} `);
     super.unload();

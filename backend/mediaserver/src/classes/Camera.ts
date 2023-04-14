@@ -2,8 +2,9 @@
 import { Log } from 'debug-level';
 import type { Camera as PrismaCamera } from 'database';
 import type { CameraId, SenderId  } from 'schemas';
-import {Venue, UserClient, SenderClient, BaseClient} from './InternalClasses';
+import {Venue, UserClient, SenderClient, BaseClient, PublicProducers} from './InternalClasses';
 import { ProducerId } from 'schemas/mediasoup';
+import { computed, shallowRef, effect } from '@vue/reactivity';
 
 const log = new Log('Camera');
 
@@ -20,19 +21,34 @@ export class Camera {
       log.info('attaching sender when instantiating camera');
       this.setSender(sender);
     }
+    effect(() =>{
+      // this.producers;
+      log.info('Producers updated:', this.producers.value);
+      this._notifyStateUpdated('producers updated');
+    }, {
+      // lazy: true,
+    });
   }
 
   venue: Venue;
-  sender?: SenderClient;
-  get producers() {
-    if(!this.sender) {
+  // sender?: SenderClient;
+  sender = shallowRef<SenderClient>();
+  producers = computed(() => {
+    if(!this.sender.value) {
       // return undefined;
-      const emptyProducers: ReturnType<BaseClient['getPublicProducers']> = {
-      };
+      const emptyProducers: PublicProducers = {};
       return emptyProducers;
     }
-    return this.sender.getPublicProducers();
-  }
+    return this.sender.value?.publicProducers.value;
+  });
+  // get producers() {
+  //   if(!this.sender.value) {
+  //     // return undefined;
+  //     const emptyProducers: PublicProducers = {};
+  //     return emptyProducers;
+  //   }
+  //   return this.sender.value.publicProducers;
+  // }
   clients: Venue['clients'];
   get clientIds() {
     return Array.from(this.clients.keys());
@@ -53,11 +69,11 @@ export class Camera {
   }
 
   getPublicState() {
-    const { cameraId, name, clientIds, senderId, producers } = this;
+    const { cameraId, name, clientIds, senderId } = this;
     // const senderState = this.sender?.getPublicState();
     const senderAttached = !!this.sender;
-    const isStreaming = !!producers?.videoProducer || !!producers?.audioProducer;
-    return { cameraId, name, clientIds, senderId, senderAttached, isStreaming, producers };
+    const isStreaming = !!this.producers.value.videoProducer || !!this.producers.value.audioProducer;
+    return { cameraId, name, clientIds, senderId, senderAttached, isStreaming, producers: this.producers.value };
   }
 
   unload() {
@@ -102,26 +118,26 @@ export class Camera {
 
   setSender(sender: SenderClient | undefined){
     if(!sender){
-      this.sender?._setCamera(undefined);
-      this.sender = undefined;
+      this.sender.value?._setCamera(undefined);
+      this.sender.value = undefined;
       return;
     }
-    if(this.sender){
+    if(this.sender.value){
       throw Error('trying to set sender in camera when it was already set. This should not happen!');
     }
-    this.sender = sender;
+    this.sender.value = sender;
     sender._setCamera(this.cameraId);
     this._notifyStateUpdated('sender attached to camera');
   }
 
   // TODO: We probably want to have more lean housekeeping and not manually find all consumers of the producers...
   private _closeAllConsumers() {
-    if(this.sender){
-      if(this.sender.videoProducer){
-        this.venue._closeAllConsumersOfProducer(this.sender.videoProducer.id as ProducerId);
+    if(this.sender.value){
+      if(this.sender.value.videoProducer.value){
+        this.venue._closeAllConsumersOfProducer(this.sender.value.videoProducer.value.id as ProducerId);
       }
-      if(this.sender.audioProducer){
-        this.venue._closeAllConsumersOfProducer(this.sender.audioProducer.id as ProducerId);
+      if(this.sender.value.audioProducer.value){
+        this.venue._closeAllConsumersOfProducer(this.sender.value.audioProducer.value.id as ProducerId);
       }
       // this.sender.producers.forEach(p => this.venue._closeAllConsumersOfProducer(p.id as ProducerId));
     }

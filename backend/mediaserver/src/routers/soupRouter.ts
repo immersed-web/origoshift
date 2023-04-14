@@ -59,7 +59,7 @@ export const soupRouter = router({
       throw new TRPCError({code: 'BAD_REQUEST', message:'the provided transporId didnt match the id of the sendTransport'});
     }
     const producerId = await client.createProducer(input);
-    log.info('gonna emit producerCreated');
+    // log.info('gonna emit producerCreated');
     // ctx.venue._notifyStateUpdated('producer added');
     ctx.venue._notifyAdminOnlyState('producer added');
     // ctx.venue.emitToAllClients('producerCreated', {producingConnectionId: ctx.connectionId, producer: {producerId, paused: input.producerInfo.isPaused, kind: input.kind}});
@@ -67,18 +67,18 @@ export const soupRouter = router({
     return producerId;
   }),
   closeVideoProducer: clientInVenueP.mutation(({ctx}) =>{
-    if(!ctx.client.videoProducer){
+    if(!ctx.client.videoProducer.value){
       throw new TRPCError({code: 'NOT_FOUND', message: 'no videoProducer exists. can\t close'});
     }
-    ctx.client.videoProducer.close();
-    ctx.client.videoProducer = undefined;
+    ctx.client.videoProducer.value.close();
+    ctx.client.videoProducer.value = undefined;
   }),
   closeAudioProducer: clientInVenueP.mutation(({ctx}) =>{
-    if(!ctx.client.audioProducer){
+    if(!ctx.client.audioProducer.value){
       throw new TRPCError({code: 'NOT_FOUND', message: 'no audioProducer exists. can\t close'});
     }
-    ctx.client.audioProducer.close();
-    ctx.client.audioProducer = undefined;
+    ctx.client.audioProducer.value.close();
+    ctx.client.audioProducer.value = undefined;
   }),
   closeProducer: clientInVenueP.input(z.object({producerId: ProducerIdSchema})).mutation(({input, ctx}) => {
     return 'Not implemented yet' as const;

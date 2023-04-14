@@ -1,7 +1,7 @@
 
 import { Log } from 'debug-level';
 import type { Camera as PrismaCamera } from 'database';
-import type { CameraId, SenderId  } from 'schemas';
+import type { CameraId, ConnectionId, SenderId  } from 'schemas';
 import {Venue, UserClient, SenderClient, BaseClient, PublicProducers} from './InternalClasses';
 import { ProducerId } from 'schemas/mediasoup';
 import { computed, shallowRef, effect } from '@vue/reactivity';
@@ -83,8 +83,9 @@ export class Camera {
     this.setSender(undefined);
   }
 
-  _notifyStateUpdated(reason?: string) {
+  _notifyStateUpdated(reason?: string, skipClientWithId?: ConnectionId) {
     this.clients.forEach(client => {
+      if(client.connectionId === skipClientWithId) return;
       client.notify.cameraStateUpdated?.({data: this.getPublicState(), reason});
     });
   }
@@ -100,7 +101,7 @@ export class Camera {
     this.clients.set(client.connectionId, client);
     client._setCamera(this.cameraId);
 
-    this._notifyStateUpdated('client added to camera');
+    this._notifyStateUpdated('client added to camera', client.connectionId);
   }
 
   removeClient(client: UserClient){

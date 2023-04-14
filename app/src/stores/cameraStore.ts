@@ -41,9 +41,9 @@ export const useCameraStore = defineStore('camera', () => {
     },
   });
   async function joinCamera(cameraId: CameraId){
-    console.log('Joining camera!!!!');
-    await connection.client.camera.joinCamera.mutate({ cameraId });
-    console.log('joined Camera!!!!');
+    // console.log('Joining camera!!!!');
+    currentCamera.value = await connection.client.camera.joinCamera.mutate({ cameraId });
+    // console.log('joined Camera!!!!');
   }
 
   async function leaveCurrentCamera() {
@@ -55,10 +55,23 @@ export const useCameraStore = defineStore('camera', () => {
     if(!currentCamera.value?.producers){
       return;
     }
-    for(const p of Object.values(currentCamera.value.producers)) {
-      if(!p) continue;
-      soup.consume(p.producerId);
+    const receivedTracks: { videoTrack?: MediaStreamTrack, audioTrack?: MediaStreamTrack } = {
+      // videoTrack: undefined,
+      // audioTrack: undefined,
+    };
+    if(currentCamera.value.producers.videoProducer){
+      const {track} = await soup.consume(currentCamera.value.producers.videoProducer.producerId);
+      receivedTracks.videoTrack = track;
     }
+    if(currentCamera.value.producers.audioProducer){
+      const {track} = await soup.consume(currentCamera.value.producers.audioProducer.producerId);
+      receivedTracks.audioTrack = track;
+    }
+    return receivedTracks;
+    // for(const p of Object.values(currentCamera.value.producers)) {
+    //   if(!p) continue;
+    // soup.consume(p.producerId);
+    // }
   }
 
   return {

@@ -15,6 +15,7 @@ export const useSoupStore = defineStore('soup', () =>{
   const deviceLoaded = ref(false);
   const sendTransport = shallowRef<soupTypes.Transport>();
   const receiveTransport = shallowRef<soupTypes.Transport>();
+  const userHasInteracted = ref(false);
   // const producers = shallowReactive<Map<ProducerId, soupTypes.Producer>>(new Map());
   const videoProducer: ProducerData = reactive({
     producer: undefined,
@@ -333,6 +334,7 @@ export const useSoupStore = defineStore('soup', () =>{
   }
 
   return {
+    userHasInteracted,
     loadDevice,
     deviceLoaded,
     createSendTransport,

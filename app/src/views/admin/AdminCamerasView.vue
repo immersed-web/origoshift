@@ -100,7 +100,7 @@ const soupStore = useSoupStore();
 
 async function consumeCamera(cameraId: CameraId){
   await connection.client.camera.joinCamera.mutate({cameraId});
-  await soupStore.consumeCurrentCamera();
+  // await soupStore.consumeCurrentCamera();
 }
 
 async function deleteCamera(cameraId: CameraId){

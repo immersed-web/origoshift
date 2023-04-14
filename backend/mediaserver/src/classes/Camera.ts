@@ -25,8 +25,6 @@ export class Camera {
       // this.producers;
       log.info('Producers updated:', this.producers.value);
       this._notifyStateUpdated('producers updated');
-    }, {
-      // lazy: true,
     });
   }
 

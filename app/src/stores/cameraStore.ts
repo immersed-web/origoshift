@@ -32,7 +32,8 @@ export const useCameraStore = defineStore('camera', () => {
       //   for(const k of Object.keys(currentCamera.value)) {
       //     const key = k as keyof typeof data;
       //     // if(!key) continue;
-      //     const t = currentCamera.value[key];
+      //     const d = data[key];
+      //     const p = currentCamera.value[key];
       //   }
       // }else {
       //   currentCamera.value = data;

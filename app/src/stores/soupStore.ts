@@ -68,11 +68,6 @@ export const useSoupStore = defineStore('soup', () =>{
             audioProducer.producer = undefined;
             audioProducer.stats = undefined;
           }
-          // const localProducer = producers.get(data.id);
-          // if(localProducer){
-          //   localProducer.close();
-          //   producers.delete(data.id);
-          // }
           break;
         }
         case 'transport': {

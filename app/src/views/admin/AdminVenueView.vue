@@ -110,7 +110,7 @@
             v-else
             class="flex-1"
           >
-            Lobbyn öppnas automatiskt vid utsatt tid.
+            Sändningen startar automatiskt vid utsatt tid.
           </div>
         </div>
       </StepsItem>

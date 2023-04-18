@@ -6,11 +6,20 @@
     :class="{'flex-1': !props.last}"
   >
     <div class="relative">
-      <div class="avatar placeholder z-10">
-        <div class="bg-primary text-neutral-content rounded-full w-10">
-          <span class="material-icons">
-            {{ props.icon }}
-          </span>
+      <div class="indicator">
+        <span
+          v-if="props.tooltip"
+          class="indicator-item material-icons text-info z-20"
+        >
+          info
+        </span>
+        <!-- <span class="indicator-item badge">?</span> -->
+        <div class="avatar placeholder z-10">
+          <div class="bg-primary text-neutral-content rounded-full w-10">
+            <span class="material-icons">
+              {{ props.icon }}
+            </span>
+          </div>
         </div>
       </div>
       <div
@@ -20,11 +29,16 @@
         <div class="bg-primary w-full h-2 z-0" />
       </div>
     </div>
-    <div v-if="!props.last">
+    <div
+      v-if="!props.last"
+      class="mr-4"
+    >
       <div class="flex items-center text-sm">
-        {{ props.title }}
+        <strong>
+          <slot name="title" />
+        </strong>
       </div>
-      <p class="text-xs">
+      <p class="text-sm">
         <slot />
       </p>
     </div>

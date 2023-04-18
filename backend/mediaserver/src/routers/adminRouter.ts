@@ -30,14 +30,16 @@ export const adminRouter = router({
     ctx.client.loadPrismaDataAndNotifySelf('updated venue info/settings');
     ctx.venue._notifyStateUpdated('venue settings/data updated');
   }),
-  openVenueDoors: currentVenueAdminP.mutation(({ctx}) =>{
-    log.info('opening doors');
-    ctx.venue.openDoors();
-  }),
-  closeVenueDoors: currentVenueAdminP.mutation(({ctx}) =>{
-    log.info('closing doors');
-    ctx.venue.closeDoors();
-  }),
+  // openVenueDoors: currentVenueAdminP.mutation(({ctx}) =>{
+  //   log.info('opening doors');
+  //   ctx.venue.openDoors();
+  //   ctx.venue._notifyStateUpdated('Venue doors opened');
+  // }),
+  // closeVenueDoors: currentVenueAdminP.mutation(({ctx}) =>{
+  //   log.info('closing doors');
+  //   ctx.venue.closeDoors();
+  //   ctx.venue._notifyStateUpdated('Venue doors closed');
+  // }),
   deleteVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
     const venueId = input.venueId;
     if(Venue.venueIsLoaded({venueId})){

@@ -75,18 +75,37 @@ export class Venue {
   }
 
   get visibility() { return this.prismaData.visibility; }
-  private _doorOpen = false;
+
+  // private _doorOpen = false;
   get doorsOpeningTime() { return this.prismaData.doorsOpeningTime; }
+  get doorsAutoOpen() { return this.prismaData.doorsAutoOpen; }
+  get doorsManuallyOpened() { return this.prismaData.doorsManuallyOpened; }
+  get doorsAreOpen() {
+    if(this.prismaData.doorsAutoOpen){
+      return this.prismaData.doorsOpeningTime && isPast(this.prismaData.doorsOpeningTime);
+    }
+    else return this.doorsManuallyOpened;
+  }
+
   get streamStartTime() { return this.prismaData.streamStartTime; }
+  get streamAutoStart() { return this.prismaData.streamAutoStart; }
+  get streamManuallyStarted() { return this.prismaData.streamManuallyStarted; }
+  get streamIsStarted() {
+    if(this.prismaData.streamAutoStart){
+      return this.prismaData.streamStartTime && isPast(this.prismaData.streamStartTime);
+    }
+    else return this.streamManuallyStarted;
+  }
+
   // get allowGuests() { return this.prismaData.allowGuests; }
   // get publiclyListed() { return this.prismaData.publiclyListed; }
 
-  openDoors(){
-    this._doorOpen = true;
-  }
-  closeDoors(){
-    this._doorOpen = true;
-  }
+  // openDoors(){
+  //   this._doorOpen = true;
+  // }
+  // closeDoors(){
+  //   this._doorOpen = false;
+  // }
 
   router: soupTypes.Router;
   vrSpace?: VrSpace;
@@ -125,7 +144,7 @@ export class Venue {
     return this.clients.size === 0 && this.senderClients.size === 0;
   }
   getPublicState() {
-    const {venueId, name, visibility, doorsOpeningTime, streamStartTime} = this;
+    const {venueId, name, visibility, doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, doorsAreOpen, streamStartTime, streamAutoStart, streamManuallyStarted, streamIsStarted} = this;
     // log.info('Detached senders:', this.detachedSenders.value);
     // const cameraIds = Array.from(this.cameras.keys());
     const cameras: Record<CameraId, {
@@ -139,7 +158,9 @@ export class Venue {
       };
     });
     return {
-      venueId, name, visibility, doorsOpeningTime, streamStartTime,
+      venueId, name, visibility,
+      doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, doorsAreOpen,
+      streamStartTime, streamAutoStart, streamManuallyStarted, streamIsStarted,
       vrSpace: this.vrSpace?.getPublicState(),
       cameras,
     };
@@ -254,10 +275,10 @@ export class Venue {
     }
     else {
       log.info('client wants to join');
-      log.info('doors:', this._doorOpen);
+      log.info('doors:', this.doorsManuallyOpened);
       if(!hasAtLeastSecurityLevel(client.role, 'moderator')){
         log.info('requsting client is below moderator');
-        let doorsAreOpen = this._doorOpen;
+        let doorsAreOpen = this.doorsManuallyOpened;
         if(this.doorsOpeningTime && isPast(this.doorsOpeningTime) ){
           doorsAreOpen = true;
         }

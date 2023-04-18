@@ -11,8 +11,12 @@ const jsonSchema: z.ZodSchema<Json> = z.lazy(() => z.union([literalSchema, z.arr
 export const VenueSchemaGenerated = z.object({
   venueId: z.string().uuid(),
   name: z.string(),
-  streamStartTime: z.date().nullish(),
   doorsOpeningTime: z.date().nullish(),
+  doorsAutoOpen: z.boolean(),
+  doorsManuallyOpened: z.boolean(),
+  streamStartTime: z.date().nullish(),
+  streamAutoStart: z.boolean(),
+  streamManuallyStarted: z.boolean(),
   extraSettings: jsonSchema,
   visibility: z.nativeEnum(Visibility),
 })

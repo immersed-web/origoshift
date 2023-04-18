@@ -146,7 +146,11 @@ export const VenueUpdateSchema = z.object({
   name: z.string().nonempty().optional(),
   visibility: VisibilitySchema.optional(),
   doorsOpeningTime: z.date().nullable().optional(),
-  streamStartTime: z.date().nullable().optional()
+  doorsAutoOpen: z.boolean().optional(),
+  doorsManuallyOpened: z.boolean().optional(),
+  streamStartTime: z.date().nullable().optional(),
+  streamAutoStart: z.boolean().optional(),
+  streamManuallyStarted: z.boolean().optional(),
 }) satisfies z.ZodType<Partial<Venue>>
 export type VenueUpdate = z.TypeOf<typeof VenueUpdateSchema>;
 

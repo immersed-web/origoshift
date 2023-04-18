@@ -64,14 +64,15 @@ export const useAdminStore = defineStore('admin', () => {
   }
 
   // TODO: Shouldn't have to redefine VenueUpdate type
-  async function updateVenue (name?: string, visibility?: Visibility, doorsOpeningTime?: Date | null, streamStartTime?: Date | null) {
-    await connection.client.admin.updateVenue.mutate({
-      name: name,
-      visibility: visibility,
-      doorsOpeningTime: doorsOpeningTime,
-      streamStartTime: streamStartTime,
-    });
-  }
+  // async function updateVenue (name?: string, visibility?: Visibility, doorsOpeningTime?: Date | null, doorsAutoOpen?: boolean, streamStartTime?: Date | null) {
+  //   await connection.client.admin.updateVenue.mutate({
+  //     name: name,
+  //     visibility: visibility,
+  //     doorsOpeningTime: doorsOpeningTime,
+  //     doorsAutoOpen: doorsAutoOpen,
+  //     streamStartTime: streamStartTime,
+  //   });
+  // }
 
   async function deleteCurrentVenue() {
     if(venueStore.currentVenue?.venueId){
@@ -104,7 +105,7 @@ export const useAdminStore = defineStore('admin', () => {
   return {
     adminOnlyVenueState,
     createVenue,
-    updateVenue,
+    // updateVenue,
     // loadVenue,
     loadAndJoinVenue,
     deleteCurrentVenue,

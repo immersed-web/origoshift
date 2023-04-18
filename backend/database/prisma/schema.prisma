@@ -53,21 +53,25 @@ model User {
 }
 
 model Venue {
-  venueId          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
-  name             String        @unique
-  streamStartTime  DateTime?
-  doorsOpeningTime DateTime?
-  extraSettings    Json?
-  virtualSpace     VirtualSpace?
-  visibility       Visibility    @default(public)
+  venueId               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
+  name                  String        @unique
+  doorsOpeningTime      DateTime?
+  doorsAutoOpen         Boolean       @default(false)
+  doorsManuallyOpened   Boolean       @default(false)
+  streamStartTime       DateTime?
+  streamAutoStart       Boolean       @default(false)
+  streamManuallyStarted Boolean       @default(false)
+  extraSettings         Json?
+  virtualSpace          VirtualSpace?
+  visibility            Visibility    @default(public)
   // allowGuests      Boolean       @default(true)
   // publiclyListed   Boolean       @default(true)
   // owner            User          @relation(fields: [ownerId], references: [userId], onDelete: Cascade)
   // ownerId          String        @db.Uuid
-  owners           User[]        @relation("usersOwningVenues")
-  whitelistedUsers User[]        @relation("usersAllowedInVenues")
-  blackListedUsers User[]        @relation("usersBannedFromVenues")
-  cameras          Camera[]
+  owners                User[]        @relation("usersOwningVenues")
+  whitelistedUsers      User[]        @relation("usersAllowedInVenues")
+  blackListedUsers      User[]        @relation("usersBannedFromVenues")
+  cameras               Camera[]
 
   // @@unique([ownerId, venueId])
 }

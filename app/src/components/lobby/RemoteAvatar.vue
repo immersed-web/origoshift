@@ -5,8 +5,8 @@
     @far="distanceFar"
     ref="remoteAvatar"
   >
-    <a-box
-      :scale="scale.join(' ')"
+    <a-sphere
+      :radius="0.5"
       :color="distanceColor"
     />
   </a-entity>

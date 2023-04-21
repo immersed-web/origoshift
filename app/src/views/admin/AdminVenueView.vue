@@ -25,6 +25,16 @@
           Synlighet: {{ venueStore.currentVisibilityDetails?.name }}
         </template>
         {{ venueStore.currentVisibilityDetails?.description }}
+        <div v-auto-animate>
+          <button
+            v-if="venueStore.currentVenue?.visibility !== 'private' "
+            class="btn btn-primary btn-sm flex justify-between"
+            @click="goToVenue()"
+          >
+            Eventets webbplats
+            <span class="ml-2 material-icons">open_in_new</span>
+          </button>
+        </div>
       </StepsItem>
 
       <!-- Lobby -->
@@ -198,6 +208,13 @@ const deleteVenue = async () => {
   await adminStore.deleteCurrentVenue();
   router.push({name: 'adminHome'});
 };
+
+async function goToVenue(){
+  // await venueStore.joinVenue(venueId);
+  const id = venueStore.currentVenue?.venueId;
+  const routeData = router.resolve({name: 'userVenue', params: { venueId: id }});
+  window.open(routeData.href, '_blank');
+}
 
 </script>
 

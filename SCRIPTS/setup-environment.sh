@@ -32,14 +32,14 @@ say 'Source nvm so we can call it from within this shell script'
 . ~/.bashrc
 
 say 'Install node LTS'
-exe nvm install --lts
+exe nvm install 18
 
 say 'Verify node is installed'
 exe node --version
 
 say 'Install PNPM node package manager'
 exe corepack enable
-exe corepack prepare pnpm@latest --activate
+exe corepack prepare pnpm@7.32.0 --activate
 
 say 'Verify PNPM is installed'
 exe pnpm --version

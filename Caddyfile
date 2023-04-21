@@ -1,4 +1,4 @@
-{$SERVER_URL} {
+{$EXPOSED_SERVER_URL} {
   # Important to use the route directive so that the reverse_proxy is matched first
   # (default is try_files before reverse_proxy)
   route { 
@@ -8,8 +8,12 @@
     handle_path /socket* {
       reverse_proxy localhost:9001
     }
+    handle_path /files* {
+      reverse_proxy localhost:9002
+    }
+
     # reverse_proxy /* localhost:8080
-    reverse_proxy /* localhost:9000
+    reverse_proxy /* localhost:5173
     # root * /dist/spa
     # try_files {path} /index.html
     # file_server {

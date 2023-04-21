@@ -16,6 +16,7 @@
     "dev": "dotenv -v DEVELOPMENT=true -e ../../.env -- node-dev ./src/index.ts",
     "build": "tsup-node --clean",
     "build:watch": "tsup-node --watch",
+    "tsc:v": "tsc -v",
     "clean": "tsc --build --clean",
     "test": "jest --watch",
     "test:once": "jest"

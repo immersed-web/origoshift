@@ -96,7 +96,7 @@ const router = createRouter({
         },
         {
           path: '',
-          meta: {mustBeInVenue: true},
+          meta: {mustBeInVenue: true, pickVenueRouteName: 'adminHome'},
           children: [
 
             {

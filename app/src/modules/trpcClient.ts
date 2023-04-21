@@ -11,7 +11,11 @@ import { shallowRef, type ShallowRef, computed, type ComputedRef } from 'vue';
 import { devtoolsLink } from 'trpc-client-devtools-link';
 
 
-const wsBaseURL = 'ws://localhost:9001';
+let port = '';
+if(import.meta.env.EXPOSED_MEDIASOUP_PORT){
+  port = `:${import.meta.env.EXPOSED_MEDIASOUP_PORT}`;
+}
+const wsBaseURL = `${import.meta.env.EXPOSED_MEDIASOUP_URL}${port}${import.meta.env.EXPOSED_MEDIASOUP_PATH}`;
 
 export function isTRPCClientError(
   cause: unknown,

@@ -88,7 +88,7 @@ const loadAndJoinVenue = async (venueId: VenueId) => {
   // catch(e){
   //   console.log(e);
   // }
-  await adminStore.loadAndJoinVenue(venueId);
+  await adminStore.loadAndJoinVenueAsAdmin(venueId);
   router.push({name: authStore.routePrefix + 'Venue'});
 };
 

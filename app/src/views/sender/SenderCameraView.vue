@@ -91,11 +91,11 @@ const soup = useSoupStore();
 
 const { pause } = useIntervalFn(async () => {
   try {
-    if(!senderStore.savedPickedVenueId){
-      router.replace({name: 'cameraPickVenue'});
-      return;
-    }
-    await venueStore.joinVenue(senderStore.savedPickedVenueId);
+    // if(!senderStore.savedPickedVenueId){
+    //   router.replace({name: 'cameraPickVenue'});
+    //   return;
+    // }
+    // await venueStore.joinVenue(senderStore.savedPickedVenueId);
     if(!soup.deviceLoaded){
       await soup.loadDevice();
     }

@@ -3,6 +3,33 @@ import { PrismaClient, Role } from "./src/index";
 const prisma = new PrismaClient();
 
 
+async function createOrUpdateUser(role: Role, username: string, hashedPassword: string) {
+  const preExistingUser = await prisma.user.findUnique({
+    where: {
+      username
+    }
+  })
+  if(preExistingUser){
+    await prisma.user.update({
+      where: {
+        userId: preExistingUser.userId
+      },
+      data: {
+        password: hashedPassword,
+        role,
+      }
+    })
+  } else {
+    await prisma.user.create({
+      data:
+      {
+        username ,
+        password: hashedPassword,
+        role,
+      },
+    })
+  }
+}
 async function seedProd() {
   if (!process.env.ADMIN_PASSWORD) {
     throw Error('no admin password provided for seed script. set ADMIN_PASSWORD var in the file .env');
@@ -11,14 +38,7 @@ async function seedProd() {
   const password = process.env.ADMIN_PASSWORD;
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  await prisma.user.create({
-    data:
-    {
-      username: 'superadmin',
-      password: hashedPassword,
-      role: 'superadmin',
-    },
-  })
+  await createOrUpdateUser('superadmin', 'superadmin', hashedPassword);
 }
 
 
@@ -30,35 +50,15 @@ async function seedDev() {
 
   const password = process.env.ADMIN_PASSWORD;
   let hashedPassword = await bcrypt.hash(password, 10);
-
-  await prisma.user.create({
-    data:
-    {
-      username: 'superadmin',
-      password: hashedPassword,
-      role: 'superadmin'
-    },
-  })
+  await createOrUpdateUser('superadmin', 'superadmin', hashedPassword);
 
   hashedPassword = await bcrypt.hash('123', 10);
 
   const userRole: Role = 'user';
-  await prisma.user.create({
-    data: {
-      username: 'user1',
-      password: hashedPassword,
-      role: userRole,
-    }
-  })
+  await createOrUpdateUser(userRole, 'user1', hashedPassword);
 
   const cameraRole: Role = 'sender';
-  await prisma.user.create({
-    data: {
-      username: 'sender',
-      password: hashedPassword,
-      role: cameraRole,
-    }
-  })
+  await createOrUpdateUser(cameraRole, 'sender', hashedPassword);
 
 }
 

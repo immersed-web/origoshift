@@ -45,27 +45,21 @@
           </div>
         </div>
         <div v-auto-animate>
-          <div
-            v-if="!venueStore.currentVenue?.doorsAutoOpen"
-            class="flex items-center"
-          >
-            <div class="flex-1">
+          <div v-if="!venueStore.currentVenue?.doorsAutoOpen">
+            <div>
               {{ venueStore.currentVenue?.doorsOpeningTime ? 'Ni öppnar lobbyn manuellt vid utsatt tid.' : 'Om ni önskar, kan ni öppna lobbyn manuellt' }}
             </div>
             <div class="">
               <button
-                type="submit"
-                class="btn btn-primary btn-sm"
+                class="btn btn-sm"
+                :class="!venueStore.currentVenue?.doorsAreOpen ? 'btn-primary' : 'btn-error'"
                 @click="updateDoors(!venueStore.currentVenue?.doorsManuallyOpened)"
               >
                 {{ !venueStore.currentVenue?.doorsManuallyOpened ? "Öppna" : "Stäng" }} lobbyn
               </button>
             </div>
           </div>
-          <div
-            v-else
-            class="flex-1"
-          >
+          <div v-else>
             Lobbyn öppnas automatiskt vid utsatt tid.
           </div>
         </div>
@@ -89,20 +83,17 @@
           </div>
         </div>
         <div v-auto-animate>
-          <div
-            v-if="!venueStore.currentVenue?.streamAutoStart"
-            class="flex items-center"
-          >
-            <div class="flex-1">
+          <div v-if="!venueStore.currentVenue?.streamAutoStart">
+            <div>
               {{ venueStore.currentVenue?.streamStartTime ? 'Ni startar sändningen manuellt vid utsatt tid.' : 'Om ni önskar, kan ni starta sändningen manuellt' }}
             </div>
-            <div class="">
+            <div>
               <button
-                type="submit"
                 class="btn btn-primary btn-sm"
                 @click="updateStream(!venueStore.currentVenue?.streamManuallyStarted)"
+                :disabled="venueStore.currentVenue?.streamIsStarted"
               >
-                {{ !venueStore.currentVenue?.streamManuallyStarted ? "Starta" : "Avsluta" }} sändning
+                Starta sändning
               </button>
             </div>
           </div>
@@ -110,7 +101,7 @@
             v-else
             class="flex-1"
           >
-            Lobbyn öppnas automatiskt vid utsatt tid.
+            Sändningen startar automatiskt vid utsatt tid.
           </div>
         </div>
       </StepsItem>
@@ -119,11 +110,24 @@
       <StepsItem
         title="Manuellt avslut"
         icon="curtains_closed"
-        tooltip="Ni avslutar sändningen manuellt."
       >
-        <!-- <ol class="text-xs">
-          <li>Ni avslutar sändningen <i>manuellt</i>.</li>
-        </ol> -->
+        <template #title>
+          Avsluta sändning
+        </template>
+        <div class="flex-1">
+          Ni avslutar sändningen manuellt när ni önskar.
+        </div>
+        <div
+          class=""
+        >
+          <button
+            class="btn btn-error btn-sm"
+            @click="updateStream(!venueStore.currentVenue?.streamManuallyStarted)"
+            :disabled="!venueStore.currentVenue?.streamIsStarted"
+          >
+            Avsluta sändning
+          </button>
+        </div>
       </StepsItem>
 
       <!-- Event has ended -->

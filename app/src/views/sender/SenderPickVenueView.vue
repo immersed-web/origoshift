@@ -14,7 +14,8 @@
 <script lang="ts" setup>
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { useConnectionStore } from '@/stores/connectionStore';
-import { useSenderStore } from '@/stores/senderStore';
+// import { useSenderStore } from '@/stores/senderStore';
+import { useVenueStore } from '@/stores/venueStore';
 
 import type { VenueId } from 'schemas';
 import { onBeforeMount, ref } from 'vue';
@@ -24,7 +25,8 @@ type Venue = RouterOutputs['venue']['listAllowedVenues'][number];
 
 const router = useRouter();
 const venues = ref<Venue[]>();
-const senderStore = useSenderStore();
+// const senderStore = useSenderStore();
+const venueStore = useVenueStore();
 const connection = useConnectionStore();
 
 onBeforeMount(async () => {
@@ -32,25 +34,8 @@ onBeforeMount(async () => {
 });
 
 function tryToJoinAndEnterCamera(venue: Venue){
-  senderStore.savedPickedVenueId = venue.venueId as VenueId;
+  venueStore.savedVenueId = venue.venueId as VenueId;
   router.push({name: 'senderHome'});
-  // const tryToJoin = async () => {
-  //   try {
-  //     senderStore.savedPickedVenueId = venue.venueId as VenueId;
-  //     router.push({name: 'cameraHome'});
-  //   } catch(e) {
-  //     if(isTRPCClientError(e)){
-  //       console.error(e.message);
-  //     } else if (e instanceof Error){
-  //       console.error(e.message);
-  //     }
-  //     setTimeout(() => {
-  //       tryToJoin();
-  //     }, 5000);
-  //   }
-  // };
-  // tryToJoin();
-
 }
 
 </script>

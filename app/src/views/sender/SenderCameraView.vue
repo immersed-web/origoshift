@@ -9,7 +9,7 @@
     Byt evenemang
   </button>
   <div v-if="!venueStore.currentVenue">
-    Waiting for venue {{ senderStore.savedPickedVenueId }} to get loaded...
+    Waiting for venue {{ venueStore.savedVenueId }} to get loaded...
   </div>
   <template v-else>
     <div
@@ -91,11 +91,6 @@ const soup = useSoupStore();
 
 const { pause } = useIntervalFn(async () => {
   try {
-    // if(!senderStore.savedPickedVenueId){
-    //   router.replace({name: 'cameraPickVenue'});
-    //   return;
-    // }
-    // await venueStore.joinVenue(senderStore.savedPickedVenueId);
     if(!soup.deviceLoaded){
       await soup.loadDevice();
     }

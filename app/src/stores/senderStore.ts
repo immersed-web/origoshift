@@ -8,7 +8,6 @@ import type { RouterOutputs, SubscriptionValue } from '@/modules/trpcClient';
 
 type ReceivedSenderState = SubscriptionValue<RouterOutputs['sender']['subOwnClientState']>['myState']
 export const useSenderStore = defineStore('sender', () => {
-  const savedPickedVenueId = ref<VenueId>();
   const savedPickedDeviceId = ref<string>();
   const senderState = ref<ReceivedSenderState>();
   const senderId = ref<SenderId>();
@@ -44,7 +43,6 @@ export const useSenderStore = defineStore('sender', () => {
      */
     _initSenderId,
     senderId,
-    savedPickedVenueId,
     savedPickedDeviceId,
     // savedProducers,
     cameraId,

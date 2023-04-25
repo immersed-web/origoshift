@@ -166,7 +166,7 @@
 </template>
 
 <script setup lang="ts">
-import { onUnmounted, ref, watch } from 'vue';
+import { onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useVenueStore } from '@/stores/venueStore';
 import AdminVenueSettings from './components/AdminVenueSettings.vue';

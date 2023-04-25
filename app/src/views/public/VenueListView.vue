@@ -3,7 +3,7 @@
   <VenueList
     v-if="venuesOngoing.length"
     :venues="venuesOngoing"
-    @venue-picked="(venue) => goToVenue(venue.venueId)"
+    @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
   />
   <div v-else>
     <p>
@@ -15,7 +15,7 @@
   <VenueList
     v-if="venuesUpcoming.length"
     :venues="venuesUpcoming"
-    @venue-picked="(venue) => goToVenue(venue.venueId)"
+    @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
   />
   <div v-else>
     <p>
@@ -27,7 +27,7 @@
   <VenueList
     v-if="venuesPast.length"
     :venues="venuesPast"
-    @venue-picked="(venue) => goToVenue(venue.venueId)"
+    @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
   />
   <div v-else>
     <p>
@@ -40,7 +40,7 @@
   <VenueList
     v-if="venuesUnscheduled.length"
     :venues="venuesUnscheduled"
-    @venue-picked="(venue) => goToVenue(venue.venueId)"
+    @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
   />
   <div v-else>
     <p>
@@ -90,9 +90,9 @@ onBeforeMount(async () =>{
   venuesLoaded.value = await connection.client.venue.listLoadedVenuesPublicState.query();
 });
 
-const venuesNotLoaded = computed(() => {
-  return venuesAllowed.value.filter(v => venuesLoaded.value && v.venueId in venuesLoaded.value);
-});
+// const venuesNotLoaded = computed(() => {
+//   return venuesAllowed.value.filter(v => venuesLoaded.value && v.venueId in venuesLoaded.value);
+// });
 
 const venuesOngoing = computed(() => {
   return venuesAllowed.value.filter(v => {

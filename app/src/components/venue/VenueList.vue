@@ -5,8 +5,8 @@
       :key="venue.venueId"
     >
       <VenueThumb
-        :venue="venue"
-        @click="emit('venuePicked', venue)"
+        :venue="(venue as VenueListInfo)"
+        @click="emit('venuePicked', (venue as VenueListInfo))"
       />
     </div>
   </div>
@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import VenueThumb from '@/components/venue/VenueThumb.vue';
-import type { VenueId, VenueListInfo } from 'schemas';
+import type { VenueListInfo } from 'schemas';
 import type { RouterOutputs } from '@/modules/trpcClient';
 
 const props = defineProps<{ venues: VenueListInfo[] | RouterOutputs['venue']['listLoadedVenuesPublicState']}>();

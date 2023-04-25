@@ -1,5 +1,5 @@
 <template>
-  <div class="w-64 transition-all border-2 shadow-xl card bg-base-200 hover:cursor-pointer hover:-translate-y-1">
+  <div class="w-128 transition-all border-2 shadow-xl card bg-base-200 hover:cursor-pointer hover:-translate-y-1">
     <!-- TODO: Show an optional picture here related to the event -->
     <figure class="bg-gradient-to-br from-emerald-600 to-primary h-36">
       <h1 class="text-white card-title">
@@ -7,9 +7,26 @@
       </h1>
     </figure>
     <div class="card-body">
-      <p>
-        <strong>Dörrarna öppnar:</strong> {{ props.venue.doorsOpeningTime || 'ej angivet' }}
-      </p>
+      <div>
+        <div class="flex items-center">
+          <span class="material-icons mr-3">curtains</span>
+          <div>
+            <strong>Sändningen startar</strong>
+            <br>
+            {{ props.venue.streamStartTime?.toLocaleString() || 'ej angivet' }}
+          </div>
+        </div>
+      </div>
+      <div v-if="props.venue.doorsOpeningTime">
+        <div class="flex items-center">
+          <span class="material-icons mr-3">nightlife</span>
+          <div>
+            <strong>Lobbyn öppnar</strong>
+            <br>
+            {{ props.venue.doorsOpeningTime.toLocaleString() }}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>

@@ -17,6 +17,7 @@ export const VenueSchemaGenerated = z.object({
   streamStartTime: z.date().nullish(),
   streamAutoStart: z.boolean(),
   streamManuallyStarted: z.boolean(),
+  streamManuallyEnded: z.boolean(),
   extraSettings: jsonSchema,
   visibility: z.nativeEnum(Visibility),
 })

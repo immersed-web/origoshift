@@ -90,11 +90,15 @@ export class Venue {
   get streamStartTime() { return this.prismaData.streamStartTime; }
   get streamAutoStart() { return this.prismaData.streamAutoStart; }
   get streamManuallyStarted() { return this.prismaData.streamManuallyStarted; }
+  get streamManuallyEnded() { return this.prismaData.streamManuallyEnded; }
   get streamIsStarted() {
     if(this.prismaData.streamAutoStart){
       return this.prismaData.streamStartTime && isPast(this.prismaData.streamStartTime);
     }
     else return this.streamManuallyStarted;
+  }
+  get streamIsActive() {
+    return this.streamIsStarted && !this.streamManuallyEnded;
   }
 
   // get allowGuests() { return this.prismaData.allowGuests; }
@@ -144,7 +148,7 @@ export class Venue {
     return this.clients.size === 0 && this.senderClients.size === 0;
   }
   getPublicState() {
-    const {venueId, name, visibility, doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, doorsAreOpen, streamStartTime, streamAutoStart, streamManuallyStarted, streamIsStarted} = this;
+    const {venueId, name, visibility, doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, doorsAreOpen, streamStartTime, streamAutoStart, streamManuallyStarted, /*streamIsStarted*/ streamIsActive} = this;
     // log.info('Detached senders:', this.detachedSenders.value);
     // const cameraIds = Array.from(this.cameras.keys());
     const cameras: Record<CameraId, {
@@ -160,7 +164,7 @@ export class Venue {
     return {
       venueId, name, visibility,
       doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, doorsAreOpen,
-      streamStartTime, streamAutoStart, streamManuallyStarted, streamIsStarted,
+      streamStartTime, streamAutoStart, streamManuallyStarted, /*streamIsStarted*/ streamIsActive,
       vrSpace: this.vrSpace?.getPublicState(),
       cameras,
     };
@@ -679,6 +683,18 @@ export class Venue {
       obj[key] = {
         name: venue.prismaData.name,
         venueId: venue.venueId,
+      };
+    }
+    return obj;
+  }
+
+  static getLoadedVenuesPublicState(){
+    // TODO: set correct type for state field
+    const obj: Record<VenueId, {venueId: VenueId, state: ReturnType<Venue['getPublicState']>}> = {};
+    for(const [key, venue] of Venue.venues.entries()){
+      obj[key] = {
+        venueId: venue.venueId,
+        state: venue.getPublicState()
       };
     }
     return obj;

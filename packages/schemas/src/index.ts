@@ -151,6 +151,7 @@ export const VenueUpdateSchema = z.object({
   streamStartTime: z.date().nullable().optional(),
   streamAutoStart: z.boolean().optional(),
   streamManuallyStarted: z.boolean().optional(),
+  streamManuallyEnded: z.boolean().optional(),
 }) satisfies z.ZodType<Partial<Venue>>
 export type VenueUpdate = z.TypeOf<typeof VenueUpdateSchema>;
 

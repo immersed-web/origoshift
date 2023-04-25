@@ -82,9 +82,9 @@
         <template #title>
           <span
             class="material-icons text-sm"
-            :class="venueStore.currentVenue?.streamIsStarted ? 'text-green-500' : 'text-red-500'"
+            :class="venueStore.currentVenue?.streamIsActive ? 'text-green-500' : 'text-red-500'"
           >circle</span>
-          Sändningen är {{ venueStore.currentVenue?.streamIsStarted ? 'igång' : 'ej igång' }}
+          Sändningen är {{ venueStore.currentVenue?.streamIsActive ? 'igång' : 'ej igång' }}
         </template>
         <div v-auto-animate>
           <div v-if="venueStore.currentVenue?.streamStartTime">
@@ -100,8 +100,8 @@
             <div>
               <button
                 class="btn btn-primary btn-sm"
-                @click="updateStream(!venueStore.currentVenue?.streamManuallyStarted)"
-                :disabled="venueStore.currentVenue?.streamIsStarted"
+                @click="startStream"
+                :disabled="!!venueStore.currentVenue?.streamIsActive"
               >
                 Starta sändning
               </button>
@@ -132,8 +132,8 @@
         >
           <button
             class="btn btn-error btn-sm"
-            @click="updateStream(!venueStore.currentVenue?.streamManuallyStarted)"
-            :disabled="!venueStore.currentVenue?.streamIsStarted"
+            @click="endStream"
+            :disabled="!venueStore.currentVenue?.streamIsActive"
           >
             Avsluta sändning
           </button>
@@ -191,9 +191,17 @@ async function updateDoors(open: boolean){
   });
 }
 
-async function updateStream(started: boolean){
+async function startStream(){
   await connection.client.admin.updateVenue.mutate({
-    streamManuallyStarted: started,
+    streamManuallyStarted: true,
+    streamManuallyEnded: false,
+  });
+}
+
+async function endStream(){
+  await connection.client.admin.updateVenue.mutate({
+    streamManuallyStarted: false,
+    streamManuallyEnded: true,
   });
 }
 

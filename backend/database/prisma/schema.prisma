@@ -61,6 +61,7 @@ model Venue {
   streamStartTime       DateTime?
   streamAutoStart       Boolean       @default(false)
   streamManuallyStarted Boolean       @default(false)
+  streamManuallyEnded   Boolean       @default(false)
   extraSettings         Json?
   virtualSpace          VirtualSpace?
   visibility            Visibility    @default(public)

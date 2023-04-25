@@ -142,15 +142,13 @@
 </template>
 
 <script setup lang="ts">
-import { useAdminStore } from '@/stores/adminStore';
 import { useVenueStore } from '@/stores/venueStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import type { Visibility } from 'database';
-import { type Ref, ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 
 // Use imports
 const venueStore = useVenueStore();
-const adminStore = useAdminStore();
 const connection = useConnectionStore();
 
 const updateVenue = async () => {

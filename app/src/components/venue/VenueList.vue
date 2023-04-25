@@ -15,9 +15,8 @@
 <script setup lang="ts">
 import VenueThumb from '@/components/venue/VenueThumb.vue';
 import type { VenueListInfo } from 'schemas';
-import type { RouterOutputs } from '@/modules/trpcClient';
 
-const props = defineProps<{ venues: VenueListInfo[] | RouterOutputs['venue']['listLoadedVenuesPublicState']}>();
+const props = defineProps<{ venues: VenueListInfo[]}>();
 
 const emit = defineEmits<{
   (e: 'venuePicked', venue: VenueListInfo): void,

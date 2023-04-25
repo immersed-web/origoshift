@@ -11,7 +11,7 @@
         <VenueList
           v-if="clientStore.clientState"
           :venues="venuesAsArray"
-          @venue-picked="(venue) => loadAndJoinVenue(venue.venueId)"
+          @venue-picked="(venue) => pickVenueAndNavigate(venue.venueId as VenueId)"
         />
         <div>
           <button
@@ -75,20 +75,8 @@ async function createVenue () {
   // clientStore.createVenue();
 }
 
-const loadAndJoinVenue = async (venueId: VenueId) => {
-  // try{
-  //   await venueStore.loadVenue(venueId);
-  // }catch(e) {
-  //   console.error(e);
-  // }
-  // try{
-  //   await venueStore.joinVenue(venueId);
-  //   router.push({name: authStore.routePrefix + 'Venue'});
-  // }
-  // catch(e){
-  //   console.log(e);
-  // }
-  await adminStore.loadAndJoinVenue(venueId);
+const pickVenueAndNavigate = async (venueId: VenueId) => {
+  venueStore.savedVenueId = venueId;
   router.push({name: authStore.routePrefix + 'Venue'});
 };
 

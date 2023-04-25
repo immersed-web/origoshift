@@ -14,6 +14,7 @@ declare module 'vue-router' {
     afterLoginRedirect?: string
     loginNeededRedirect?: 'cameraLogin' | 'login'
     mustBeInVenue?: boolean
+    pickVenueRouteName?: string
   }
 }
 
@@ -95,7 +96,7 @@ const router = createRouter({
         },
         {
           path: '',
-          meta: {mustBeInVenue: true},
+          meta: {mustBeInVenue: true, pickVenueRouteName: 'adminHome'},
           children: [
 
             {
@@ -129,7 +130,9 @@ const router = createRouter({
       component:  () => import('@/layouts/HeaderLayout.vue'),
       children: [
         {
-          name: 'senderHome', path: '', component: () => import('@/views/sender/SenderCameraView.vue'),
+          name: 'senderHome', path: '',
+          meta: { mustBeInVenue: true, pickVenueRouteName: 'senderPickVenue' },
+          component: () => import('@/views/sender/SenderCameraView.vue'),
         },
         {
           name: 'senderPickVenue', path: 'choose-venue', component: () => import('@/views/sender/SenderPickVenueView.vue'),
@@ -205,18 +208,26 @@ router.beforeEach(async (to, from) => {
     if(!venueStore.currentVenue){
       // await connectionStore.firstConnectionEstablished;
       if(!venueStore.savedVenueId){
+        if(to.meta.pickVenueRouteName) return { name: to.meta.pickVenueRouteName};
         const routeName = `${authStore.routePrefix}Home`;
         return { name: routeName};
       }
       if(hasAtLeastSecurityLevel(authStore.role, 'moderator')){
         const adminStore = useAdminStore();
         try{
-          await adminStore.loadAndJoinVenue(venueStore.savedVenueId);
+          console.log('Trying to loadAndJoinVenueAsAdmin');
+          await adminStore.loadAndJoinVenueAsAdmin(venueStore.savedVenueId);
         } catch (e) {
-          console.warn('nav guard tried to load venue that was already loaded');
+          console.log(e);
+          if(to.meta.pickVenueRouteName) return { name: to.meta.pickVenueRouteName};
+          const routeName = `${authStore.routePrefix}Home`;
+          return { name: routeName};
+          // console.warn('nav guard tried to load venue that was already loaded');
         }
       }else{
-        await venueStore.joinVenue(venueStore.savedVenueId);
+        console.log('Trying to loadAndJoinVenue');
+        // await venueStore.joinVenue(venueStore.savedVenueId);
+        await venueStore.loadAndJoinVenue(venueStore.savedVenueId);
       }
     }
   }

@@ -59,7 +59,7 @@ export const useAdminStore = defineStore('admin', () => {
 
   async function createVenue () {
     const venueId = await connection.client.admin.createNewVenue.mutate({name: `event-${Math.trunc(Math.random() * 1000)}`});
-    loadAndJoinVenue(venueId);
+    loadAndJoinVenueAsAdmin(venueId);
     console.log('Created, loaded and joined venue', venueId);
   }
 
@@ -87,7 +87,7 @@ export const useAdminStore = defineStore('admin', () => {
   //   return await connection.client.admin.loadVenue.mutate({venueId});
   // }
 
-  async function loadAndJoinVenue ( venueId: VenueId) {
+  async function loadAndJoinVenueAsAdmin ( venueId: VenueId) {
     const {publicVenueState, adminOnlyVenueState: aOnlyState} = await connection.client.admin.loadAndJoinVenue.mutate({venueId});
     venueStore.currentVenue = publicVenueState;
     adminOnlyVenueState.value = aOnlyState;
@@ -107,7 +107,7 @@ export const useAdminStore = defineStore('admin', () => {
     createVenue,
     // updateVenue,
     // loadVenue,
-    loadAndJoinVenue,
+    loadAndJoinVenueAsAdmin,
     deleteCurrentVenue,
     createCameraFromSender,
     deleteCamera,

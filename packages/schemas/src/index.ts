@@ -168,6 +168,17 @@ export type VirtualSpace3DRemove = z.TypeOf<typeof VirtualSpace3DModelRemoveSche
 export const CameraIdSchema = UuidSchema.brand<'CameraId'>();
 export type CameraId = z.TypeOf<typeof CameraIdSchema>;
 
+export const CameraPortalUpdateSchema = z.object({
+      cameraId: CameraIdSchema,
+      toCameraId: CameraIdSchema,
+      portal: z.object({
+        x: z.number(),
+        y: z.number(),
+        distance: z.number(),
+      })
+    });
+export type CameraPortalUpdate = z.TypeOf<typeof CameraPortalUpdateSchema>
+
 export const JwtUserDataSchema = z.object({
   userId: UserIdSchema,
   username: z.string(),

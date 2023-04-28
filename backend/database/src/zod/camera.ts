@@ -1,5 +1,5 @@
 import * as z from "zod"
-import { CompleteVenue, RelatedVenueSchemaGenerated } from "./index"
+import { CompleteVenue, RelatedVenueSchemaGenerated, CompleteCameraPortal, RelatedCameraPortalSchemaGenerated } from "./index"
 
 // Helper schema for JSON fields
 type Literal = boolean | number | string
@@ -17,6 +17,8 @@ export const CameraSchemaGenerated = z.object({
 
 export interface CompleteCamera extends z.infer<typeof CameraSchemaGenerated> {
   venue: CompleteVenue
+  cameraPortals: CompleteCameraPortal[]
+  fromCameraPortals: CompleteCameraPortal[]
 }
 
 /**
@@ -26,4 +28,6 @@ export interface CompleteCamera extends z.infer<typeof CameraSchemaGenerated> {
  */
 export const RelatedCameraSchemaGenerated: z.ZodSchema<CompleteCamera> = z.lazy(() => CameraSchemaGenerated.extend({
   venue: RelatedVenueSchemaGenerated,
+  cameraPortals: RelatedCameraPortalSchemaGenerated.array(),
+  fromCameraPortals: RelatedCameraPortalSchemaGenerated.array(),
 }))

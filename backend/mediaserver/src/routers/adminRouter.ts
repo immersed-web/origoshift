@@ -12,6 +12,7 @@ import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSc
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
 import { z } from 'zod';
 import { atLeastModeratorP, currentVenueAdminP, isUserClientM, isVenueOwnerM, procedure as p, router } from '../trpc/trpc';
+import { CameraPortalUpdateSchema } from 'schemas';
 
 
 export const adminRouter = router({
@@ -119,6 +120,36 @@ export const adminRouter = router({
     cameraId: CameraIdSchema,
   })).mutation(({ctx, input}) => {
     ctx.venue.setSenderForCamera(input.senderClientConnectionId, input.cameraId);
+  }),
+  setCameraPortal: currentVenueAdminP.input(CameraPortalUpdateSchema).mutation(async ({ctx, input}) => {
+    const dbResponse = await prismaClient.camera.update({
+      where: {
+        cameraId: input.cameraId,
+      },
+      include: {
+        cameraPortals: true,
+      },
+      data: {
+        cameraPortals: {
+          upsert: {
+            where: {
+              fromCameraId_toCameraId: {
+                fromCameraId: input.cameraId,
+                toCameraId: input.toCameraId,
+              }
+            },
+            create: {
+              ...input.portal,
+              toCameraId: input.toCameraId
+            },
+            update: {
+              ...input.portal
+            }
+          },
+        }
+      }
+    });
+    return dbResponse;
   }),
   subVenueStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`attching (admin)venueStateUpdated notifier for client: ${ctx.username} (${ctx.connectionId})`);

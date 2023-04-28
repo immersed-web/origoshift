@@ -68,7 +68,7 @@ const router = createRouter({
             {
               path: ':cameraId',
               name: 'userCamera',
-              props: true,
+              props: route => route.params,
               component: () => import('@/views/user/UserCameraView.vue'),
             },
           ],

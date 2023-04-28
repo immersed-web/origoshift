@@ -1,19 +1,18 @@
 
 import { Log } from 'debug-level';
-import type { Camera as PrismaCamera } from 'database';
 import type { CameraId, ConnectionId, SenderId  } from 'schemas';
 import {Venue, UserClient, SenderClient, BaseClient, PublicProducers} from './InternalClasses';
 import { ProducerId } from 'schemas/mediasoup';
 import { computed, shallowRef, effect } from '@vue/reactivity';
+import { CameraWithIncludes } from 'modules/prismaClient';
 
 const log = new Log('Camera');
 
 process.env.DEBUG = 'Camera*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-
 export class Camera {
-  constructor(prismaCamera: PrismaCamera, venue: Venue, sender?: SenderClient){
+  constructor(prismaCamera: CameraWithIncludes, venue: Venue, sender?: SenderClient){
     this.prismaData = prismaCamera;
     this.venue = venue;
     this.clients = new Map();
@@ -39,20 +38,12 @@ export class Camera {
     }
     return this.sender.value?.publicProducers.value;
   });
-  // get producers() {
-  //   if(!this.sender.value) {
-  //     // return undefined;
-  //     const emptyProducers: PublicProducers = {};
-  //     return emptyProducers;
-  //   }
-  //   return this.sender.value.publicProducers;
-  // }
   clients: Venue['clients'];
   get clientIds() {
     return Array.from(this.clients.keys());
   }
 
-  prismaData: PrismaCamera;
+  prismaData: CameraWithIncludes;
   get cameraId(){
     return this.prismaData.cameraId as CameraId;
   }
@@ -62,16 +53,21 @@ export class Camera {
   get name() {
     return this.prismaData.name;
   }
+  // TODO: Actually write to db!!!
   setName(name: string) {
     this.prismaData.name = name;
   }
+  
+  get portals() {
+    return this.prismaData.cameraPortals;
+  }
 
   getPublicState() {
-    const { cameraId, name, clientIds, senderId } = this;
+    const { cameraId, name, clientIds, senderId, portals } = this;
     // const senderState = this.sender?.getPublicState();
     const senderAttached = !!this.sender.value;
     const isStreaming = !!this.producers.value.videoProducer || !!this.producers.value.audioProducer;
-    return { cameraId, name, clientIds, senderId, senderAttached, isStreaming, producers: this.producers.value };
+    return { cameraId, name, clientIds, senderId, portals, senderAttached, isStreaming, producers: this.producers.value };
   }
 
   unload() {

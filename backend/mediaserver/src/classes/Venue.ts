@@ -10,7 +10,7 @@ import {types as soupTypes} from 'mediasoup';
 import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate, SenderId, hasAtLeastSecurityLevel  } from 'schemas';
 
 import { Prisma } from 'database';
-import prisma from '../modules/prismaClient';
+import prisma, { cameraIncludeStuff } from '../modules/prismaClient';
 
 import { Camera, VrSpace, type UserClient, SenderClient, BaseClient  } from './InternalClasses';
 import { computed, shallowReactive } from '@vue/reactivity';
@@ -31,7 +31,9 @@ const venueIncludeStuff  = {
   blackListedUsers: basicUserSelect,
   owners: basicUserSelect,
   virtualSpace: {include: {virtualSpace3DModel: true}},
-  cameras: true,
+  cameras: {
+    include: cameraIncludeStuff
+  },
 } satisfies Prisma.VenueInclude;
 const args = {include: venueIncludeStuff} satisfies Prisma.VenueArgs;
 type VenueResponse = Prisma.VenueGetPayload<typeof args>
@@ -483,7 +485,8 @@ export class Venue {
         //   }
         // }
 
-      }
+      },
+      include: cameraIncludeStuff 
     });
 
     this.prismaData.cameras.push((result));
@@ -662,6 +665,8 @@ export class Venue {
       const router = await worker.createRouter(mediasoupConfig.router);
       const venue = new Venue(dbResponse, router);
       log.info(`*****LOADING VENUE: ${venue.name} (${venue.venueId})`);
+      log.info('venueIncludeStuff: ', venueIncludeStuff);
+      log.info('venue was loaded with db data:', dbResponse);
 
       Venue.venues.set(venue.venueId, venue);
       return venue;

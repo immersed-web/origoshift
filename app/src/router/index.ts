@@ -6,6 +6,7 @@ import { hasAtLeastSecurityLevel, type UserRole, type ClientType } from 'schemas
 import { createRouter, createWebHistory } from 'vue-router';
 import { useVenueStore } from '@/stores/venueStore';
 import { useAdminStore } from '@/stores/adminStore';
+import { useSenderStore } from '@/stores/senderStore';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -195,6 +196,11 @@ router.beforeEach(async (to, from) => {
         clientStore.fetchClientState();
       } else {
         connectionStore.createSenderClient();
+        const senderStore = useSenderStore();
+        // TODO: Here is a possible race conditon where we currently rely on the set/get senderId being called on the server before the server handles the later joinVenue.
+        // We currently dont await that the senderId is correctly agreed between server and client before proceeding.
+        // Perhaps we should remove the initialization of senderId from being autotriggered in store and explicitly call it here?
+        // await senderStore.initSenderId();
       }
       // console.log('CONNECTED STATE IN NAV GUARD: ', connectionStore.connected);
     } else if(connectionStore.connectionType !== to.meta.requiredConnection){
@@ -212,7 +218,8 @@ router.beforeEach(async (to, from) => {
         const routeName = `${authStore.routePrefix}Home`;
         return { name: routeName};
       }
-      if(hasAtLeastSecurityLevel(authStore.role, 'moderator')){
+      const connection = useConnectionStore();
+      if(connection.connectionType === 'client' && hasAtLeastSecurityLevel(authStore.role, 'moderator')){
         const adminStore = useAdminStore();
         try{
           console.log('Trying to loadAndJoinVenueAsAdmin');

@@ -33,6 +33,8 @@
     <a-scene
       class="w-screen h-screen"
       embedded
+      cursor="rayOrigin: mouse; fuse: false;"
+      raycaster="objects: .clickable"
     >
       <a-camera reverse-mouse-drag="true" />
       <a-box
@@ -73,6 +75,8 @@
         <a-sphere
           position="10 0 0"
           color="#ef2d5e"
+          class="clickable"
+          @mousedown="portalClicked(portal.cameraId)"
         />
       </a-entity>
       <a-videosphere />
@@ -190,6 +194,10 @@ async function loadStuff(){
 function goToCamera(cameraId: CameraId) {
   console.log('go to new camera:', cameraId);
   router.push({name: 'userCamera', params: {venueId: props.venueId, cameraId}});
+}
+
+function portalClicked(cameraId: string){
+  console.log(cameraId);
 }
 
 onMounted(async () => {

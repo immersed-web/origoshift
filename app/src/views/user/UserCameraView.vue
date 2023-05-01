@@ -76,7 +76,7 @@
           position="10 0 0"
           color="#ef2d5e"
           class="clickable"
-          @mousedown="portalClicked(portal.cameraId)"
+          @mousedown="goToCamera(portal.cameraId as CameraId)"
         />
       </a-entity>
       <a-videosphere />

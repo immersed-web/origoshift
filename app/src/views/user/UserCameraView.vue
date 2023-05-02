@@ -12,72 +12,89 @@
   </div>
   <div v-else>
     <h1>Watching camera: {{ props.cameraId }}</h1>
-    <input
-      type="range"
-      max="360"
-      min="-360"
-      v-model="xRot"
-    >
-    <input
-      type="range"
-      max="360"
-      min="-360"
-      v-model="yRot"
-    >
-    <input
-      type="range"
-      max="360"
-      min="-360"
-      v-model="zRot"
-    >
+    <!-- <label>
+      <input
+        type="range"
+        max="360"
+        min="-360"
+        v-model="xRot"
+      >
+      {{ xRot }}
+    </label>
+    <label>
+      <input
+        type="range"
+        max="360"
+        min="-360"
+        v-model="yRot"
+      >
+      {{ yRot }}
+    </label>
+    <label>
+      <input
+        type="range"
+        max="360"
+        min="-360"
+        v-model="zRot"
+      >
+      {{ zRot }}
+    </label> -->
+    <label>
+      <input
+        class="w-56"
+        type="range"
+        max="1"
+        min="0"
+        step="0.01"
+        v-model="camera.currentCamera.portals[0].x"
+      >
+      {{ camera.currentCamera.portals[0].x }}
+    </label>
+    <label>
+      <input
+        class="w-56"
+        type="range"
+        max="1"
+        min="0"
+        step="0.01"
+        v-model="camera.currentCamera.portals[0].y"
+      >
+      {{ camera.currentCamera.portals[0].y }}
+    </label>
     <a-scene
-      class="w-screen h-screen"
+      class="w-2/3 h-96"
       embedded
       cursor="rayOrigin: mouse; fuse: false;"
       raycaster="objects: .clickable"
     >
-      <a-camera reverse-mouse-drag="true" />
-      <a-box
-        position="-1 0.5 -3"
-        rotation="0 45 0"
-        color="#4CC3D9"
-      />
-      <a-sphere
-        position="0 1.25 -5"
-        radius="1.25"
-        color="#EF2D5E"
-      />
-      <a-cylinder
-        position="1 0.75 -3"
-        radius="0.5"
-        height="1.5"
-        color="#FFC65D"
-      />
-      <a-plane
-        position="0 0 -4"
-        rotation="-90 0 0"
-        width="4"
-        height="4"
-        color="#7BC8A4"
-      />
-      <a-sky color="#ECECEC" />
-      <a-box
-        position="-1 0.5 -3"
-        rotation="0 45 0"
-        color="#4CC3D9"
-      />
-      <a-entity
-        v-for="portal in portalsWithStyles"
-        :key="portal.cameraId"
-        :rotation="`${xRot} ${yRot} ${zRot}`"
-      >
-        <!-- :rotation="`${90-180*parseFloat(portal.style.top)} 0 0`" -->
-        <a-sphere
-          position="10 0 0"
-          color="#ef2d5e"
-          class="clickable"
-          @mousedown="goToCamera(portal.cameraId as CameraId)"
+      <a-assets>
+        <a-mixin
+          id="cursorHighlight"
+          animation__scale="property: scale; to: 1.1 1.1 1.1; dur: 100; startEvents: mouseenter"
+          animation__scale_reverse="property: scale; to: 1 1 1; dur: 200; startEvents: mouseleave"
         />
+      </a-assets>
+      <a-camera reverse-mouse-drag="true" />
+      <a-sky color="#ECECEC" />
+      <a-entity position="0 1.6 0">
+        <a-entity
+          v-for="portal in portalsWithStyles"
+          :key="portal.cameraId"
+          :rotation="`${portal.angleZ} ${portal.angleY} 0`"
+        >
+          <!-- :rotation="`${xRot} ${yRot} ${zRot}`" -->
+          <!-- <a-entity
+          mixin="cursorHighlight"
+          > -->
+          <a-sphere
+            :position="`0 0 ${-portal.distance}`"
+            scale="0.2 0.2 0.2"
+            color="#ef2d5e"
+            class="clickable"
+            @mousedown="goToCamera(portal.cameraId as CameraId)"
+          />
+          <!-- </a-entity> -->
+        </a-entity>
       </a-entity>
       <a-videosphere />
     </a-scene>
@@ -148,6 +165,8 @@ const camera = useCameraStore();
 
 const portalsWithStyles = computed(() => {
   return camera.currentCamera?.portals.map(p => {
+    const angleY = -360 * p.x + -90; 
+    const angleZ = 90 - (180 * p.y);
     return {
       style: {
 
@@ -155,6 +174,11 @@ const portalsWithStyles = computed(() => {
         top: Math.trunc(height.value * p.y) + 'px',
       },
       cameraId: p.toCameraId,
+      x: p.x,
+      y: p.y,
+      distance: p.distance,
+      angleY,
+      angleZ,
     };
   });
 });

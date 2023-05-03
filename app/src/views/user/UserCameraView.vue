@@ -11,7 +11,7 @@
     Försöker öppna kameran
   </div>
   <div v-else>
-    <h1>Watching camera: {{ props.cameraId }}</h1>
+    <!-- <h1>Watching camera: {{ props.cameraId }}</h1> -->
     <!-- <label>
       <input
         type="range"
@@ -39,7 +39,7 @@
       >
       {{ zRot }}
     </label> -->
-    <label>
+    <!-- <label>
       <input
         class="w-56"
         type="range"
@@ -60,9 +60,9 @@
         v-model="camera.currentCamera.portals[0].y"
       >
       {{ camera.currentCamera.portals[0].y }}
-    </label>
+    </label> -->
     <a-scene
-      class="w-2/3 h-96"
+      class="w-full h-screen"
       embedded
       cursor="rayOrigin: mouse; fuse: false;"
       raycaster="objects: .clickable"
@@ -98,7 +98,7 @@
       </a-entity>
       <a-videosphere />
     </a-scene>
-    <div class="flex">
+    <div class="flex hidden">
       <div>
         <div class="relative">
           <div

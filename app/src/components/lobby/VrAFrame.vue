@@ -1,6 +1,7 @@
 <template>
   <a-scene
-    cursor="rayOrigin: mouse"
+    cursor="rayOrigin: mouse;  fuse: false;"
+    raycaster="objects: .clickable"
     ref="scene"
   >
     <a-assets @loaded="onLoaded">
@@ -27,19 +28,38 @@
         id="navmesh"
         gltf-model="#navmesh-asset"
         scale="0.2 0.2 0.2"
+        class="clickable"
+        @mousedown="navmeshClicked"
+        raycaster-listen
+        @raycast-change="navmeshHovered"
         :visible="showNavMesh"
       />
     </a-entity>
 
-    <!-- Avatar wrapper element -->
-    <a-entity position="2 0 0">
-      <!-- The camera / own avatar -->
-      <!-- The navmesh needs to refer to the actual entity, not only the asset -->
+    <!-- <a-sphere
+      id="teleportPreview"
+      color="#6173F4"
+      radius="0.25"
+    /> -->
+
+    <a-entity id="teleportPreview">
+      <a-ring
+        color="teal"
+        radius-inner="1"
+        radius-outer="2"
+        rotation="-90 0 0"
+        scale="0.2 0.2 0.2"
+        position="0 0.01 0"
+      />
+    </a-entity>
+
+    <a-entity>
       <a-camera
+        id="camera"
         look-controls
         wasd-controls="acceleration:100;"
         emit-move="intervals: 40 500"
-        position="0 2 0"
+        position="0 1.65 0"
         @move0="cameraMoveFast"
         @move1="cameraMoveSlow"
         :simple-navmesh-constraint="'navmesh:#'+navmeshId+'; fall:0.5; height:1.65;'"
@@ -52,7 +72,13 @@
           animation="property: object3D.position.y; to: 0.1; dir: alternate; dur: 500; loop: true"
         />
       </a-camera>
+    </a-entity>
 
+
+    <!-- Avatar wrapper element -->
+    <a-entity>
+      <!-- The camera / own avatar -->
+      <!-- The navmesh needs to refer to the actual entity, not only the asset -->
       <!-- The avatars -->
       <a-entity v-if="clientStore.clientTransforms">
         <RemoteAvatar
@@ -69,7 +95,7 @@
 
 <script setup lang="ts">
 import 'aframe';
-import type { Scene } from 'aframe';
+import type { AFrame, Scene, THREE } from 'aframe';
 import { ref, onMounted, computed } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import type { ClientTransform } from 'schemas';
@@ -162,5 +188,24 @@ function cameraMoveFast (e: CustomEvent<[number, number, number]>){
 
 // Display message
 const displayMessage = ref('');
+
+function navmeshClicked(e: THREE.Event) {
+  console.log(e.detail.intersection.point);
+  teleportTo(e.detail.intersection.point);
+}
+
+function navmeshHovered(e: THREE.Event) {
+  previewTeleport(e.detail);
+}
+
+function teleportTo (point: THREE.Vector3){
+  const cam = document.querySelector('#camera');
+  cam.setAttribute('position', {x: point.x, y: point.y + 1.65, z: point.z});
+}
+
+function previewTeleport (point: THREE.Vector3){
+  const cam = document.querySelector('#teleportPreview');
+  cam.setAttribute('position', point);
+}
 
 </script>

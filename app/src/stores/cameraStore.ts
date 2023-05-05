@@ -18,19 +18,19 @@ export const useCameraStore = defineStore('camera', () => {
   const portals = computed(() => {
     return currentCamera.value?.portals.map(p => {
       const angleY = -360 * p.x + -90; 
-      const angleZ = 90 - (180 * p.y);
+      const angleX = 90 - (180 * p.y);
       return {
         // style: {
 
         //   left: Math.trunc(width.value * p.x) + 'px',
         //   top: Math.trunc(height.value * p.y) + 'px',
         // },
-        cameraId: p.toCameraId,
+        cameraId: p.toCameraId as CameraId,
         x: p.x,
         y: p.y,
         distance: p.distance,
+        angleX,
         angleY,
-        angleZ,
       };
     });
   });

@@ -1,5 +1,5 @@
 import 'aframe';
-import { THREE } from 'aframe';
+import { THREE, type DetailEvent, type EntityEventMap } from 'aframe';
 
 export default () => {
 
@@ -9,7 +9,7 @@ export default () => {
     init: function () {
     // Use events to figure out what raycaster is listening so we don't have to
     // hardcode the raycaster.
-      this.el.addEventListener('raycaster-intersected', evt => {
+      this.el.addEventListener('raycaster-intersected', (evt) => {
         this.raycaster = evt.detail.el;
       });
       this.el.addEventListener('raycaster-intersected-cleared', evt => {

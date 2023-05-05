@@ -16,7 +16,7 @@
       <a-entity
         position="0 1.6 0"
       >
-        <a-entity ref="startAngle">
+        <a-entity ref="startAngleEntity">
           <a-ring
             radius-inner="0.1"
             radius-outer="0.2"
@@ -27,10 +27,9 @@
               radius-inner="0"
               radius-outer="0.2"
               color="yellow"
-              material="transparent: true; opacity:0"
+              material="opacity:0"
               class="clickable"
-              @mousedown="movedObject = startAngle"
-              @mouseup="movedObject = undefined"
+              @mousedown="movedEntity = startAngleEntity"
             />
           </a-ring>
         </a-entity>
@@ -40,59 +39,92 @@
           <a-entity
             v-for="portal in camera.portals"
             :key="portal.cameraId"
-            :rotation="`${portal.angleZ} ${portal.angleY} 0`"
+            :rotation="`${portal.angleX} ${portal.angleY} 0`"
           >
-            <!-- :rotation="`${xRot} ${yRot} ${zRot}`" -->
-            <!-- <a-entity
-            mixin="cursorHighlight"
-            > -->
             <a-box
               :position="`0 0 ${-portal.distance}`"
               scale="0.2 0.2 0.2"
               color="#ef2d5e"
               class="clickable"
+              @mousedown="movedPortalCameraId = portal.cameraId"
             />
-            <!-- </a-entity> -->
           </a-entity>
         </a-entity>
       </a-entity>
-      <a-camera reverse-mouse-drag="true" />
+      <a-camera
+        :look-controls-enabled="!movedEntity && !movedPortalCameraId"
+        reverse-mouse-drag="true"
+      />
       <a-videosphere />
     </a-scene>
+    <div class="flex flex-row gap-2 justify-center p-4">
+      <div
+        class="card shadow-md bg-amber-600/50 p-4"
+        v-for="listedCamera in adminStore.adminOnlyVenueState?.cameras"
+        :key="listedCamera.cameraId"
+      >
+        {{ listedCamera.name }}
+      </div>
+      <div>
+        {{ movedPortalCameraId }}
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useCameraStore } from '@/stores/cameraStore';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 // import 'aframe';
 import type { CameraId } from 'schemas';
-import { useSoupStore } from '@/stores/soupStore';
+// import { useSoupStore } from '@/stores/soupStore';
 import { type Entity, THREE } from 'aframe';
+import { useAdminStore } from '@/stores/adminStore';
 
 const videoTag = ref<HTMLVideoElement>();
 
-const startAngle = ref<Entity>();
+const startAngleEntity = ref<Entity>();
+const movedPortalCameraId = ref<CameraId>();
+
 
 const camera = useCameraStore();
+const adminStore = useAdminStore();
 // const soup = useSoupStore();
 
 const props = defineProps<{
   cameraId: CameraId
 }>();
 
+function onMouseUp(evt: Event){
+  movedPortalCameraId.value = undefined;
+  movedEntity.value = undefined;
+}
+function onMouseMove(ev: MouseEvent){
+  // console.log(ev);
+  if (movedEntity.value){
+    movedEntity.value.object3D.rotation.y -= THREE.MathUtils.degToRad(ev.movementX * 0.15);
+    const newZ = movedEntity.value.object3D.rotation.x - THREE.MathUtils.degToRad(ev.movementY * 0.15);
+    movedEntity.value.object3D.rotation.x = THREE.MathUtils.clamp(newZ, -Math.PI / 4, Math.PI / 4);
+  } else if(movedPortalCameraId.value && camera.currentCamera) {
+
+    console.log('moving portal!');
+    const idx = camera.currentCamera.portals.findIndex(p => p.toCameraId === movedPortalCameraId.value);
+    if(idx !== -1){
+      camera.currentCamera.portals[idx].x += ev.movementX * 0.001;
+      camera.currentCamera.portals[idx].y += ev.movementY * 0.001;
+    }
+  }
+}
 onMounted(() => {
-  console.log(videoTag.value);
   loadCamera(props.cameraId);
+  document.addEventListener('mouseup', onMouseUp);
+  document.addEventListener('pointermove', onMouseMove);
 });
-const movedObject = ref<Entity>();
-document.addEventListener('pointermove', (ev) => {
-  if (!movedObject.value) return;
-  console.log(ev);
-  movedObject.value.object3D.rotation.y -= THREE.MathUtils.degToRad(ev.movementX * 0.1);
-  const newZ = movedObject.value.object3D.rotation.x - THREE.MathUtils.degToRad(ev.movementY * 0.1);
-  movedObject.value.object3D.rotation.x = THREE.MathUtils.clamp(newZ, -Math.PI / 4, Math.PI / 4);
+onUnmounted(() => {
+  document.removeEventListener('mouseup', onMouseUp);
+  document.removeEventListener('pointermove', onMouseMove);
 });
+const movedEntity = ref<Entity>();
 
 async function loadCamera(cameraId: CameraId) {
   console.log('loading camera');

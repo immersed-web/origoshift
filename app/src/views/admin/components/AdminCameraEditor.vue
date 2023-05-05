@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full aspect-video bg-slate-500">
+  <div class="w-full aspect-video bg-base-200">
     <video
       class="hidden"
       ref="videoTag"
@@ -68,7 +68,7 @@
     </a-scene>
     <div class="flex flex-row gap-2 justify-center p-4">
       <div
-        class="card shadow-md bg-amber-600/50 p-4 cursor-pointer"
+        class="card shadow-md bg-neutral text-neutral-content p-4 cursor-pointer"
         @click="createOrEditPortal(listedCamera.cameraId)"
         v-for="listedCamera in adminStore.adminOnlyVenueState?.cameras"
         :key="listedCamera.cameraId"

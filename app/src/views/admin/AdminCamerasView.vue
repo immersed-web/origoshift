@@ -19,7 +19,10 @@
       </template>
     </div>
   </div>
-  <div class="flex gap-1">
+  <div
+    v-if="false"
+    class="flex gap-1"
+  >
     <table class="table">
       <thead>
         <tr>
@@ -120,12 +123,12 @@
       </div>
     </div>
   </div>
-  <pre>
+  <!-- <pre>
     {{ adminStore.adminOnlyVenueState }}
   </pre>
   <pre>
     {{ venueStore.currentVenue }}
-  </pre>
+  </pre> -->
 </template>
 
 <script setup lang="ts">

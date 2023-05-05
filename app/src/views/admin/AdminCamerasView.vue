@@ -6,7 +6,10 @@
           v-for="camera in adminStore.adminOnlyVenueState?.cameras"
           :key="camera.cameraId"
         >
-          <a @click="editedCamera = camera.cameraId">{{ camera.name }}</a>
+          <a
+            :class="{active: editedCamera === camera.cameraId}"
+            @click="editedCamera = camera.cameraId"
+          >{{ camera.name }}</a>
         </li>
       </ul>
     </div>

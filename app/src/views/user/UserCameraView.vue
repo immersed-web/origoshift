@@ -220,10 +220,6 @@ function goToCamera(cameraId: CameraId) {
   router.push({name: 'userCamera', params: {venueId: props.venueId, cameraId}});
 }
 
-function portalClicked(cameraId: string){
-  console.log(cameraId);
-}
-
 onMounted(async () => {
   if(soup.userHasInteracted){
     await loadStuff();

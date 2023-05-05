@@ -15,12 +15,23 @@ export const useCameraStore = defineStore('camera', () => {
   const currentCamera = ref<_ReceivedPublicCameraState>();
 
 
+  function coordsToAngles({x, y}: {x:number, y: number}){
+    const angleY = 270 - 360 * x; 
+    const angleX = 90 - (180 * y);
+    return {angleX, angleY};
+  }
+  function anglesToCoords({angleX, angleY}: {angleX:number, angleY: number}){
+    console.log('anglesToCoords input', angleX, angleY);
+    const x = 1 - ((angleY+90+10*360)%360)/360; 
+    const y = (90 - angleX) / 180;
+    return {x, y};
+  }
   const portals = computed(() => {
     if(!currentCamera.value) return undefined;
     const newObj: Record<CameraId, {angleX:number; angleY: number} & (typeof currentCamera.value.portals)[CameraId]> = {};
     for(const [k , p ] of Object.entries(currentCamera.value.portals)){
-      const angleY = 270 - 360 * p.x; 
-      const angleX = 90 - (180 * p.y);
+      // const angleY = 270 - 360 * p.x; 
+      // const angleX = 90 - (180 * p.y);
       newObj[p.toCameraId as CameraId] = {
         // style: {
 
@@ -31,8 +42,9 @@ export const useCameraStore = defineStore('camera', () => {
         x: p.x,
         y: p.y,
         distance: p.distance,
-        angleX,
-        angleY,
+        ...coordsToAngles(p),
+        // angleX,
+        // angleY,
       };
     }
     return newObj;
@@ -119,6 +131,10 @@ export const useCameraStore = defineStore('camera', () => {
     currentCamera,
     portals,
     // currentCameraReactive,
+    utils: {
+      coordsToAngles,
+      anglesToCoords,
+    },
     producers,
     joinCamera,
     leaveCurrentCamera,

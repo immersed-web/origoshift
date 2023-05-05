@@ -1,5 +1,6 @@
 import 'aframe';
 import emitMove from './emit-move';
+import rotationControl from './rotation-control';
 import remoteAvatar from './remote-avatar';
 import navmesh from './simple-navmesh-constraint';
 import raycasterListen from './raycaster-listen';
@@ -10,6 +11,7 @@ const registerComponents = () => {
   remoteAvatar();
   navmesh();
   raycasterListen();
+  rotationControl();
 };
 
 export default {

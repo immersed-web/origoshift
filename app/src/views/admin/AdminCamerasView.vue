@@ -1,5 +1,21 @@
 <template>
-  <h1>Cameras view</h1>
+  <div class="flex gap-4">
+    <div class="flex-initial">
+      <ul class="menu bg-base-200 rounded-box p-2">
+        <li
+          v-for="camera in adminStore.adminOnlyVenueState?.cameras"
+          :key="camera.cameraId"
+        >
+          <a @click="editedCamera = camera.cameraId">{{ camera.name }}</a>
+        </li>
+      </ul>
+    </div>
+    <div class="flex-auto rounded-box overflow-hidden">
+      <template v-if="editedCamera">
+        <AdminCameraEditor :camera-id="editedCamera" />
+      </template>
+    </div>
+  </div>
   <div class="flex gap-1">
     <table class="table">
       <thead>
@@ -46,11 +62,19 @@
               SetPortal
             </button>
           </td>
+          <td>
+            <button
+              @click="editedCamera = camera.cameraId"
+              class="btn btn-primary btn-sm"
+            >
+              Edit
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
     <div>
-      <div
+      <!-- <div
         v-for="[k, c] in soupStore.consumers"
         :key="k"
         class="relative"
@@ -64,7 +88,7 @@
           :kind="c.kind"
           @click="positionPortal"
         />
-      </div>
+      </div> -->
       <pre
         v-for="[k, c] in soupStore.consumers"
         :key="k"
@@ -110,6 +134,7 @@ import { onBeforeMount, reactive, ref } from 'vue';
 import type { CameraId, CameraPortalUpdate } from 'schemas';
 import ConsumerElement from '@/components/ConsumerElement.vue';
 import { useCameraStore } from '@/stores/cameraStore';
+import AdminCameraEditor from './components/AdminCameraEditor.vue';
 
 const venueStore = useVenueStore();
 const adminStore = useAdminStore();
@@ -123,6 +148,8 @@ const portalPosition: Partial<CameraPortalUpdate['portal']> & {absoluteX?: numbe
   absoluteY: undefined,
   distance: 4,
 });
+
+const editedCamera = ref<CameraId>();
 
 async function consumeCamera(cameraId: CameraId){
   // await connection.client.camera.joinCamera.mutate({cameraId});

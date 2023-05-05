@@ -4,7 +4,7 @@ import type { CameraId } from 'schemas';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { computed, ref } from 'vue';
 import { useSoupStore } from './soupStore';
-import { toReactive } from '@vueuse/core';
+// import { toReactive } from '@vueuse/core';
 
 type _ReceivedPublicCameraState = RouterOutputs['camera']['joinCamera'];
 
@@ -13,6 +13,27 @@ export const useCameraStore = defineStore('camera', () => {
   const soup = useSoupStore();
   // const currentCamera: _ReceivedPublicCameraState | Record<string, never> = reactive({});
   const currentCamera = ref<_ReceivedPublicCameraState>();
+
+
+  const portals = computed(() => {
+    return currentCamera.value?.portals.map(p => {
+      const angleY = -360 * p.x + -90; 
+      const angleZ = 90 - (180 * p.y);
+      return {
+        // style: {
+
+        //   left: Math.trunc(width.value * p.x) + 'px',
+        //   top: Math.trunc(height.value * p.y) + 'px',
+        // },
+        cameraId: p.toCameraId,
+        x: p.x,
+        y: p.y,
+        distance: p.distance,
+        angleY,
+        angleZ,
+      };
+    });
+  });
 
   // const currentCameraReactive = toReactive(currentCamera);
 
@@ -76,6 +97,7 @@ export const useCameraStore = defineStore('camera', () => {
 
   return {
     currentCamera,
+    portals,
     // currentCameraReactive,
     producers,
     joinCamera,

@@ -115,6 +115,7 @@ function onMouseUp(evt: Event){
 function onMouseMove(ev: MouseEvent){
   // console.log(ev);
   if (movedEntity.value){
+    movedEntity.value.object3D.rotation.reorder('YXZ');
     movedEntity.value.object3D.rotation.y -= THREE.MathUtils.degToRad(ev.movementX * 0.15);
     const newZ = movedEntity.value.object3D.rotation.x - THREE.MathUtils.degToRad(ev.movementY * 0.15);
     movedEntity.value.object3D.rotation.x = THREE.MathUtils.clamp(newZ, -Math.PI / 2, Math.PI / 2);

@@ -5,6 +5,7 @@ import {Venue, UserClient, SenderClient, BaseClient, PublicProducers} from './In
 import { ProducerId } from 'schemas/mediasoup';
 import { computed, shallowRef, effect } from '@vue/reactivity';
 import { CameraWithIncludes } from 'modules/prismaClient';
+import _ from 'lodash';
 
 const log = new Log('Camera');
 
@@ -59,7 +60,12 @@ export class Camera {
   }
   
   get portals() {
-    return this.prismaData.cameraPortals;
+    return this.prismaData.cameraPortals.reduce<Record<CameraId, Omit<(typeof this.prismaData.cameraPortals[number]), 'toCameraId'> & {toCameraId: CameraId}>>((prev, cur) => {
+      prev[cur.toCameraId as CameraId] = cur as {x: number, y: number, distance: number, toCameraId: CameraId};
+      return prev;
+    }, {});
+    // return _.keyBy(this.prismaData.cameraPortals, (p) => p.toCameraId);
+    // return this.prismaData.cameraPortals;
   }
 
   getPublicState() {

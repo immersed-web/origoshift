@@ -38,7 +38,7 @@
         >
           <a-entity
             v-for="portal in camera.portals"
-            :key="portal.cameraId"
+            :key="portal.toCameraId"
             :rotation="`${portal.angleX} ${portal.angleY} 0`"
           >
             <a-box
@@ -46,7 +46,7 @@
               scale="0.2 0.2 0.2"
               color="#ef2d5e"
               class="clickable"
-              @mousedown="movedPortalCameraId = portal.cameraId"
+              @mousedown="movedPortalCameraId = portal.toCameraId"
             />
           </a-entity>
         </a-entity>
@@ -96,23 +96,31 @@ const props = defineProps<{
 }>();
 
 function onMouseUp(evt: Event){
+  if(!(evt instanceof MouseEvent)) return;
+
+  console.log('mouseup', evt);
+  if(movedPortalCameraId.value && camera.currentCamera){
+    const {toCameraId, ...portal} = camera.currentCamera.portals[movedPortalCameraId.value];
+    adminStore.setPortal({
+      cameraId: camera.currentCamera.cameraId,
+      toCameraId,
+      portal,
+    });
+  }
   movedPortalCameraId.value = undefined;
   movedEntity.value = undefined;
 }
+// TODO: Perhaps calculate pixelToRayAngles to make the objects forllow mouse correctly
+// Can perhaps somehow be achieved by using the raycaster provided by the cursor component, or building our own component.
 function onMouseMove(ev: MouseEvent){
   // console.log(ev);
   if (movedEntity.value){
     movedEntity.value.object3D.rotation.y -= THREE.MathUtils.degToRad(ev.movementX * 0.15);
     const newZ = movedEntity.value.object3D.rotation.x - THREE.MathUtils.degToRad(ev.movementY * 0.15);
-    movedEntity.value.object3D.rotation.x = THREE.MathUtils.clamp(newZ, -Math.PI / 4, Math.PI / 4);
+    movedEntity.value.object3D.rotation.x = THREE.MathUtils.clamp(newZ, -Math.PI / 2, Math.PI / 2);
   } else if(movedPortalCameraId.value && camera.currentCamera) {
-
-    console.log('moving portal!');
-    const idx = camera.currentCamera.portals.findIndex(p => p.toCameraId === movedPortalCameraId.value);
-    if(idx !== -1){
-      camera.currentCamera.portals[idx].x += ev.movementX * 0.001;
-      camera.currentCamera.portals[idx].y += ev.movementY * 0.001;
-    }
+    camera.currentCamera.portals[movedPortalCameraId.value].x += ev.movementX * 0.001;
+    camera.currentCamera.portals[movedPortalCameraId.value].y += ev.movementY * 0.001;
   }
 }
 onMounted(() => {

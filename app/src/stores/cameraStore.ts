@@ -16,23 +16,43 @@ export const useCameraStore = defineStore('camera', () => {
 
 
   const portals = computed(() => {
-    return currentCamera.value?.portals.map(p => {
-      const angleY = -360 * p.x + -90; 
+    if(!currentCamera.value) return undefined;
+    const newObj: Record<CameraId, {angleX:number; angleY: number} & (typeof currentCamera.value.portals)[CameraId]> = {};
+    for(const [k , p ] of Object.entries(currentCamera.value.portals)){
+      const angleY = 270 - 360 * p.x; 
       const angleX = 90 - (180 * p.y);
-      return {
+      newObj[p.toCameraId as CameraId] = {
         // style: {
 
         //   left: Math.trunc(width.value * p.x) + 'px',
         //   top: Math.trunc(height.value * p.y) + 'px',
         // },
-        cameraId: p.toCameraId as CameraId,
+        toCameraId: p.toCameraId as CameraId,
         x: p.x,
         y: p.y,
         distance: p.distance,
         angleX,
         angleY,
       };
-    });
+    }
+    return newObj;
+    // return currentCamera.value?.portals.map(p => {
+    //   const angleY = -360 * p.x + -90; 
+    //   const angleX = 90 - (180 * p.y);
+    //   return {
+    //     // style: {
+
+    //     //   left: Math.trunc(width.value * p.x) + 'px',
+    //     //   top: Math.trunc(height.value * p.y) + 'px',
+    //     // },
+    //     cameraId: p.toCameraId as CameraId,
+    //     x: p.x,
+    //     y: p.y,
+    //     distance: p.distance,
+    //     angleX,
+    //     angleY,
+    //   };
+    // });
   });
 
   // const currentCameraReactive = toReactive(currentCamera);

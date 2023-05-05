@@ -149,6 +149,11 @@ export const adminRouter = router({
         }
       }
     });
+    const camera = ctx.venue.cameras.get(input.cameraId);
+    if(!camera) return;
+    camera.prismaData = dbResponse;
+    camera._notifyStateUpdated('camera portal updated');
+    // ctx.venue._notifyStateUpdated('camera portal updated');
     return dbResponse;
   }),
   subVenueStateUpdated: atLeastModeratorP.subscription(({ctx}) => {

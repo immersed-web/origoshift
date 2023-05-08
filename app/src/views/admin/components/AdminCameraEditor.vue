@@ -68,17 +68,20 @@
       <a-videosphere />
     </a-scene>
     <div class="flex flex-row gap-2 justify-center p-4">
-      <div
-        class="card shadow-md bg-neutral text-neutral-content p-4 cursor-pointer"
-        @click="createOrEditPortal(listedCamera.cameraId)"
+      <template
         v-for="listedCamera in adminStore.adminOnlyVenueState?.cameras"
         :key="listedCamera.cameraId"
       >
+      <div v-if="listedCamera.cameraId !== camera.currentCamera?.cameraId"
+        class="card shadow-md bg-neutral text-neutral-content p-4 cursor-pointer"
+        @click="createOrEditPortal(listedCamera.cameraId)"
+      >
         {{ listedCamera.name }}
       </div>
-      <div>
+      </template>
+      <!-- <div>
         {{ movedPortalCameraId }}
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -211,6 +214,13 @@ async function createOrEditPortal(cameraId: CameraId) {
 // NOTE: Not completely sure why we have to do this. Using vue to v-for over the portals didnt work for some reason.
 function manuallyUpdatePortals () {
   if(!camera.portals || !portalsEntity.value) return;
+  const allPortalEntities = portalsEntity.value.children
+  for (let i = 0; i < allPortalEntities.length; i++) {
+    const element = allPortalEntities[i];
+    if(element instanceof HTMLElement){
+      element.dataset.status = 'dangling'
+    }
+  }
   for(const pKey in camera.portals) {
     const portal = camera.portals[pKey as CameraId];
     const portalTag = portalsEntity.value.querySelector(`[data-portal-id="${pKey}"]`);
@@ -230,6 +240,18 @@ function manuallyUpdatePortals () {
     } else {
       console.log('updating portal entity!!!');
       portalTag.setAttribute('rotation', `${portal.angleX} ${portal.angleY} 0`);
+      if(portalTag instanceof HTMLElement) {
+        delete portalTag.dataset.status
+      }
+    }
+  }
+  for (let i = 0; i < allPortalEntities.length; i++) {
+    const element = allPortalEntities[i];
+    if(element instanceof HTMLElement){
+      if(element.dataset.status === 'dangling') {
+        console.log('removing portal tag');
+        element.remove();
+      }
     }
   }
 }

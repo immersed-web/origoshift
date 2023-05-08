@@ -1,21 +1,46 @@
 <template>
   <div class="flex gap-4">
     <div class="flex-initial">
-      <ul class="menu bg-base-200 rounded-box p-2">
+      <ul class="menu bg-base-200 rounded-box">
+        <li class="menu-title mx-4 my-2">
+          Kameraprofiler:
+        </li>
         <li
           v-for="camera in adminStore.adminOnlyVenueState?.cameras"
           :key="camera.cameraId"
         >
           <a
-            :class="{active: editedCamera === camera.cameraId}"
-            @click="editedCamera = camera.cameraId"
+            :class="{active: editedCameraId === camera.cameraId}"
+            @click="editedCameraId = camera.cameraId; editedSenderId = undefined"
           >{{ camera.name }}</a>
+        </li>
+      </ul>
+      <ul
+        v-if="editedSenderId"
+        class="menu bg-base-200 rounded-box mt-6"
+      >
+        <li class="menu-title mx-4 my-2">
+          Ej tilldelade sändare:
+        </li>
+        <li
+          v-for="sender in adminStore.adminOnlyVenueState?.detachedSenders"
+          :key="sender.connectionId"
+        >
+          <a
+            @click="editedSenderId = sender.senderId; editedCameraId = undefined"
+            :class="{active: editedSenderId === sender.senderId}"
+          >
+            {{ sender.senderId.substring(0, 5) }}
+          </a>
         </li>
       </ul>
     </div>
     <div class="flex-auto rounded-box overflow-hidden">
-      <template v-if="editedCamera">
-        <AdminCameraEditor :camera-id="editedCamera" />
+      <template v-if="editedCameraId">
+        <AdminCameraEditor :camera-id="editedCameraId" />
+      </template>
+      <template v-else-if="editedSenderId">
+        <AdminSenderEditor :sender-id="editedSenderId" />
       </template>
     </div>
   </div>
@@ -70,7 +95,7 @@
           </td>
           <td>
             <button
-              @click="editedCamera = camera.cameraId"
+              @click="editedCameraId = camera.cameraId"
               class="btn btn-primary btn-sm"
             >
               Edit
@@ -132,17 +157,16 @@
 </template>
 
 <script setup lang="ts">
-// import SenderList from '@/components/venue/SenderList.vue';
-import {useVenueStore} from '@/stores/venueStore';
+// import {useVenueStore} from '@/stores/venueStore';
 import { useAdminStore } from '@/stores/adminStore';
 import { useSoupStore } from '@/stores/soupStore';
 import { onBeforeMount, reactive, ref } from 'vue';
-import type { CameraId, CameraPortalUpdate } from 'schemas';
-import ConsumerElement from '@/components/ConsumerElement.vue';
+import type { CameraId, CameraPortalUpdate, SenderId } from 'schemas';
 import { useCameraStore } from '@/stores/cameraStore';
 import AdminCameraEditor from './components/AdminCameraEditor.vue';
+import AdminSenderEditor from './components/AdminSenderEditor.vue';
 
-const venueStore = useVenueStore();
+// const venueStore = useVenueStore();
 const adminStore = useAdminStore();
 const soupStore = useSoupStore();
 const cameraStore = useCameraStore();
@@ -155,7 +179,8 @@ const portalPosition: Partial<CameraPortalUpdate['portal']> & {absoluteX?: numbe
   distance: 4,
 });
 
-const editedCamera = ref<CameraId>();
+const editedCameraId = ref<CameraId>();
+const editedSenderId = ref<SenderId>();
 
 async function consumeCamera(cameraId: CameraId){
   // await connection.client.camera.joinCamera.mutate({cameraId});

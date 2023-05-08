@@ -42,11 +42,13 @@
           </a-ring>
         </a-entity>
         <a-entity
-          v-if="camera.portals"
+          v-once
+          ref="portalsEntity"
         >
           <a-entity
-            v-for="portal in camera.portals"
-            :key="portal.toCameraId"
+            v-for="(portal, key) in camera.portals"
+            :data-portal-id="key"
+            :key="key"
             :rotation="`${portal.angleX} ${portal.angleY} 0`"
           >
             <a-box
@@ -94,6 +96,7 @@ import { useAdminStore } from '@/stores/adminStore';
 const videoTag = ref<HTMLVideoElement>();
 const cameraEntity = ref<Entity>();
 const startAngleEntity = ref<Entity>();
+const portalsEntity = ref<Entity>();
 const movedPortalCameraId = ref<CameraId>();
 const cameraIsAnimating = ref(false);
 
@@ -106,17 +109,20 @@ const props = defineProps<{
   cameraId: CameraId
 }>();
 
+const movedEntity = ref<Entity>();
 function onMouseUp(evt: Event){
   if(!(evt instanceof MouseEvent)) return;
 
   console.log('mouseup', evt);
   if(movedPortalCameraId.value && camera.currentCamera){
     const {toCameraId, ...portal} = camera.currentCamera.portals[movedPortalCameraId.value];
-    adminStore.setPortal({
+    const data = {
       cameraId: camera.currentCamera.cameraId,
       toCameraId,
       portal,
-    });
+    };
+    console.log('setting portal:', data);
+    adminStore.setPortal(data);
   }
   movedPortalCameraId.value = undefined;
   movedEntity.value = undefined;
@@ -131,7 +137,8 @@ function onMouseMove(ev: MouseEvent){
     const newZ = movedEntity.value.object3D.rotation.x - THREE.MathUtils.degToRad(ev.movementY * 0.15);
     movedEntity.value.object3D.rotation.x = THREE.MathUtils.clamp(newZ, -Math.PI / 2, Math.PI / 2);
   } else if(movedPortalCameraId.value && camera.currentCamera) {
-    camera.currentCamera.portals[movedPortalCameraId.value].x += ev.movementX * 0.001;
+    const newX = camera.currentCamera.portals[movedPortalCameraId.value].x + ev.movementX * 0.001;
+    camera.currentCamera.portals[movedPortalCameraId.value].x = (1.0 + newX) % 1.0;
     camera.currentCamera.portals[movedPortalCameraId.value].y += ev.movementY * 0.001;
   }
 }
@@ -144,7 +151,6 @@ onUnmounted(() => {
   document.removeEventListener('mouseup', onMouseUp);
   document.removeEventListener('pointermove', onMouseMove);
 });
-const movedEntity = ref<Entity>();
 
 async function loadCamera(cameraId: CameraId) {
   console.log('loading camera');
@@ -168,6 +174,7 @@ async function createOrEditPortal(cameraId: CameraId) {
     return;
   }
   if(foundPortal){
+    // TODO: make sure we do correct rotation animations with actual closest path.
     console.log('portal already exists');
     // cameraEntity.value?.emit('moveCameraToActivePortal', null, false);
     cameraEntity.value.setAttribute('look-controls', {enabled: false});
@@ -209,6 +216,29 @@ async function createOrEditPortal(cameraId: CameraId) {
 // const portalRotationProperties = computed(() => {
 //   return `property: components.["look-controls"].yawObject.rotation.y; to: 0.6; startEvents: moveCameraToActivePortal`;
 // });
+function manuallyUpdatePortals () {
+  if(!camera.portals || !portalsEntity.value) return;
+  for(const pKey in camera.portals) {
+    const portal = camera.portals[pKey as CameraId];
+    const portalTag = portalsEntity.value.querySelector(`[data-portal-id="${pKey}"]`);
+    if(!portalTag) {
+      const newPortal = document.createElement('a-entity');
+      newPortal.dataset.portalId = pKey;
+      newPortal.setAttribute('rotation', `${portal.angleX} ${portal.angleY} 0`);
+      const newBox = document.createElement('a-entity');
+      newBox.setAttribute('scale', '0.2 0.2 0.2');
+      newBox.setAttribute('position', `0 0 ${-portal.distance}`);
+      newPortal.appendChild(newBox);
+      portalsEntity.value.appendChild(newPortal);
+    } else {
+      portalTag.setAttribute('rotation', `${portal.angleX} ${portal.angleY} 0`);
+    }
+  }
+}
+
+watch(() => camera.portals, () => {
+  manuallyUpdatePortals();
+});
 
 watch(() => props.cameraId, async (newCamerId) => {
   console.log('cameraId changed');

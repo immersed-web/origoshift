@@ -7,7 +7,7 @@ import { TRPCError } from '@trpc/server';
 import { observable } from '@trpc/server/observable';
 import { BaseClient, Camera, loadUserPrismaData, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import { Prisma } from 'database';
-import prismaClient from '../modules/prismaClient';
+import prismaClient, { cameraIncludeStuff } from '../modules/prismaClient';
 import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSchema, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
 import { z } from 'zod';
@@ -126,9 +126,7 @@ export const adminRouter = router({
       where: {
         cameraId: input.cameraId,
       },
-      include: {
-        cameraPortals: true,
-      },
+      include: cameraIncludeStuff,
       data: {
         cameraPortals: {
           upsert: {

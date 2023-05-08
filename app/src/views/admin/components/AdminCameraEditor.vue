@@ -208,6 +208,7 @@ async function createOrEditPortal(cameraId: CameraId) {
   }
 }
 
+// NOTE: Not completely sure why we have to do this. Using vue to v-for over the portals didnt work for some reason.
 function manuallyUpdatePortals () {
   if(!camera.portals || !portalsEntity.value) return;
   for(const pKey in camera.portals) {

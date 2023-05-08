@@ -16,7 +16,7 @@
         </li>
       </ul>
       <ul
-        v-if="editedSenderId"
+        v-if="hasDetachedSenders"
         class="menu bg-base-200 rounded-box mt-6"
       >
         <li class="menu-title mx-4 my-2">
@@ -160,7 +160,7 @@
 // import {useVenueStore} from '@/stores/venueStore';
 import { useAdminStore } from '@/stores/adminStore';
 import { useSoupStore } from '@/stores/soupStore';
-import { onBeforeMount, reactive, ref } from 'vue';
+import { computed, onBeforeMount, reactive, ref } from 'vue';
 import type { CameraId, CameraPortalUpdate, SenderId } from 'schemas';
 import { useCameraStore } from '@/stores/cameraStore';
 import AdminCameraEditor from './components/AdminCameraEditor.vue';
@@ -168,6 +168,12 @@ import AdminSenderEditor from './components/AdminSenderEditor.vue';
 
 // const venueStore = useVenueStore();
 const adminStore = useAdminStore();
+const hasDetachedSenders = computed(() => {
+  for (const key in adminStore.adminOnlyVenueState?.detachedSenders) {
+    return true;
+  }
+  return false;
+});
 const soupStore = useSoupStore();
 const cameraStore = useCameraStore();
 

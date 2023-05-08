@@ -78,9 +78,9 @@
       <a-sky color="#ECECEC" />
       <a-entity position="0 1.6 0">
         <a-entity
-          v-for="portal in portalsWithStyles"
-          :key="portal.cameraId"
-          :rotation="`${portal.angleZ} ${portal.angleY} 0`"
+          v-for="portal in camera.portals"
+          :key="portal.toCameraId"
+          :rotation="`${portal.angleX} ${portal.angleY} 0`"
         >
           <!-- :rotation="`${xRot} ${yRot} ${zRot}`" -->
           <!-- <a-entity
@@ -91,7 +91,7 @@
             scale="0.2 0.2 0.2"
             color="#ef2d5e"
             class="clickable"
-            @mousedown="goToCamera(portal.cameraId as CameraId)"
+            @mousedown="goToCamera(portal.toCameraId)"
           />
           <!-- </a-entity> -->
         </a-entity>
@@ -163,25 +163,25 @@ const camera = useCameraStore();
 //   audioTrack: undefined,
 // });
 
-const portalsWithStyles = computed(() => {
-  return camera.currentCamera?.portals.map(p => {
-    const angleY = -360 * p.x + -90; 
-    const angleZ = 90 - (180 * p.y);
-    return {
-      style: {
+// const portalsWithStyles = computed(() => {
+//   return camera.currentCamera?.portals.map(p => {
+//     const angleY = -360 * p.x + -90; 
+//     const angleZ = 90 - (180 * p.y);
+//     return {
+//       style: {
 
-        left: Math.trunc(width.value * p.x) + 'px',
-        top: Math.trunc(height.value * p.y) + 'px',
-      },
-      cameraId: p.toCameraId,
-      x: p.x,
-      y: p.y,
-      distance: p.distance,
-      angleY,
-      angleZ,
-    };
-  });
-});
+//         left: Math.trunc(width.value * p.x) + 'px',
+//         top: Math.trunc(height.value * p.y) + 'px',
+//       },
+//       cameraId: p.toCameraId,
+//       x: p.x,
+//       y: p.y,
+//       distance: p.distance,
+//       angleY,
+//       angleZ,
+//     };
+//   });
+// });
 
 watch(() => camera.producers, async (updatedProducers) => {
   console.log('cameraProducers were updated:', toRaw(updatedProducers));

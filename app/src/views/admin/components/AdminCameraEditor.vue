@@ -69,15 +69,18 @@
     </a-scene>
     <div class="flex flex-row gap-2 justify-center p-4">
       <template
-        v-for="listedCamera in adminStore.adminOnlyVenueState?.cameras"
+        v-for="listedCamera in camerasWithPortalInfo"
         :key="listedCamera.cameraId"
       >
-      <div v-if="listedCamera.cameraId !== camera.currentCamera?.cameraId"
+      <div v-if="listedCamera.cameraId !== camera.currentCamera?.cameraId" class="indicator">
+        <span v-if="listedCamera.hasPortal" class="indicator-item badge badge-primary"></span>
+        <div 
         class="card shadow-md bg-neutral text-neutral-content p-4 cursor-pointer"
         @click="createOrEditPortal(listedCamera.cameraId)"
-      >
+        >
         {{ listedCamera.name }}
       </div>
+    </div>
       </template>
       <!-- <div>
         {{ movedPortalCameraId }}
@@ -105,6 +108,20 @@ const cameraIsAnimating = ref(false);
 
 const camera = useCameraStore();
 const adminStore = useAdminStore();
+const camerasWithPortalInfo = computed(() => {
+  const portalCameraIds = camera.portals? Object.keys(camera.portals) : [];
+  console.log('portalCameraIds in computed:', portalCameraIds);
+  const camerasWithPortalInfo = [];
+  if(!adminStore.adminOnlyVenueState?.cameras) return [];
+  for(const [key, cam] of Object.entries(adminStore.adminOnlyVenueState.cameras)){
+    console.log('includes input:', cam.cameraId, portalCameraIds);
+    const hasPortal = portalCameraIds.includes(cam.cameraId);
+    console.log('includes result:', hasPortal);
+    const newCam = { hasPortal, ...cam}
+    camerasWithPortalInfo.push(newCam);
+  }
+  return camerasWithPortalInfo;
+})
 // const soup = useSoupStore();
 
 const props = defineProps<{
@@ -245,7 +262,7 @@ function manuallyUpdatePortals () {
       }
     }
   }
-  for (let i = 0; i < allPortalEntities.length; i++) {
+  for (let i = allPortalEntities.length-1; i >= 0; i--) {
     const element = allPortalEntities[i];
     if(element instanceof HTMLElement){
       if(element.dataset.status === 'dangling') {

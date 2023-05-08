@@ -39,7 +39,7 @@
       <template v-if="editedCameraId">
         <AdminCameraEditor :camera-id="editedCameraId" />
       </template>
-      <template v-else-if="editedSenderId">
+      <template v-else-if="editedSenderId && hasDetachedSenders">
         <AdminSenderEditor :sender-id="editedSenderId" />
       </template>
     </div>

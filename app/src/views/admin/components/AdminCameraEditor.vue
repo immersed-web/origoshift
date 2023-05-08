@@ -42,10 +42,9 @@
           </a-ring>
         </a-entity>
         <a-entity
-          v-once
           ref="portalsEntity"
         >
-          <a-entity
+          <!-- <a-entity
             v-for="(portal, key) in camera.portals"
             :data-portal-id="key"
             :key="key"
@@ -58,7 +57,7 @@
               class="clickable"
               @mousedown="movedPortalCameraId = portal.toCameraId"
             />
-          </a-entity>
+          </a-entity> -->
         </a-entity>
       </a-entity>
       <a-camera
@@ -169,33 +168,32 @@ async function loadCamera(cameraId: CameraId) {
 async function createOrEditPortal(cameraId: CameraId) {
   if(!camera.portals || !camera.currentCamera) return;
   const foundPortal = camera.portals[cameraId];
-  if(!cameraEntity.value){
-    console.error('cameraEntity template ref not set');
+  const rotationTarget = cameraEntity.value;
+  if(!rotationTarget){
+    console.error('rotationTarget ref not set');
     return;
   }
   if(foundPortal){
-    // TODO: make sure we do correct rotation animations with actual closest path.
     console.log('portal already exists');
-    // cameraEntity.value?.emit('moveCameraToActivePortal', null, false);
-    cameraEntity.value.setAttribute('look-controls', {enabled: false});
     cameraIsAnimating.value = true;
-    cameraEntity.value.object3D.rotation.reorder('YXZ');
-    const angleZ = cameraEntity.value.object3D.rotation.z;
-    cameraEntity.value.setAttribute('animation', `property: rotation; to: ${foundPortal.angleX} ${foundPortal.angleY} ${angleZ};`);
+    const fromRotation = rotationTarget.getAttribute('rotation');
+    // const angleZ = THREE.MathUtils.radToDeg(fromRotation.z);
+    const angleZ = fromRotation.z;
+    const to = [foundPortal.angleX, foundPortal.angleY, angleZ];
+    rotationTarget.setAttribute('animation', `property: rotation; to: ${to[0]} ${to[1]} ${0};`);
     
-    cameraEntity.value.addEventListener('animationcomplete', () => {
-      console.log('animation completed');
-      if(!cameraEntity.value) return;
-      const newRotation = cameraEntity.value.getAttribute('rotation');
-      cameraEntity.value.components['look-controls'].pitchObject.rotation.x = THREE.MathUtils.degToRad(newRotation.x);
-      cameraEntity.value.components['look-controls'].yawObject.rotation.y = THREE.MathUtils.degToRad(newRotation.y);
+    console.log('animating camera:', fromRotation, to);
+    
+    (<HTMLElement>rotationTarget).addEventListener('animationcomplete', () => {
+      if(!rotationTarget) return;
+      const newRotation = rotationTarget.getAttribute('rotation');
+      rotationTarget.components['look-controls'].pitchObject.rotation.x = THREE.MathUtils.degToRad(newRotation.x);
+      rotationTarget.components['look-controls'].yawObject.rotation.y = THREE.MathUtils.degToRad(newRotation.y);
       cameraIsAnimating.value = false;
-      cameraEntity.value.setAttribute('look-controls', {enabled: true});
-    });
-    // rotateToAndHighlightPortal(foundPortal);
+    }, {once: true});
   }else{
     // Create a new portal
-    const cameraRotation = cameraEntity.value.object3D.rotation;
+    const cameraRotation = rotationTarget.object3D.rotation;
     const portalCoords = camera.utils.anglesToCoords({angleX: THREE.MathUtils.radToDeg(cameraRotation.x), angleY: THREE.MathUtils.radToDeg(cameraRotation.y)});
     console.log(portalCoords);
     adminStore.setPortal({
@@ -209,34 +207,34 @@ async function createOrEditPortal(cameraId: CameraId) {
     });
   }
 }
-// function onMoveCamera() {
-//   console.log('camera move triggered');
-// }
 
-// const portalRotationProperties = computed(() => {
-//   return `property: components.["look-controls"].yawObject.rotation.y; to: 0.6; startEvents: moveCameraToActivePortal`;
-// });
 function manuallyUpdatePortals () {
   if(!camera.portals || !portalsEntity.value) return;
   for(const pKey in camera.portals) {
     const portal = camera.portals[pKey as CameraId];
     const portalTag = portalsEntity.value.querySelector(`[data-portal-id="${pKey}"]`);
     if(!portalTag) {
+      console.log('creating portal entity!!!');
       const newPortal = document.createElement('a-entity');
       newPortal.dataset.portalId = pKey;
-      newPortal.setAttribute('rotation', `${portal.angleX} ${portal.angleY} 0`);
-      const newBox = document.createElement('a-entity');
+      const newBox = document.createElement('a-box');
       newBox.setAttribute('scale', '0.2 0.2 0.2');
       newBox.setAttribute('position', `0 0 ${-portal.distance}`);
+      newBox.setAttribute('color', '#ef2d44');
+      newBox.classList.add('clickable')
+      newBox.addEventListener('mousedown', () => movedPortalCameraId.value = portal.toCameraId);
       newPortal.appendChild(newBox);
       portalsEntity.value.appendChild(newPortal);
+      newPortal.setAttribute('rotation', `${portal.angleX} ${portal.angleY} 0`);
     } else {
+      console.log('updating portal entity!!!');
       portalTag.setAttribute('rotation', `${portal.angleX} ${portal.angleY} 0`);
     }
   }
 }
 
-watch(() => camera.portals, () => {
+watch(() => camera.portals, (portals) => {
+  console.log('portals watcher triggered', portals);
   manuallyUpdatePortals();
 });
 

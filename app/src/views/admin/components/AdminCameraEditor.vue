@@ -75,11 +75,16 @@
       <div v-if="listedCamera.cameraId !== camera.currentCamera?.cameraId" class="indicator">
         <span v-if="listedCamera.hasPortal" class="indicator-item badge badge-primary"></span>
         <div 
-        class="card shadow-md bg-neutral text-neutral-content p-4 cursor-pointer"
-        @click="createOrEditPortal(listedCamera.cameraId)"
+        class="group card shadow-md bg-neutral text-neutral-content p-4 cursor-pointer grid grid-cols-2 items-center justify-items-center gap-2"
         >
-        {{ listedCamera.name }}
-      </div>
+          <div class="col-span-full row-start-1 justify-self-center group-hover:invisible">
+            {{ listedCamera.name }}
+          </div>
+          <button
+          @click="createOrEditPortal(listedCamera.cameraId)"
+          class="row-start-1 col-start-1 col-span-1 btn btn-square btn-primary opacity-0 group-hover:opacity-100 transition-all duration-300"><span class="material-icons">visibility</span></button>
+          <button class="row-start-1 col-start-2 col-span-1 btn btn-square btn-error opacity-0 group-hover:opacity-100 transition-all duration-300"><span class="material-icons">delete</span></button>
+        </div>
     </div>
       </template>
       <!-- <div>
@@ -196,8 +201,8 @@ async function createOrEditPortal(cameraId: CameraId) {
   if(foundPortal){
     console.log('portal already exists');
     cameraIsAnimating.value = true;
+    rotationTarget.setAttribute('look-controls', {enabled: false});
     const fromRotation = rotationTarget.getAttribute('rotation');
-    // const angleZ = THREE.MathUtils.radToDeg(fromRotation.z);
     const angleZ = fromRotation.z;
     const to = [foundPortal.angleX, foundPortal.angleY, angleZ];
     rotationTarget.setAttribute('animation', `property: rotation; to: ${to[0]} ${to[1]} ${0};`);
@@ -210,6 +215,7 @@ async function createOrEditPortal(cameraId: CameraId) {
       rotationTarget.components['look-controls'].pitchObject.rotation.x = THREE.MathUtils.degToRad(newRotation.x);
       rotationTarget.components['look-controls'].yawObject.rotation.y = THREE.MathUtils.degToRad(newRotation.y);
       cameraIsAnimating.value = false;
+      rotationTarget.setAttribute('look-controls', {enabled: true});
     }, {once: true});
   }else{
     // Create a new portal

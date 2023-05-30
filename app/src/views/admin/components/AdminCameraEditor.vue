@@ -29,7 +29,7 @@
             radius-outer="0.2"
             position="0 0 -2"
             color="teal"
-            mixin="cursorHighlight"
+            hover-highlight
           >
             <a-ring
               radius-inner="0"
@@ -266,6 +266,8 @@ function manuallyUpdatePortals () {
       newBox.setAttribute('scale', '0.2 0.2 0.2');
       newBox.setAttribute('position', `0 0 ${-portal.distance}`);
       newBox.setAttribute('color', '#ef2d44');
+      // newBox.setAttribute('mixin', 'cursorHighlight')
+      newBox.setAttribute('hover-highlight', '');
       newBox.classList.add('clickable')
       newBox.addEventListener('mousedown', () => movedPortalCameraId.value = portal.toCameraId);
       newPortal.appendChild(newBox);

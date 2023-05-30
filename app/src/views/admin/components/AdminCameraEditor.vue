@@ -81,7 +81,7 @@
               {{ listedCamera.name }}
             </div>
             <button
-            @click="createOrEditPortal(listedCamera.cameraId)"
+            @click="createOrCenterOnPortal(listedCamera.cameraId)"
             class="row-start-1 col-start-1 col-span-1 btn btn-square btn-primary opacity-0 group-hover:opacity-100 transition-all duration-300"><span class="material-icons">visibility</span></button>
             <button class="row-start-1 col-start-2 col-span-1 btn btn-square btn-error opacity-0 group-hover:opacity-100 transition-all duration-300"><span class="material-icons">delete</span></button>
           </div>
@@ -200,7 +200,7 @@ async function loadCamera(cameraId: CameraId) {
   vSphere.setAttribute('src', '#main-video');
 }
 
-async function createOrEditPortal(cameraId: CameraId) {
+async function createOrCenterOnPortal(cameraId: CameraId) {
   if(!camera.portals || !camera.currentCamera) return;
   const foundPortal = camera.portals[cameraId];
   const rotationTarget = cameraEntity.value;

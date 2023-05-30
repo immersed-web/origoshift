@@ -8,7 +8,7 @@ import { observable } from '@trpc/server/observable';
 import { BaseClient, Camera, loadUserPrismaData, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import { Prisma } from 'database';
 import prismaClient, { cameraIncludeStuff } from '../modules/prismaClient';
-import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSchema, VenueId, VenueIdSchema, VenueUpdateSchema } from 'schemas';
+import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSchema, VenueId, VenueIdSchema, VenueUpdateSchema, CameraViewOriginUpdateSchema} from 'schemas';
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
 import { z } from 'zod';
 import { atLeastModeratorP, currentVenueAdminP, isUserClientM, isVenueOwnerM, procedure as p, router } from '../trpc/trpc';
@@ -121,6 +121,25 @@ export const adminRouter = router({
   })).mutation(({ctx, input}) => {
     ctx.venue.setSenderForCamera(input.senderClientConnectionId, input.cameraId);
   }),
+  setCameraViewOrigin: currentVenueAdminP.input(CameraViewOriginUpdateSchema).mutation(async ({ctx, input}) => {
+    const { originX, originY } = input.origin;
+    const dbResponse = await prismaClient.camera.update({
+      where: {
+        cameraId: input.cameraId,
+      },
+      include: cameraIncludeStuff,
+      data: {
+        startAngleX: originX,
+        startAngleY: originY,
+      }
+    });
+    const camera = ctx.venue.cameras.get(input.cameraId);
+    if(!camera) return;
+    camera.prismaData = dbResponse;
+    camera._notifyStateUpdated('view origin updated');
+    
+    return dbResponse;
+  }),
   setCameraPortal: currentVenueAdminP.input(CameraPortalUpdateSchema).mutation(async ({ctx, input}) => {
     const dbResponse = await prismaClient.camera.update({
       where: {
@@ -152,6 +171,41 @@ export const adminRouter = router({
     camera.prismaData = dbResponse;
     camera._notifyStateUpdated('camera portal updated');
     // ctx.venue._notifyStateUpdated('camera portal updated');
+    return dbResponse;
+  }),
+  deleteCameraPortal: currentVenueAdminP.input(z.object({
+    fromCameraId: CameraIdSchema,
+    toCameraId: CameraIdSchema,
+  })).mutation(async ({ctx, input}) => {
+    const { fromCameraId, toCameraId } = input;
+    // const dbResponse = await prismaClient.cameraPortal.delete({
+    //   where: {
+    //     fromCameraId_toCameraId: {
+    //       fromCameraId,
+    //       toCameraId,
+    //     }
+    //   }
+    // });
+    const dbResponse = await prismaClient.camera.update({
+      where: {
+        cameraId: fromCameraId,
+      },
+      include: cameraIncludeStuff,
+      data: {
+        cameraPortals: {
+          delete: {
+            fromCameraId_toCameraId: {
+              fromCameraId,
+              toCameraId,
+            }
+          }
+        }
+      }
+    });
+    const camera = ctx.venue.cameras.get(fromCameraId);
+    if(!camera) return;
+    camera.prismaData = dbResponse;
+    camera._notifyStateUpdated('camera portal deleted');
     return dbResponse;
   }),
   subVenueStateUpdated: atLeastModeratorP.subscription(({ctx}) => {

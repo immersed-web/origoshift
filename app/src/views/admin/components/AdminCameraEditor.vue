@@ -144,6 +144,15 @@ function onMouseUp(evt: Event){
     };
     console.log('setting portal:', data);
     adminStore.setPortal(data);
+  } else if(movedEntity.value) {
+    const originCoords = camera.utils.anglesToCoords({angleX: THREE.MathUtils.radToDeg(movedEntity.value.object3D.rotation.x), angleY: THREE.MathUtils.radToDeg(movedEntity.value.object3D.rotation.y)});
+    adminStore.setCameraViewOrigin({
+      cameraId: props.cameraId,
+      origin: {
+        originX: originCoords.x,
+        originY: originCoords.y,
+      } 
+    })
   }
   movedPortalCameraId.value = undefined;
   movedEntity.value = undefined;

@@ -96,11 +96,13 @@ model VirtualSpace3DModel {
 }
 
 model Camera {
-  cameraId String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
-  name     String
-  venue    Venue   @relation(fields: [venueId], references: [venueId], onDelete: Cascade)
-  venueId  String  @db.Uuid ///@zod.uuid()
-  senderId String? @db.Uuid ///@zod.uuid()
+  cameraId    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
+  name        String
+  venue       Venue   @relation(fields: [venueId], references: [venueId], onDelete: Cascade)
+  venueId     String  @db.Uuid ///@zod.uuid()
+  senderId    String? @db.Uuid ///@zod.uuid()
+  startAngleX Float?
+  startAngleY Float?
 
   settings          Json
   cameraPortals     CameraPortal[] @relation("fromCamera")

@@ -179,6 +179,12 @@ export const CameraPortalUpdateSchema = z.object({
     });
 export type CameraPortalUpdate = z.TypeOf<typeof CameraPortalUpdateSchema>
 
+export const CameraViewOriginUpdateSchema = z.object({
+    cameraId: CameraIdSchema, 
+    origin: z.object({originX: z.number().nullable(), originY: z.number().optional().nullable()})
+  });
+export type CameraViewOriginUpdate = z.TypeOf<typeof CameraViewOriginUpdateSchema>
+
 export const JwtUserDataSchema = z.object({
   userId: UserIdSchema,
   username: z.string(),

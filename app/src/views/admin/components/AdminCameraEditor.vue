@@ -160,6 +160,8 @@ function onMouseUp(evt: Event){
 // TODO: Perhaps calculate pixelToRayAngles to make the objects forllow mouse correctly
 // Can perhaps somehow be achieved by using the raycaster provided by the cursor component, or building our own component.
 function onMouseMove(ev: MouseEvent){
+  const xSpeed = 0.0004;
+  const ySpeed = 0.0008;
   // console.log(ev);
   if(!camera.currentCamera) return;
   if (movedEntity.value){
@@ -167,13 +169,13 @@ function onMouseMove(ev: MouseEvent){
     // movedEntity.value.object3D.rotation.y -= THREE.MathUtils.degToRad(ev.movementX * 0.15);
     // const newZ = movedEntity.value.object3D.rotation.x - THREE.MathUtils.degToRad(ev.movementY * 0.15);
     // movedEntity.value.object3D.rotation.x = THREE.MathUtils.clamp(newZ, -Math.PI / 2, Math.PI / 2);
-    const newX = camera.currentCamera.viewOrigin.x + ev.movementX * 0.001;
+    const newX = camera.currentCamera.viewOrigin.x + ev.movementX * xSpeed;
     camera.currentCamera.viewOrigin.x = (1.0 + newX) % 1.0;
-    camera.currentCamera.viewOrigin.y += ev.movementY * 0.001;
+    camera.currentCamera.viewOrigin.y += ev.movementY * ySpeed;
   } else if(movedPortalCameraId.value) {
-    const newX = camera.currentCamera.portals[movedPortalCameraId.value].x + ev.movementX * 0.001;
+    const newX = camera.currentCamera.portals[movedPortalCameraId.value].x + ev.movementX * xSpeed;
     camera.currentCamera.portals[movedPortalCameraId.value].x = (1.0 + newX) % 1.0;
-    camera.currentCamera.portals[movedPortalCameraId.value].y += ev.movementY * 0.001;
+    camera.currentCamera.portals[movedPortalCameraId.value].y += ev.movementY * ySpeed;
   }
 }
 onMounted(() => {

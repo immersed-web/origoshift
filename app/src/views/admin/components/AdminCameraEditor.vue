@@ -23,7 +23,7 @@
       <a-entity
         position="0 1.6 0"
       >
-        <a-entity ref="startAngleEntity">
+        <a-entity ref="startAngleEntity" :rotation="`${camera.viewOrigin?.angleX} ${camera.viewOrigin?.angleY} 0`">
           <a-ring
             radius-inner="0.1"
             radius-outer="0.2"
@@ -161,12 +161,16 @@ function onMouseUp(evt: Event){
 // Can perhaps somehow be achieved by using the raycaster provided by the cursor component, or building our own component.
 function onMouseMove(ev: MouseEvent){
   // console.log(ev);
+  if(!camera.currentCamera) return;
   if (movedEntity.value){
-    movedEntity.value.object3D.rotation.reorder('YXZ');
-    movedEntity.value.object3D.rotation.y -= THREE.MathUtils.degToRad(ev.movementX * 0.15);
-    const newZ = movedEntity.value.object3D.rotation.x - THREE.MathUtils.degToRad(ev.movementY * 0.15);
-    movedEntity.value.object3D.rotation.x = THREE.MathUtils.clamp(newZ, -Math.PI / 2, Math.PI / 2);
-  } else if(movedPortalCameraId.value && camera.currentCamera) {
+    // movedEntity.value.object3D.rotation.reorder('YXZ');
+    // movedEntity.value.object3D.rotation.y -= THREE.MathUtils.degToRad(ev.movementX * 0.15);
+    // const newZ = movedEntity.value.object3D.rotation.x - THREE.MathUtils.degToRad(ev.movementY * 0.15);
+    // movedEntity.value.object3D.rotation.x = THREE.MathUtils.clamp(newZ, -Math.PI / 2, Math.PI / 2);
+    const newX = camera.currentCamera.viewOrigin.x + ev.movementX * 0.001;
+    camera.currentCamera.viewOrigin.x = (1.0 + newX) % 1.0;
+    camera.currentCamera.viewOrigin.y += ev.movementY * 0.001;
+  } else if(movedPortalCameraId.value) {
     const newX = camera.currentCamera.portals[movedPortalCameraId.value].x + ev.movementX * 0.001;
     camera.currentCamera.portals[movedPortalCameraId.value].x = (1.0 + newX) % 1.0;
     camera.currentCamera.portals[movedPortalCameraId.value].y += ev.movementY * 0.001;

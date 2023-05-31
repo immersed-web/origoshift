@@ -26,6 +26,15 @@ export const useCameraStore = defineStore('camera', () => {
     const y = (90 - angleX) / 180;
     return {x, y};
   }
+  const viewOrigin = computed(() => {
+    if(!currentCamera.value) return undefined;
+    const { x, y } = currentCamera.value.viewOrigin;
+    return {
+      ...currentCamera.value.viewOrigin,
+      ...coordsToAngles({ x, y }),
+    };
+  });
+
   const portals = computed(() => {
     if(!currentCamera.value) return undefined;
     const newObj: Record<CameraId, {angleX:number; angleY: number} & (typeof currentCamera.value.portals)[CameraId]> = {};
@@ -130,6 +139,7 @@ export const useCameraStore = defineStore('camera', () => {
   return {
     currentCamera,
     portals,
+    viewOrigin,
     // currentCameraReactive,
     utils: {
       coordsToAngles,

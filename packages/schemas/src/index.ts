@@ -181,7 +181,7 @@ export type CameraPortalUpdate = z.TypeOf<typeof CameraPortalUpdateSchema>
 
 export const CameraViewOriginUpdateSchema = z.object({
     cameraId: CameraIdSchema, 
-    origin: z.object({originX: z.number().nullable(), originY: z.number().optional().nullable()})
+    origin: z.object({originX: z.number(), originY: z.number()})
   });
 export type CameraViewOriginUpdate = z.TypeOf<typeof CameraViewOriginUpdateSchema>
 

@@ -14,16 +14,13 @@
       vr-mode-ui="enabled: false;"
     >
       <a-assets>
-        <a-mixin
-          id="cursorHighlight"
-          animation__scale="property: scale; to: 1.1 1.1 1.1; dur: 100; startEvents: mouseenter"
-          animation__scale_reverse="property: scale; to: 1 1 1; dur: 200; startEvents: mouseleave"
-        />
+        <img id="portal-texture" src="@/assets/portal-1.png" />
+        <a-mixin id="slow-rotation" animation="property: rotation; from: 0 0 0; to: 0 0 360; dur: 100000; loop: true; easing: linear;" />
       </a-assets>
       <a-entity
         position="0 1.6 0"
       >
-        <a-entity ref="startAngleEntity" :rotation="`${camera.viewOrigin?.angleX} ${camera.viewOrigin?.angleY} 0`">
+        <a-entity ref="viewOriginEntity" :rotation="`${camera.viewOrigin?.angleX} ${camera.viewOrigin?.angleY} 0`">
           <a-ring
             radius-inner="0.1"
             radius-outer="0.2"
@@ -37,11 +34,21 @@
               color="yellow"
               material="opacity:0"
               class="clickable"
-              @mousedown="movedEntity = startAngleEntity"
+              @mousedown="movedEntity = viewOriginEntity"
             />
+            <a-text position="0 -0.3 0" value="startvy" align="center" ></a-text>
+            <!-- <a-plane animation="property: rotation; from: 0 0 0; to: 0 0 360; dur: 30000; loop: true; easing: linear;" material="src:#portal-texture; alphaTest:0.5; transparent: false;"></a-plane> -->
           </a-ring>
         </a-entity>
-        <a-entity
+        <a-entity id="vue-list">
+          <template v-for="(portal, key) in camera.portals" :key="key" >
+            <p>{{ key }}:{{ portal.toCameraId }}</p>
+            <a-entity :rotation="`${portal.angleX} ${portal.angleY} 0`" >
+              <a-image @mousedown="movedPortalCameraId = portal.toCameraId" hover-highlight class="clickable" scale="0.4 0.4 0.4" :position="`0 0 -${portal.distance}`" mixin="slow-rotation" src="#portal-texture" />
+            </a-entity>
+          </template>
+        </a-entity>
+        <a-entity id="manual-list"
           ref="portalsEntity"
         >
           <!-- <a-entity
@@ -102,7 +109,7 @@ import { useAdminStore } from '@/stores/adminStore';
 
 const videoTag = ref<HTMLVideoElement>();
 const cameraEntity = ref<Entity>();
-const startAngleEntity = ref<Entity>();
+const viewOriginEntity = ref<Entity>();
 const portalsEntity = ref<Entity>();
 const movedPortalCameraId = ref<CameraId>();
 const cameraIsAnimating = ref(false);
@@ -309,7 +316,7 @@ function manuallyUpdatePortals () {
 
 watch(() => camera.portals, (portals) => {
   console.log('portals watcher triggered', portals);
-  manuallyUpdatePortals();
+  // manuallyUpdatePortals();
 });
 
 watch(() => props.cameraId, async (newCamerId) => {

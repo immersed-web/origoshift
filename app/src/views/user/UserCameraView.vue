@@ -67,13 +67,6 @@
       cursor="rayOrigin: mouse; fuse: false;"
       raycaster="objects: .clickable"
     >
-      <a-assets>
-        <a-mixin
-          id="cursorHighlight"
-          animation__scale="property: scale; to: 1.1 1.1 1.1; dur: 100; startEvents: mouseenter"
-          animation__scale_reverse="property: scale; to: 1 1 1; dur: 200; startEvents: mouseleave"
-        />
-      </a-assets>
       <a-camera reverse-mouse-drag="true" />
       <a-sky color="#ECECEC" />
       <a-entity position="0 1.6 0">
@@ -91,12 +84,13 @@
             scale="0.2 0.2 0.2"
             color="#ef2d5e"
             class="clickable"
+            hover-highlight
             @mousedown="goToCamera(portal.toCameraId)"
           />
           <!-- </a-entity> -->
         </a-entity>
       </a-entity>
-      <a-videosphere />
+      <a-videosphere rotation="0 90 0" />
     </a-scene>
     <div class="flex hidden">
       <div>

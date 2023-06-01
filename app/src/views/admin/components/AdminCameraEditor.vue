@@ -37,13 +37,11 @@
               @mousedown="movedEntity = viewOriginEntity"
             />
             <a-text position="0 -0.3 0" value="startvy" align="center" ></a-text>
-            <!-- <a-plane animation="property: rotation; from: 0 0 0; to: 0 0 360; dur: 30000; loop: true; easing: linear;" material="src:#portal-texture; alphaTest:0.5; transparent: false;"></a-plane> -->
           </a-ring>
         </a-entity>
         <a-entity id="vue-list">
-          <template v-for="(portal, key) in camera.portals" :key="key" >
-            <p>{{ key }}:{{ portal.toCameraId }}</p>
-            <a-entity :rotation="`${portal.angleX} ${portal.angleY} 0`" >
+          <template v-for="portal in camera.portals" :key="portal.toCameraId" >
+            <a-entity :id="portal.toCameraId" :rotation="`${portal.angleX} ${portal.angleY} 0`" >
               <a-image @mousedown="movedPortalCameraId = portal.toCameraId" hover-highlight class="clickable" scale="0.4 0.4 0.4" :position="`0 0 -${portal.distance}`" mixin="slow-rotation" src="#portal-texture" />
             </a-entity>
           </template>
@@ -51,20 +49,6 @@
         <a-entity id="manual-list"
           ref="portalsEntity"
         >
-          <!-- <a-entity
-            v-for="(portal, key) in camera.portals"
-            :data-portal-id="key"
-            :key="key"
-            :rotation="`${portal.angleX} ${portal.angleY} 0`"
-          >
-            <a-box
-              :position="`0 0 ${-portal.distance}`"
-              scale="0.2 0.2 0.2"
-              color="#ef2d5e"
-              class="clickable"
-              @mousedown="movedPortalCameraId = portal.toCameraId"
-            />
-          </a-entity> -->
         </a-entity>
       </a-entity>
       <a-camera

@@ -41,7 +41,9 @@ export const useCameraStore = defineStore('camera', () => {
   const portals = computed(() => {
     if(!currentCamera.value) return undefined;
     const newObj: Record<CameraId, {angleX:number; angleY: number} & (typeof currentCamera.value.portals)[CameraId]> = {};
-    for(const [k , p ] of Object.entries(currentCamera.value.portals)){
+    // NOTE: We need to make sure the portals keep its order. Thats why there is a random call to sort below.
+    // otherwise aframe gets angry and fails to render all the portals
+    for(const [k , p ] of Object.entries(currentCamera.value.portals).sort()){
       // const angleY = 270 - 360 * p.x; 
       // const angleX = 90 - (180 * p.y);
       newObj[p.toCameraId as CameraId] = {
@@ -85,7 +87,6 @@ export const useCameraStore = defineStore('camera', () => {
     console.log('computed producers re-evaluated');
     return currentCamera.value?.producers;
   });
-
 
   connection.client.camera.subCameraStateUpdated.subscribe(undefined, {
     onData({data, reason}) {

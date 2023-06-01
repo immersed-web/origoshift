@@ -38,6 +38,7 @@
         class="card shadow-md bg-neutral text-neutral-content p-4 cursor-pointer"
         v-for="listedCamera in adminStore.adminOnlyVenueState?.cameras"
         :key="listedCamera.cameraId"
+        @click="attachSenderToCamera(listedCamera.cameraId)"
       >
         {{ listedCamera.name }}
       </div>
@@ -47,11 +48,12 @@
 
 <script setup lang="ts">
 import { useCameraStore } from '@/stores/cameraStore';
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 // import 'aframe';
-import type { SenderId } from 'schemas';
+import type { SenderId, CameraId } from 'schemas';
 // import { useSoupStore } from '@/stores/soupStore';
-import { type Entity, THREE } from 'aframe';
+// import { useSoupStore } from '@/stores/soupStore';
+import type { Entity, THREE } from 'aframe';
 import { useAdminStore } from '@/stores/adminStore';
 
 const videoTag = ref<HTMLVideoElement>();
@@ -84,6 +86,10 @@ onUnmounted(() => {
 //   const vSphere = document.querySelector('a-videosphere');
 //   vSphere.setAttribute('src', '#main-video');
 // }
+
+function attachSenderToCamera(cameraId: CameraId){
+  console.log('not implemented yet!!');
+}
 
 watch(() => camera.portals, (portals) => {
   console.log('portals watcher triggered', portals);

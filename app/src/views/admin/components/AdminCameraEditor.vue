@@ -234,6 +234,8 @@ async function createOrCenterOnPortal(cameraId: CameraId) {
     console.log('portal already exists');
     cameraIsAnimating.value = true;
     rotationTarget.setAttribute('look-controls', {enabled: false});
+    while(rotationTarget.object3D.rotation.y < 0) rotationTarget.object3D.rotation.y+= (2*Math.PI); // wrap negative angles to positive side
+    rotationTarget.object3D.rotation.y = rotationTarget.object3D.rotation.y % (2*Math.PI);
     const fromRotation = rotationTarget.getAttribute('rotation');
     const angleZ = fromRotation.z;
     const to = [foundPortal.angleX, foundPortal.angleY, angleZ];

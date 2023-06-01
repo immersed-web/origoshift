@@ -1,18 +1,18 @@
 <template>
-  <div class="w-full aspect-video bg-base-200">
-    <video
-      class="hidden"
-      ref="videoTag"
-      id="main-video"
-      autoplay
-    />
+  <div class="w-full aspect-video relative">
     <a-scene
-      class="w-full h-full"
+      class=""
       embedded
       cursor="rayOrigin: mouse; fuse: false;"
       raycaster="objects: .clickable"
       vr-mode-ui="enabled: false;"
     >
+      <video
+        class="hidden"
+        ref="videoTag"
+        id="main-video"
+        autoplay
+      />
       <a-assets>
         <img id="portal-texture" src="@/assets/portal-1.png" />
         <a-mixin id="slow-rotation" animation="property: rotation; from: 0 0 0; to: 0 0 360; dur: 100000; loop: true; easing: linear;" />
@@ -61,23 +61,42 @@
       </a-entity>
       <a-videosphere rotation="0 90 0" />
     </a-scene>
-    <div class="flex flex-row gap-2 justify-center p-4">
+    <div class="bottom-0 absolute w-full bg-neutral/50 flex flex-row gap-4 justify-center p-4">
       <template
         v-for="listedCamera in camerasWithPortalInfo"
         :key="listedCamera.cameraId"
       >
-        <div v-if="listedCamera.cameraId !== camera.currentCamera?.cameraId" class="indicator">
-          <span v-if="listedCamera.hasPortal" class="indicator-item badge badge-primary"></span>
+        <div v-if="listedCamera.cameraId !== camera.currentCamera?.cameraId">
           <div 
-          class="group card shadow-md bg-neutral text-neutral-content p-4 cursor-pointer grid grid-cols-2 items-center justify-items-center gap-2"
+            v-if="listedCamera.hasPortal"
+            class="group card bg-primary/75 outline outline-2 outline-offset-1 outline-primary text-primary-content p-4 cursor-pointer grid grid-cols-2 items-center justify-items-center gap-2"
           >
             <div class="col-span-full row-start-1 justify-self-center group-hover:invisible">
               {{ listedCamera.name }}
             </div>
             <button
-            @click="createOrCenterOnPortal(listedCamera.cameraId)"
-            class="row-start-1 col-start-1 col-span-1 btn btn-square btn-primary opacity-0 group-hover:opacity-100 transition-all duration-300"><span class="material-icons">visibility</span></button>
-            <button @click="adminStore.deletePortal(camera.currentCamera!.cameraId, listedCamera.cameraId)" class="row-start-1 col-start-2 col-span-1 btn btn-square btn-error opacity-0 group-hover:opacity-100 transition-all duration-300"><span class="material-icons">delete</span></button>
+              @click="createOrCenterOnPortal(listedCamera.cameraId)"
+              class="row-start-1 col-start-1 col-span-1 btn btn-square btn-primary opacity-0 group-hover:opacity-100 transition-all duration-300"
+            >
+              <span class="material-icons">visibility</span>
+            </button>
+            <button 
+              @click="adminStore.deletePortal(camera.currentCamera!.cameraId, listedCamera.cameraId)" 
+              class="row-start-1 col-start-2 col-span-1 btn btn-square btn-error opacity-0 group-hover:opacity-100 transition-all duration-300"
+            >
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
+          <div v-else class="group card outline outline-2 outline-primary bg-neutral/75 text-neutral-content p-4 cursor-pointer grid grid-cols-2 items-center justify-items-center gap-2">
+            <div class="col-span-full row-start-1 justify-self-center">
+              {{ listedCamera.name }}
+            </div>
+            <button 
+              @click="createOrCenterOnPortal(listedCamera.cameraId)" 
+              class="row-start-1 col-start-2 col-span-1 btn btn-square btn-accent place-self-end opacity-0 group-hover:opacity-100 transition-all duration-300"
+            >
+              <span class="material-icons">add_circle</span>
+            </button>
           </div>
         </div>
       </template>

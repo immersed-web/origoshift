@@ -72,7 +72,10 @@
         :look-controls-enabled="!movedEntity && !movedPortalCameraId && !cameraIsAnimating"
         reverse-mouse-drag="true"
       />
-      <a-videosphere />
+      <a-entity rotation="0 10 0" position="0 1.6 0">
+        <a-box scale="0.2 0.2 0.2" position="0 0 -2"></a-box>
+      </a-entity>
+      <a-videosphere rotation="0 90 0" />
     </a-scene>
     <div class="flex flex-row gap-2 justify-center p-4">
       <template
@@ -90,7 +93,7 @@
             <button
             @click="createOrCenterOnPortal(listedCamera.cameraId)"
             class="row-start-1 col-start-1 col-span-1 btn btn-square btn-primary opacity-0 group-hover:opacity-100 transition-all duration-300"><span class="material-icons">visibility</span></button>
-            <button class="row-start-1 col-start-2 col-span-1 btn btn-square btn-error opacity-0 group-hover:opacity-100 transition-all duration-300"><span class="material-icons">delete</span></button>
+            <button @click="adminStore.deletePortal(camera.currentCamera!.cameraId, listedCamera.cameraId)" class="row-start-1 col-start-2 col-span-1 btn btn-square btn-error opacity-0 group-hover:opacity-100 transition-all duration-300"><span class="material-icons">delete</span></button>
           </div>
         </div>
       </template>
@@ -234,15 +237,25 @@ async function createOrCenterOnPortal(cameraId: CameraId) {
     console.log('portal already exists');
     cameraIsAnimating.value = true;
     rotationTarget.setAttribute('look-controls', {enabled: false});
-    while(rotationTarget.object3D.rotation.y < 0) rotationTarget.object3D.rotation.y+= (2*Math.PI); // wrap negative angles to positive side
-    rotationTarget.object3D.rotation.y = rotationTarget.object3D.rotation.y % (2*Math.PI);
-    const fromRotation = rotationTarget.getAttribute('rotation');
-    const angleZ = fromRotation.z;
-    const to = [foundPortal.angleX, foundPortal.angleY, angleZ];
-    rotationTarget.setAttribute('animation', `property: rotation; to: ${to[0]} ${to[1]} ${0};`);
-    
-    console.log('animating camera:', fromRotation, to);
-    
+
+    // enforce y angle is in the range 0 - 360
+    // js %-operator is remainder operator and not true modulus. I.E. it doesnt wrap negative input.
+    const rot = rotationTarget.object3D.rotation;
+    const twoPI = 2 * Math.PI;
+    rot.y = THREE.MathUtils.euclideanModulo(rot.y, twoPI);
+
+    const toDegrees = THREE.MathUtils.radToDeg;
+    // hack to make sure rotation animation takes shortest path. aframe doesnt handle this for us so we must make sure ourselves.
+    const angleDelta = foundPortal.angleY - toDegrees(rot.y);
+    // console.log('angleDelta:', angleDelta);
+    if(Math.abs(angleDelta) > 180){
+      // console.log('from rotation  was tweaked');
+      rot.y += twoPI * Math.sign(angleDelta);
+    }
+    const rotationString = `property: rotation; from: ${toDegrees(rot.x)} ${toDegrees(rot.y)} 0; to: ${foundPortal.angleX} ${foundPortal.angleY} 0;`
+    // console.log('rotationString:', rotationString);
+    rotationTarget.setAttribute('animation', rotationString);
+
     (<HTMLElement>rotationTarget).addEventListener('animationcomplete', () => {
       if(!rotationTarget) return;
       const newRotation = rotationTarget.getAttribute('rotation');

@@ -4,7 +4,7 @@ import type { CameraId } from 'schemas';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { computed, ref } from 'vue';
 import { useSoupStore } from './soupStore';
-// import { toReactive } from '@vueuse/core';
+import { THREE } from 'aframe';
 
 type _ReceivedPublicCameraState = RouterOutputs['camera']['joinCamera'];
 
@@ -16,13 +16,16 @@ export const useCameraStore = defineStore('camera', () => {
 
 
   function coordsToAngles({x, y}: {x:number, y: number}){
-    const angleY = 270 - 360 * x; 
+    // const angleY = 270 - 360 * x; 
+    const angleY = 360 - 360 * x; 
+    // while(angleY < 0) angleY += 360;
     const angleX = 90 - (180 * y);
     return {angleX, angleY};
   }
   function anglesToCoords({angleX, angleY}: {angleX:number, angleY: number}){
     console.log('anglesToCoords input', angleX, angleY);
-    const x = 1 - ((angleY+90+10*360)%360)/360; 
+    // const x = 1 - ((angleY+10*360)%360)/360; 
+    const x = 1 - (THREE.MathUtils.euclideanModulo(angleY, 360))/360; 
     const y = (90 - angleX) / 180;
     return {x, y};
   }

@@ -12,7 +12,10 @@
           <a
             :class="{active: editedCameraId === camera.cameraId}"
             @click="editedCameraId = camera.cameraId; editedSenderId = undefined"
-          >{{ camera.name }}</a>
+          ><span
+            class="material-icons"
+            :class="{'text-success': camera.isStreaming, 'text-error': !camera.isStreaming}"
+          >{{ camera.isStreaming? 'videocam': 'videocam_off' }}</span>{{ camera.name }}</a>
         </li>
       </ul>
       <ul

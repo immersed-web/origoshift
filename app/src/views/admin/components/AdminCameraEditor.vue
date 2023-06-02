@@ -69,7 +69,7 @@
         <div v-if="listedCamera.cameraId !== camera.currentCamera?.cameraId">
           <div 
             v-if="listedCamera.hasPortal"
-            class="group card bg-primary/75 outline outline-2 outline-offset-1 outline-primary text-primary-content p-4 grid grid-cols-2 items-center justify-items-center gap-2"
+            class="group card bg-primary/75 outline outline-2 outline-offset-1 outline-primary select-none text-primary-content p-4 grid grid-cols-2 items-center justify-items-center gap-2"
           >
             <div class="col-span-full row-start-1 justify-self-center group-hover:invisible">
               {{ listedCamera.name }}
@@ -87,7 +87,7 @@
               <span class="material-icons">delete</span>
             </button>
           </div>
-          <div v-else class="group card outline outline-2 outline-neutral-content/20 bg-neutral/75 text-neutral-content p-4 grid grid-cols-2 items-center justify-items-center gap-2">
+          <div v-else class="group card outline outline-2 outline-neutral-content/20 bg-neutral/75 select-none text-neutral-content p-4 grid grid-cols-2 items-center justify-items-center gap-2">
             <div class="col-span-full row-start-1 justify-self-center">
               {{ listedCamera.name }}
             </div>

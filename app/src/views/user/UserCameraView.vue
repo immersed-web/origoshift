@@ -68,7 +68,7 @@
       raycaster="objects: .clickable"
     >
       <a-camera reverse-mouse-drag="true" />
-      <a-sky color="#ECECEC" />
+      <!-- <a-sky color="#ECECEC" /> -->
       <a-entity position="0 1.6 0">
         <a-entity
           v-for="portal in camera.portals"
@@ -112,10 +112,6 @@
           autoplay
           ref="audioTag"
         />
-        <!-- <ConsumerElement
-          kind="video"
-          :track="receivedTracks.videoTrack"
-        /> -->
       </div>
       <pre class="max-w-xl">
         {{ soup.consumers }}
@@ -180,19 +176,34 @@ const camera = useCameraStore();
 watch(() => camera.producers, async (updatedProducers) => {
   console.log('cameraProducers were updated:', toRaw(updatedProducers));
   const rcvdTracks = await camera.consumeCurrentCamera();
-  if(rcvdTracks){
-    // receivedTracks.videoTrack = rcvdTracks.videoTrack;
-    if(rcvdTracks.videoTrack && videoTag.value){
-      videoTag.value.srcObject = new MediaStream([rcvdTracks.videoTrack]);
+  if(!videoTag.value) return;
+
+  if(!rcvdTracks || !rcvdTracks.videoTrack ){
+    console.error('no videotrack from camera');
+    if(import.meta.env.DEV){
+      console.warn('falling back to using demo video because we are in dev mode');
+      videoTag.value.muted = true;
+      videoTag.value.loop = true;
+      videoTag.value.srcObject = null;
+      // videoTag.value.src = 'https://cdn.bitmovin.com/content/assets/playhouse-vr/progressive.mp4';
+      videoTag.value.src = 'https://video.360cities.net/aeropicture/01944711_VIDEO_0520_1_H264-1920x960.mp4';
+      videoTag.value.play();
       const vSphere = document.querySelector('a-videosphere');
-      // vSphere.setAttribute('srcObject', 'https://bitmovin.com/player-content/playhouse-vr/progressive.mp4');
       vSphere.setAttribute('src', '#main-video');
     }
-    if(rcvdTracks.audioTrack && audioTag.value){
-      audioTag.value.srcObject = new MediaStream([rcvdTracks.audioTrack]);
-    }
-    // receivedTracks.audioTrack = rcvdTracks.audioTrack;
+    return;
+  } else {
+    videoTag.value.muted = false;
+    videoTag.value.loop = false;
+    videoTag.value.srcObject = new MediaStream([rcvdTracks.videoTrack]);
+    const vSphere = document.querySelector('a-videosphere');
+    // vSphere.setAttribute('srcObject', 'https://bitmovin.com/player-content/playhouse-vr/progressive.mp4');
+    vSphere.setAttribute('src', '#main-video');
   }
+  if(rcvdTracks.audioTrack && audioTag.value){
+    audioTag.value.srcObject = new MediaStream([rcvdTracks.audioTrack]);
+  }
+  // receivedTracks.audioTrack = rcvdTracks.audioTrack;
 });
 
 async function loadStuff(){

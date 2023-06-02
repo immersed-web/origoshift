@@ -4,7 +4,7 @@ import type { CameraId, ConnectionId, SenderId  } from 'schemas';
 import {Venue, UserClient, SenderClient, BaseClient, PublicProducers} from './InternalClasses';
 import { ProducerId } from 'schemas/mediasoup';
 import { computed, shallowRef, effect } from '@vue/reactivity';
-import { CameraWithIncludes } from 'modules/prismaClient';
+import prismaClient, { CameraWithIncludes, cameraIncludeStuff } from '../modules/prismaClient';
 import _ from 'lodash';
 
 const log = new Log('Camera');
@@ -67,6 +67,22 @@ export class Camera {
     // return _.keyBy(this.prismaData.cameraPortals, (p) => p.toCameraId);
     // return this.prismaData.cameraPortals;
   }
+  
+  // TODO: handle save of settings json
+  async saveToDb(){
+    const { cameraPortals, settings, ...data } = this.prismaData;
+    // const jsonSettings: Prisma.InputJsonValue | Prisma.NullTypes.JsonNull = settings;
+    await prismaClient.camera.update({
+      where: {
+        cameraId: this.cameraId,
+      },
+      data: {
+        ...data,
+        // settings: jsonSettings,
+      },
+      include: cameraIncludeStuff,
+    });
+  }
 
   getPublicState() {
     const { cameraId, name, clientIds, senderId, portals } = this;
@@ -119,7 +135,7 @@ export class Camera {
     return wasRemoved;
   }
 
-  setSender(sender: SenderClient | undefined){
+  async setSender(sender: SenderClient | undefined){
 
     if(!sender){
       this.sender.value?._setCamera(undefined);
@@ -133,6 +149,7 @@ export class Camera {
       throw Error('trying to set sender for camera, but the provided senderClient has no senderId');
     }
     this.prismaData.senderId = sender.senderId;
+    await this.saveToDb();
     this.sender.value = sender;
     sender._setCamera(this.cameraId);
     this._notifyStateUpdated('sender attached to camera');

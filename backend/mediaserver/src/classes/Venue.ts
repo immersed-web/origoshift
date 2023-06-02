@@ -578,7 +578,7 @@ export class Venue {
     }
   }
 
-  setSenderForCamera(senderId: SenderId, cameraId: CameraId){
+  async setSenderForCamera(senderId: SenderId, cameraId: CameraId){
     // const foundSender = this.senderClients.get(senderConnectionId);
     const foundSender = this.findSenderFromSenderId(senderId);
     if(!foundSender){
@@ -588,7 +588,7 @@ export class Venue {
     if(!foundCamera){
       throw Error('No camera with that cameraId in venue');
     }
-    foundCamera.setSender(foundSender);
+    await foundCamera.setSender(foundSender);
     this._notifyAdminOnlyState('attached new sender to a camera');
   }
 

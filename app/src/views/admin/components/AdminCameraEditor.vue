@@ -213,6 +213,7 @@ async function loadCamera(cameraId: CameraId) {
     console.error('no tracks received from camera');
     if(import.meta.env.DEV){
       console.warn('falling back to using demo video because we are in dev mode');
+      videoTag.value.srcObject = null;
       videoTag.value.muted = true;
       videoTag.value.loop = true;
       // videoTag.value.src = 'https://cdn.bitmovin.com/content/assets/playhouse-vr/progressive.mp4';
@@ -223,6 +224,9 @@ async function loadCamera(cameraId: CameraId) {
     }
     return;
   }
+  videoTag.value.src = '';
+  videoTag.value.loop = false;
+  videoTag.value.muted = false;
   videoTag.value.srcObject = new MediaStream([tracks.videoTrack]);
   const vSphere = document.querySelector('a-videosphere');
   vSphere.setAttribute('src', '#main-video');

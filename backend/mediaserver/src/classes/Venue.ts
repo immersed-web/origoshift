@@ -537,8 +537,16 @@ export class Venue {
     });
 
   }
+  
+  private findSenderFromSenderId(senderId: SenderId) {    
+    for(const s of this.senderClients.values()){
+      if(s.senderId === senderId){
+        return s;
+      }
+    }
+  }
 
-  loadCamera(cameraId: CameraId, senderId?: SenderId) {
+  loadCamera(cameraId: CameraId) {
     if(this.cameras.has(cameraId)){
       throw Error('a camera with that id is already loaded');
     }
@@ -547,27 +555,11 @@ export class Venue {
       throw Error('no prisma data for a camera with that Id in venue prismaData');
     }
     let maybeSender: SenderClient | undefined = undefined;
-    if(prismaCamera.senderId || senderId){
-      for(const s of this.senderClients.values()){
-        // senderId explicitly provided
-        if(s.senderId === senderId){
-          log.info('Provided senderId matched. Attaching camera to it.');
-          maybeSender = s;
-          break;
-        }
-        // Try to auto connect to sender from senderId
-        if(s.senderId === prismaCamera.senderId){
-          log.info('Found matched sender. Attaching camera to it.');
-          maybeSender = s;
-          break;
-        }
-      }
+    if(prismaCamera.senderId){
+      maybeSender = this.findSenderFromSenderId(prismaCamera.senderId as SenderId);
     }
     const camera = new Camera(prismaCamera, this, maybeSender);
     this.cameras.set(camera.cameraId, camera);
-    if(maybeSender){
-      this.senderClients.set(maybeSender.connectionId, maybeSender);
-    }
 
     this._notifyStateUpdated('camera loaded');
     this._notifyAdminOnlyState('camera loaded');
@@ -586,8 +578,9 @@ export class Venue {
     }
   }
 
-  setSenderForCamera(senderConnectionId: ConnectionId, cameraId: CameraId){
-    const foundSender = this.senderClients.get(senderConnectionId);
+  setSenderForCamera(senderId: SenderId, cameraId: CameraId){
+    // const foundSender = this.senderClients.get(senderConnectionId);
+    const foundSender = this.findSenderFromSenderId(senderId);
     if(!foundSender){
       throw Error('No sender with that connectionId in venue');
     }
@@ -596,6 +589,7 @@ export class Venue {
       throw Error('No camera with that cameraId in venue');
     }
     foundCamera.setSender(foundSender);
+    this._notifyAdminOnlyState('attached new sender to a camera');
   }
 
   // Static stuff for global housekeeping

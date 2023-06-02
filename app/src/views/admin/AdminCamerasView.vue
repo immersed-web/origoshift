@@ -10,12 +10,23 @@
           :key="camera.cameraId"
         >
           <a
-            :class="{active: editedCameraId === camera.cameraId}"
             @click="editedCameraId = camera.cameraId; editedSenderId = undefined"
-          ><span
-            class="material-icons"
-            :class="{'text-success': camera.isStreaming, 'text-error': !camera.isStreaming}"
-          >{{ camera.isStreaming? 'videocam': 'videocam_off' }}</span>{{ camera.name }}</a>
+            :class="{active: editedCameraId === camera.cameraId}"
+            class="justify-between"
+          >
+            <div
+              class="flex flex-nowrap gap-2"
+            ><span
+              class="material-icons"
+              :class="{'text-success': camera.isStreaming, 'text-error': !camera.isStreaming}"
+            >{{ camera.isStreaming? 'videocam': 'videocam_off' }}</span>{{ camera.name }}</div>
+            <button
+              @click.stop="deleteCamera(camera.cameraId)"
+              class="btn btn-error btn-square btn-sm"
+            >
+              <span class="material-icons">delete</span>
+            </button>
+          </a>
         </li>
       </ul>
       <ul
@@ -23,7 +34,7 @@
         class="menu bg-base-200 rounded-box mt-6"
       >
         <li class="menu-title mx-4 my-2">
-          Ej tilldelade sändare:
+          Ej tilldelade kamerastationer:
         </li>
         <li
           v-for="sender in adminStore.adminOnlyVenueState?.detachedSenders"
@@ -33,7 +44,7 @@
             @click="editedSenderId = sender.senderId; editedCameraId = undefined"
             :class="{active: editedSenderId === sender.senderId}"
           >
-            {{ sender.senderId.substring(0, 5) }}
+            {{ sender.username }}[{{ sender.senderId.substring(0, 5) }}]
           </a>
         </li>
       </ul>
@@ -198,6 +209,7 @@ async function consumeCamera(cameraId: CameraId){
 }
 
 async function deleteCamera(cameraId: CameraId){
+  editedCameraId.value = undefined;
   const response = adminStore.deleteCamera(cameraId);
   console.log(response);
 }

@@ -28,20 +28,50 @@
       <a-videosphere />
     </a-scene>
     <div class="flex flex-row gap-2 justify-center p-4">
-      <div
-        class="card shadow-md bg-primary text-neutral-content p-4 cursor-pointer"
-        @click="adminStore.createCameraFromSender(`coolCamera-${senderId.substring(0,5)}`, senderId)"
+      <button
+        v-if="newName === undefined"
+        class="btn btn-primary btn-sm"
+        @click="newName = ''"
       >
-        skapa ny kamerprofil
-      </div>
-      <div
-        class="card shadow-md bg-neutral text-neutral-content p-4 cursor-pointer"
+        skapa ny kameraprofil
+      </button>
+      <form 
+        v-else
+        class="card p-2 bg-slate-400 flex flex-col flex-nowrap gap-2"
+        @submit.prevent="adminStore.createCameraFromSender(newName, senderId)"
+      >
+        <input
+          type="text"
+          class="input input-sm"
+          v-model="newName"
+        >
+        <div class="flex flex-nowrap gap-2">
+          <button
+            type="submit"
+            class="btn btn-primary flex-auto"
+          >
+            <span class="material-icons">add</span>
+          </button>
+          <button
+            @click="newName = undefined"
+            class="btn flex-auto"
+          >
+            <span class="material-icons">cancel</span>
+          </button>
+        </div>
+      </form>
+      <template
         v-for="listedCamera in adminStore.adminOnlyVenueState?.cameras"
         :key="listedCamera.cameraId"
-        @click="attachSenderToCamera(listedCamera.cameraId)"
       >
-        {{ listedCamera.name }}
-      </div>
+        <button
+          v-if="!listedCamera.senderAttached"
+          class="btn btn-sm"
+          @click="attachSenderToCamera(listedCamera.cameraId)"
+        >
+          {{ listedCamera.name }}
+        </button>
+      </template>
     </div>
   </div>
 </template>
@@ -58,6 +88,8 @@ import { useAdminStore } from '@/stores/adminStore';
 
 const videoTag = ref<HTMLVideoElement>();
 const cameraEntity = ref<Entity>();
+
+const newName = ref<string>();
 
 
 const camera = useCameraStore();
@@ -88,7 +120,7 @@ onUnmounted(() => {
 // }
 
 function attachSenderToCamera(cameraId: CameraId){
-  console.log('not implemented yet!!');
+  adminStore.setSenderForCamera(cameraId, props.senderId);
 }
 
 watch(() => camera.portals, (portals) => {

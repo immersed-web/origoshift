@@ -97,7 +97,7 @@ export const adminRouter = router({
       const { name, senderId } = input;
       log.info(`received request to create camera with name ${name} and senderId ${senderId}`);
       const cId = await ctx.venue.createNewCamera(name, senderId);
-      ctx.venue.loadCamera(cId, senderId);
+      ctx.venue.loadCamera(cId);
     } catch(e) {
       log.error('FAILED TO CREATE CAMERA!!!');
       log.error(e);
@@ -116,10 +116,32 @@ export const adminRouter = router({
     return await ctx.venue.deleteCamera(input.cameraId);
   }),
   setSenderForCamera: currentVenueAdminP.input(z.object({
-    senderClientConnectionId: ConnectionIdSchema,
+    senderId: SenderIdSchema,
     cameraId: CameraIdSchema,
   })).mutation(({ctx, input}) => {
-    ctx.venue.setSenderForCamera(input.senderClientConnectionId, input.cameraId);
+    ctx.venue.setSenderForCamera(input.senderId, input.cameraId);
+  }),
+  setCameraName: currentVenueAdminP.input(z.object({
+    cameraId: CameraIdSchema,
+    newName: z.string()
+  })).mutation(async ({ctx, input}) => {
+    const { cameraId, newName } = input;
+    const dbResponse = await prismaClient.camera.update({
+      where: {
+        cameraId
+      },
+      include: cameraIncludeStuff,
+      data: {
+        name: newName,
+      }
+    });
+    const camera = ctx.venue.cameras.get(cameraId);
+    if(!camera) return;
+    camera.prismaData = dbResponse;
+    camera._notifyStateUpdated('camera name changed');
+    ctx.venue._notifyAdminOnlyState('a camera changed name');
+    
+    return dbResponse;
   }),
   setCameraViewOrigin: currentVenueAdminP.input(CameraViewOriginUpdateSchema).mutation(async ({ctx, input}) => {
     const { originX, originY } = input.origin;

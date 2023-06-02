@@ -1,5 +1,15 @@
 <template>
   <div class="w-full aspect-video relative">
+    <div class="rounded-br-xl bg-neutral/60 absolute p-2 top-0 left-0 z-10 flex flex-nowrap items-center gap-2">
+      <template v-if="isEditingCameraName">
+        <input v-model="camera.currentCamera!.name" type="text" class="input" />
+        <button @click="setCameraName()" class="btn btn-primary btn-circle"><span class="material-icons">save</span></button>
+      </template>
+      <template v-else>
+        <p class="text-neutral-content text-lg font-semibold drop-shadow-lg ">{{ camera.currentCamera?.name }}</p>
+        <button @click="isEditingCameraName = true" class="btn btn-primary btn-circle"><span class="material-icons">edit</span></button>
+      </template>
+    </div>
     <a-scene
       class=""
       embedded
@@ -119,6 +129,7 @@ const viewOriginEntity = ref<Entity>();
 const portalsEntity = ref<Entity>();
 const movedPortalCameraId = ref<CameraId>();
 const cameraIsAnimating = ref(false);
+const isEditingCameraName = ref(false);
 
 
 const camera = useCameraStore();
@@ -287,6 +298,12 @@ async function createOrCenterOnPortal(cameraId: CameraId) {
       },
     });
   }
+}
+
+function setCameraName(){
+  if(!camera.currentCamera) return;
+  adminStore.setCameraName(camera.currentCamera.cameraId, camera.currentCamera.name);
+  isEditingCameraName.value = false;
 }
 
 // NOTE: Not completely sure why we have to do this. Using vue to v-for over the portals didnt work for some reason.

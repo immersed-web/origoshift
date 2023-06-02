@@ -120,6 +120,7 @@ export class Camera {
   }
 
   setSender(sender: SenderClient | undefined){
+
     if(!sender){
       this.sender.value?._setCamera(undefined);
       this.sender.value = undefined;
@@ -128,6 +129,10 @@ export class Camera {
     if(this.sender.value){
       throw Error('trying to set sender in camera when it was already set. This should not happen!');
     }
+    if(!sender.senderId){
+      throw Error('trying to set sender for camera, but the provided senderClient has no senderId');
+    }
+    this.prismaData.senderId = sender.senderId;
     this.sender.value = sender;
     sender._setCamera(this.cameraId);
     this._notifyStateUpdated('sender attached to camera');

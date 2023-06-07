@@ -26,6 +26,7 @@ export default () => {
       if(this.interpolationBuffer){
         // Interpolate with buffered-interpolation - no workie yet.
         this.el.object3D.position.copy(this.interpolationBuffer.getPosition());
+        this.el.object3D.quaternion.copy(this.interpolationBuffer.getQuaternion());
 
         // update buffer position
         this.interpolationBuffer.update(timeDelta);
@@ -37,17 +38,17 @@ export default () => {
     initInterpolationBuffer: function () {
       this.interpolationBuffer = new InterpolationBuffer(undefined, this.data.interpolationTime / 1000);
       const interpolationBuffer = this.interpolationBuffer;
+
       this.el.addEventListener('moveTo', function (e) {
-        // console.log('Moving remote avatar', e.detail.position);
-
         // // Interpolate with buffered-interpolation
+        console.log('Move to',e);
         interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(e.detail.position[0], e.detail.position[1], e.detail.position[2]));
+      });
 
-        // // Quick jump
-        // el.object3D.position.x = e.detail.position[0];
-        // el.object3D.position.y = e.detail.position[1];
-        // el.object3D.position.z = e.detail.position[2];
-
+      this.el.addEventListener('rotateTo', function (e) {
+        // // Interpolate with buffered-interpolation
+        console.log('Rotate to',e);
+        interpolationBuffer.setQuaternion(new AFRAME.THREE.Quaternion(e.detail.orientation[0], e.detail.orientation[1], e.detail.orientation[2], e.detail.orientation[3]));
       });
     },
     initCameraListener: function () {

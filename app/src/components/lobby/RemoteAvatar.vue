@@ -5,9 +5,10 @@
     @far="distanceFar"
     ref="remoteAvatar"
   >
-    <a-sphere
-      :radius="0.5"
-      :color="distanceColor"
+    <a-entity
+      gltf-model="#avatar-asset"
+      position="0 -1.5 0"
+      rotation="0 180 0"
     />
   </a-entity>
 </template>
@@ -44,6 +45,7 @@ const remoteAvatar = ref<Entity>();
 watch(() => props.transform, () => {
   if(!remoteAvatar.value) { return; }
   remoteAvatar.value.emit('moveTo', {position: props.transform.position});
+  remoteAvatar.value.emit('rotateTo', {orientation: props.transform.orientation});
 });
 
 watch(() => props.cameraPosition, () => {

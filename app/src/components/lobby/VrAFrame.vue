@@ -13,6 +13,10 @@
         id="navmesh-asset"
         :src="navmeshUrl"
       />
+      <a-asset-item
+        id="avatar-asset"
+        src="/models/avatar/AVATAR_V1.gltf"
+      />
     </a-assets>
 
     <a-sky color="#ECECEC" />
@@ -172,12 +176,14 @@ function onLoaded () {
 
 // Move callbacks
 
-async function cameraMoveSlow (e: CustomEvent<[number, number, number]>){
+async function cameraMoveSlow (e: CustomEvent<{position: [number, number, number], orientation: [number, number, number, number]}>){
   // console.log('Camera move slow', positionStr);
   if(connectionStore.clientExists){
-    const position: ClientTransform['position'] = e.detail;
-    const randomRot: ClientTransform['orientation'] = [Math.random(),Math.random(),Math.random(),Math.random()];
-    await connectionStore.client.vr.transforms.updateTransform.mutate({orientation: randomRot, position});
+    // const position: ClientTransform['position'] = e.detail;
+    // const randomRot: ClientTransform['orientation'] = [Math.random(),Math.random(),Math.random(),Math.random()];
+    const position: ClientTransform['position'] = e.detail.position;
+    const orientation: ClientTransform['orientation'] = e.detail.orientation;
+    await connectionStore.client.vr.transforms.updateTransform.mutate({position, orientation});
   }
 }
 

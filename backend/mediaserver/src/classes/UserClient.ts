@@ -122,7 +122,7 @@ export class UserClient extends BaseClient {
 
   async joinVenue(venueId: VenueId) {
     this.leaveCurrentVenue();
-    const venue = Venue.getVenue(venueId);
+    const venue = await Venue.getPublicVenue(venueId, this.userId);
     venue.addClient(this);
     // this.sendTransport = await venue.createWebRtcTransport();
     // this.receiveTransport = await venue.createWebRtcTransport();

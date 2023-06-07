@@ -486,7 +486,7 @@ export class Venue {
         // }
 
       },
-      include: cameraIncludeStuff 
+      include: cameraIncludeStuff
     });
 
     this.prismaData.cameras.push((result));
@@ -537,8 +537,8 @@ export class Venue {
     });
 
   }
-  
-  private findSenderFromSenderId(senderId: SenderId) {    
+
+  private findSenderFromSenderId(senderId: SenderId) {
     for(const s of this.senderClients.values()){
       if(s.senderId === senderId){
         return s;
@@ -705,6 +705,39 @@ export class Venue {
     if(!venue){
       throw new Error('No venue with that id is loaded');
     }
+
+    return venue;
+    // }else if(params.name){
+    //   throw Error('Please dont implement this. We should strive to use Ids throughout');
+    //   // return this.getGatheringFromName(params.name);
+    // } else {
+    //   throw new Error('no id or name provided. Cant get venue! Duuuh!');
+    // }
+  }
+
+  static async getPublicVenue(venueId: VenueId, userId: UserId) {
+    // if(venueId){
+    const venue = Venue.venues.get(venueId);
+    if(!venue){
+      throw new Error('No venue with that id is loaded');
+    }
+
+    const dbResponse = await prisma.venue.findUniqueOrThrow({
+      where: {
+        venueId,
+        // ownerId_venueId: {
+        //   venueId,
+        //   ownerId
+        // }
+      },
+      include: venueIncludeStuff,
+    });
+    if(!dbResponse.owners.find(u => u.userId === userId)){
+      if(venue.visibility === 'private' ){
+        throw Error('Either this event does not exist or you are not allowed to access it.');
+      }
+    }
+
     return venue;
     // }else if(params.name){
     //   throw Error('Please dont implement this. We should strive to use Ids throughout');

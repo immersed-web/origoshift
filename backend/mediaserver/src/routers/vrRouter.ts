@@ -3,7 +3,7 @@ const log = new Log('Router:VR');
 process.env.DEBUG = 'Router:VR*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { ClientTransformSchema, VirtualSpace3DModelCreateSchema, VirtualSpace3DModelRemoveSchema } from 'schemas';
+import { ClientTransformSchema, VirtualSpace3DModelCreateSchema, VirtualSpace3DModelRemoveSchema, VirtualSpace3DModelUpdateSchema } from 'schemas';
 import { procedure as p, router, isVenueOwnerM, isUserClientM, userInVenueP, currentVenueAdminP, currentVenueHasVrSpaceM, currentVenueHasNoVrSpaceM, currentVrSpaceHasModelM } from '../trpc/trpc';
 import { attachToEvent } from '../trpc/trpc-utils';
 import { TRPCError } from '@trpc/server';
@@ -35,6 +35,9 @@ export const vrRouter = router({
   }),
   updateNavmesh: currentVenueAdminP.use(isVenueOwnerM).use(currentVrSpaceHasModelM).input(VirtualSpace3DModelCreateSchema).mutation(({input, ctx}) => {
     ctx.venue.UpdateNavmesh(input.modelUrl);
+  }),
+  update3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVrSpaceHasModelM).input(VirtualSpace3DModelUpdateSchema).mutation(({input, ctx}) => {
+    ctx.venue.Update3DModel(input);
   }),
   transforms: router({
     updateTransform: userInVenueP.use(currentVenueHasVrSpaceM).input(ClientTransformSchema).mutation(({input, ctx}) =>{

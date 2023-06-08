@@ -7,7 +7,7 @@ import mediasoupConfig from '../mediasoupConfig';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
 
 import {types as soupTypes} from 'mediasoup';
-import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate, SenderId, hasAtLeastSecurityLevel  } from 'schemas';
+import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate, SenderId, hasAtLeastSecurityLevel, VirtualSpace3DModelUpdate  } from 'schemas';
 
 import { Prisma } from 'database';
 import prisma, { cameraIncludeStuff } from '../modules/prismaClient';
@@ -454,6 +454,11 @@ export class Venue {
       await prisma.virtualSpace3DModel.update({where: {modelId: this.prismaData.virtualSpace.virtualSpace3DModel.modelId}, data: {navmeshUrl: modelUrl}});
       this._notifyStateUpdated('Updated navmesh');
     }
+  }
+
+  async Update3DModel (input: VirtualSpace3DModelUpdate) {
+    log.info('Update 3D model', input);
+    await prisma.virtualSpace3DModel.update({where: {modelId: input.modelId}, data: input});
   }
 
   async Remove3DModel(modelId: string) {

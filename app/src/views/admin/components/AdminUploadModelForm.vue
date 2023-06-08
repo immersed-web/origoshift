@@ -4,7 +4,7 @@
       <div class="form-control w-full max-w-xs">
         <input
           type="file"
-          accept=".gltf"
+          accept=".gltf, .glb"
           class="file-input file-input-bordered w-full max-w-xs"
           ref="fileInput"
         >

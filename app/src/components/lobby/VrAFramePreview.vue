@@ -24,12 +24,12 @@
       <a-entity
         id="model"
         gltf-model="#model-asset"
-        scale="0.04 0.04 0.04"
+        :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
       />
       <a-entity
         id="navmesh"
         gltf-model="#navmesh-asset"
-        scale="0.04 0.04 0.04"
+        :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
         visible="false"
       />
     </a-entity>
@@ -57,6 +57,7 @@ import { ref, computed } from 'vue';
 const props = defineProps({
   modelUrl: {type: String, default: ''},
   navmeshUrl: {type: String, default: ''},
+  modelScale: {type: Number, default: 1},
 });
 
 // A-frame

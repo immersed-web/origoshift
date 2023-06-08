@@ -65,7 +65,6 @@
           <div v-if="useDoorsOpenTime">
             Ange tiden då lobbyn öppnar. Tiden är synlig för besökarna.
             <input
-
               v-model="values.doorsOpeningTime"
               type="datetime-local"
               placeholder="Startdatum och -tid"

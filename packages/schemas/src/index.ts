@@ -165,6 +165,12 @@ export const VirtualSpace3DModelRemoveSchema = z.object({
 })
 export type VirtualSpace3DRemove = z.TypeOf<typeof VirtualSpace3DModelRemoveSchema>
 
+export const VirtualSpace3DModelUpdateSchema = z.object({
+  modelId: Vr3DModelIdSchema,
+  scale: z.number().optional()
+})
+export type VirtualSpace3DModelUpdate = z.TypeOf<typeof VirtualSpace3DModelRemoveSchema>
+
 export const CameraIdSchema = UuidSchema.brand<'CameraId'>();
 export type CameraId = z.TypeOf<typeof CameraIdSchema>;
 
@@ -180,7 +186,7 @@ export const CameraPortalUpdateSchema = z.object({
 export type CameraPortalUpdate = z.TypeOf<typeof CameraPortalUpdateSchema>
 
 export const CameraViewOriginUpdateSchema = z.object({
-    cameraId: CameraIdSchema, 
+    cameraId: CameraIdSchema,
     origin: z.object({originX: z.number(), originY: z.number()})
   });
 export type CameraViewOriginUpdate = z.TypeOf<typeof CameraViewOriginUpdateSchema>

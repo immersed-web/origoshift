@@ -35,11 +35,11 @@ app.post('/upload', (req,res) => {
     if(file.originalFilename){
       const filenameSplit = file.originalFilename.split('.');
       const fileEnding = filenameSplit[filenameSplit.length-1]
-      if(fileEnding === 'gltf'){
+      if(fileEnding === 'gltf' || fileEnding === 'glb'){
         data.modelUrl = file.newFilename
       }
       else {
-        res.status(403).json({msg: 'Only .gltf files are allowed'});
+        res.status(403).json({msg: 'Only .gltf or .glb files are allowed'});
       }
     }
   })

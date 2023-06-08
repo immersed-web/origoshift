@@ -26,12 +26,12 @@
       <a-entity
         id="model"
         gltf-model="#model-asset"
-        scale="0.2 0.2 0.2"
+        :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
       />
       <a-entity
         id="navmesh"
         gltf-model="#navmesh-asset"
-        scale="0.2 0.2 0.2"
+        :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
         class="clickable"
         @mousedown="navmeshClicked"
         raycaster-listen
@@ -116,6 +116,7 @@ const props = defineProps({
   modelUrl: {type: String, required: true},
   navmeshUrl: {type: String, default: ''},
   showNavMesh: {type: Boolean, default: false},
+  modelScale: {type: Number, default: 1},
 });
 
 // A-frame

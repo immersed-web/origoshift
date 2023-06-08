@@ -42,6 +42,7 @@
             class="flex-1 border"
             :model-url="venueStore.modelUrl"
             :navmesh-url="venueStore.navmeshUrl"
+            :model-scale="venueStore.currentVenue.vrSpace.virtualSpace3DModel.scale"
           />
           <div>
             <h4>3D-modell</h4>
@@ -53,6 +54,13 @@
               model="navmesh"
               name="navmesh"
             />
+            <h4>Skala</h4>
+            <input
+              class="w-full max-w-xs input input-bordered"
+              type="number"
+              v-model="modelScale"
+              @change="updateScale"
+            >
           </div>
         </div>
       </div>
@@ -66,11 +74,17 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { useVenueStore } from '@/stores/venueStore';
 import AdminUploadModelForm from './AdminUploadModelForm.vue';
 import VrAFramePreview from '@/components/lobby/VrAFramePreview.vue';
+import { onMounted, ref } from 'vue';
 
 // Use imports
 const router = useRouter();
 const connectionStore = useConnectionStore();
 const venueStore = useVenueStore();
+
+const modelScale = ref(1);
+onMounted(() => {
+  modelScale.value = venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.scale || 1;
+});
 
 const openVirtualSpace = async () => {
   await connectionStore.client.vr.openVrSpace.mutate();
@@ -83,6 +97,15 @@ const openVirtualSpace = async () => {
 
 const createVirtualSpace = async () => {
   await connectionStore.client.vr.createVrSpace.mutate();
+};
+
+const updateScale = async () => {
+  if(venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelId){
+    await connectionStore.client.vr.update3DModel.mutate({
+      modelId: venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelId,
+      scale: modelScale.value,
+    });
+  }
 };
 
 </script>

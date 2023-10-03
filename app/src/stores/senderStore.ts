@@ -39,7 +39,7 @@ export const useSenderStore = defineStore('sender', () => {
      * @internal
      * Should usually not be called. Used inside the store.
      * Helps in syncing of senderId between server instance and localstorage.
-     * If given an id it sends it to backend. If undefined it fetches from backend.
+     * If an id exists it sends it to backend. If undefined it fetches from backend.
      */
     initSenderId,
     senderId,

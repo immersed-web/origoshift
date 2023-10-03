@@ -69,7 +69,10 @@
     >
       <a-camera reverse-mouse-drag="true" />
       <!-- <a-sky color="#ECECEC" /> -->
-      <a-entity position="0 1.6 0">
+      <a-entity
+        position="0 1.6 0"
+        :rotation="`0 ${-camera.viewOrigin?.angleY} 0`"
+      >
         <a-entity
           v-for="portal in camera.portals"
           :key="portal.toCameraId"
@@ -89,8 +92,8 @@
           />
           <!-- </a-entity> -->
         </a-entity>
+        <a-videosphere rotation="0 90 0" />
       </a-entity>
-      <a-videosphere rotation="0 90 0" />
     </a-scene>
     <div class="flex hidden">
       <div>
@@ -141,9 +144,9 @@ const videoTag = ref<HTMLVideoElement>();
 const { width, height } = useElementSize(videoTag);
 const audioTag = ref<HTMLAudioElement>();
 
-const xRot = ref(0);
-const yRot = ref(0);
-const zRot = ref(0);
+// const xRot = ref(0);
+// const yRot = ref(0);
+// const zRot = ref(0);
 
 const soup = useSoupStore();
 const venueStore = useVenueStore();

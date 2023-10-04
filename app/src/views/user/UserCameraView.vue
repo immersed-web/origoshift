@@ -67,8 +67,23 @@
       cursor="rayOrigin: mouse; fuse: false;"
       raycaster="objects: .clickable"
     >
-      <a-camera reverse-mouse-drag="true" />
-      <!-- <a-sky color="#ECECEC" /> -->
+      <a-assets>
+        <a-mixin
+          id="fade-to-from-black"
+          animation__to_black="property: components.material.material.color; type: color; to: #000; dur: 500; startEvents: fadeToBlack; easing: linear;"
+          animation__from_black="property: components.material.material.color; type: color; to: #fff; dur: 500; startEvents: fadeFromBlack; easing: linear;"
+        />
+      </a-assets>
+      <a-entity
+        ref="cameraRigTag"
+        id="rig"
+      >
+        <a-camera
+          ref="cameraTag"
+          reverse-mouse-drag="true"
+        />
+      </a-entity>
+      <a-sky radius="6000" color="#00FF00" />
       <a-entity
         position="0 1.6 0"
         :rotation="`0 ${-camera.viewOrigin?.angleY} 0`"
@@ -88,27 +103,35 @@
             color="#ef2d5e"
             class="clickable"
             hover-highlight
-            @mousedown="goToCamera(portal.toCameraId)"
+            @mousedown="goToCamera(portal.toCameraId, $event)"
           />
           <!-- </a-entity> -->
         </a-entity>
-        <a-videosphere rotation="0 90 0" />
+        <a-videosphere
+        ref="vSphereTag"
+          src="#main-video-1"
+          rotation="0 90 0"
+          radius="5000"
+          material="transparent: true; opacity:1"
+        />
       </a-entity>
     </a-scene>
     <div class="flex hidden">
       <div>
         <div class="relative">
-          <div
+          <!-- <div
             v-for="portal in portalsWithStyles"
             :key="portal.cameraId"
             :style="portal.style"
             class="absolute z-50 rounded-full w-5 h-5 bg-red-600 -translate-x-1/2 -translate-y-1/2"
             @click="goToCamera(portal.cameraId as CameraId)"
-          />
+          /> -->
           <video
             autoplay
-            ref="videoTag"
-            id="main-video"
+            v-for="n in 2"
+            :key="n"
+            ref="videoTags"
+            :id="`main-video-${n}`"
           />
         </div>
         <audio
@@ -132,6 +155,7 @@ import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
 import { useElementSize } from '@vueuse/core';
 import 'aframe';
+import { THREE, type Entity } from 'aframe';
 
 const props = defineProps<{
   venueId: VenueId,
@@ -140,9 +164,14 @@ const props = defineProps<{
 
 const router = useRouter();
 
-const videoTag = ref<HTMLVideoElement>();
-const { width, height } = useElementSize(videoTag);
+const videoTags = reactive<HTMLVideoElement[]>([]);
+// const { width, height } = useElementSize(videoTags);
 const audioTag = ref<HTMLAudioElement>();
+
+const vSphereTag = ref<Entity>();
+
+const cameraTag = ref<Entity>();
+const cameraRigTag = ref<Entity>();
 
 // const xRot = ref(0);
 // const yRot = ref(0);
@@ -176,32 +205,40 @@ const camera = useCameraStore();
 //   });
 // });
 
+let activeVideoTag = 0;
 watch(() => camera.producers, async (updatedProducers) => {
   console.log('cameraProducers were updated:', toRaw(updatedProducers));
   const rcvdTracks = await camera.consumeCurrentCamera();
-  if(!videoTag.value) return;
+  // const prevVideoTag = videoTags[activeVideoTag];
+  // prevVideoTag.pause();
+  ++activeVideoTag;
+  activeVideoTag %= 2;
+  const videoTag = videoTags[activeVideoTag];
+  if(!videoTag) return;
 
   if(!rcvdTracks || !rcvdTracks.videoTrack ){
     console.error('no videotrack from camera');
     if(import.meta.env.DEV){
       console.warn('falling back to using demo video because we are in dev mode');
-      videoTag.value.muted = true;
-      videoTag.value.loop = true;
-      videoTag.value.srcObject = null;
-      // videoTag.value.src = 'https://cdn.bitmovin.com/content/assets/playhouse-vr/progressive.mp4';
-      videoTag.value.src = 'https://video.360cities.net/aeropicture/01944711_VIDEO_0520_1_H264-1920x960.mp4';
-      videoTag.value.play();
-      const vSphere = document.querySelector('a-videosphere');
-      vSphere.setAttribute('src', '#main-video');
+      videoTag.muted = true;
+      videoTag.loop = true;
+      videoTag.srcObject = null;
+      // videoTag.src = 'https://cdn.bitmovin.com/content/assets/playhouse-vr/progressive.mp4';
+      // videoTag.src = 'https://bitmovin.com/player-content/playhouse-vr/progressive.mp4';
+      videoTag.src = 'https://video.360cities.net/aeropicture/01944711_VIDEO_0520_1_H264-1920x960.mp4';
+      videoTag.play();
+      vSphereTag.value?.setAttribute('src', '#main-video-1');
     }
     return;
   } else {
-    videoTag.value.muted = false;
-    videoTag.value.loop = false;
-    videoTag.value.srcObject = new MediaStream([rcvdTracks.videoTrack]);
-    const vSphere = document.querySelector('a-videosphere');
-    // vSphere.setAttribute('srcObject', 'https://bitmovin.com/player-content/playhouse-vr/progressive.mp4');
-    vSphere.setAttribute('src', '#main-video');
+    videoTag.muted = false;
+    videoTag.loop = false;
+    videoTag.srcObject = new MediaStream([rcvdTracks.videoTrack]);
+    videoTag.play();
+    videoTag.addEventListener('playing', () => {
+      console.log('playing event triggered. Switching v-sphere source');
+      vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
+    }, {once: true});
   }
   if(rcvdTracks.audioTrack && audioTag.value){
     audioTag.value.srcObject = new MediaStream([rcvdTracks.audioTrack]);
@@ -223,7 +260,32 @@ async function loadStuff(){
   console.log('joined camera');
 }
 
-function goToCamera(cameraId: CameraId) {
+function goToCamera(cameraId: CameraId, event: Event) {
+    // const radius = vSphereTag.value?.components.geometry.radius;
+    // console.log('vSphere Radius was: ', radius);
+  videoTags[activeVideoTag].pause();
+  // cameraTag.value?.emit('zoom', null, false);
+  const clickedPortal = event.currentTarget as Entity;
+  const portalPos = new THREE.Vector3();
+  clickedPortal.object3D.getWorldPosition(portalPos);
+  const cameraPos = new THREE.Vector3();
+  cameraTag.value?.object3D.getWorldPosition(cameraPos);
+  const dir = new THREE.Vector3();
+  dir.subVectors(portalPos, cameraPos).setLength(4800);
+  const animationString = `property: position; to: ${dir.x} ${dir.y} ${dir.z}; dur: 500; easing:easeInQuad;`;
+  cameraRigTag.value?.setAttribute('animation', animationString);
+  (<HTMLElement>cameraRigTag.value)?.addEventListener('animationcomplete', () => {
+    console.log('position animation complete');
+    cameraRigTag.value?.object3D.position.set(0,0,0);
+  }, {once: true});
+  
+  console.log('vSphere:',vSphereTag.value);;
+  
+  const fadeAnimationString = "property: components.material.material.opacity ;from: 1; to: 0; dur: 500; easing: linear;"
+  const testAnimationString = "property: rotation; to: 0 150 0; dur: 500; easing:easeInQuad";
+  vSphereTag.value?.setAttribute('animation', fadeAnimationString);
+
+  // vSphereTag.value?.components.material.
   console.log('go to new camera:', cameraId);
   router.push({name: 'userCamera', params: {venueId: props.venueId, cameraId}});
 }

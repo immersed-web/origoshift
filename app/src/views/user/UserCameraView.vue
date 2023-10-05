@@ -83,19 +83,15 @@
           reverse-mouse-drag="true"
         />
       </a-entity>
-      <a-entity
+      <a-entity       
         position="0 1.6 0"
-        :rotation="`0 ${-camera.viewOrigin?.angleY} 0`"
+        rotation="0 0 0"
       >
         <a-entity
           v-for="portal in camera.portals"
           :key="portal.toCameraId"
           :rotation="`${portal.angleX} ${portal.angleY} 0`"
         >
-          <!-- :rotation="`${xRot} ${yRot} ${zRot}`" -->
-          <!-- <a-entity
-          mixin="cursorHighlight"
-          > -->
           <a-sphere
             :position="`0 0 ${-portal.distance}`"
             scale="0.2 0.2 0.2"
@@ -104,7 +100,6 @@
             hover-highlight
             @mousedown="goToCamera(portal.toCameraId, $event)"
           />
-          <!-- </a-entity> -->
         </a-entity>
         <a-videosphere
           ref="vSphereTag"
@@ -235,7 +230,21 @@ watch(() => camera.producers, async (updatedProducers) => {
     videoTag.srcObject = new MediaStream([rcvdTracks.videoTrack]);
     videoTag.play();
     videoTag.addEventListener('playing', () => {
-      console.log('playing event triggered. Switching v-sphere source');
+      console.log('playing event triggered.');
+      
+      console.log('offsetting vieworigin:', camera.viewOrigin);
+      cameraRigTag.value?.setAttribute('rotation', `0 ${camera.viewOrigin?.angleY??0} 0`);
+
+      if(!cameraTag.value){
+        throw Error('template ref undefined. That should not happen!');
+      }
+      
+      cameraTag.value.setAttribute('look-controls', {enabled: false});
+      cameraTag.value.components['look-controls'].pitchObject.rotation.x = 0;
+      cameraTag.value.components['look-controls'].yawObject.rotation.y = 0;
+      cameraTag.value.setAttribute('look-controls', {enabled: true});
+
+      console.log('Switching v-sphere source');
       vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
       vSphereTag.value?.emit('fadeFromBlack');
     }, {once: true});
@@ -279,11 +288,7 @@ function goToCamera(cameraId: CameraId, event: Event) {
     cameraRigTag.value?.object3D.position.set(0,0,0);
   }, {once: true});
   
-  console.log('vSphere:',vSphereTag.value);;
-  
-  // const fadeAnimationString = "property: components.material.material.color; type: color; from: #fff; to: #000; dur: 500; easing: linear;"
-  // const testAnimationString = "property: rotation; to: 0 150 0; dur: 500; easing:easeInQuad";
-  // vSphereTag.value?.setAttribute('animation', fadeAnimationString);
+  // console.log('vSphere:',vSphereTag.value);
 
   vSphereTag.value?.emit('fadeToBlack');
   console.log('go to new camera:', cameraId);

@@ -83,7 +83,6 @@
           reverse-mouse-drag="true"
         />
       </a-entity>
-      <a-sky radius="6000" color="#00FF00" />
       <a-entity
         position="0 1.6 0"
         :rotation="`0 ${-camera.viewOrigin?.angleY} 0`"
@@ -108,11 +107,11 @@
           <!-- </a-entity> -->
         </a-entity>
         <a-videosphere
-        ref="vSphereTag"
+          ref="vSphereTag"
           src="#main-video-1"
           rotation="0 90 0"
           radius="5000"
-          material="transparent: true; opacity:1"
+          mixin="fade-to-from-black"
         />
       </a-entity>
     </a-scene>
@@ -238,6 +237,7 @@ watch(() => camera.producers, async (updatedProducers) => {
     videoTag.addEventListener('playing', () => {
       console.log('playing event triggered. Switching v-sphere source');
       vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
+      vSphereTag.value?.emit('fadeFromBlack');
     }, {once: true});
   }
   if(rcvdTracks.audioTrack && audioTag.value){
@@ -281,11 +281,11 @@ function goToCamera(cameraId: CameraId, event: Event) {
   
   console.log('vSphere:',vSphereTag.value);;
   
-  const fadeAnimationString = "property: components.material.material.opacity ;from: 1; to: 0; dur: 500; easing: linear;"
-  const testAnimationString = "property: rotation; to: 0 150 0; dur: 500; easing:easeInQuad";
-  vSphereTag.value?.setAttribute('animation', fadeAnimationString);
+  // const fadeAnimationString = "property: components.material.material.color; type: color; from: #fff; to: #000; dur: 500; easing: linear;"
+  // const testAnimationString = "property: rotation; to: 0 150 0; dur: 500; easing:easeInQuad";
+  // vSphereTag.value?.setAttribute('animation', fadeAnimationString);
 
-  // vSphereTag.value?.components.material.
+  vSphereTag.value?.emit('fadeToBlack');
   console.log('go to new camera:', cameraId);
   router.push({name: 'userCamera', params: {venueId: props.venueId, cameraId}});
 }

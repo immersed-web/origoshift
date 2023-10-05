@@ -88,7 +88,7 @@
         rotation="0 0 0"
       >
         <a-entity
-          v-for="portal in camera.portals"
+          v-for="portal in persistedPortals"
           :key="portal.toCameraId"
           :rotation="`${portal.angleX} ${portal.angleY} 0`"
         >
@@ -147,7 +147,7 @@ import type { CameraId, VenueId } from 'schemas';
 import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, toRaw, watch } from 'vue';
 import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
-import { useElementSize } from '@vueuse/core';
+import { useElementSize, computedWithControl } from '@vueuse/core';
 import 'aframe';
 import { THREE, type Entity } from 'aframe';
 
@@ -167,6 +167,7 @@ const vSphereTag = ref<Entity>();
 const cameraTag = ref<Entity>();
 const cameraRigTag = ref<Entity>();
 
+
 // const xRot = ref(0);
 // const yRot = ref(0);
 // const zRot = ref(0);
@@ -174,34 +175,15 @@ const cameraRigTag = ref<Entity>();
 const soup = useSoupStore();
 const venueStore = useVenueStore();
 const camera = useCameraStore();
-// const receivedTracks : NonNullable<Awaited<ReturnType<typeof camera.consumeCurrentCamera>>> = reactive({
-//   videoTrack: undefined,
-//   audioTrack: undefined,
-// });
+const persistedPortals = computedWithControl(() => undefined, () => {
+  console.log('computedPortals triggered');
+  return camera.portals;
+});
 
-// const portalsWithStyles = computed(() => {
-//   return camera.currentCamera?.portals.map(p => {
-//     const angleY = -360 * p.x + -90; 
-//     const angleZ = 90 - (180 * p.y);
-//     return {
-//       style: {
-
-//         left: Math.trunc(width.value * p.x) + 'px',
-//         top: Math.trunc(height.value * p.y) + 'px',
-//       },
-//       cameraId: p.toCameraId,
-//       x: p.x,
-//       y: p.y,
-//       distance: p.distance,
-//       angleY,
-//       angleZ,
-//     };
-//   });
-// });
-
-let activeVideoTag = 0;
+let isReadyToFadeFromBlack = 0; // we need both fadetoblack completed and video playing. those events will increment this counter and fade 
+let activeVideoTag = 1; // Since we switch _before_ retrieving video stream we set initial value to the second videotag so it will switch to first videotag on pageload.
 watch(() => camera.producers, async (updatedProducers) => {
-  console.log('cameraProducers were updated:', toRaw(updatedProducers));
+  // console.log('cameraProducers were updated:', toRaw(updatedProducers));
   const rcvdTracks = await camera.consumeCurrentCamera();
   // const prevVideoTag = videoTags[activeVideoTag];
   // prevVideoTag.pause();
@@ -227,33 +209,45 @@ watch(() => camera.producers, async (updatedProducers) => {
   } else {
     videoTag.muted = false;
     videoTag.loop = false;
+
     videoTag.srcObject = new MediaStream([rcvdTracks.videoTrack]);
     videoTag.play();
     videoTag.addEventListener('playing', () => {
       console.log('playing event triggered.');
-      
-      console.log('offsetting vieworigin:', camera.viewOrigin);
-      cameraRigTag.value?.setAttribute('rotation', `0 ${camera.viewOrigin?.angleY??0} 0`);
+      isReadyToFadeFromBlack++;
 
-      if(!cameraTag.value){
-        throw Error('template ref undefined. That should not happen!');
+      if(isReadyToFadeFromBlack > 1){
+        prepareSceneAndFadeFromBlack();
       }
       
-      cameraTag.value.setAttribute('look-controls', {enabled: false});
-      cameraTag.value.components['look-controls'].pitchObject.rotation.x = 0;
-      cameraTag.value.components['look-controls'].yawObject.rotation.y = 0;
-      cameraTag.value.setAttribute('look-controls', {enabled: true});
-
-      console.log('Switching v-sphere source');
-      vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
-      vSphereTag.value?.emit('fadeFromBlack');
     }, {once: true});
   }
   if(rcvdTracks.audioTrack && audioTag.value){
     audioTag.value.srcObject = new MediaStream([rcvdTracks.audioTrack]);
   }
-  // receivedTracks.audioTrack = rcvdTracks.audioTrack;
 });
+
+function prepareSceneAndFadeFromBlack(){
+  isReadyToFadeFromBlack = 0;
+  console.log('offsetting vieworigin:', camera.viewOrigin);
+  cameraRigTag.value?.setAttribute('rotation', `0 ${camera.viewOrigin?.angleY??0} 0`);
+
+  if(!cameraTag.value){
+    throw Error('template ref undefined. That should not happen!');
+  }
+  
+  cameraTag.value.setAttribute('look-controls', {enabled: false});
+  cameraTag.value.components['look-controls'].pitchObject.rotation.x = 0;
+  cameraTag.value.components['look-controls'].yawObject.rotation.y = 0;
+  cameraTag.value.setAttribute('look-controls', {enabled: true});
+
+  console.log('Switching v-sphere source');
+  vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
+
+  persistedPortals.trigger();
+  
+  vSphereTag.value?.emit('fadeFromBlack');
+}
 
 async function loadStuff(){
   soup.userHasInteracted = true;
@@ -270,10 +264,16 @@ async function loadStuff(){
 }
 
 function goToCamera(cameraId: CameraId, event: Event) {
-    // const radius = vSphereTag.value?.components.geometry.radius;
-    // console.log('vSphere Radius was: ', radius);
   videoTags[activeVideoTag].pause();
-  // cameraTag.value?.emit('zoom', null, false);
+  vSphereTag.value?.emit('fadeToBlack');
+  (<HTMLElement>vSphereTag.value)?.addEventListener('animationcomplete__to_black', () => {
+    isReadyToFadeFromBlack++;
+    if(isReadyToFadeFromBlack > 1){
+        prepareSceneAndFadeFromBlack();
+      }
+  }, {once: true})
+
+  // Move/zoom animation -----
   const clickedPortal = event.currentTarget as Entity;
   const portalPos = new THREE.Vector3();
   clickedPortal.object3D.getWorldPosition(portalPos);
@@ -284,13 +284,11 @@ function goToCamera(cameraId: CameraId, event: Event) {
   const animationString = `property: position; to: ${dir.x} ${dir.y} ${dir.z}; dur: 500; easing:easeInQuad;`;
   cameraRigTag.value?.setAttribute('animation', animationString);
   (<HTMLElement>cameraRigTag.value)?.addEventListener('animationcomplete', () => {
-    console.log('position animation complete');
+    console.log('zoom animation complete');
     cameraRigTag.value?.object3D.position.set(0,0,0);
   }, {once: true});
-  
-  // console.log('vSphere:',vSphereTag.value);
 
-  vSphereTag.value?.emit('fadeToBlack');
+  
   console.log('go to new camera:', cameraId);
   router.push({name: 'userCamera', params: {venueId: props.venueId, cameraId}});
 }

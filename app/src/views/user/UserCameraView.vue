@@ -113,13 +113,6 @@
     <div class="flex hidden">
       <div>
         <div class="relative">
-          <!-- <div
-            v-for="portal in portalsWithStyles"
-            :key="portal.cameraId"
-            :style="portal.style"
-            class="absolute z-50 rounded-full w-5 h-5 bg-red-600 -translate-x-1/2 -translate-y-1/2"
-            @click="goToCamera(portal.cameraId as CameraId)"
-          /> -->
           <video
             autoplay
             v-for="n in 2"
@@ -290,7 +283,7 @@ function goToCamera(cameraId: CameraId, event: Event) {
 
   
   console.log('go to new camera:', cameraId);
-  router.push({name: 'userCamera', params: {venueId: props.venueId, cameraId}});
+  router.replace({name: 'userCamera', params: {venueId: props.venueId, cameraId}});
 }
 
 onMounted(async () => {

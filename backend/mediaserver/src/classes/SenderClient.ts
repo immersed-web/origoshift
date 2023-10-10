@@ -77,7 +77,7 @@ export class SenderClient extends BaseClient{
       log.info('skipped emitting to client because socket was already closed');
       return;
     }
-    log.info(`emitting clientState for ${this.username} (${this.connectionId}) to itself`);
+    log.info(`emitting clientState (${reason}) for ${this.username} (${this.connectionId}) to itself`);
     this.notify.myStateUpdated?.({data: this.getPublicState(), reason});
     // this.senderClientEvent.emit('myStateUpdated', {myState: this.getPublicState(), reason});
   }

@@ -26,10 +26,12 @@ export class Camera {
       log.info('Producers updated:', this.producers.value);
       this._notifyStateUpdated('producers updated');
     });
+    
+    // end constructor with saving back to db
+    this.saveToDb();
   }
 
   venue: Venue;
-  // sender?: SenderClient;
   sender = shallowRef<SenderClient>();
   producers = computed(() => {
     if(!this.sender.value) {
@@ -72,6 +74,7 @@ export class Camera {
   async saveToDb(){
     const { cameraPortals, settings, ...data } = this.prismaData;
     // const jsonSettings: Prisma.InputJsonValue | Prisma.NullTypes.JsonNull = settings;
+    log.info('saving to db');
     await prismaClient.camera.update({
       where: {
         cameraId: this.cameraId,
@@ -106,6 +109,7 @@ export class Camera {
   _notifyStateUpdated(reason?: string, skipClientWithId?: ConnectionId) {
     this.clients.forEach(client => {
       if(client.connectionId === skipClientWithId) return;
+      log.info(`notifying cameraState (${reason}) to client ${client.username} (${client.connectionId})`);
       client.notify.cameraStateUpdated?.({data: this.getPublicState(), reason});
     });
   }
@@ -135,7 +139,7 @@ export class Camera {
     return wasRemoved;
   }
 
-  async setSender(sender: SenderClient | undefined){
+  setSender(sender: SenderClient | undefined){
 
     if(!sender){
       this.sender.value?._setCamera(undefined);
@@ -149,7 +153,7 @@ export class Camera {
       throw Error('trying to set sender for camera, but the provided senderClient has no senderId');
     }
     this.prismaData.senderId = sender.senderId;
-    await this.saveToDb();
+    // await this.saveToDb();
     this.sender.value = sender;
     sender._setCamera(this.cameraId);
     this._notifyStateUpdated('sender attached to camera');

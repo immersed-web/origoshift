@@ -131,7 +131,7 @@ export class Venue {
   });
   //TODO: Find a way to use reactivity or memoization smoothly for backend instead of getters. We want to avoid unneccesary deep reactivity for performance
   get detachedSenders() {
-    // log.info('detachedSenders recalculated!');
+    log.info('detachedSenders recalculated!');
     const senderArray = Array.from(this.senderClients.entries());
     const sendersWithoutCameraArray: typeof senderArray = senderArray.filter(([k, sender]) => !sender.camera);
     return new Map(sendersWithoutCameraArray);
@@ -216,11 +216,11 @@ export class Venue {
       // }else {
       //   c.notify.venueStateUpdated?.({data: publicState, reason});
       // }
-      log.info(`notifying venuestate to client ${c.username} (${c.connectionId})`);
+      log.info(`notifying venuestate (${reason}) to client ${c.username} (${c.connectionId})`);
       c.notify.venueStateUpdated?.({data: publicState, reason});
     });
     this.senderClients.forEach(s => {
-      log.info(`notifying venuestate to sender ${s.username} (${s.connectionId})`);
+      log.info(`notifying venuestate (${reason}) to sender ${s.username} (${s.connectionId})`);
       if(!s.notify.venueStateUpdated){
         log.warn('sender didnt have subscriver attached');
         return;

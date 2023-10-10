@@ -26,7 +26,7 @@ export const useAdminStore = defineStore('admin', () => {
 
   connection.client.admin.subVenueStateUpdated.subscribe(undefined, {
     onData({data, reason}){
-      console.log('venueState updated:', data, reason);
+      console.log('venueState (adminonly) updated:', { data, reason});
       adminOnlyVenueState.value = data;
     },
   });

@@ -66,9 +66,6 @@
         :look-controls-enabled="!movedEntity && !movedPortalCameraId && !cameraIsAnimating"
         reverse-mouse-drag="true"
       />
-      <a-entity rotation="0 10 0" position="0 1.6 0">
-        <a-box scale="0.2 0.2 0.2" position="0 0 -2"></a-box>
-      </a-entity>
       <a-videosphere rotation="0 90 0" />
     </a-scene>
     <div class="bottom-0 absolute w-full bg-neutral/50 flex flex-row gap-4 justify-center p-4">
@@ -215,6 +212,7 @@ onUnmounted(() => {
 async function loadCamera(cameraId: CameraId) {
   console.log('loading camera');
   await camera.joinCamera(cameraId);
+  rotateCameraToOrigin();
   const tracks = await camera.consumeCurrentCamera();
   console.log(tracks);
   if(!videoTag.value){
@@ -228,6 +226,7 @@ async function loadCamera(cameraId: CameraId) {
       videoTag.value.muted = true;
       videoTag.value.loop = true;
       // videoTag.value.src = 'https://cdn.bitmovin.com/content/assets/playhouse-vr/progressive.mp4';
+      videoTag.value.setAttribute('crossorigin', 'anynomous');
       videoTag.value.src = 'https://video.360cities.net/aeropicture/01944711_VIDEO_0520_1_H264-1920x960.mp4';
       videoTag.value.play();
       const vSphere = document.querySelector('a-videosphere');
@@ -298,6 +297,17 @@ async function createOrCenterOnPortal(cameraId: CameraId) {
       },
     });
   }
+}
+
+function rotateCameraToOrigin(){
+  if(!cameraEntity.value || !camera.viewOrigin) return;
+  const cameraTag = cameraEntity.value;
+  cameraTag.setAttribute('look-controls', {enabled: false});
+  // cameraTa.value?.object3D.rotateY(camera.viewOrigin?.angleY??0);
+  // cameraTa.value?.object3D.rotateX(camera.viewOrigin?.angleX??0);
+  cameraTag.components['look-controls'].pitchObject.rotation.x = THREE.MathUtils.degToRad(camera.viewOrigin.angleX);
+  cameraTag.components['look-controls'].yawObject.rotation.y = THREE.MathUtils.degToRad(camera.viewOrigin.angleY);
+  cameraTag.setAttribute('look-controls', {enabled: true});
 }
 
 function setCameraName(){

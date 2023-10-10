@@ -142,7 +142,7 @@ app.get('/guest-jwt', (req, res) => {
     userId,
   };
   console.log('sending a guest jwt:', guestObject);
-  const jwt = createJwt(guestObject, 5);
+  const jwt = createJwt(guestObject, 25);
   
   //TEMP DEBUG 
   // const expSecondsTimestamp = verifyJwtToken(jwt).exp?? Infinity;

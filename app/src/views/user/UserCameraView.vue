@@ -32,6 +32,8 @@
           ref="cameraTag"
           reverse-mouse-drag="true"
         />
+        <a-entity laser-controls="hand:left" raycaster="objects: .clickable" />
+        <a-entity laser-controls="hand:right" raycaster="objects: .clickable" />
       </a-entity>
       <a-entity       
         position="0 1.6 0"

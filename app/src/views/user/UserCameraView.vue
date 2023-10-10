@@ -142,7 +142,7 @@ import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
 import { useElementSize, computedWithControl } from '@vueuse/core';
 import 'aframe';
-import { THREE, type Entity } from 'aframe';
+import { THREE, type Entity, type Animation } from 'aframe';
 
 const props = defineProps<{
   venueId: VenueId,
@@ -173,7 +173,6 @@ const persistedPortals = computedWithControl(() => undefined, () => {
   return camera.portals;
 });
 
-let isReadyToFadeFromBlack = 0; // we need both fadetoblack completed and video playing. those events will increment this counter. counter reaching 2 indicates ready to fade.
 let activeVideoTag = 1; // Since we switch _before_ retrieving video stream we set initial value to the second videotag so it will switch to first videotag on pageload.
 watch(() => camera.producers, async (updatedProducers) => {
   // console.log('cameraProducers were updated:', toRaw(updatedProducers));
@@ -206,20 +205,19 @@ watch(() => camera.producers, async (updatedProducers) => {
   videoTag.play();
   videoTag.addEventListener('playing', () => {
     console.log('playing event triggered.');
-    isReadyToFadeFromBlack++;
-
-    if(isReadyToFadeFromBlack > 1){
-      prepareSceneAndFadeFromBlack();
-    }
-    
+    tryPrepareSceneAndFadeFromBlack();
   }, {once: true});
   if(rcvdTracks?.audioTrack && audioTag.value){
     audioTag.value.srcObject = new MediaStream([rcvdTracks.audioTrack]);
   }
 });
 
-function prepareSceneAndFadeFromBlack(){
-  isReadyToFadeFromBlack = 0;
+function tryPrepareSceneAndFadeFromBlack(){
+  if(videoTags[activeVideoTag].paused || isFadingToBlack || isZoomingInOnPortal){
+    console.log('not yet ready to reveal after portal jump. returning');
+    return
+  }
+  console.log('preparing environment after portal jump');
   console.log('offsetting vieworigin:', camera.viewOrigin);
   cameraRigTag.value?.setAttribute('rotation', `0 ${camera.viewOrigin?.angleY??0} 0`);
 
@@ -236,6 +234,8 @@ function prepareSceneAndFadeFromBlack(){
   vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
 
   persistedPortals.trigger();
+  
+  cameraRigTag.value?.object3D.position.set(0,0,0);
   
   vSphereTag.value?.emit('fadeFromBlack');
 }
@@ -255,14 +255,17 @@ async function loadStuff(){
   console.log('joined camera');
 }
 
+// These will hold to play state of the animations.
+let isFadingToBlack = false;
+let isZoomingInOnPortal = false;
 function goToCamera(cameraId: CameraId, event: Event) {
   videoTags[activeVideoTag].pause();
+  isFadingToBlack = true;
   vSphereTag.value?.emit('fadeToBlack');
   (<HTMLElement>vSphereTag.value)?.addEventListener('animationcomplete__to_black', () => {
-    isReadyToFadeFromBlack++;
-    if(isReadyToFadeFromBlack > 1){
-        prepareSceneAndFadeFromBlack();
-      }
+    console.log('fade to black animation complete');
+    isFadingToBlack = false;
+    tryPrepareSceneAndFadeFromBlack();
   }, {once: true})
 
   // Move/zoom animation -----
@@ -274,10 +277,12 @@ function goToCamera(cameraId: CameraId, event: Event) {
   const dir = new THREE.Vector3();
   dir.subVectors(portalPos, cameraPos).setLength(4800);
   const animationString = `property: position; to: ${dir.x} ${dir.y} ${dir.z}; dur: 500; easing:easeInQuad;`;
+  isZoomingInOnPortal = true;
   cameraRigTag.value?.setAttribute('animation', animationString);
   (<HTMLElement>cameraRigTag.value)?.addEventListener('animationcomplete', () => {
     console.log('zoom animation complete');
-    cameraRigTag.value?.object3D.position.set(0,0,0);
+    isZoomingInOnPortal = false;
+    tryPrepareSceneAndFadeFromBlack();
   }, {once: true});
 
   

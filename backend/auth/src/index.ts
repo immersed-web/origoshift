@@ -143,6 +143,16 @@ app.get('/guest-jwt', (req, res) => {
   };
   console.log('sending a guest jwt:', guestObject);
   const jwt = createJwt(guestObject, 5);
+  
+  //TEMP DEBUG 
+  // const expSecondsTimestamp = verifyJwtToken(jwt).exp?? Infinity;
+  // console.log('created guestJwt that expires:', expSecondsTimestamp);
+  // const now = Date.now();
+  // const dt = new Date().toUTCString();
+  // console.log('UTC now:', dt);
+  // console.log('now is: ', now);
+  // console.log('jwt expires in (millis): ', expSecondsTimestamp*1000 - now );
+  
   res.send(jwt);
 });
 

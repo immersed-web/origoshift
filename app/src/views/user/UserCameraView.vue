@@ -173,7 +173,7 @@ const persistedPortals = computedWithControl(() => undefined, () => {
   return camera.portals;
 });
 
-let isReadyToFadeFromBlack = 0; // we need both fadetoblack completed and video playing. those events will increment this counter and fade 
+let isReadyToFadeFromBlack = 0; // we need both fadetoblack completed and video playing. those events will increment this counter. counter reaching 2 indicates ready to fade.
 let activeVideoTag = 1; // Since we switch _before_ retrieving video stream we set initial value to the second videotag so it will switch to first videotag on pageload.
 watch(() => camera.producers, async (updatedProducers) => {
   // console.log('cameraProducers were updated:', toRaw(updatedProducers));
@@ -185,37 +185,35 @@ watch(() => camera.producers, async (updatedProducers) => {
   const videoTag = videoTags[activeVideoTag];
   if(!videoTag) return;
 
-  if(!rcvdTracks || !rcvdTracks.videoTrack ){
+  if(!rcvdTracks?.videoTrack && !import.meta.env.DEV ){
     console.error('no videotrack from camera');
-    if(import.meta.env.DEV){
-      console.warn('falling back to using demo video because we are in dev mode');
-      videoTag.muted = true;
-      videoTag.loop = true;
-      videoTag.srcObject = null;
-      // videoTag.src = 'https://cdn.bitmovin.com/content/assets/playhouse-vr/progressive.mp4';
-      // videoTag.src = 'https://bitmovin.com/player-content/playhouse-vr/progressive.mp4';
-      videoTag.src = 'https://video.360cities.net/aeropicture/01944711_VIDEO_0520_1_H264-1920x960.mp4';
-      videoTag.play();
-      vSphereTag.value?.setAttribute('src', '#main-video-1');
-    }
     return;
-  } else {
+  }
+  if(!rcvdTracks?.videoTrack){
+    console.warn('falling back to using demo video because we are in dev mode');
+    videoTag.muted = true;
+    videoTag.loop = true;
+    videoTag.srcObject = null;
+    videoTag.setAttribute('crossorigin', 'anonymous');
+    // videoTag.src = 'https://cdn.bitmovin.com/content/assets/playhouse-vr/progressive.mp4';
+    // videoTag.src = 'https://bitmovin.com/player-content/playhouse-vr/progressive.mp4';
+    videoTag.src = 'https://video.360cities.net/aeropicture/01944711_VIDEO_0520_1_H264-1920x960.mp4';
+  }else{
     videoTag.muted = false;
     videoTag.loop = false;
-
     videoTag.srcObject = new MediaStream([rcvdTracks.videoTrack]);
-    videoTag.play();
-    videoTag.addEventListener('playing', () => {
-      console.log('playing event triggered.');
-      isReadyToFadeFromBlack++;
-
-      if(isReadyToFadeFromBlack > 1){
-        prepareSceneAndFadeFromBlack();
-      }
-      
-    }, {once: true});
   }
-  if(rcvdTracks.audioTrack && audioTag.value){
+  videoTag.play();
+  videoTag.addEventListener('playing', () => {
+    console.log('playing event triggered.');
+    isReadyToFadeFromBlack++;
+
+    if(isReadyToFadeFromBlack > 1){
+      prepareSceneAndFadeFromBlack();
+    }
+    
+  }, {once: true});
+  if(rcvdTracks?.audioTrack && audioTag.value){
     audioTag.value.srcObject = new MediaStream([rcvdTracks.audioTrack]);
   }
 });
@@ -245,7 +243,8 @@ function prepareSceneAndFadeFromBlack(){
 async function loadStuff(){
   soup.userHasInteracted = true;
   if(!venueStore.currentVenue){
-    await venueStore.joinVenue(props.venueId);
+    await venueStore.loadAndJoinVenue(props.venueId);
+    // await venueStore.joinVenue(props.venueId);
   }
   if(!soup.deviceLoaded){
     await soup.loadDevice();

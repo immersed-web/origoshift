@@ -79,10 +79,7 @@
 <script setup lang="ts">
 import { useCameraStore } from '@/stores/cameraStore';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-// import 'aframe';
 import type { SenderId, CameraId } from 'schemas';
-// import { useSoupStore } from '@/stores/soupStore';
-// import { useSoupStore } from '@/stores/soupStore';
 import type { Entity, THREE } from 'aframe';
 import { useAdminStore } from '@/stores/adminStore';
 
@@ -90,7 +87,6 @@ const videoTag = ref<HTMLVideoElement>();
 const cameraEntity = ref<Entity>();
 
 const newName = ref<string>();
-
 
 const camera = useCameraStore();
 const adminStore = useAdminStore();
@@ -105,19 +101,6 @@ onMounted(() => {
 onUnmounted(() => {
 });
 
-// async function loadCamera(cameraId: CameraId) {
-//   console.log('loading camera');
-//   await camera.joinCamera(cameraId);
-//   const tracks = await camera.consumeCurrentCamera();
-//   console.log(tracks);
-//   console.assert(tracks && tracks.videoTrack && videoTag.value, 'prerequisites for attaching tracks not fullfilled');
-//   if(!tracks || !tracks.videoTrack || !videoTag.value){
-//     return;
-//   }
-//   videoTag.value.srcObject = new MediaStream([tracks.videoTrack]);
-//   const vSphere = document.querySelector('a-videosphere');
-//   vSphere.setAttribute('src', '#main-video');
-// }
 
 function attachSenderToCamera(cameraId: CameraId){
   adminStore.setSenderForCamera(cameraId, props.senderId);

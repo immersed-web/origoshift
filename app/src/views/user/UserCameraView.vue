@@ -11,56 +11,6 @@
     Försöker öppna kameran
   </div>
   <div v-else>
-    <!-- <h1>Watching camera: {{ props.cameraId }}</h1> -->
-    <!-- <label>
-      <input
-        type="range"
-        max="360"
-        min="-360"
-        v-model="xRot"
-      >
-      {{ xRot }}
-    </label>
-    <label>
-      <input
-        type="range"
-        max="360"
-        min="-360"
-        v-model="yRot"
-      >
-      {{ yRot }}
-    </label>
-    <label>
-      <input
-        type="range"
-        max="360"
-        min="-360"
-        v-model="zRot"
-      >
-      {{ zRot }}
-    </label> -->
-    <!-- <label>
-      <input
-        class="w-56"
-        type="range"
-        max="1"
-        min="0"
-        step="0.01"
-        v-model="camera.currentCamera.portals[0].x"
-      >
-      {{ camera.currentCamera.portals[0].x }}
-    </label>
-    <label>
-      <input
-        class="w-56"
-        type="range"
-        max="1"
-        min="0"
-        step="0.01"
-        v-model="camera.currentCamera.portals[0].y"
-      >
-      {{ camera.currentCamera.portals[0].y }}
-    </label> -->
     <a-scene
       class="w-full h-screen"
       embedded
@@ -152,18 +102,12 @@ const props = defineProps<{
 const router = useRouter();
 
 const videoTags = reactive<HTMLVideoElement[]>([]);
-// const { width, height } = useElementSize(videoTags);
 const audioTag = ref<HTMLAudioElement>();
 
 const vSphereTag = ref<Entity>();
 
 const cameraTag = ref<Entity>();
 const cameraRigTag = ref<Entity>();
-
-
-// const xRot = ref(0);
-// const yRot = ref(0);
-// const zRot = ref(0);
 
 const soup = useSoupStore();
 const venueStore = useVenueStore();
@@ -173,12 +117,10 @@ const persistedPortals = computedWithControl(() => undefined, () => {
   return camera.portals;
 });
 
-let activeVideoTag = 1; // Since we switch _before_ retrieving video stream we set initial value to the second videotag so it will switch to first videotag on pageload.
+let activeVideoTag = 1; // Since we switch _before_ retrieving video stream we set initial value to the second videotag so it will switch to first videotag on pageload. Yes, its a bit hacky :-)
 watch(() => camera.producers, async (updatedProducers) => {
   // console.log('cameraProducers were updated:', toRaw(updatedProducers));
   const rcvdTracks = await camera.consumeCurrentCamera();
-  // const prevVideoTag = videoTags[activeVideoTag];
-  // prevVideoTag.pause();
   ++activeVideoTag;
   activeVideoTag %= 2;
   const videoTag = videoTags[activeVideoTag];
@@ -244,7 +186,6 @@ async function loadStuff(){
   soup.userHasInteracted = true;
   if(!venueStore.currentVenue){
     await venueStore.loadAndJoinVenue(props.venueId);
-    // await venueStore.joinVenue(props.venueId);
   }
   if(!soup.deviceLoaded){
     await soup.loadDevice();

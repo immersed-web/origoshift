@@ -594,6 +594,7 @@ export class Venue {
       throw Error('No camera with that cameraId in venue');
     }
     await foundCamera.setSender(foundSender);
+    await foundCamera.saveToDb();
     this._notifyAdminOnlyState('attached new sender to a camera');
   }
 

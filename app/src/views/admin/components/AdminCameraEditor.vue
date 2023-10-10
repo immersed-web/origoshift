@@ -212,7 +212,6 @@ onUnmounted(() => {
 async function loadCamera(cameraId: CameraId) {
   console.log('loading camera');
   await camera.joinCamera(cameraId);
-  rotateCameraToOrigin();
   const tracks = await camera.consumeCurrentCamera();
   console.log(tracks);
   if(!videoTag.value){
@@ -239,6 +238,7 @@ async function loadCamera(cameraId: CameraId) {
   videoTag.value.muted = false;
   videoTag.value.srcObject = new MediaStream([tracks.videoTrack]);
   const vSphere = document.querySelector('a-videosphere');
+  rotateCameraToOrigin();
   vSphere.setAttribute('src', '#main-video');
 }
 

@@ -54,26 +54,65 @@
           {{ device.label }}
         </option>
       </select>
-      <div class="w-fit relative">
+      <div
+        id="video-crop-container"
+        class="w-full"
+      >
         <pre>{{ cropRange }}</pre>
-        <div class="my-6 max-w-full w-full absolute">
-          <Slider
+        <div class="my-6  w-full">
+          <tc-range-slider
+            step="100"
+            round="0"
+            slider-width="100%"
+            slider-height="1rem"
+            generate-labels="true"
+            @change="setCropRange"
+            value1="0"
+            value2="100"
+            min="0"
+            max="100"
+          />
+          <!-- <OButton class="bg-emerald-500">
+            TEST
+          </OButton>
+          <OSlider
+            v-model="cropRange[0]"
+            size=""
+          /> -->
+          <!-- <Slider
             v-model="cropRange"
             :lazy="false"
             :step="0.01"
             :min="0.0"
             :max="1.0"
             :tooltips="false"
-          />
+          /> -->
+          <!-- <input
+            class="w-full"
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            v-model="cropRange[0]"
+          >
+          <input
+            class="w-full"
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            v-model="cropRange[1]"
+          > -->
         </div>
         <video
-          :style="{maxWidth: `${(cropRange[1]-cropRange[0])*100}%`, position:'relative', left: `${cropRange[0]*100}%`}"
+          :style="{width: `${(cropRange[1]-cropRange[0])}%`, position:'relative', left: `${cropRange[0]}%`}"
           autoplay
           ref="videoTag"
         />
       </div>
       <div v-if="soup.videoProducer.stats">
         <pre
+          class="relative max-w-full whitespace-pre-wrap"
           v-for="(entry, key) in soup.videoProducer.stats"
           :key="key"
         >
@@ -87,10 +126,11 @@
 <style>
 </style>
 
+
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import Slider from '@vueform/slider';
+// import Slider from '@vueform/slider';
 import { isTRPCClientError } from '@/modules/trpcClient';
 import type { ProducerInfo } from 'schemas/mediasoup';
 import { useVenueStore } from '@/stores/venueStore';
@@ -163,10 +203,15 @@ async function startAudio(audioDevice: MediaDeviceInfo){
 
 }
 
-const cropRange = ref([0, 1]);
-
+const cropRange = reactive([0, 1]);
+function setCropRange(evt: CustomEvent) {
+  console.log(evt.detail.values);
+  cropRange[0] = (evt.detail.values[0]);
+  cropRange[1] = (evt.detail.values[1]);
+}
 const sourceVideoTrack = shallowRef<MediaStreamTrack>();
 let transformedVideoTrack: MediaStreamVideoTrack;
+
 const videoInfo = computed(() => {
   if(!sourceVideoTrack.value) return undefined;
   const {width, height, frameRate} = sourceVideoTrack.value.getSettings();
@@ -203,6 +248,7 @@ async function startVideo(videoDevice: MediaDeviceInfo){
   const videoTrackGenerator = new MediaStreamTrackGenerator({kind: 'video'});
   const { writable } = videoTrackGenerator;
   
+  let mostRecentUsableCrop: {x:number, width: number} = {x:0, width:100};
   // eslint-disable-next-line no-undef
   function transform(frame: VideoFrame, controller: TransformStreamDefaultController) {
     const dimensions = videoInfo.value;
@@ -212,14 +258,15 @@ async function startVideo(videoDevice: MediaDeviceInfo){
       // frame.close();
       return;
     }
-    const x = Math.floor(dimensions.width * cropRange.value[0]);
-    const width = Math.floor(dimensions.width * (cropRange.value[1]-cropRange.value[0]));
+    const x = Math.trunc(dimensions.width * cropRange[0]*0.01);
+    const width = Math.trunc(dimensions.width * (cropRange[1]-cropRange[0])*0.01);
     // console.log('croprange:', cropRange);
     // console.log('transform parameters', {x, width});
     // Cropping from an existing video frame is supported by the API in Chrome 94+.
     // eslint-disable-next-line no-undef
     try{
 
+      // eslint-disable-next-line no-undef
       const newFrame = new VideoFrame(frame, {
         visibleRect: {
           x,
@@ -229,10 +276,28 @@ async function startVideo(videoDevice: MediaDeviceInfo){
         },
       });
       controller.enqueue(newFrame);
+      mostRecentUsableCrop = {x, width};
       frame.close();
     } catch(e) {
-      console.error(e);
-      controller.enqueue(frame);
+      console.error(x, mostRecentUsableCrop, e);
+      // controller.enqueue(frame);
+      try {
+
+        // eslint-disable-next-line no-undef
+        const newFrame = new VideoFrame(frame, {
+          visibleRect: {
+            x: mostRecentUsableCrop.x,
+            width: Math.min(width, dimensions.width-mostRecentUsableCrop.x),
+            y: 0,
+            height: dimensions.height,
+          },
+        });
+        controller.enqueue(newFrame);
+        frame.close();
+      }catch(e) {
+        console.error('recovery transform failed also', e, mostRecentUsableX);
+        controller.enqueue(frame);
+      }
     }
   }
   readable.pipeThrough(new TransformStream({transform})).pipeTo(writable);
@@ -268,7 +333,7 @@ onMounted(async () => {
   //@ts-expect-error
   const perm = await navigator.permissions.query({name: 'camera'});
   permissionState.value = perm.state;
-  perm.onchange = ev => permissionState.value = perm.state;
+  perm.onchange = _ev => permissionState.value = perm.state;
   mediaDevices.value = await navigator.mediaDevices.enumerateDevices();
 
   navigator.mediaDevices.addEventListener('devicechange', async () => {

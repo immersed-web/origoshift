@@ -11,7 +11,7 @@ export default defineConfig({
       template: {
         compilerOptions: {
           // NOT WORKING: treat any tag that starts with a- as custom elements
-          isCustomElement: (tag) => tag.startsWith('a-'),
+          isCustomElement: (tag) => tag.startsWith('a-') || tag.startsWith('tc-') ,
         },
       },
     },

@@ -128,7 +128,7 @@ const router = createRouter({
     {
       path: '/send',
       meta: { requiredRole: 'sender', requiredConnection: 'sender', loginNeededRedirect: 'cameraLogin'},
-      component:  () => import('@/layouts/HeaderLayout.vue'),
+      component:  () => import('@/layouts/EmptyLayout.vue'),
       children: [
         {
           name: 'senderHome', path: '',

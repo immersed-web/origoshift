@@ -28,7 +28,7 @@ module.exports = {
     quotes: ['warn', 'single', { avoidEscape: true }],
     'vue/component-name-in-template-casing': ['error', 'PascalCase', {
       'registeredComponentsOnly': false,
-      'ignores': ['/^(a-)/'],
+      'ignores': ['/^(a-)|^(tc-)/'],
     }],
     '@typescript-eslint/indent': ['error', 2],
     '@typescript-eslint/explicit-module-boundary-types': 'off',

@@ -30,6 +30,7 @@ importers:
   app:
     specifiers:
       '@formkit/auto-animate': 1.0.0-beta.6
+      '@oruga-ui/oruga-next': ^0.7.0
       '@rushstack/eslint-patch': ^1.1.4
       '@types/aframe': ^1.2.2
       '@types/date-fns': ^2.6.0
@@ -77,6 +78,7 @@ importers:
       vue-tsc: ^1.0.12
     dependencies:
       '@formkit/auto-animate': 1.0.0-beta.6
+      '@oruga-ui/oruga-next': 0.7.0_vue@3.2.45
       '@types/date-fns': 2.6.0
       '@vueform/slider': 2.1.7
       '@vueuse/core': 9.13.0_vue@3.2.45
@@ -1449,6 +1451,14 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.13.0
+
+  /@oruga-ui/oruga-next/0.7.0_vue@3.2.45:
+    resolution: {integrity: sha512-T2KnNhGzgqv/Xzu4Efx3wnYahANcP6Z7Yc8DHOFIOLrM+ZDdTS9OjL3gofBVDrDBRg1DQv6EvsSsNkwMR88LpA==}
+    peerDependencies:
+      vue: ^3.0.0
+    dependencies:
+      vue: 3.2.45
+    dev: false
 
   /@prisma/client/4.9.0_prisma@4.9.0:
     resolution: {integrity: sha512-bz6QARw54sWcbyR1lLnF2QHvRW5R/Jxnbbmwh3u+969vUKXtBkXgSgjDA85nji31ZBlf7+FrHDy5x+5ydGyQDg==}

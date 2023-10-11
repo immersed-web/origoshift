@@ -33,6 +33,7 @@ importers:
       '@rushstack/eslint-patch': ^1.1.4
       '@types/aframe': ^1.2.2
       '@types/date-fns': ^2.6.0
+      '@types/dom-mediacapture-transform': ^0.1.7
       '@types/jsdom': ^20.0.1
       '@types/node': ^18.11.12
       '@vitejs/plugin-vue': ^4.0.0
@@ -40,6 +41,7 @@ importers:
       '@vue/runtime-core': ^3.2.45
       '@vue/test-utils': ^2.2.6
       '@vue/tsconfig': ^0.1.3
+      '@vueform/slider': ^2.1.7
       '@vueuse/core': ^9.13.0
       aframe: ^1.4.1
       autoprefixer: ^10.4.13
@@ -76,6 +78,7 @@ importers:
     dependencies:
       '@formkit/auto-animate': 1.0.0-beta.6
       '@types/date-fns': 2.6.0
+      '@vueform/slider': 2.1.7
       '@vueuse/core': 9.13.0_vue@3.2.45
       aframe: 1.4.1
       axios: 1.3.1
@@ -97,6 +100,7 @@ importers:
     devDependencies:
       '@rushstack/eslint-patch': 1.2.0
       '@types/aframe': 1.2.2
+      '@types/dom-mediacapture-transform': 0.1.7
       '@types/jsdom': 20.0.1
       '@types/node': 18.11.18
       '@vitejs/plugin-vue': 4.0.0_vite@4.0.4+vue@3.2.45
@@ -1675,6 +1679,16 @@ packages:
     dependencies:
       '@types/ms': 0.7.31
 
+  /@types/dom-mediacapture-transform/0.1.7:
+    resolution: {integrity: sha512-xrFtEIDCn+VeMEYm4JdjLEOeho3dsTxOxx4hDqCA0WRrENF4DMTF9JaTzTRUVc5rI58j9nRTxIZlU1Wqfr08PA==}
+    dependencies:
+      '@types/dom-webcodecs': 0.1.8
+    dev: true
+
+  /@types/dom-webcodecs/0.1.8:
+    resolution: {integrity: sha512-KThTPaGQJLITk8Q0XkEkz+GqFdoWDyQfbyeJmfEUagB15TZQdNx5AqP2b7GP6vkVM6X/6T1Z8EHxA8RgHfY9BA==}
+    dev: true
+
   /@types/express-serve-static-core/4.17.31:
     resolution: {integrity: sha512-DxMhY+NAsTwMMFHBTtJFNp5qiHKJ7TeqOo23zVEM9alT1Ml27Q3xcTH0xwxn7Q0BbMcVEJOs/7aQtUWupUQN3Q==}
     dependencies:
@@ -2390,6 +2404,10 @@ packages:
     dependencies:
       '@types/node': 18.11.18
     dev: true
+
+  /@vueform/slider/2.1.7:
+    resolution: {integrity: sha512-wKyiVVN03RKTV2vp7r50PDq5hcM4kVVzUO2ex+BAAtrn5oX08iU5NzWTWCuH7dCkiLMDRUVravDu3B0NwaxZMQ==}
+    dev: false
 
   /@vueuse/core/9.13.0_vue@3.2.45:
     resolution: {integrity: sha512-pujnclbeHWxxPRqXWmdkKV5OX4Wk4YeK7wusHqRwU0Q7EFusHoqNA/aPhB6KCh9hEqJkLAJo7bb0Lh9b+OIVzw==}

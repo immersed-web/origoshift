@@ -54,10 +54,24 @@
           {{ device.label }}
         </option>
       </select>
-      <video
-        autoplay
-        ref="videoTag"
-      />
+      <div class="w-fit relative">
+        <pre>{{ cropRange }}</pre>
+        <div class="my-6 max-w-full w-full absolute">
+          <Slider
+            v-model="cropRange"
+            :lazy="false"
+            :step="0.01"
+            :min="0.0"
+            :max="1.0"
+            :tooltips="false"
+          />
+        </div>
+        <video
+          :style="{maxWidth: `${(cropRange[1]-cropRange[0])*100}%`, position:'relative', left: `${cropRange[0]*100}%`}"
+          autoplay
+          ref="videoTag"
+        />
+      </div>
       <div v-if="soup.videoProducer.stats">
         <pre
           v-for="(entry, key) in soup.videoProducer.stats"
@@ -74,8 +88,9 @@
 </style>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import Slider from '@vueform/slider';
 import { isTRPCClientError } from '@/modules/trpcClient';
 import type { ProducerInfo } from 'schemas/mediasoup';
 import { useVenueStore } from '@/stores/venueStore';
@@ -147,10 +162,14 @@ async function startAudio(audioDevice: MediaDeviceInfo){
   });
 
 }
-const videoTrack = shallowRef<MediaStreamTrack>();
+
+const cropRange = ref([0, 1]);
+
+const sourceVideoTrack = shallowRef<MediaStreamTrack>();
+let transformedVideoTrack: MediaStreamVideoTrack;
 const videoInfo = computed(() => {
-  if(!videoTrack.value) return undefined;
-  const {width, height, frameRate} = videoTrack.value.getSettings();
+  if(!sourceVideoTrack.value) return undefined;
+  const {width, height, frameRate} = sourceVideoTrack.value.getSettings();
   return {
     width, height, frameRate,
   };
@@ -172,8 +191,59 @@ async function startVideo(videoDevice: MediaDeviceInfo){
     },
   });
   console.log(stream);
-  videoTrack.value = await stream.getVideoTracks()[0];
-  videoTag.value!.srcObject = stream;
+
+  const [vTrack] = await stream.getVideoTracks();
+  sourceVideoTrack.value = vTrack;
+  
+  // eslint-disable-next-line no-undef
+  const streamProcessor = new MediaStreamTrackProcessor({track: vTrack});
+  const { readable } = streamProcessor;
+  
+  // eslint-disable-next-line no-undef
+  const videoTrackGenerator = new MediaStreamTrackGenerator({kind: 'video'});
+  const { writable } = videoTrackGenerator;
+  
+  // eslint-disable-next-line no-undef
+  function transform(frame: VideoFrame, controller: TransformStreamDefaultController) {
+    const dimensions = videoInfo.value;
+    if(!dimensions?.width || !dimensions?.height) {
+      console.log('no videodimensions available. passing frames through');
+      controller.enqueue(frame);
+      // frame.close();
+      return;
+    }
+    const x = Math.floor(dimensions.width * cropRange.value[0]);
+    const width = Math.floor(dimensions.width * (cropRange.value[1]-cropRange.value[0]));
+    // console.log('croprange:', cropRange);
+    // console.log('transform parameters', {x, width});
+    // Cropping from an existing video frame is supported by the API in Chrome 94+.
+    // eslint-disable-next-line no-undef
+    try{
+
+      const newFrame = new VideoFrame(frame, {
+        visibleRect: {
+          x,
+          width,
+          y: 0,
+          height: dimensions.height,
+        },
+      });
+      controller.enqueue(newFrame);
+      frame.close();
+    } catch(e) {
+      console.error(e);
+      controller.enqueue(frame);
+    }
+  }
+  readable.pipeThrough(new TransformStream({transform})).pipeTo(writable);
+  
+  const transformedStream = new MediaStream([videoTrackGenerator]);
+  
+  // sourceVideoTrack.value = videoTrackGenerator;
+  transformedVideoTrack = videoTrackGenerator;
+  videoTag.value!.srcObject = transformedStream;
+
+  // videoTag.value!.srcObject = stream;
   videoTag.value!.play();
 
   const producerInfo: ProducerInfo = {
@@ -181,12 +251,12 @@ async function startVideo(videoDevice: MediaDeviceInfo){
     isPaused: false,
   };
   if(soup.videoProducer.producer){
-    await soup.replaceVideoProducerTrack(videoTrack.value);
+    await soup.replaceVideoProducerTrack(sourceVideoTrack.value);
   }else{
     // const restoredProducerId = senderStore.savedProducers.get(deviceId)?.producerId;
     await soup.produce({
       // producerId: restoredProducerId,
-      track: videoTrack.value,
+      track: sourceVideoTrack.value,
       producerInfo,
     });
     // senderStore.savedProducers.set(deviceId, {deviceId, producerId, type: 'video'});
@@ -216,3 +286,4 @@ async function requestPermission() {
 }
 
 </script>
+<style src="@vueform/slider/themes/default.css"></style>

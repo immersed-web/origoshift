@@ -30,7 +30,7 @@
       <a-entity
         position="0 1.6 0"
       >
-        <a-entity ref="viewOriginEntity" :rotation="`${camera.viewOrigin?.angleX} ${camera.viewOrigin?.angleY} 0`">
+                <a-entity ref="viewOriginEntity" :rotation="`${camera.viewOrigin?.angleX} ${camera.viewOrigin?.angleY} 0`">
           <a-ring
             radius-inner="0.1"
             radius-outer="0.2"
@@ -66,7 +66,7 @@
         :look-controls-enabled="!movedEntity && !movedPortalCameraId && !cameraIsAnimating"
         reverse-mouse-drag="true"
       />
-      <a-videosphere rotation="0 90 0" />
+      <a-videosphere :geometry="`phiLength:${camera.FOV?.phiLength??360}; phiStart:${camera.FOV?.phiStart??0}`" rotation="0 90 0" />
     </a-scene>
     <div class="bottom-0 absolute w-full bg-neutral/50 flex flex-row gap-4 justify-center p-4">
       <template

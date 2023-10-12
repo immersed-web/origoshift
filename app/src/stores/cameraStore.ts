@@ -37,6 +37,17 @@ export const useCameraStore = defineStore('camera', () => {
       ...coordsToAngles({ x, y }),
     };
   });
+  
+  const FOV = computed(() => {
+    if(!currentCamera.value) return undefined;
+
+    const { fovStart, fovEnd } = currentCamera.value.FOV;
+    return {
+      ...currentCamera.value.FOV,
+      phiLength: (fovEnd-fovStart) * 360,
+      phiStart: fovStart * 360,
+    };
+  });
 
   const portals = computed(() => {
     if(!currentCamera.value) return undefined;
@@ -143,6 +154,7 @@ export const useCameraStore = defineStore('camera', () => {
   return {
     currentCamera,
     portals,
+    FOV,
     viewOrigin,
     // currentCameraReactive,
     utils: {

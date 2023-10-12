@@ -71,6 +71,7 @@
             value2="100"
             min="0"
             max="100"
+            mousewheel-disabled="true"
           />
           <!-- <OButton class="bg-emerald-500">
             TEST
@@ -351,4 +352,3 @@ async function requestPermission() {
 }
 
 </script>
-<style src="@vueform/slider/themes/default.css"></style>

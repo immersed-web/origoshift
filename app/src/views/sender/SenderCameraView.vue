@@ -321,12 +321,12 @@ async function startVideo(videoDevice: MediaDeviceInfo){
     isPaused: false,
   };
   if(soup.videoProducer.producer){
-    await soup.replaceVideoProducerTrack(sourceVideoTrack.value);
+    await soup.replaceVideoProducerTrack(transformedVideoTrack);
   }else{
     // const restoredProducerId = senderStore.savedProducers.get(deviceId)?.producerId;
     await soup.produce({
       // producerId: restoredProducerId,
-      track: sourceVideoTrack.value,
+      track: transformedVideoTrack,
       producerInfo,
     });
     // senderStore.savedProducers.set(deviceId, {deviceId, producerId, type: 'video'});

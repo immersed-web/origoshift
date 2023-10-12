@@ -24,6 +24,9 @@
           animation__from_black="property: components.material.material.color; type: color; to: #fff; dur: 500; startEvents: fadeFromBlack; easing: linear;"
         />
       </a-assets>
+      <a-entity environment="preset: tron; dressing: none;" />
+      <!-- <a-sky color="#000" radius="10000" /> -->
+      <!-- <a-plane roughness="0.7" material="dithering: true;" color="#aaa" width="10000" height="10000"  rotation="-90 0 0" /> -->
       <a-entity
         ref="cameraRigTag"
         id="rig"
@@ -31,7 +34,11 @@
         <a-camera
           ref="cameraTag"
           reverse-mouse-drag="true"
-        />
+        >
+          <a-sky ref="curtainTag" radius="0.5" material="transparent: true; color: #505; opacity: 0.0;"
+            animation__to_black="property: material.opacity; from: 0.0; to: 1.0; dur: 500; startEvents: fadeToBlack"
+            animation__from_black="property: material.opacity; from: 1.0; to: 0.0; dur: 500; startEvents: fadeFromBlack"/>
+        </a-camera>
         <a-entity laser-controls="hand:left" raycaster="objects: .clickable" />
         <a-entity laser-controls="hand:right" raycaster="objects: .clickable" />
       </a-entity>
@@ -39,12 +46,22 @@
         position="0 1.6 0"
         rotation="0 0 0"
       >
+        <a-videosphere
+          :geometry="`phiLength:${persistedFOV?.phiLength??360}; phiStart:${persistedFOV?.phiStart??0}`"
+          ref="vSphereTag"
+          src="#main-video-1"
+          rotation="0 90 0"
+          radius="10"
+          color="#fff"
+          material="color: #fff; depthTest: false; fog: false"
+        />
         <a-entity
           v-for="portal in persistedPortals"
           :key="portal.toCameraId"
           :rotation="`${portal.angleX} ${portal.angleY} 0`"
-        >
+          >
           <a-sphere
+            material="depthTest: false;"
             :position="`0 0 ${-portal.distance}`"
             scale="0.2 0.2 0.2"
             color="#ef2d5e"
@@ -53,14 +70,6 @@
             @mousedown="goToCamera(portal.toCameraId, $event)"
           />
         </a-entity>
-        <a-videosphere
-          :geometry="`phiLength:${camera.FOV?.phiLength??360}; phiStart:${camera.FOV?.phiStart??0}`"
-          ref="vSphereTag"
-          src="#main-video-1"
-          rotation="0 90 0"
-          radius="5000"
-          mixin="fade-to-from-black"
-        />
       </a-entity>
     </a-scene>
     <div class="flex hidden">
@@ -108,6 +117,8 @@ const videoTags = reactive<HTMLVideoElement[]>([]);
 const audioTag = ref<HTMLAudioElement>();
 
 const vSphereTag = ref<Entity>();
+const vSphereRadius = 10;
+const curtainTag = ref<Entity>();
 
 const cameraTag = ref<Entity>();
 const cameraRigTag = ref<Entity>();
@@ -119,6 +130,9 @@ const persistedPortals = computedWithControl(() => undefined, () => {
   console.log('computedPortals triggered');
   return camera.portals;
 });
+const persistedFOV = computedWithControl(() => undefined, () => {
+  return camera.FOV
+})
 
 let activeVideoTag = 1; // Since we switch _before_ retrieving video stream we set initial value to the second videotag so it will switch to first videotag on pageload. Yes, its a bit hacky :-)
 watch(() => camera.producers, async (updatedProducers) => {
@@ -179,10 +193,11 @@ function tryPrepareSceneAndFadeFromBlack(){
   vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
 
   persistedPortals.trigger();
+  persistedFOV.trigger();
   
   cameraRigTag.value?.object3D.position.set(0,0,0);
   
-  vSphereTag.value?.emit('fadeFromBlack');
+  curtainTag.value?.emit('fadeFromBlack');
 }
 
 async function loadStuff(){
@@ -205,8 +220,8 @@ let isZoomingInOnPortal = false;
 function goToCamera(cameraId: CameraId, event: Event) {
   videoTags[activeVideoTag].pause();
   isFadingToBlack = true;
-  vSphereTag.value?.emit('fadeToBlack');
-  (<HTMLElement>vSphereTag.value)?.addEventListener('animationcomplete__to_black', () => {
+  curtainTag.value?.emit('fadeToBlack');
+  (<HTMLElement>curtainTag.value)?.addEventListener('animationcomplete__to_black', () => {
     console.log('fade to black animation complete');
     isFadingToBlack = false;
     tryPrepareSceneAndFadeFromBlack();
@@ -219,7 +234,7 @@ function goToCamera(cameraId: CameraId, event: Event) {
   const cameraPos = new THREE.Vector3();
   cameraTag.value?.object3D.getWorldPosition(cameraPos);
   const dir = new THREE.Vector3();
-  dir.subVectors(portalPos, cameraPos).setLength(4800);
+  dir.subVectors(portalPos, cameraPos);//.setLength(vSphereRadius-0.2);
   const animationString = `property: position; to: ${dir.x} ${dir.y} ${dir.z}; dur: 500; easing:easeInQuad;`;
   isZoomingInOnPortal = true;
   cameraRigTag.value?.setAttribute('animation', animationString);
@@ -228,6 +243,8 @@ function goToCamera(cameraId: CameraId, event: Event) {
     isZoomingInOnPortal = false;
     tryPrepareSceneAndFadeFromBlack();
   }, {once: true});
+  const sphereShrinkAnimationString = `property: geometry.radius; to: ${dir.length()}; dur: 500; easing: easeInQuad;`;
+  vSphereTag.value?.setAttribute('animation', sphereShrinkAnimationString);
 
   
   console.log('go to new camera:', cameraId);

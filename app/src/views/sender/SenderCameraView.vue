@@ -206,7 +206,7 @@ async function startAudio(audioDevice: MediaDeviceInfo){
 
 }
 
-const cropRange = reactive([0, 1]);
+const cropRange = reactive([0, 100]);
 function setCropRange(evt: CustomEvent) {
   console.log(evt.detail.values);
   cropRange[0] = (evt.detail.values[0]);

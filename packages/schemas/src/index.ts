@@ -191,6 +191,12 @@ export const CameraViewOriginUpdateSchema = z.object({
   });
 export type CameraViewOriginUpdate = z.TypeOf<typeof CameraViewOriginUpdateSchema>
 
+export const CameraFOVUpdateSchema = z.object({
+  cameraId: CameraIdSchema,
+  FOV: z.object({fovStart: z.number(), fovEnd: z.number()})
+})
+export type CameraFOVUpdate = z.TypeOf<typeof CameraFOVUpdateSchema>;
+
 export const JwtUserDataSchema = z.object({
   userId: UserIdSchema,
   username: z.string(),

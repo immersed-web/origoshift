@@ -12,8 +12,7 @@ import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSc
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
 import { z } from 'zod';
 import { atLeastModeratorP, currentVenueAdminP, isUserClientM, isVenueOwnerM, procedure as p, router } from '../trpc/trpc';
-import { CameraPortalUpdateSchema } from 'schemas';
-
+import { CameraPortalUpdateSchema, CameraFOVUpdateSchema  } from 'schemas';
 
 export const adminRouter = router({
   subProducerCreated: atLeastModeratorP.subscription(({ctx}) => {
@@ -160,6 +159,22 @@ export const adminRouter = router({
     camera.prismaData = dbResponse;
     camera._notifyStateUpdated('view origin updated');
     
+    return dbResponse;
+  }),
+  setCameraFOV: currentVenueAdminP.input(CameraFOVUpdateSchema).mutation(async ({ctx, input}) => {
+    const dbResponse = await prismaClient.camera.update({
+      where: {
+        cameraId: input.cameraId,
+      },
+      include: cameraIncludeStuff,
+      data: {
+        ...input.FOV
+      }
+    });
+    const camera = ctx.venue.cameras.get(input.cameraId);
+    if(!camera) return;
+    camera.prismaData = dbResponse;
+    camera._notifyStateUpdated('FOV updated');
     return dbResponse;
   }),
   setCameraPortal: currentVenueAdminP.input(CameraPortalUpdateSchema).mutation(async ({ctx, input}) => {

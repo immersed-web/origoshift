@@ -54,6 +54,7 @@
           />
         </a-entity>
         <a-videosphere
+          :geometry="`phiLength:${camera.FOV?.phiLength??360}; phiStart:${camera.FOV?.phiStart??0}`"
           ref="vSphereTag"
           src="#main-video-1"
           rotation="0 90 0"

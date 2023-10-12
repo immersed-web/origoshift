@@ -89,8 +89,8 @@ export class Camera {
 
   getPublicState() {
     const { cameraId, name, clientIds, senderId, portals } = this;
-    const { startAngleX, startAngleY } = this.prismaData;
-    const viewOrigin = {x: startAngleX, y: startAngleY };
+    const { viewOriginX, viewOriginY } = this.prismaData;
+    const viewOrigin = {x: viewOriginX, y: viewOriginY };
     // const senderState = this.sender?.getPublicState();
     const senderAttached = !!this.sender.value;
     const isStreaming = !!this.producers.value.videoProducer || !!this.producers.value.audioProducer;

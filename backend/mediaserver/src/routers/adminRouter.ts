@@ -151,8 +151,8 @@ export const adminRouter = router({
       },
       include: cameraIncludeStuff,
       data: {
-        startAngleX: originX,
-        startAngleY: originY,
+        viewOriginX: originX,
+        viewOriginY: originY,
       }
     });
     const camera = ctx.venue.cameras.get(input.cameraId);

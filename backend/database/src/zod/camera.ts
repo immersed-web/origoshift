@@ -12,8 +12,10 @@ export const CameraSchemaGenerated = z.object({
   name: z.string(),
   venueId: z.string().uuid(),
   senderId: z.string().uuid().nullish(),
-  startAngleX: z.number(),
-  startAngleY: z.number(),
+  viewOriginX: z.number(),
+  viewOriginY: z.number(),
+  fovStart: z.number(),
+  fovEnd: z.number(),
   settings: jsonSchema,
 })
 

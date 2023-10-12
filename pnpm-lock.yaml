@@ -67,6 +67,7 @@ importers:
       start-server-and-test: ^1.15.2
       superjson: ^1.12.2
       tailwindcss: ^3.2.4
+      toolcool-range-slider: ^4.0.28
       trpc-client-devtools-link: 0.2.1-next
       typescript: ~4.7.4
       vite: ^4.0.0
@@ -92,6 +93,7 @@ importers:
       pinia-plugin-persistedstate: 3.1.0_pinia@2.0.29
       schemas: link:../packages/schemas
       superjson: 1.12.2
+      toolcool-range-slider: 4.0.28
       trpc-client-devtools-link: 0.2.1-next
       vue: 3.2.45
       vue-router: 4.1.6_vue@3.2.45
@@ -9656,6 +9658,10 @@ packages:
   /toidentifier/1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
+    dev: false
+
+  /toolcool-range-slider/4.0.28:
+    resolution: {integrity: sha512-DDZAEJ9hItgSbGWY6DkjvMoUBLZG9J3X6qvBzAruvGzcPwrZKRt3EB2ixPqFmrpEy98SyyM+WZbKL0+TR4fOkg==}
     dev: false
 
   /tough-cookie/2.5.0:

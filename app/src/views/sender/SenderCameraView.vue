@@ -111,7 +111,10 @@
           ref="videoTag"
         />
       </div>
-      <div v-if="soup.videoProducer.stats">
+      <div
+        class="absolute"
+        v-if="soup.videoProducer.stats"
+      >
         <pre
           class="relative max-w-full whitespace-pre-wrap"
           v-for="(entry, key) in soup.videoProducer.stats"
@@ -138,6 +141,7 @@ import { useVenueStore } from '@/stores/venueStore';
 import { useSenderStore } from '@/stores/senderStore';
 import { useSoupStore } from '@/stores/soupStore';
 import { useIntervalFn } from '@vueuse/core';
+import 'toolcool-range-slider';
 
 const senderStore = useSenderStore();
 const venueStore = useVenueStore();

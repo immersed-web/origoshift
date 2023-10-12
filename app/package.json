@@ -31,6 +31,7 @@
     "pinia-plugin-persistedstate": "^3.1.0",
     "schemas": "workspace:^1.0.0",
     "superjson": "^1.12.2",
+    "toolcool-range-slider": "^4.0.28",
     "trpc-client-devtools-link": "0.2.1-next",
     "vue": "^3.2.45",
     "vue-router": "^4.1.6"

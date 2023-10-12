@@ -14,6 +14,8 @@ const registerComponents = () => {
   raycasterListen();
   rotationControl();
   hoverHighlight();
+
+  import('aframe-environment-component');
 };
 
 export default {

@@ -161,22 +161,6 @@ export const adminRouter = router({
     
     return dbResponse;
   }),
-  setCameraFOV: currentVenueAdminP.input(CameraFOVUpdateSchema).mutation(async ({ctx, input}) => {
-    const dbResponse = await prismaClient.camera.update({
-      where: {
-        cameraId: input.cameraId,
-      },
-      include: cameraIncludeStuff,
-      data: {
-        ...input.FOV
-      }
-    });
-    const camera = ctx.venue.cameras.get(input.cameraId);
-    if(!camera) return;
-    camera.prismaData = dbResponse;
-    camera._notifyStateUpdated('FOV updated');
-    return dbResponse;
-  }),
   setCameraPortal: currentVenueAdminP.input(CameraPortalUpdateSchema).mutation(async ({ctx, input}) => {
     const dbResponse = await prismaClient.camera.update({
       where: {

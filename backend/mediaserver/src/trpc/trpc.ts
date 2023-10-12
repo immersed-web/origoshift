@@ -120,9 +120,10 @@ export const isVenueOwnerM = isInVenueM.unstable_pipe(({ctx, next, path}) => {
 
 export const currentVenueAdminP = atLeastModeratorP.use(isVenueOwnerM).use(isUserClientM);
 
-export const userInVenueP = procedure.use(isUserClientM).use(isInVenueM);
 
 export const clientInVenueP = procedure.use(isInVenueM);
+export const userInVenueP = userClientP.use(isInVenueM);
+export const senderInVenueP = senderClientP.use(isInVenueM);
 
 export const isInCameraM = isUserClientM.unstable_pipe(({ctx, next, path}) => {
   if(!ctx.client.currentCamera){

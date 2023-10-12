@@ -61,16 +61,13 @@
         <pre>{{ cropRange }}</pre>
         <div class="my-6  w-full">
           <tc-range-slider
-            step="100"
+            ref="FOVSlider"
+            step="1"
             round="0"
             slider-width="100%"
             slider-height="1rem"
-            generate-labels="true"
-            @change="setCropRange"
             value1="0"
             value2="100"
-            min="0"
-            max="100"
             mousewheel-disabled="true"
           />
           <!-- <OButton class="bg-emerald-500">
@@ -140,7 +137,7 @@ import type { ProducerInfo } from 'schemas/mediasoup';
 import { useVenueStore } from '@/stores/venueStore';
 import { useSenderStore } from '@/stores/senderStore';
 import { useSoupStore } from '@/stores/soupStore';
-import { useIntervalFn } from '@vueuse/core';
+import { useIntervalFn, useDebounceFn } from '@vueuse/core';
 import 'toolcool-range-slider';
 
 const senderStore = useSenderStore();
@@ -170,6 +167,7 @@ onBeforeUnmount(() => {
 });
 
 const videoTag = ref<HTMLVideoElement>();
+const FOVSlider = ref<HTMLElement>();
 
 const mediaDevices = ref<MediaDeviceInfo[]>();
 const videoDevices = computed(() => {
@@ -213,6 +211,8 @@ function setCropRange(evt: CustomEvent) {
   console.log(evt.detail.values);
   cropRange[0] = (evt.detail.values[0]);
   cropRange[1] = (evt.detail.values[1]);
+
+  debouncedFOVUpdate();
 }
 const sourceVideoTrack = shallowRef<MediaStreamTrack>();
 let transformedVideoTrack: MediaStreamVideoTrack;
@@ -333,6 +333,15 @@ async function startVideo(videoDevice: MediaDeviceInfo){
   }
 }
 
+const debouncedFOVUpdate = useDebounceFn(() => {
+  if(!senderStore.cameraId){
+    console.error('cant update FOV because cameraId isnt set in senderStore');
+    return;
+  }
+  console.log('sending FOV to server');
+  senderStore.setFOVForCamera({cameraId:senderStore.cameraId, FOV: {fovStart: cropRange[0]*0.01, fovEnd: cropRange[1]*0.01}});
+}, 1000);
+
 const permissionState = ref();
 onMounted(async () => {
   //@ts-expect-error
@@ -344,6 +353,8 @@ onMounted(async () => {
   navigator.mediaDevices.addEventListener('devicechange', async () => {
     mediaDevices.value = await navigator.mediaDevices.enumerateDevices();
   });
+
+  FOVSlider.value?.addEventListener('change', (evt) => setCropRange(evt as CustomEvent));
 });
 
 async function requestPermission() {

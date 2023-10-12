@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { SenderId, CameraId, VenueId } from 'schemas';
+import type { SenderId, CameraId, VenueId, CameraFOVUpdate } from 'schemas';
 import type { types as soupTypes } from 'mediasoup-client';
 import type { ProducerId } from 'schemas/mediasoup';
 import { reactive, ref, shallowRef, toRaw } from 'vue';
@@ -35,6 +35,10 @@ export const useSenderStore = defineStore('sender', () => {
       cameraId.value = state.cameraId;
     }
   };
+  
+  async function setFOVForCamera(data: CameraFOVUpdate){
+    await connection.client.sender.setCameraFOV.mutate(data);
+  }
 
   return {
     /**
@@ -44,6 +48,7 @@ export const useSenderStore = defineStore('sender', () => {
      * If an id exists it sends it to backend. If undefined it fetches from backend.
      */
     initSenderId,
+    setFOVForCamera,
     senderId,
     savedPickedDeviceId,
     // savedProducers,

@@ -5,7 +5,9 @@ log.enable(process.env.DEBUG);
 
 import { SenderIdSchema } from 'schemas';
 import { isSenderClientM, procedure as p, router } from '../trpc/trpc';
-import { attachToEvent } from '../trpc/trpc-utils';
+import { observable } from '@trpc/server/observable';
+import { NotifierInputData } from '../trpc/trpc-utils';
+import { SenderClient } from '../classes/InternalClasses';
 
 const senderClientP = p.use(isSenderClientM);
 
@@ -14,7 +16,11 @@ export const senderRouter = router({
     return ctx.client.getPublicState();
   }),
   subOwnClientState: senderClientP.subscription(({ctx}) => {
-    return attachToEvent(ctx.client.senderClientEvent, 'myStateUpdated');
+    return observable<NotifierInputData<SenderClient['notify']['myStateUpdated']>>((scriber) => {
+      ctx.client.notify.myStateUpdated = scriber.next;
+      return () => ctx.client.notify.myStateUpdated = undefined;
+    });
+    // return attachToEvent(ctx.client.senderClientEvent, 'myStateUpdated');
   }),
   setSenderId: senderClientP.input(SenderIdSchema).mutation(({ctx, input}) => {
 

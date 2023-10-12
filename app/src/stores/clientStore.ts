@@ -13,6 +13,7 @@ export const useClientStore = defineStore('client', () => {
     throw Error('This store (clientStore) relies on there being a client created. Make sure to create a connection using the connection store before using this store');
   }
 
+  // TODO: We have a minor trouble here were we will receive either senderclient state or userclient state but treat it as userclient state regardless
   const clientState = ref<RouterOutputs['user']['getClientState']>();
   const clientTransforms = ref<ClientTransforms>();
 

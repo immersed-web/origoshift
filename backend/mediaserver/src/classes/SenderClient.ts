@@ -42,6 +42,7 @@ export class SenderClient extends BaseClient{
    */
   _setCamera(cameraId?: CameraId){
     this.cameraId = cameraId;
+    this._notifyStateUpdated('attached/detached to camera');
   }
   get camera() {
     if(!this.cameraId) return undefined;
@@ -79,13 +80,7 @@ export class SenderClient extends BaseClient{
     }
     log.info(`emitting clientState (${reason}) for ${this.username} (${this.connectionId}) to itself`);
     this.notify.myStateUpdated?.({data: this.getPublicState(), reason});
-    // this.senderClientEvent.emit('myStateUpdated', {myState: this.getPublicState(), reason});
   }
-
-  // notifyCameraProducersUpdated() {
-  //   if(!this.camera) return;
-  //   this.camera.
-  // }
 
   unload() {
     log.info(`unloading sender client ${ this.username } ${this.connectionId} `);

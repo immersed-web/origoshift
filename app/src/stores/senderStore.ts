@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import type { SenderId, CameraId, VenueId } from 'schemas';
 import type { types as soupTypes } from 'mediasoup-client';
 import type { ProducerId } from 'schemas/mediasoup';
-import { reactive, ref, shallowRef } from 'vue';
+import { reactive, ref, shallowRef, toRaw } from 'vue';
 import { useConnectionStore } from './connectionStore';
 import type { RouterOutputs, SubscriptionValue } from '@/modules/trpcClient';
 
@@ -16,10 +16,11 @@ export const useSenderStore = defineStore('sender', () => {
 
   const connection = useConnectionStore();
   connection.client.sender.subOwnClientState.subscribe(undefined, {
-    onData(data){
-      console.log('received new senderstate:', data);
-      senderState.value = data.myState;
+    onData({data, reason}){
+      console.log(`received new senderstate (${reason}):`, data);
+      senderState.value = data;
       senderId.value = senderState.value.senderId;
+      cameraId.value = data.cameraId;
     },
   });
 
@@ -31,6 +32,7 @@ export const useSenderStore = defineStore('sender', () => {
       console.log('GONNA FETCH MY SENDERID FROM SERVER!!!');
       const state = await connection.client.sender.getClientState.query();
       senderId.value = state.senderId;
+      cameraId.value = state.cameraId;
     }
   };
 
@@ -51,7 +53,7 @@ export const useSenderStore = defineStore('sender', () => {
 {
   persist: {
     afterRestore(ctx) {
-      console.log('AFTER RESTORE:', ctx.store);
+      console.log('AFTER RESTORE:', toRaw(ctx.store));
       ctx.store.initSenderId();
     },
   },

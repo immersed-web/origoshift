@@ -118,8 +118,8 @@ export const adminRouter = router({
   setSenderForCamera: currentVenueAdminP.input(z.object({
     senderId: SenderIdSchema,
     cameraId: CameraIdSchema,
-  })).mutation(({ctx, input}) => {
-    ctx.venue.setSenderForCamera(input.senderId, input.cameraId);
+  })).mutation(async ({ctx, input}) => {
+    return ctx.venue.setSenderForCamera(input.senderId, input.cameraId);
   }),
   setCameraName: currentVenueAdminP.input(z.object({
     cameraId: CameraIdSchema,

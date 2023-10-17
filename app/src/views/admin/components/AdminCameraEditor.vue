@@ -75,7 +75,7 @@
         reverse-mouse-drag="true"
       />
       <a-videosphere :visible="is360Camera" :geometry="`phiLength:${camera.FOV?.phiLength??360}; phiStart:${camera.FOV?.phiStart??0}`" rotation="0 90 0" />
-      <a-video position="0 0 2" :visible="!is360Camera" src="https://cdn.bitmovin.com/content/assets/playhouse-vr/progressive.mp4"  />
+      <a-video :height="videoHeight" width="1.7777" position="0 1.6 2" :visible="!is360Camera" src="#main-video"  />
     </a-scene>
     <div class="bottom-0 absolute w-full bg-neutral/50 flex flex-row gap-4 justify-center p-4">
       <template
@@ -218,6 +218,17 @@ onUnmounted(() => {
   document.removeEventListener('pointermove', onMouseMove);
 });
 
+const fixedWidth = 1.7777;
+const videoHeight = ref(1.0);
+
+function setVideoDimensionsFromTag(vTag: HTMLVideoElement){
+  const w = vTag.videoWidth;
+  const h = vTag.videoHeight;
+  console.log(w,h);
+  const ratio = w / h;
+  videoHeight.value = fixedWidth/ratio;
+}
+
 async function loadCamera(cameraId: CameraId) {
   console.log('loading camera');
   await camera.joinCamera(cameraId);
@@ -240,6 +251,7 @@ async function loadCamera(cameraId: CameraId) {
       videoTag.value.play();
       const vSphere = document.querySelector('a-videosphere');
       vSphere.setAttribute('src', '#main-video');
+      videoTag.value.addEventListener('playing', () => setVideoDimensionsFromTag(videoTag.value!), { once: true });
     }
     return;
   }
@@ -250,6 +262,8 @@ async function loadCamera(cameraId: CameraId) {
   const vSphere = document.querySelector('a-videosphere');
   rotateCameraToOrigin();
   vSphere.setAttribute('src', '#main-video');
+  // setVideoDimensionsFromTrack(tracks.videoTrack as MediaStreamVideoTrack)
+  videoTag.value.addEventListener('playing', () => setVideoDimensionsFromTag(videoTag.value!), { once: true });
 }
 
 async function createOrCenterOnPortal(cameraId: CameraId) {

@@ -8,11 +8,10 @@ import { observable } from '@trpc/server/observable';
 import { BaseClient, Camera, loadUserPrismaData, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import { Prisma } from 'database';
 import prismaClient, { cameraIncludeStuff } from '../modules/prismaClient';
-import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSchema, VenueId, VenueIdSchema, VenueUpdateSchema, CameraViewOriginUpdateSchema} from 'schemas';
+import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSchema, VenueId, VenueIdSchema, VenueUpdateSchema, CameraPortalUpdateSchema, CameraFOVUpdateSchema, CameraViewOriginUpdateSchema, CameraTypeUpdateSchema} from 'schemas';
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
 import { z } from 'zod';
 import { atLeastModeratorP, currentVenueAdminP, isUserClientM, isVenueOwnerM, procedure as p, router } from '../trpc/trpc';
-import { CameraPortalUpdateSchema, CameraFOVUpdateSchema  } from 'schemas';
 
 export const adminRouter = router({
   subProducerCreated: atLeastModeratorP.subscription(({ctx}) => {
@@ -138,8 +137,26 @@ export const adminRouter = router({
     if(!camera) return;
     camera.prismaData = dbResponse;
     camera._notifyStateUpdated('camera name changed');
-    ctx.venue._notifyAdminOnlyState('a camera changed name');
+    ctx.venue._notifyAdminOnlyState('a camera changed name'); // TODO: Is this needed? Why?
     
+    return dbResponse;
+  }),
+  setCameraType: currentVenueAdminP.input(CameraTypeUpdateSchema).mutation(async ({ctx, input}) =>{
+    const { cameraId, cameraType } = input;
+    const dbResponse = await prismaClient.camera.update({
+      where: {
+        cameraId
+      },
+      include: cameraIncludeStuff,
+      data: {
+        cameraType
+      }
+    });
+    const camera = ctx.venue.cameras.get(cameraId);
+    if(!camera) return;
+    camera.prismaData = dbResponse;
+    camera._notifyStateUpdated('camera type update');
+    // ctx.venue._notifyAdminOnlyState('a camera changed type');
     return dbResponse;
   }),
   setCameraViewOrigin: currentVenueAdminP.input(CameraViewOriginUpdateSchema).mutation(async ({ctx, input}) => {

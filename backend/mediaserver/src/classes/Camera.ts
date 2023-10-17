@@ -89,13 +89,13 @@ export class Camera {
 
   getPublicState() {
     const { cameraId, name, clientIds, senderId, portals } = this;
-    const { viewOriginX, viewOriginY, fovStart, fovEnd } = this.prismaData;
+    const { viewOriginX, viewOriginY, fovStart, fovEnd, cameraType } = this.prismaData;
     const viewOrigin = {x: viewOriginX, y: viewOriginY };
     const FOV = { fovStart, fovEnd };
     // const senderState = this.sender?.getPublicState();
     const senderAttached = !!this.sender.value;
     const isStreaming = !!this.producers.value.videoProducer || !!this.producers.value.audioProducer;
-    return { cameraId, name, clientIds, senderId, FOV, viewOrigin, portals, senderAttached, isStreaming, producers: this.producers.value };
+    return { cameraId, name, clientIds, senderId, cameraType, FOV, viewOrigin, portals, senderAttached, isStreaming, producers: this.producers.value };
   }
 
   unload() {

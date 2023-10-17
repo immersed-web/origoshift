@@ -1,6 +1,6 @@
 import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { defineStore } from 'pinia';
-import type { CameraId, SenderId, VenueId, Visibility, CameraPortalUpdate, CameraViewOriginUpdate, ConnectionId } from 'schemas';
+import type { CameraId, SenderId, VenueId, Visibility, CameraPortalUpdate, CameraViewOriginUpdate, ConnectionId, CameraType } from 'schemas';
 import { ref } from 'vue';
 import { useConnectionStore } from './connectionStore';
 import { useVenueStore } from './venueStore';
@@ -104,6 +104,10 @@ export const useAdminStore = defineStore('admin', () => {
   async function setCameraName(cameraId: CameraId, newName: string) {
     await connection.client.admin.setCameraName.mutate({cameraId, newName});
   }
+
+  async function setCameraType(cameraId: CameraId, cameraType: CameraType) {
+    await connection.client.admin.setCameraType.mutate({cameraId, cameraType});
+  }
   
   async function setCameraViewOrigin(data: CameraViewOriginUpdate){
     await connection.client.admin.setCameraViewOrigin.mutate(data);
@@ -135,6 +139,7 @@ export const useAdminStore = defineStore('admin', () => {
     createCameraFromSender,
     setSenderForCamera,
     setCameraName,
+    setCameraType,
     setPortal,
     deletePortal,
     setCameraViewOrigin,

@@ -35,26 +35,36 @@
         <img id="portal-texture" src="@/assets/portal-1.png" />
         <a-mixin id="slow-rotation" animation="property: rotation; from: 0 0 0; to: 0 0 360; dur: 100000; loop: true; easing: linear;" />
       </a-assets>
+      <a-camera
+        ref="cameraEntity"
+        :look-controls-enabled="!movedEntity && !movedPortalCameraId && !cameraIsAnimating"
+        reverse-mouse-drag="true"
+      />
+      <a-videosphere :visible="is360Camera" :geometry="`phiLength:${camera.FOV?.phiLength??360}; phiStart:${camera.FOV?.phiStart??0}`" rotation="0 90 0" />
+      <a-video :height="videoHeight" width="1.7777" position="0 1.6 3" :visible="!is360Camera" src="#main-video"  />
       <a-entity
         position="0 1.6 0"
       >
-                <a-entity ref="viewOriginEntity" :rotation="`${camera.viewOrigin?.angleX} ${camera.viewOrigin?.angleY} 0`">
+        <a-entity ref="viewOriginEntity" :rotation="`${camera.viewOrigin?.angleX} ${camera.viewOrigin?.angleY} 0`" >
           <a-ring
             radius-inner="0.1"
             radius-outer="0.2"
             position="0 0 -2"
             color="teal"
             hover-highlight
+            material="depthTest:false"
           >
             <a-ring
               radius-inner="0"
               radius-outer="0.2"
               color="yellow"
-              material="opacity:0"
+              material="opacity:0; depthTest: false;"
               class="clickable"
               @mousedown="movedEntity = viewOriginEntity"
             />
-            <a-text position="0 -0.3 0" value="startvy" align="center" ></a-text>
+            <a-text
+              material="depthTest:false"
+              position="0 -0.3 0" value="startvy" align="center" ></a-text>
           </a-ring>
         </a-entity>
         <a-entity id="vue-list">
@@ -69,13 +79,6 @@
         >
         </a-entity>
       </a-entity>
-      <a-camera
-        ref="cameraEntity"
-        :look-controls-enabled="!movedEntity && !movedPortalCameraId && !cameraIsAnimating"
-        reverse-mouse-drag="true"
-      />
-      <a-videosphere :visible="is360Camera" :geometry="`phiLength:${camera.FOV?.phiLength??360}; phiStart:${camera.FOV?.phiStart??0}`" rotation="0 90 0" />
-      <a-video :height="videoHeight" width="1.7777" position="0 1.6 2" :visible="!is360Camera" src="#main-video"  />
     </a-scene>
     <div class="bottom-0 absolute w-full bg-neutral/50 flex flex-row gap-4 justify-center p-4">
       <template

@@ -35,7 +35,7 @@
           ref="cameraTag"
           reverse-mouse-drag="true"
         >
-          <a-sky ref="curtainTag" radius="0.5" material="transparent: true; color: #505; opacity: 0.0;"
+          <a-sky visible="true" ref="curtainTag" radius="0.5" material="transparent: true; color: #505; opacity: 0.0; depthTest: false"
             animation__to_black="property: material.opacity; from: 0.0; to: 1.0; dur: 500; startEvents: fadeToBlack"
             animation__from_black="property: material.opacity; from: 1.0; to: 0.0; dur: 500; startEvents: fadeFromBlack"/>
         </a-camera>
@@ -45,7 +45,9 @@
       <a-entity       
         position="0 1.6 0"
         rotation="0 0 0"
+        material="depthTest: false"
       >
+        <a-video ref="aVideoTag" crossorigin="anonymous" :width="fixedWidth" :height="videoHeight" position="0 0 3" material="depthTest: false" />
         <a-videosphere
           :geometry="`phiLength:${persistedFOV?.phiLength??360}; phiStart:${persistedFOV?.phiStart??0}`"
           ref="vSphereTag"
@@ -53,7 +55,7 @@
           rotation="0 90 0"
           radius="10"
           color="#fff"
-          material="color: #fff; depthTest: false; fog: false"
+          material="color: #fff; depthTest:false; fog: false"
         />
         <a-entity
           v-for="portal in persistedPortals"
@@ -72,7 +74,7 @@
         </a-entity>
       </a-entity>
     </a-scene>
-    <div class="flex hidden">
+    <div class="flex">
       <div>
         <div class="relative">
           <video
@@ -81,6 +83,7 @@
             :key="n"
             ref="videoTags"
             :id="`main-video-${n}`"
+            crossorigin="anonymous"
           />
         </div>
         <audio
@@ -118,6 +121,7 @@ const audioTag = ref<HTMLAudioElement>();
 
 const vSphereTag = ref<Entity>();
 const vSphereRadius = 10;
+const aVideoTag = ref<Entity>();
 const curtainTag = ref<Entity>();
 
 const cameraTag = ref<Entity>();
@@ -126,6 +130,7 @@ const cameraRigTag = ref<Entity>();
 const soup = useSoupStore();
 const venueStore = useVenueStore();
 const camera = useCameraStore();
+const is360Camera = computed(() => camera.currentCamera?.cameraType !== 'normal')
 const persistedPortals = computedWithControl(() => undefined, () => {
   console.log('computedPortals triggered');
   return camera.portals;
@@ -164,6 +169,7 @@ watch(() => camera.producers, async (updatedProducers) => {
   videoTag.play();
   videoTag.addEventListener('playing', () => {
     console.log('playing event triggered.');
+    setVideoDimensionsFromTag(videoTag)
     tryPrepareSceneAndFadeFromBlack();
   }, {once: true});
   if(rcvdTracks?.audioTrack && audioTag.value){
@@ -191,6 +197,10 @@ function tryPrepareSceneAndFadeFromBlack(){
 
   console.log('Switching v-sphere source');
   vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
+  vSphereTag.value?.setAttribute('visible', is360Camera.value)
+  console.log('switching a-video source');
+  aVideoTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
+  aVideoTag.value?.setAttribute('visible', !is360Camera.value);
 
   persistedPortals.trigger();
   persistedFOV.trigger();
@@ -198,6 +208,16 @@ function tryPrepareSceneAndFadeFromBlack(){
   cameraRigTag.value?.object3D.position.set(0,0,0);
   
   curtainTag.value?.emit('fadeFromBlack');
+}
+
+const fixedWidth = 4;
+const videoHeight = ref(1.0);
+function setVideoDimensionsFromTag(vTag: HTMLVideoElement){
+  const w = vTag.videoWidth;
+  const h = vTag.videoHeight;
+  console.log(w,h);
+  const ratio = w / h;
+  videoHeight.value = fixedWidth/ratio;
 }
 
 async function loadStuff(){

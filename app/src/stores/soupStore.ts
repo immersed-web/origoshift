@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { soupDevice, attachTransportEvents, type ProduceAppData } from '@/modules/mediasoup';
 import type {types as soupTypes } from 'mediasoup-client';
-import { computed, reactive, ref, shallowReactive, shallowRef } from 'vue';
+import { computed, reactive, ref, shallowReactive, shallowRef, toRaw } from 'vue';
 import { useIntervalFn } from '@vueuse/core';
 import { useConnectionStore } from './connectionStore';
 import type { ConsumerId, ProducerId, ProducerInfo } from 'schemas/mediasoup';
@@ -34,15 +34,18 @@ export const useSoupStore = defineStore('soup', () =>{
     if(audioProducer.producer){
       audioProducer.stats = await audioProducer.producer.getStats();
     }
+    consumers.forEach(async (c, k) => consumerStats.set(k, await c.getStats()));
     // producers.forEach(async (p, k) => {
     //   const stats = await p.getStats();
     //   producersStats[k] = stats;
     // });
+    // console.dir(toRaw(consumerStats));
   }, 5000);
 
   // Perhaps unintuitive to have producerId as key.
   // But presumably the most common case is to need the consumer belonging to a specific producer.
   const consumers = shallowReactive<Map<ProducerId, soupTypes.Consumer>>(new Map());
+  const consumerStats = shallowReactive<Map<ProducerId, RTCStatsReport>>(new Map());
 
   const connectionStore = useConnectionStore();
 
@@ -56,6 +59,7 @@ export const useSoupStore = defineStore('soup', () =>{
           if(con) {
             con.close();
             consumers.delete(producerId);
+            consumerStats.delete(producerId);
           }
           break;
         }
@@ -344,6 +348,7 @@ export const useSoupStore = defineStore('soup', () =>{
     // producers,
     // producersStats,
     consumers,
+    consumerStats,
     produce,
     replaceVideoProducerTrack,
     replaceAudioProducerTrack,

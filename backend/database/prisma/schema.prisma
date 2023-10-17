@@ -95,16 +95,23 @@ model VirtualSpace3DModel {
   virtualSpaces VirtualSpace[]
 }
 
+enum CameraType {
+  panoramic360
+  // panoramic180
+  normal
+}
+
 model Camera {
-  cameraId    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
+  cameraId    String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
   name        String
-  venue       Venue   @relation(fields: [venueId], references: [venueId], onDelete: Cascade)
-  venueId     String  @db.Uuid ///@zod.uuid()
-  senderId    String? @db.Uuid ///@zod.uuid()
-  viewOriginX Float   @default(0.5)
-  viewOriginY Float   @default(0.5)
-  fovStart    Float   @default(0)
-  fovEnd      Float   @default(1.0)
+  venue       Venue      @relation(fields: [venueId], references: [venueId], onDelete: Cascade)
+  venueId     String     @db.Uuid ///@zod.uuid()
+  senderId    String?    @db.Uuid ///@zod.uuid()
+  cameraType  CameraType @default(panoramic360)
+  viewOriginX Float      @default(0.5)
+  viewOriginY Float      @default(0.5)
+  fovStart    Float      @default(0)
+  fovEnd      Float      @default(1.0)
 
   settings          Json
   cameraPortals     CameraPortal[] @relation("fromCamera")

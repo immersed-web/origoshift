@@ -1,4 +1,5 @@
 import * as z from "zod"
+import { CameraType } from "@prisma/client"
 import { CompleteVenue, RelatedVenueSchemaGenerated, CompleteCameraPortal, RelatedCameraPortalSchemaGenerated } from "./index"
 
 // Helper schema for JSON fields
@@ -12,6 +13,7 @@ export const CameraSchemaGenerated = z.object({
   name: z.string(),
   venueId: z.string().uuid(),
   senderId: z.string().uuid().nullish(),
+  cameraType: z.nativeEnum(CameraType),
   viewOriginX: z.number(),
   viewOriginY: z.number(),
   fovStart: z.number(),

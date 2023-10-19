@@ -40,8 +40,8 @@
         :look-controls-enabled="!movedEntity && !movedPortalCameraId && !cameraIsAnimating"
         reverse-mouse-drag="true"
       />
-      <a-videosphere :visible="is360Camera" :geometry="`phiLength:${camera.FOV?.phiLength??360}; phiStart:${camera.FOV?.phiStart??0}`" rotation="0 90 0" />
-      <a-video :height="videoHeight" width="1.7777" position="0 1.6 3" :visible="!is360Camera" src="#main-video"  />
+      <a-videosphere material="depthTest: false" :visible="is360Camera" :geometry="`phiLength:${camera.FOV?.phiLength??360}; phiStart:${camera.FOV?.phiStart??0}`" rotation="0 90 0" />
+      <a-video :height="videoHeight" :width="fixedWidth" :position="`0 ${videoHeight*0.5} 10`" :visible="!is360Camera" src="#main-video"  />
       <a-entity
         position="0 1.6 0"
       >
@@ -52,7 +52,7 @@
             position="0 0 -2"
             color="teal"
             hover-highlight
-            material="depthTest:false"
+            material="shader: flat; transparent: true; depthTest:false"
           >
             <a-ring
               radius-inner="0"
@@ -74,10 +74,10 @@
             </a-entity>
           </template>
         </a-entity>
-        <a-entity id="manual-list"
+        <!-- <a-entity id="manual-list"
           ref="portalsEntity"
         >
-        </a-entity>
+        </a-entity> -->
       </a-entity>
     </a-scene>
     <div class="bottom-0 absolute w-full bg-neutral/50 flex flex-row gap-4 justify-center p-4">
@@ -221,7 +221,7 @@ onUnmounted(() => {
   document.removeEventListener('pointermove', onMouseMove);
 });
 
-const fixedWidth = 1.7777;
+const fixedWidth = 20;
 const videoHeight = ref(1.0);
 
 function setVideoDimensionsFromTag(vTag: HTMLVideoElement){

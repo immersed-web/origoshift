@@ -11,6 +11,7 @@
     Försöker öppna kameran
   </div>
   <div v-else>
+    <input type="range" min="5" max="30" v-model="cinemaDistance"/>
     <a-scene
       class="w-full h-screen"
       embedded
@@ -47,7 +48,7 @@
         rotation="0 0 0"
         material="depthTest: false"
       >
-        <a-video ref="aVideoTag" crossorigin="anonymous" :width="fixedWidth" :height="videoHeight" position="0 0 3" material="depthTest: false" />
+        <a-video ref="aVideoTag" crossorigin="anonymous" :width="fixedWidth" :height="videoHeight" :position="`0 ${0} ${cinemaDistance}`" material="transparent: false; depthTest: false" />
         <a-videosphere
           :geometry="`phiLength:${persistedFOV?.phiLength??360}; phiStart:${persistedFOV?.phiStart??0}`"
           ref="vSphereTag"
@@ -210,7 +211,8 @@ function tryPrepareSceneAndFadeFromBlack(){
   curtainTag.value?.emit('fadeFromBlack');
 }
 
-const fixedWidth = 4;
+const cinemaDistance = ref(10);
+const fixedWidth = 10;
 const videoHeight = ref(1.0);
 function setVideoDimensionsFromTag(vTag: HTMLVideoElement){
   const w = vTag.videoWidth;

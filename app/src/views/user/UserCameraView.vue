@@ -48,7 +48,14 @@
         rotation="0 0 0"
         material="depthTest: false"
       >
-        <a-video ref="aVideoTag" crossorigin="anonymous" :width="fixedWidth" :height="videoHeight" :position="`0 ${0} ${cinemaDistance}`" material="transparent: false; depthTest: false" />
+        <a-entity :position="`0 ${0} ${cinemaDistance}`">
+          <a-video ref="aVideoTag" crossorigin="anonymous" :width="fixedWidth" :height="videoHeight"  material="transparent: false; depthTest: false">
+          </a-video>
+          <a-entity v-for="portal in camera.portals" :key="portal.toCameraId" :position="`${(portal.x-0.5)*fixedWidth} ${(portal.y-0.5)*videoHeight} 0`">
+            <a-sphere hover-highlight position="0 0 -0.1" color="yellow" material="depthTest:false; shader: flat;" scale="0.2 0.2 0.2" class="clickable" />
+            <a-text value="Teeeext" align="center" position="0 -1 -1" material="depthTest: false"></a-text>
+          </a-entity>
+        </a-entity>
         <a-videosphere
           :geometry="`phiLength:${persistedFOV?.phiLength??360}; phiStart:${persistedFOV?.phiStart??0}`"
           ref="vSphereTag"
@@ -58,12 +65,13 @@
           color="#fff"
           material="color: #fff; depthTest:false; fog: false"
         />
-        <a-entity
+        <a-entity v-if="true">
+          <a-entity
           v-for="portal in persistedPortals"
           :key="portal.toCameraId"
           :rotation="`${portal.angleX} ${portal.angleY} 0`"
           >
-          <a-sphere
+            <a-sphere
             material="depthTest: false;"
             :position="`0 0 ${-portal.distance}`"
             scale="0.2 0.2 0.2"
@@ -71,7 +79,8 @@
             class="clickable"
             hover-highlight
             @mousedown="goToCamera(portal.toCameraId, $event)"
-          />
+            />
+          </a-entity>
         </a-entity>
       </a-entity>
     </a-scene>

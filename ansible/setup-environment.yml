@@ -1,0 +1,126 @@
+---
+- name: Setup environment
+  hosts: localhost
+  tasks:
+    # - name: Print all Ansible facts
+    #   ansible.builtin.debug:
+    #     var: ansible_facts
+    # - name: Add caddy role
+    #   community.general.ansible_galaxy_install:
+    #     type: role
+    #     name: caddy_ansible.caddy_ansible
+    - name: Update and upgrade package register
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: true
+      become: true
+    - name: Enable ntp
+      become: true
+      ansible.builtin.apt:
+        name: ntp
+        state: latest
+    - name: Setup nodejs
+      become: true
+      block:
+        - name: Add nodejs apt key
+          ansible.builtin.apt_key:
+            url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+        - name: Add node repo to apt
+          ansible.builtin.apt_repository:
+            repo: deb https://deb.nodesource.com/node_18.x {{ ansible_distribution_release }} main
+            update_cache: true
+        - name: Install Node 18
+          ansible.builtin.apt:
+            name: nodejs
+            update_cache: true
+    - name: Setup pnpm
+      become: true
+      block:
+        - name: Enable corepack
+          ansible.builtin.command:
+            cmd: corepack enable
+            # argv:
+            #   - corepack enable
+              # - --install-directory=
+              # - "{{ ansible_env['HOME'] }}/corepack"
+            # creates: "{{ ansible_env['HOME'] }}/corepack"
+          changed_when: true
+        # TODO: make this idempotent
+        - name: Install and enable pnpm
+          ansible.builtin.command:
+            cmd: "pnpm -v && echo -n NOPNPM || corepack prepare pnpm@7.x --activate"
+          register: pnpm_installed
+          changed_when: pnpm_installed.stdout == 'NOPNPM'
+        # - name: Run pnpm setup command
+        #   ansible.builtin.command:
+        #     cmd: pnpm setup
+    - name: Install Mediasoup dependencies
+      ansible.builtin.apt:
+        name:
+          - python3
+          - python3-pip
+          - build-essential
+      become: true
+    - name: Setup Caddy 2
+      become: true
+      block:
+        - name: Install caddy server prerequisites
+          ansible.builtin.apt:
+            name:
+              - debian-keyring
+              - debian-archive-keyring
+              - apt-transport-https
+            update_cache: true
+        - name: Add caddy key
+          ansible.builtin.apt_key:
+            url: https://dl.cloudsmith.io/public/caddy/stable/gpg.key
+        - name: Add caddy repo
+          ansible.builtin.apt_repository:
+            repo: deb https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main
+            update_cache: true
+        - name: Install caddy
+          ansible.builtin.apt:
+            name: caddy
+        - name: Locate caddy path
+          ansible.builtin.command:
+            cmd: which caddy
+          register: caddy_location
+          changed_when: false
+        # - name: debug caddy path
+        #   ansible.builtin.debug:
+        #     var: caddy_location
+        - name: Give caddy permission to bind to lower ports
+          community.general.capabilities:
+            path: "{{ caddy_location.stdout }}"
+            capability: cap_net_bind_service=+eip
+    - name: Setup docker
+      become: true
+      block:
+        - name: Add docker key
+          ansible.builtin.apt_key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+        - name: Add docker repo
+          ansible.builtin.apt_repository:
+            repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+            update_cache: true
+        - name: Install docker
+          ansible.builtin.apt:
+            name:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+              - docker-buildx-plugin
+              - docker-compose-plugin
+        - name: Activate docker service
+          ansible.builtin.service:
+            name: docker
+            state: started
+        - name: Add docker user group
+          ansible.builtin.group:
+            name: docker
+        - name: Add user to docker user group
+          ansible.builtin.user:
+            name: "{{ ansible_env.USER }}"
+            groups:
+              - docker
+            append: true

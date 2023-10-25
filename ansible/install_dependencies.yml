@@ -1,0 +1,40 @@
+---
+- name: Install dependencies
+  hosts: localhost
+  tasks:
+    - name: Global node packages
+      block:
+        - name: add dotenv-cli
+          community.general.pnpm:
+            global: true
+            name: dotenv-cli
+        - name: add pm2
+          community.general.pnpm:
+            global: true
+            name: pm2
+    - name: install all js dependencies
+      community.general.pnpm:
+        path: "{{ansible_env.HOME}}/origoshift"
+- name: Build monorepo
+  tasks:
+    - name: Build shared packages
+      ansible.builtin.command:
+        argv:
+          - pnpm
+          - --filter
+          - ./packages/**
+          - -r
+          - build
+    - name: Generate prisma client
+      ansible.builtin.command:
+        argv:
+          - pnpm
+          - --filter
+          - database
+          - generate
+    - name: Build all the node projects
+      ansible.builtin.command:
+        argv:
+          - pnpm
+          - -r
+          - build

@@ -1,0 +1,4 @@
+use_default_rules: true
+warn_list:
+  - package-latest
+  - inline-env-var

@@ -4,13 +4,13 @@
   "description": "",
   "exports": {
     ".": {
-      "default": "./dist/index.js",
+      "default": "./dist/index.mjs",
       "require": "./dist/index.js",
       "import": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
     },
     "./mediasoup": {
-      "default": "./dist/mediasoupSchemas.js",
+      "default": "./dist/mediasoupSchemas.mjs",
       "require": "./dist/mediasoupSchemas.js",
       "import": "./dist/mediasoupSchemas.mjs",
       "types": "./dist/mediasoupSchemas.d.ts"

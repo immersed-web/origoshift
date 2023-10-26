@@ -694,7 +694,6 @@ export class Venue {
   }
 
   static getLoadedVenuesPublicState(){
-    // TODO: set correct type for state field
     const obj: Record<VenueId, {venueId: VenueId, state: ReturnType<Venue['getPublicState']>}> = {};
     for(const [key, venue] of Venue.venues.entries()){
       obj[key] = {
@@ -706,23 +705,14 @@ export class Venue {
   }
 
   static getVenue(venueId: VenueId) {
-    // if(venueId){
     const venue = Venue.venues.get(venueId);
     if(!venue){
       throw new Error('No venue with that id is loaded');
     }
-
     return venue;
-    // }else if(params.name){
-    //   throw Error('Please dont implement this. We should strive to use Ids throughout');
-    //   // return this.getGatheringFromName(params.name);
-    // } else {
-    //   throw new Error('no id or name provided. Cant get venue! Duuuh!');
-    // }
   }
 
   static async getPublicVenue(venueId: VenueId, userId: UserId) {
-    // if(venueId){
     const venue = Venue.venues.get(venueId);
     if(!venue){
       throw new Error('No venue with that id is loaded');
@@ -743,13 +733,6 @@ export class Venue {
         throw Error('Either this event does not exist or you are not allowed to access it.');
       }
     }
-
     return venue;
-    // }else if(params.name){
-    //   throw Error('Please dont implement this. We should strive to use Ids throughout');
-    //   // return this.getGatheringFromName(params.name);
-    // } else {
-    //   throw new Error('no id or name provided. Cant get venue! Duuuh!');
-    // }
   }
 }

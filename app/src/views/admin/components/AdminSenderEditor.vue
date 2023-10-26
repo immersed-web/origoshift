@@ -38,7 +38,7 @@
       <form 
         v-else
         class="card p-2 bg-slate-400 flex flex-col flex-nowrap gap-2"
-        @submit.prevent="adminStore.createCameraFromSender(newName, senderId)"
+        @submit.prevent="newName? adminStore.createCameraFromSender(newName, senderId): undefined"
       >
         <input
           type="text"

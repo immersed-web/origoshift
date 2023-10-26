@@ -6,7 +6,7 @@ import { reactive, ref, shallowRef, toRaw } from 'vue';
 import { useConnectionStore } from './connectionStore';
 import type { RouterOutputs, SubscriptionValue } from '@/modules/trpcClient';
 
-type ReceivedSenderState = SubscriptionValue<RouterOutputs['sender']['subOwnClientState']>['myState']
+type ReceivedSenderState = SubscriptionValue<RouterOutputs['sender']['subOwnClientState']>['data']
 export const useSenderStore = defineStore('sender', () => {
   const savedPickedDeviceId = ref<string>();
   const senderState = ref<ReceivedSenderState>();

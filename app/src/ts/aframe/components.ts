@@ -15,6 +15,7 @@ const registerComponents = () => {
   rotationControl();
   hoverHighlight();
 
+  // @ts-ignore
   import('aframe-environment-component');
 };
 

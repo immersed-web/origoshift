@@ -215,6 +215,7 @@ function setCropRange(evt: CustomEvent) {
   debouncedFOVUpdate();
 }
 const sourceVideoTrack = shallowRef<MediaStreamTrack>();
+// eslint-disable-next-line no-undef
 let transformedVideoTrack: MediaStreamVideoTrack;
 
 const videoInfo = computed(() => {
@@ -270,7 +271,7 @@ async function startVideo(videoDevice: MediaDeviceInfo){
     // Cropping from an existing video frame is supported by the API in Chrome 94+.
     // eslint-disable-next-line no-undef
     try{
-
+      // @ts-ignore
       // eslint-disable-next-line no-undef
       const newFrame = new VideoFrame(frame, {
         visibleRect: {
@@ -288,6 +289,7 @@ async function startVideo(videoDevice: MediaDeviceInfo){
       // controller.enqueue(frame);
       try {
 
+        // @ts-ignore
         // eslint-disable-next-line no-undef
         const newFrame = new VideoFrame(frame, {
           visibleRect: {
@@ -300,7 +302,7 @@ async function startVideo(videoDevice: MediaDeviceInfo){
         controller.enqueue(newFrame);
         frame.close();
       }catch(e) {
-        console.error('recovery transform failed also', e, mostRecentUsableX);
+        console.error('recovery transform failed also', e, mostRecentUsableCrop);
         controller.enqueue(frame);
       }
     }

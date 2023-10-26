@@ -1,4 +1,5 @@
 import 'aframe';
+import type { DetailEvent } from 'aframe';
 import InterpolationBuffer from 'buffered-interpolation';
 
 export default () => {
@@ -42,13 +43,15 @@ export default () => {
       this.el.addEventListener('moveTo', function (e) {
         // // Interpolate with buffered-interpolation
         console.log('Move to',e);
-        interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(e.detail.position[0], e.detail.position[1], e.detail.position[2]));
+        const pos = (e as DetailEvent<{position: [number, number, number]}>).detail.position;
+        interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(pos[0], pos[1], pos[2]));
       });
 
       this.el.addEventListener('rotateTo', function (e) {
         // // Interpolate with buffered-interpolation
         console.log('Rotate to',e);
-        interpolationBuffer.setQuaternion(new AFRAME.THREE.Quaternion(e.detail.orientation[0], e.detail.orientation[1], e.detail.orientation[2], e.detail.orientation[3]));
+        const rot = (e as DetailEvent<{orientation: [number, number, number, number]}>).detail.orientation;
+        interpolationBuffer.setQuaternion(new AFRAME.THREE.Quaternion(rot[0], rot[1], rot[2], rot[3]));
       });
     },
     initCameraListener: function () {
@@ -56,9 +59,10 @@ export default () => {
       this.el.addEventListener('cameraPosition', function (e) {
         // console.log('Camera position', e.detail.position);
 
-        cameraPosition.x = e.detail.position[0];
-        cameraPosition.y = e.detail.position[1];
-        cameraPosition.z = e.detail.position[2];
+        const pos = (e as DetailEvent<{position: [number, number, number]}>).detail.position;
+        cameraPosition.x = pos[0];
+        cameraPosition.y = pos[1];
+        cameraPosition.z = pos[2];
         // cameraPosition.copy(new AFRAME.THREE.Vector3(e.detail.position[0], e.detail.position[1], e.detail.position[2]));
       });
     },

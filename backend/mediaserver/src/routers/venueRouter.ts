@@ -30,7 +30,7 @@ export const venueRouter = router({
         visibility: true,
       } satisfies Record<keyof VenueListInfo, true>
     });
-    const assembledVenues = uniqBy([...publicVenues, ...ctx.client.allowedVenues.value], 'venueId');
+    const assembledVenues = uniqBy([...publicVenues as VenueListInfo[], ...ctx.client.allowedVenues.value], 'venueId');
 
     return assembledVenues;
   }),
@@ -50,7 +50,7 @@ export const venueRouter = router({
           visibility: true,
         } satisfies Record<keyof VenueListInfo, true>
       });
-      return venueInfo;
+      return venueInfo as VenueListInfo;
     } catch(e) {
       log.error(e);
       throw new TRPCError({ code: 'NOT_FOUND', message: 'didn\'t find that Venue'});

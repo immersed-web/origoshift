@@ -11,7 +11,12 @@
     Försöker öppna kameran
   </div>
   <div v-else>
-    <input type="range" min="5" max="30" v-model="cinemaDistance"/>
+    <input
+      type="range"
+      min="5"
+      max="30"
+      v-model="cinemaDistance"
+    >
     <a-scene
       class="w-full h-screen"
       embedded
@@ -36,12 +41,23 @@
           ref="cameraTag"
           reverse-mouse-drag="true"
         >
-          <a-sky visible="true" ref="curtainTag" radius="0.5" material="transparent: true; color: #505; opacity: 0.0; depthTest: false"
+          <a-sky
+            visible="true"
+            ref="curtainTag"
+            radius="0.5"
+            material="transparent: true; color: #505; opacity: 0.0; depthTest: false"
             animation__to_black="property: material.opacity; from: 0.0; to: 1.0; dur: 500; startEvents: fadeToBlack"
-            animation__from_black="property: material.opacity; from: 1.0; to: 0.0; dur: 500; startEvents: fadeFromBlack"/>
+            animation__from_black="property: material.opacity; from: 1.0; to: 0.0; dur: 500; startEvents: fadeFromBlack"
+          />
         </a-camera>
-        <a-entity laser-controls="hand:left" raycaster="objects: .clickable" />
-        <a-entity laser-controls="hand:right" raycaster="objects: .clickable" />
+        <a-entity
+          laser-controls="hand:left"
+          raycaster="objects: .clickable"
+        />
+        <a-entity
+          laser-controls="hand:right"
+          raycaster="objects: .clickable"
+        />
       </a-entity>
       <a-entity       
         position="0 1.6 0"
@@ -49,11 +65,32 @@
         material="depthTest: false"
       >
         <a-entity :position="`0 ${0} ${cinemaDistance}`">
-          <a-video ref="aVideoTag" crossorigin="anonymous" :width="fixedWidth" :height="videoHeight"  material="transparent: false; depthTest: false">
-          </a-video>
-          <a-entity v-for="portal in camera.portals" :key="portal.toCameraId" :position="`${(portal.x-0.5)*fixedWidth} ${(portal.y-0.5)*videoHeight} 0`">
-            <a-sphere hover-highlight position="0 0 -0.1" color="yellow" material="depthTest:false; shader: flat;" scale="0.2 0.2 0.2" class="clickable" />
-            <a-text value="Teeeext" align="center" position="0 -1 -1" material="depthTest: false"></a-text>
+          <a-video
+            ref="aVideoTag"
+            crossorigin="anonymous"
+            :width="fixedWidth"
+            :height="videoHeight"
+            material="transparent: false; depthTest: false"
+          />
+          <a-entity
+            v-for="portal in camera.portals"
+            :key="portal.toCameraId"
+            :position="`${(portal.x-0.5)*fixedWidth} ${(portal.y-0.5)*videoHeight} 0`"
+          >
+            <a-sphere
+              hover-highlight
+              position="0 0 -0.1"
+              color="yellow"
+              material="depthTest:false; shader: flat;"
+              scale="0.2 0.2 0.2"
+              class="clickable"
+            />
+            <a-text
+              value="Teeeext"
+              align="center"
+              position="0 -1 -1"
+              material="depthTest: false"
+            />
           </a-entity>
         </a-entity>
         <a-videosphere
@@ -67,18 +104,18 @@
         />
         <a-entity v-if="true">
           <a-entity
-          v-for="portal in persistedPortals"
-          :key="portal.toCameraId"
-          :rotation="`${portal.angleX} ${portal.angleY} 0`"
+            v-for="portal in persistedPortals"
+            :key="portal.toCameraId"
+            :rotation="`${portal.angleX} ${portal.angleY} 0`"
           >
             <a-sphere
-            material="depthTest: false;"
-            :position="`0 0 ${-portal.distance}`"
-            scale="0.2 0.2 0.2"
-            color="#ef2d5e"
-            class="clickable"
-            hover-highlight
-            @mousedown="goToCamera(portal.toCameraId, $event)"
+              material="depthTest: false;"
+              :position="`0 0 ${-portal.distance}`"
+              scale="0.2 0.2 0.2"
+              color="#ef2d5e"
+              class="clickable"
+              hover-highlight
+              @mousedown="goToCamera(portal.toCameraId, $event)"
             />
           </a-entity>
         </a-entity>
@@ -112,12 +149,12 @@
 import { useRouter } from 'vue-router';
 import { useSoupStore } from '@/stores/soupStore';
 import type { CameraId, VenueId } from 'schemas';
-import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, toRaw, watch } from 'vue';
+import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, shallowReactive, toRaw, watch } from 'vue';
 import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
 import { useElementSize, computedWithControl } from '@vueuse/core';
 import 'aframe';
-import { THREE, type Entity, type Animation } from 'aframe';
+import { THREE, type Entity } from 'aframe';
 
 const props = defineProps<{
   venueId: VenueId,
@@ -126,7 +163,7 @@ const props = defineProps<{
 
 const router = useRouter();
 
-const videoTags = reactive<HTMLVideoElement[]>([]);
+const videoTags = shallowReactive<HTMLVideoElement[]>([]);
 const audioTag = ref<HTMLAudioElement>();
 
 const vSphereTag = ref<Entity>();
@@ -140,14 +177,14 @@ const cameraRigTag = ref<Entity>();
 const soup = useSoupStore();
 const venueStore = useVenueStore();
 const camera = useCameraStore();
-const is360Camera = computed(() => camera.currentCamera?.cameraType !== 'normal')
+const is360Camera = computed(() => camera.currentCamera?.cameraType !== 'normal');
 const persistedPortals = computedWithControl(() => undefined, () => {
   console.log('computedPortals triggered');
   return camera.portals;
 });
 const persistedFOV = computedWithControl(() => undefined, () => {
-  return camera.FOV
-})
+  return camera.FOV;
+});
 
 let activeVideoTag = 1; // Since we switch _before_ retrieving video stream we set initial value to the second videotag so it will switch to first videotag on pageload. Yes, its a bit hacky :-)
 watch(() => camera.producers, async (updatedProducers) => {
@@ -179,7 +216,7 @@ watch(() => camera.producers, async (updatedProducers) => {
   videoTag.play();
   videoTag.addEventListener('playing', () => {
     console.log('playing event triggered.');
-    setVideoDimensionsFromTag(videoTag)
+    setVideoDimensionsFromTag(videoTag);
     tryPrepareSceneAndFadeFromBlack();
   }, {once: true});
   if(rcvdTracks?.audioTrack && audioTag.value){
@@ -190,7 +227,7 @@ watch(() => camera.producers, async (updatedProducers) => {
 function tryPrepareSceneAndFadeFromBlack(){
   if(videoTags[activeVideoTag].paused || isFadingToBlack || isZoomingInOnPortal){
     console.log('not yet ready to reveal after portal jump. returning');
-    return
+    return;
   }
   console.log('preparing environment after portal jump');
   console.log('offsetting vieworigin:', camera.viewOrigin);
@@ -199,15 +236,17 @@ function tryPrepareSceneAndFadeFromBlack(){
   if(!cameraTag.value){
     throw Error('template ref undefined. That should not happen!');
   }
-  
   cameraTag.value.setAttribute('look-controls', {enabled: false});
-  cameraTag.value.components['look-controls'].pitchObject.rotation.x = 0;
-  cameraTag.value.components['look-controls'].yawObject.rotation.y = 0;
+  const lookControls = cameraTag.value.components['look-controls'] as unknown as { pitchObject: {rotaion: THREE.Euler}, yawObject: {rotation: THREE.Euler}};
+  lookControls.pitchObject.rotaion.x = 0;
+  lookControls.yawObject.rotation.y = 0;
+  // cameraTag.value.components['look-controls'].pitchObject.rotation.x = 0;
+  // cameraTag.value.components['look-controls'].yawObject.rotation.y = 0;
   cameraTag.value.setAttribute('look-controls', {enabled: true});
 
   console.log('Switching v-sphere source');
   vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
-  vSphereTag.value?.setAttribute('visible', is360Camera.value)
+  vSphereTag.value?.setAttribute('visible', is360Camera.value);
   console.log('switching a-video source');
   aVideoTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
   aVideoTag.value?.setAttribute('visible', !is360Camera.value);
@@ -252,11 +291,11 @@ function goToCamera(cameraId: CameraId, event: Event) {
   videoTags[activeVideoTag].pause();
   isFadingToBlack = true;
   curtainTag.value?.emit('fadeToBlack');
-  (<HTMLElement>curtainTag.value)?.addEventListener('animationcomplete__to_black', () => {
+  (curtainTag.value as HTMLElement).addEventListener('animationcomplete__to_black', () => {
     console.log('fade to black animation complete');
     isFadingToBlack = false;
     tryPrepareSceneAndFadeFromBlack();
-  }, {once: true})
+  }, {once: true});
 
   // Move/zoom animation -----
   const clickedPortal = event.currentTarget as Entity;
@@ -269,7 +308,7 @@ function goToCamera(cameraId: CameraId, event: Event) {
   const animationString = `property: position; to: ${dir.x} ${dir.y} ${dir.z}; dur: 500; easing:easeInQuad;`;
   isZoomingInOnPortal = true;
   cameraRigTag.value?.setAttribute('animation', animationString);
-  (<HTMLElement>cameraRigTag.value)?.addEventListener('animationcomplete', () => {
+  (cameraRigTag.value as HTMLElement)?.addEventListener('animationcomplete', () => {
     console.log('zoom animation complete');
     isZoomingInOnPortal = false;
     tryPrepareSceneAndFadeFromBlack();

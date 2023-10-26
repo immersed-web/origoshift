@@ -86,7 +86,7 @@
       <!-- The avatars -->
       <a-entity v-if="clientStore.clientTransforms">
         <RemoteAvatar
-          v-for="[id, transform] in Object.entries(clientStore.clientTransforms).filter(e => e[0] !== clientStore.clientState.connectionId)"
+          v-for="[id, transform] in Object.entries(clientStore.clientTransforms).filter(e => e[0] !== clientStore.clientState?.connectionId)"
           :key="id"
           :id="'avatar-'+id"
           :transform="transform"
@@ -140,7 +140,7 @@ onMounted(async () => {
     onData(data){
       console.log(data);
       if(!data.added){
-        delete clientStore.clientTransforms[data.client.connectionId];
+        delete clientStore.clientTransforms?.[data.client.connectionId];
       }
     },
   });

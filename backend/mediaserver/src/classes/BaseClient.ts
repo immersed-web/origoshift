@@ -54,6 +54,15 @@ const userQuery = {
   select: {
     ...userSelectAll,
     ...userDeselectPassword,
+    ownedVenues: {
+      select: {
+        venueId: true,
+        name: true,
+        doorsOpeningTime: true,
+        streamStartTime: true,
+        visibility: true,
+      } satisfies Record<keyof VenueListInfo, true>,
+    },
     allowedVenues: {
       select: {
         venueId: true,
@@ -61,7 +70,8 @@ const userQuery = {
         doorsOpeningTime: true,
         streamStartTime: true,
         visibility: true,
-      } satisfies Record<keyof VenueListInfo, true>
+      } satisfies Record<keyof VenueListInfo, true>,
+    
     }
   }
 } satisfies Prisma.UserArgs;
@@ -147,13 +157,13 @@ export class BaseClient {
     if(!this.prismaData.value){
       return [];
     }
-    return [...this.prismaData.value.allowedVenues, ...this.prismaData.value.ownedVenues];
+    return [...this.prismaData.value.allowedVenues as VenueListInfo[], ...this.prismaData.value.ownedVenues as VenueListInfo[]] ;
   });
   ownedVenues = computed(() => {
     if(!this.prismaData.value) {
       return [];
     }
-    return this.prismaData.value.ownedVenues;
+    return this.prismaData.value.ownedVenues as VenueListInfo[];
   });
 
   jwtUserData: JwtUserData;
@@ -248,10 +258,10 @@ export class BaseClient {
   getPublicState(){
     // const ownedVenues = this.ownedVenues.map(v => v.venueId);
 
-    // const ownedVenues = keyBy(this.ownedVenues, (v) => v.venueId);
-    const ownedVenues = this.ownedVenues.value.reduce<Record<VenueId, {venueId: VenueId, name: string}>>((acc, venue) => {
-      const {venueId, name} = venue;
-      acc[venueId as VenueId] = {venueId: venueId as VenueId, name};
+    // const ownedVenues = keyBy(this.ownedVenues.value, (v) => v.venueId);
+    const ownedVenues = this.ownedVenues.value.reduce<Record<VenueId, VenueListInfo>>((acc, venue) => {
+      const {venueId} = venue;
+      acc[venueId as VenueId] = venue;
       return acc;
     }, {});
     return {

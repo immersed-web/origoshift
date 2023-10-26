@@ -14,6 +14,8 @@ export const useClientStore = defineStore('client', () => {
   }
 
   // TODO: We have a minor trouble here were we will receive either senderclient state or userclient state but treat it as userclient state regardless
+  // Its minor because the idea is to only interact with this store if userClient (not if senderCLient).
+  // But we should probably make sure the clientState isnt assigned if the user is a senderClient, to help future selfs avoid pain.
   const clientState = ref<RouterOutputs['user']['getClientState']>();
   const clientTransforms = ref<ClientTransforms>();
 

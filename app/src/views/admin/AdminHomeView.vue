@@ -41,7 +41,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useVenueStore } from '@/stores/venueStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { computed, onBeforeMount, ref } from 'vue';
-import type { VenueId } from 'schemas/*';
+import type { VenueId } from 'schemas';
 import { useAdminStore } from '@/stores/adminStore';
 
 // Use imports

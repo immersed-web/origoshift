@@ -5,8 +5,9 @@
     - name: Compose up
       ansible.builtin.command:
         chdir: "{{ playbook_dir }}/.."
-        cmd: docker compose up -d
-      changed_when: true
+        cmd: docker compose --ansi never --progress plain up -d
+      register: temp_compose_up
+      changed_when: "'Started' in temp_compose_up.stdout or 'Started' in temp_compose_up.stderr"
     - name: Reset database
       ansible.builtin.command: pnpm --filter=database db:push --accept-data-loss
       changed_when: true

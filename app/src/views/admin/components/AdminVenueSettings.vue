@@ -143,8 +143,8 @@
 <script setup lang="ts">
 import { useVenueStore } from '@/stores/venueStore';
 import { useConnectionStore } from '@/stores/connectionStore';
-import type { Visibility } from 'database';
 import { ref, onMounted } from 'vue';
+import type { VenueUpdate } from 'schemas/esm';
 
 // Use imports
 const venueStore = useVenueStore();
@@ -166,15 +166,11 @@ const updateVenue = async () => {
   }
 };
 
-// TODO: Shouldn't have to redefine VenueUpdate type
-const values = ref<{
-  name?: string,
-  visibility?: Visibility,
-  doorsOpeningTime?: string,
-  doorsAutoOpen?: boolean,
-  streamStartTime?: string,
-  streamAutoStart?: boolean
-}>({});
+type DatesAsStrings<T extends Record<string, unknown>> = {
+  [K in keyof T]: Date extends T[K] ? Exclude<T[K], Date> | string: T[K]
+}
+
+const values = ref<DatesAsStrings<VenueUpdate>>({});
 
 // TODO: could this perhaps fail? Should computed or watcher be used?
 onMounted(() => {

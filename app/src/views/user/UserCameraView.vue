@@ -70,6 +70,7 @@
             crossorigin="anonymous"
             :width="fixedWidth"
             :height="videoHeight"
+            :rotation="`0 0 ${isRoofMounted?'180': 0}`"
             material="transparent: false; depthTest: false"
           />
           <a-entity
@@ -97,7 +98,7 @@
           :geometry="`phiLength:${persistedFOV?.phiLength??360}; phiStart:${persistedFOV?.phiStart??0}`"
           ref="vSphereTag"
           src="#main-video-1"
-          rotation="0 90 0"
+          :rotation="`0 90 ${isRoofMounted? '180': '0'}`"
           radius="10"
           color="#fff"
           material="color: #fff; depthTest:false; fog: false"
@@ -130,6 +131,7 @@
             :key="n"
             ref="videoTags"
             :id="`main-video-${n}`"
+            :class="{'rotate-180': isRoofMounted}"
             crossorigin="anonymous"
           />
         </div>
@@ -185,7 +187,9 @@ const persistedPortals = computedWithControl(() => undefined, () => {
 const persistedFOV = computedWithControl(() => undefined, () => {
   return camera.FOV;
 });
-
+const isRoofMounted = computed(() => {
+  return camera.currentCamera?.orientation === 180 ? true : false;
+});
 let activeVideoTag = 1; // Since we switch _before_ retrieving video stream we set initial value to the second videotag so it will switch to first videotag on pageload. Yes, its a bit hacky :-)
 watch(() => camera.producers, async (updatedProducers) => {
   // console.log('cameraProducers were updated:', toRaw(updatedProducers));
@@ -237,11 +241,13 @@ function tryPrepareSceneAndFadeFromBlack(){
     throw Error('template ref undefined. That should not happen!');
   }
   cameraTag.value.setAttribute('look-controls', {enabled: false});
-  const lookControls = cameraTag.value.components['look-controls'] as unknown as { pitchObject: {rotaion: THREE.Euler}, yawObject: {rotation: THREE.Euler}};
-  lookControls.pitchObject.rotaion.x = 0;
-  lookControls.yawObject.rotation.y = 0;
-  // cameraTag.value.components['look-controls'].pitchObject.rotation.x = 0;
-  // cameraTag.value.components['look-controls'].yawObject.rotation.y = 0;
+  // const lookControls = cameraTag.value.components['look-controls'] as unknown as { pitchObject: {rotaion: THREE.Euler}, yawObject: {rotation: THREE.Euler}};
+  // lookControls.pitchObject.rotaion.x = 0;
+  // lookControls.yawObject.rotation.y = 0;
+  // @ts-ignore
+  cameraTag.value.components['look-controls'].pitchObject.rotation.x = 0;
+  // @ts-ignore
+  cameraTag.value.components['look-controls'].yawObject.rotation.y = 0;
   cameraTag.value.setAttribute('look-controls', {enabled: true});
 
   console.log('Switching v-sphere source');

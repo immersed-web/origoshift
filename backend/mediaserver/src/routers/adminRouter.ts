@@ -8,7 +8,7 @@ import { observable } from '@trpc/server/observable';
 import { BaseClient, Camera, loadUserPrismaData, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import { Prisma } from 'database';
 import prismaClient, { cameraIncludeStuff } from '../modules/prismaClient';
-import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSchema, VenueId, VenueIdSchema, VenueUpdateSchema, CameraPortalUpdateSchema, CameraFOVUpdateSchema, CameraViewOriginUpdateSchema, CameraTypeUpdateSchema} from 'schemas';
+import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSchema, VenueId, VenueIdSchema, VenueUpdateSchema, CameraUpdateSchema, CameraPortalUpdateSchema, CameraFOVUpdateSchema, CameraViewOriginUpdateSchema, CameraTypeUpdateSchema} from 'schemas';
 import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
 import { z } from 'zod';
 import { atLeastModeratorP, currentVenueAdminP, isUserClientM, isVenueOwnerM, procedure as p, router } from '../trpc/trpc';
@@ -118,6 +118,22 @@ export const adminRouter = router({
     cameraId: CameraIdSchema,
   })).mutation(async ({ctx, input}) => {
     return ctx.venue.setSenderForCamera(input.senderId, input.cameraId);
+  }),
+  updateCamera: currentVenueAdminP.input(CameraUpdateSchema).mutation(async ({ ctx, input}) => {
+    const {cameraId, update } = input;
+    const dbResponse = await prismaClient.camera.update({
+      where: {
+        cameraId: input.cameraId
+      },
+      include: cameraIncludeStuff,
+      data: update
+    });
+    const camera = ctx.venue.cameras.get(cameraId);
+    if(!camera) return;
+    camera.prismaData = dbResponse;
+    camera._notifyStateUpdated('camera was updated');
+    ctx.venue._notifyAdminOnlyState('camera was updated');
+    
   }),
   setCameraName: currentVenueAdminP.input(z.object({
     cameraId: CameraIdSchema,

@@ -112,6 +112,7 @@ model Camera {
   viewOriginY Float      @default(0.5)
   fovStart    Float      @default(0)
   fovEnd      Float      @default(1.0)
+  orientation Float      @default(0)
 
   settings          Json
   cameraPortals     CameraPortal[] @relation("fromCamera")

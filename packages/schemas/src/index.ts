@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { JwtPayload as JwtShapeFromLib } from 'jsonwebtoken'
-import { Role, Venue, VirtualSpace3DModel, Visibility, CameraType as PrismaCameraType } from "database";
+import { Role, Venue, VirtualSpace3DModel, Visibility, Camera, CameraType as PrismaCameraType } from "database";
 import { toZod } from "tozod";
 
 type RemoveIndex<T> = {
@@ -206,6 +206,31 @@ export const CameraTypeUpdateSchema = z.object({
   cameraType: CameraTypeSchema,
 })
 export type CameraTypeUpdate = z.TypeOf<typeof CameraTypeUpdateSchema>;
+
+type UpdatableCamera = Pick<Camera,
+  'name'
+  | 'fovStart'
+  | 'fovEnd'
+  | 'cameraType'
+  | 'orientation'
+  | 'viewOriginX'
+  | 'viewOriginY'
+  | 'settings'
+  >;
+export const CameraUpdateSchema = z.object({
+  cameraId: CameraIdSchema,
+  update: z.object({
+    name: z.string().optional(),
+    cameraType: CameraTypeSchema.optional(),
+    viewOriginX: z.number().optional(),
+    viewOriginY: z.number().optional(),
+    fovStart: z.number().optional(),
+    fovEnd: z.number().optional(),
+    orientation: z.number().optional(),
+    settings: z.object({}).passthrough().optional(),
+  }) satisfies z.ZodType<Partial<UpdatableCamera>>
+});
+export type CameraUpdate = z.TypeOf<typeof CameraUpdateSchema>
 
 export const JwtUserDataSchema = z.object({
   userId: UserIdSchema,

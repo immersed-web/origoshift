@@ -37,6 +37,14 @@
           >
           <span class="pl-2 label-text text-neutral-content cursor-pointer">360-kamera</span>
         </label>
+        <label class="label">
+          <input
+            type="checkbox"
+            @change="updateCamera"
+            class="toggle toggle-primary"
+          >
+          <span class="pl-2 label-text text-neutral-content cursor-pointer">takhängd</span>
+        </label>
       </div>
     </div>
     <a-scene
@@ -406,6 +414,13 @@ function setCameraName(){
   if(!camera.currentCamera) return;
   adminStore.setCameraName(camera.currentCamera.cameraId, camera.currentCamera.name);
   isEditingCameraName.value = false;
+}
+
+function updateCamera(){
+  if(!camera.currentCamera) return;
+  adminStore.updateCamera(camera.currentCamera.cameraId, {
+    orientation: 180,
+  });
 }
 
 function toggle360Camera(){

@@ -208,10 +208,10 @@ router.beforeEach(async (to, from) => {
     }
   }
   if(to.meta.mustBeInVenue){
-    console.log('MUST BE IN VENUE FOR THIS ROUTE');
+    console.log('Entering route that requires to be in a venue.');
     const venueStore = useVenueStore();
 
-    if(!venueStore.currentVenue){
+    if(!venueStore.currentVenue || venueStore.currentVenue.venueId !== venueStore.savedVenueId){
       // await connectionStore.firstConnectionEstablished;
       if(!venueStore.savedVenueId){
         if(to.meta.pickVenueRouteName) return { name: to.meta.pickVenueRouteName};

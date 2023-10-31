@@ -2,7 +2,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useClientStore } from '@/stores/clientStore';
 // import { useSenderStore } from '@/stores/senderStore';
-import { hasAtLeastSecurityLevel, type UserRole, type ClientType } from 'schemas';
+import { hasAtLeastSecurityLevel, type UserRole, type ClientType } from 'schemas/esm';
 import { createRouter, createWebHistory } from 'vue-router';
 import { useVenueStore } from '@/stores/venueStore';
 import { useAdminStore } from '@/stores/adminStore';

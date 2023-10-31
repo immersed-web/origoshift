@@ -96,7 +96,7 @@ import { useRouter } from 'vue-router';
 // import { useClientStore } from '@/stores/clientStore';
 import { onMounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
-import { hasAtLeastSecurityLevel, type UserRole } from 'schemas';
+import { hasAtLeastSecurityLevel, type UserRole } from 'schemas/esm';
 import { useConnectionStore } from '@/stores/connectionStore';
 
 // const props = defineProps<{

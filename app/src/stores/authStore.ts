@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia';
 import { logout as authLogout, login as authLogin, userAutoToken, guestAutoToken } from '@/modules/authClient';
-import { hasAtLeastSecurityLevel } from 'schemas';
+import { hasAtLeastSecurityLevel, type JwtPayload } from 'schemas/esm';
 import jwtDecode from 'jwt-decode';
-import type { JwtPayload } from 'schemas';
 import { computed, ref } from 'vue';
 
 const browserHasCookie = () => {

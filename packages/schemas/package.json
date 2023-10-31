@@ -2,17 +2,27 @@
   "name": "schemas",
   "version": "1.0.0",
   "description": "",
+  "main": "./dist/index.js",
+  "module": "./dist/esm/index.js",
   "exports": {
     ".": {
-      "default": "./dist/index.mjs",
+      "default": "./dist/index.js",
       "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
     },
     "./mediasoup": {
-      "default": "./dist/mediasoupSchemas.mjs",
+      "default": "./dist/mediasoupSchemas.js",
       "require": "./dist/mediasoupSchemas.js",
-      "import": "./dist/mediasoupSchemas.mjs",
+      "types": "./dist/mediasoupSchemas.d.ts"
+    },
+    "./esm": {
+      "default": "./dist/esm/index.js",
+      "import": "./dist/esm/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./esm/mediasoup": {
+      "default": "./dist/esm/mediasoupSchemas.js",
+      "import": "./dist/esm/mediasoupSchemas.js",
       "types": "./dist/mediasoupSchemas.d.ts"
     }
   },

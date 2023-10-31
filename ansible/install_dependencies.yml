@@ -1,6 +1,8 @@
 ---
 - name: Install dependencies
   hosts: localhost
+  environment:
+    CI: "true" #Make pnpm not touch lockfile when running from ansible
   tasks:
     - name: Global node packages
       block:

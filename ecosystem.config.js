@@ -21,31 +21,39 @@ const authEnvs = _.pick(envVars, [
 ]);
 
 const scripts = {
-  frontend: 'quasar serve ./dist/spa --history --port=9000',
+  // frontend: 'quasar serve ./dist/spa --history --port=9000',
+  // frontend: 'pm2 serve ./dist 5173 --spa',
   auth: "pnpm run start",
+  fileserver: 'pnpm start',
   mediaserver: 'pnpm run start',
   caddy: 'caddy stop; caddy run'
 }
 
 if(envVars.DEVELOPMENT){
   console.log('using dev scripts in ecosystem file!');
-  scripts.frontend = 'pnpm run dev';
+  // scripts.frontend = 'pnpm run dev';
   scripts.auth = 'pnpm run dev';
   scripts.mediaserver = 'pnpm run dev';
 }
 
 module.exports = {
   apps : [
-    {
-      name   : "frontend",
-      script: scripts.frontend,
-      cwd    : "./app/",
-    },
+    // {
+    //   name   : "frontend",
+    //   script: scripts.frontend,
+    //   cwd    : "./app/",
+    // },
     {
       name   : "auth",
       script: scripts.auth,
       cwd    : "./backend/auth/",
       env: authEnvs
+    },
+    {
+      name: 'file server',
+      script: scripts.fileserver,
+      cwd: './backend/fileserver/',
+      env: envVars
     },
     {
       name   : "mediaserver",
@@ -58,7 +66,7 @@ module.exports = {
       script: scripts.caddy,
       cwd: "./",
       env: {
-        SERVER_URL: envVars.SERVER_URL
+        EXPOSED_SERVER_URL: envVars.EXPOSED_SERVER_URL
       }
     }
   ]

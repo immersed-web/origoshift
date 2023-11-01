@@ -64,13 +64,16 @@
         rotation="0 0 0"
         material="depthTest: false"
       >
-        <a-entity :position="`0 ${0} ${cinemaDistance}`">
+        <a-entity
+          :visible="!camera.is360Camera"
+          :position="`0 ${0} ${cinemaDistance}`"
+        >
           <a-video
             ref="aVideoTag"
             crossorigin="anonymous"
             :width="fixedWidth"
             :height="videoHeight"
-            :rotation="`0 0 ${isRoofMounted?'180': 0}`"
+            :rotation="`0 0 ${camera.isRoofMounted?'180': 0}`"
             material="transparent: false; depthTest: false"
           />
           <a-entity
@@ -95,15 +98,16 @@
           </a-entity>
         </a-entity>
         <a-videosphere
+          :visible="camera.is360Camera"
           :geometry="`phiLength:${persistedFOV?.phiLength??360}; phiStart:${persistedFOV?.phiStart??0}`"
           ref="vSphereTag"
           src="#main-video-1"
-          :rotation="`0 90 ${isRoofMounted? '180': '0'}`"
+          :rotation="`0 90 ${camera.isRoofMounted? '180': '0'}`"
           radius="10"
           color="#fff"
           material="color: #fff; depthTest:false; fog: false"
         />
-        <a-entity v-if="true">
+        <a-entity>
           <a-entity
             v-for="portal in persistedPortals"
             :key="portal.toCameraId"
@@ -151,10 +155,10 @@
 import { useRouter } from 'vue-router';
 import { useSoupStore } from '@/stores/soupStore';
 import type { CameraId, VenueId } from 'schemas';
-import { computed, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, shallowReactive, toRaw, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, shallowReactive, watch } from 'vue';
 import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
-import { useElementSize, computedWithControl } from '@vueuse/core';
+import { computedWithControl } from '@vueuse/core';
 import 'aframe';
 import { THREE, type Entity } from 'aframe';
 
@@ -169,7 +173,7 @@ const videoTags = shallowReactive<HTMLVideoElement[]>([]);
 const audioTag = ref<HTMLAudioElement>();
 
 const vSphereTag = ref<Entity>();
-const vSphereRadius = 10;
+// const vSphereRadius = 10;
 const aVideoTag = ref<Entity>();
 const curtainTag = ref<Entity>();
 

@@ -507,7 +507,6 @@ export class Venue {
     const foundCamera = this.cameras.get(cameraId);
     if(foundCamera){
       log.info('camera was loaded. Unloading before removal');
-      // foundCamera._closeAllConsumers();
       foundCamera.unload();
       this.cameras.delete(cameraId);
     }
@@ -515,7 +514,18 @@ export class Venue {
     const deleteResponse = await prisma.camera.delete({
       where: {
         cameraId
+      },
+      include: {
+        fromCameraPortals: true
       }
+    });
+    deleteResponse.fromCameraPortals.forEach((portal) => {
+      const cId = portal.fromCameraId as CameraId;
+      const loadedCamera = this.cameras.get(cId);
+      if(loadedCamera){
+        loadedCamera.reloadDbData('portal removed');
+      }
+
     });
     const idx = this.prismaData.cameras.indexOf(prismaCamera);
     this.prismaData.cameras.splice(idx, 1);
@@ -551,6 +561,8 @@ export class Venue {
     }
   }
 
+  // TODO: We should probably not use the camera prisma data provided by venue when loading. It might be stale.
+  // We should probably not have the camera prisma data included in venue in the first place? And instead get the data when loading the camera.
   loadCamera(cameraId: CameraId) {
     if(this.cameras.has(cameraId)){
       throw Error('a camera with that id is already loaded');

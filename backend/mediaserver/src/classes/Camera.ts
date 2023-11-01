@@ -86,6 +86,18 @@ export class Camera {
       include: cameraIncludeStuff,
     });
   }
+  
+  async reloadDbData(reason?: string){
+    const dbResponse = await prismaClient.camera.findUniqueOrThrow({
+      where: {
+        cameraId: this.cameraId,
+      },
+      include: cameraIncludeStuff
+      
+    });
+    this.prismaData = dbResponse;
+    this._notifyStateUpdated(reason);
+  }
 
   getPublicState() {
     const { cameraId, name, clientIds, senderId, portals } = this;

@@ -93,8 +93,8 @@ export const useAdminStore = defineStore('admin', () => {
     adminOnlyVenueState.value = aOnlyState;
   }
   
-  async function updateCamera(cameraId: CameraId, input: CameraUpdate['update']){
-    await connection.client.admin.updateCamera.mutate({cameraId, update: input});
+  async function updateCamera(cameraId: CameraId, input: CameraUpdate['data'], reason?: string){
+    await connection.client.admin.updateCamera.mutate({cameraId, data: input, reason});
   }
 
   async function createCameraFromSender(cameraName: string, senderId: SenderId){
@@ -105,17 +105,9 @@ export const useAdminStore = defineStore('admin', () => {
     await connection.client.admin.setSenderForCamera.mutate({cameraId, senderId});
   }
   
-  async function setCameraName(cameraId: CameraId, newName: string) {
-    await connection.client.admin.setCameraName.mutate({cameraId, newName});
-  }
-
-  async function setCameraType(cameraId: CameraId, cameraType: CameraType) {
-    await connection.client.admin.setCameraType.mutate({cameraId, cameraType});
-  }
-  
-  async function setCameraViewOrigin(data: CameraViewOriginUpdate){
-    await connection.client.admin.setCameraViewOrigin.mutate(data);
-  }
+  // async function setCameraViewOrigin(data: CameraViewOriginUpdate){
+  //   await connection.client.admin.setCameraViewOrigin.mutate(data);
+  // }
   
   async function setPortal(data: CameraPortalUpdate) {
     await connection.client.admin.setCameraPortal.mutate(data);
@@ -136,18 +128,13 @@ export const useAdminStore = defineStore('admin', () => {
   return {
     adminOnlyVenueState,
     createVenue,
-    // updateVenue,
-    // loadVenue,
     loadAndJoinVenueAsAdmin,
     deleteCurrentVenue,
     createCameraFromSender,
     setSenderForCamera,
     updateCamera,
-    setCameraName,
-    setCameraType,
     setPortal,
     deletePortal,
-    setCameraViewOrigin,
     deleteCamera,
   };
 });

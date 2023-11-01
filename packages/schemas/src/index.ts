@@ -185,29 +185,16 @@ export const CameraPortalUpdateSchema = z.object({
     });
 export type CameraPortalUpdate = z.TypeOf<typeof CameraPortalUpdateSchema>
 
-export const CameraViewOriginUpdateSchema = z.object({
-    cameraId: CameraIdSchema,
-    origin: z.object({originX: z.number(), originY: z.number()})
-  });
+// const cameraTypeOptions = ['panoramic360', 'normal'] as const satisfies Readonly<PrismaCameraType[]>
+// const CameraTypeSchema = z.enum(cameraTypeOptions);
+// export type CameraType = z.TypeOf<typeof CameraTypeSchema>
+// export const CameraTypeUpdateSchema = z.object({
+//   cameraId: CameraIdSchema,
+//   cameraType: CameraTypeSchema,
+// })
+// export type CameraTypeUpdate = z.TypeOf<typeof CameraTypeUpdateSchema>;
 
-export type CameraViewOriginUpdate = z.TypeOf<typeof CameraViewOriginUpdateSchema>
-
-export const CameraFOVUpdateSchema = z.object({
-  cameraId: CameraIdSchema,
-  FOV: z.object({fovStart: z.number(), fovEnd: z.number()})
-})
-export type CameraFOVUpdate = z.TypeOf<typeof CameraFOVUpdateSchema>;
-
-const cameraTypeOptions = ['panoramic360', 'normal'] as const satisfies Readonly<PrismaCameraType[]>
-const CameraTypeSchema = z.enum(cameraTypeOptions);
-export type CameraType = z.TypeOf<typeof CameraTypeSchema>
-export const CameraTypeUpdateSchema = z.object({
-  cameraId: CameraIdSchema,
-  cameraType: CameraTypeSchema,
-})
-export type CameraTypeUpdate = z.TypeOf<typeof CameraTypeUpdateSchema>;
-
-type UpdatableCamera = Pick<Camera,
+type CameraUpdatePayload = Partial<Pick<Camera,
   'name'
   | 'fovStart'
   | 'fovEnd'
@@ -216,21 +203,28 @@ type UpdatableCamera = Pick<Camera,
   | 'viewOriginX'
   | 'viewOriginY'
   | 'settings'
-  >;
+  >>;
 export const CameraUpdateSchema = z.object({
   cameraId: CameraIdSchema,
-  update: z.object({
+  data: z.object({
     name: z.string().optional(),
-    cameraType: CameraTypeSchema.optional(),
+    cameraType: z.enum(['panoramic360', 'normal']).optional(),
     viewOriginX: z.number().optional(),
     viewOriginY: z.number().optional(),
     fovStart: z.number().optional(),
     fovEnd: z.number().optional(),
     orientation: z.number().optional(),
     settings: z.object({}).passthrough().optional(),
-  }) satisfies z.ZodType<Partial<UpdatableCamera>>
+  }) satisfies z.ZodType<CameraUpdatePayload>,
+  reason: z.string().optional(),
 });
 export type CameraUpdate = z.TypeOf<typeof CameraUpdateSchema>
+
+export const CameraFOVUpdateSchema = z.object({
+  cameraId: CameraIdSchema,
+  FOV: z.object({fovStart: z.number(), fovEnd: z.number()})
+})
+export type CameraFOVUpdate = z.TypeOf<typeof CameraFOVUpdateSchema>;
 
 export const JwtUserDataSchema = z.object({
   userId: UserIdSchema,
@@ -241,12 +235,6 @@ export type JwtUserData = z.TypeOf<typeof JwtUserDataSchema>;
 
 export const JwtPayloadSchema = jwtDefaultPayload.merge(JwtUserDataSchema)
 export type JwtPayload = z.TypeOf<typeof JwtPayloadSchema>;
-
-// export const UserDataSchema = z.object({
-//   jwtToken: z.string(),
-//   decodedJwt: JwtPayloadSchema,
-// })
-// export type UserData = z.TypeOf<typeof UserDataSchema>
 
 export const ClientTransformSchema = z.object({
   position: z.tuple([z.number(), z.number(), z.number()]),

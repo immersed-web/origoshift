@@ -48,6 +48,14 @@ export const useCameraStore = defineStore('camera', () => {
       phiStart: fovStart * 360,
     };
   });
+  
+  const isRoofMounted = computed(() => {
+    return currentCamera.value?.orientation === 180 ? true : false;
+  });
+  
+  const is360Camera = computed(()=> {
+    return currentCamera.value?.cameraType === 'panoramic360';
+  });
 
   const portals = computed(() => {
     if(!currentCamera.value) return undefined;
@@ -155,6 +163,8 @@ export const useCameraStore = defineStore('camera', () => {
     currentCamera,
     portals,
     FOV,
+    is360Camera,
+    isRoofMounted,
     viewOrigin,
     // currentCameraReactive,
     utils: {

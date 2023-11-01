@@ -8,8 +8,8 @@ import { observable } from '@trpc/server/observable';
 import { BaseClient, Camera, loadUserPrismaData, SenderClient, UserClient, Venue } from '../classes/InternalClasses';
 import { Prisma } from 'database';
 import prismaClient, { cameraIncludeStuff } from '../modules/prismaClient';
-import { CameraIdSchema, ConnectionIdSchema, hasAtLeastSecurityLevel, SenderIdSchema, VenueId, VenueIdSchema, VenueUpdateSchema, CameraUpdateSchema, CameraPortalUpdateSchema, CameraFOVUpdateSchema, CameraViewOriginUpdateSchema, CameraTypeUpdateSchema} from 'schemas';
-import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
+import { CameraIdSchema, hasAtLeastSecurityLevel, SenderIdSchema, VenueId, VenueIdSchema, VenueUpdateSchema, CameraUpdateSchema, CameraPortalUpdateSchema } from 'schemas';
+import { attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
 import { z } from 'zod';
 import { atLeastModeratorP, currentVenueAdminP, isUserClientM, isVenueOwnerM, procedure as p, router } from '../trpc/trpc';
 
@@ -29,16 +29,6 @@ export const adminRouter = router({
     ctx.client.loadPrismaDataAndNotifySelf('updated venue info/settings');
     ctx.venue._notifyStateUpdated('venue settings/data updated');
   }),
-  // openVenueDoors: currentVenueAdminP.mutation(({ctx}) =>{
-  //   log.info('opening doors');
-  //   ctx.venue.openDoors();
-  //   ctx.venue._notifyStateUpdated('Venue doors opened');
-  // }),
-  // closeVenueDoors: currentVenueAdminP.mutation(({ctx}) =>{
-  //   log.info('closing doors');
-  //   ctx.venue.closeDoors();
-  //   ctx.venue._notifyStateUpdated('Venue doors closed');
-  // }),
   deleteVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
     const venueId = input.venueId;
     if(Venue.venueIsLoaded({venueId})){
@@ -72,7 +62,6 @@ export const adminRouter = router({
       ctx.client.notify.senderAddedOrRemoved = scriber.next;
       return () => ctx.client.notify.senderAddedOrRemoved = undefined;
     });
-    // return attachToFilteredEvent(ctx.client.clientEvent, 'senderAddedOrRemoved', ctx.connectionId);
   }),
   subSomeSenderStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
     log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to senderState`);
@@ -82,11 +71,6 @@ export const adminRouter = router({
       return true;
     }, ({clientState, reason}) => ({senderState: clientState as ReturnType<SenderClient['getPublicState']>, reason}));
   }),
-  // joinVenueAsSender: atLeastSenderP.use(isSenderClientM).input(z.object({venueId: VenueIdSchema}))
-  //   .mutation(async ({ctx, input}) =>{
-  //     log.info('request received to join venue as sender:', input.venueId);
-  //     await ctx.client.joinVenue(input.venueId);
-  //   }),
   createCamera: currentVenueAdminP.input(z.object({
     name: z.string(),
     senderId: SenderIdSchema.optional(),
@@ -120,79 +104,21 @@ export const adminRouter = router({
     return ctx.venue.setSenderForCamera(input.senderId, input.cameraId);
   }),
   updateCamera: currentVenueAdminP.input(CameraUpdateSchema).mutation(async ({ ctx, input}) => {
-    const {cameraId, update } = input;
+    const {cameraId, data, reason } = input;
     const dbResponse = await prismaClient.camera.update({
       where: {
         cameraId: input.cameraId
       },
       include: cameraIncludeStuff,
-      data: update
+      data
     });
     const camera = ctx.venue.cameras.get(cameraId);
     if(!camera) return;
     camera.prismaData = dbResponse;
-    camera._notifyStateUpdated('camera was updated');
-    ctx.venue._notifyAdminOnlyState('camera was updated');
+    const reasonForPrint = reason ?? 'unknown';
+    camera._notifyStateUpdated(`camera was updated: ${reasonForPrint}`);
+    ctx.venue._notifyAdminOnlyState(`camera was updated: ${reasonForPrint}`);
     
-  }),
-  setCameraName: currentVenueAdminP.input(z.object({
-    cameraId: CameraIdSchema,
-    newName: z.string()
-  })).mutation(async ({ctx, input}) => {
-    const { cameraId, newName } = input;
-    const dbResponse = await prismaClient.camera.update({
-      where: {
-        cameraId
-      },
-      include: cameraIncludeStuff,
-      data: {
-        name: newName,
-      }
-    });
-    const camera = ctx.venue.cameras.get(cameraId);
-    if(!camera) return;
-    camera.prismaData = dbResponse;
-    camera._notifyStateUpdated('camera name changed');
-    ctx.venue._notifyAdminOnlyState('a camera changed name'); // TODO: Is this needed? Why?
-    
-    return dbResponse;
-  }),
-  setCameraType: currentVenueAdminP.input(CameraTypeUpdateSchema).mutation(async ({ctx, input}) =>{
-    const { cameraId, cameraType } = input;
-    const dbResponse = await prismaClient.camera.update({
-      where: {
-        cameraId
-      },
-      include: cameraIncludeStuff,
-      data: {
-        cameraType
-      }
-    });
-    const camera = ctx.venue.cameras.get(cameraId);
-    if(!camera) return;
-    camera.prismaData = dbResponse;
-    camera._notifyStateUpdated('camera type update');
-    // ctx.venue._notifyAdminOnlyState('a camera changed type');
-    return dbResponse;
-  }),
-  setCameraViewOrigin: currentVenueAdminP.input(CameraViewOriginUpdateSchema).mutation(async ({ctx, input}) => {
-    const { originX, originY } = input.origin;
-    const dbResponse = await prismaClient.camera.update({
-      where: {
-        cameraId: input.cameraId,
-      },
-      include: cameraIncludeStuff,
-      data: {
-        viewOriginX: originX,
-        viewOriginY: originY,
-      }
-    });
-    const camera = ctx.venue.cameras.get(input.cameraId);
-    if(!camera) return;
-    camera.prismaData = dbResponse;
-    camera._notifyStateUpdated('view origin updated');
-    
-    return dbResponse;
   }),
   setCameraPortal: currentVenueAdminP.input(CameraPortalUpdateSchema).mutation(async ({ctx, input}) => {
     const dbResponse = await prismaClient.camera.update({
@@ -232,14 +158,6 @@ export const adminRouter = router({
     toCameraId: CameraIdSchema,
   })).mutation(async ({ctx, input}) => {
     const { fromCameraId, toCameraId } = input;
-    // const dbResponse = await prismaClient.cameraPortal.delete({
-    //   where: {
-    //     fromCameraId_toCameraId: {
-    //       fromCameraId,
-    //       toCameraId,
-    //     }
-    //   }
-    // });
     const dbResponse = await prismaClient.camera.update({
       where: {
         cameraId: fromCameraId,

@@ -31,8 +31,8 @@
         <label class="label">
           <input
             type="checkbox"
-            @change="toggle360Camera"
-            v-model="is360Camera"
+            @change="updateCurrentCamera({ cameraType: camera.is360Camera?'normal':'panoramic360'}, 'cameraType')"
+            :checked="camera.is360Camera"
             class="toggle toggle-primary"
           >
           <span class="pl-2 label-text text-neutral-content cursor-pointer">360-kamera</span>
@@ -40,7 +40,8 @@
         <label class="label">
           <input
             type="checkbox"
-            @change="updateCamera"
+            @change="updateCurrentCamera({orientation: camera.isRoofMounted?0:180}, 'camera rotation')"
+            :checked="camera.isRoofMounted"
             class="toggle toggle-primary"
           >
           <span class="pl-2 label-text text-neutral-content cursor-pointer">takhängd</span>
@@ -77,15 +78,16 @@
       />
       <a-videosphere
         material="depthTest: false"
-        :visible="is360Camera"
+        :visible="camera.is360Camera"
+        :rotation="`0 90 ${cameraRotation}`"
         :geometry="`phiLength:${camera.FOV?.phiLength??360}; phiStart:${camera.FOV?.phiStart??0}`"
-        rotation="0 90 0"
       />
       <a-video
         :height="videoHeight"
         :width="fixedWidth"
+        :rotation="`0 0 ${cameraRotation}`"
         :position="`0 ${videoHeight*0.5} 10`"
-        :visible="!is360Camera"
+        :visible="!camera.is360Camera"
         src="#main-video"
       />
       <a-entity
@@ -140,10 +142,6 @@
             </a-entity>
           </template>
         </a-entity>
-        <!-- <a-entity id="manual-list"
-          ref="portalsEntity"
-        >
-        </a-entity> -->
       </a-entity>
     </a-scene>
     <div class="bottom-0 absolute w-full bg-neutral/50 flex flex-row gap-4 justify-center p-4">
@@ -194,21 +192,18 @@
 
 <script setup lang="ts">
 import { useCameraStore } from '@/stores/cameraStore';
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-// import 'aframe';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { CameraId } from 'schemas';
-// import { useSoupStore } from '@/stores/soupStore';
 import { type Entity, THREE } from 'aframe';
 import { useAdminStore } from '@/stores/adminStore';
 
 const videoTag = ref<HTMLVideoElement>();
 const cameraEntity = ref<Entity>();
 const viewOriginEntity = ref<Entity>();
-const portalsEntity = ref<Entity>();
+// const portalsEntity = ref<Entity>();
 const movedPortalCameraId = ref<CameraId>();
 const cameraIsAnimating = ref(false);
 const isEditingCameraName = ref(false);
-const is360Camera = ref(true);
 
 const camera = useCameraStore();
 const adminStore = useAdminStore();
@@ -226,7 +221,8 @@ const camerasWithPortalInfo = computed(() => {
   }
   return camerasWithPortalInfo;
 });
-// const soup = useSoupStore();
+
+const cameraRotation = computed(() => camera.isRoofMounted?180:0);
 
 const props = defineProps<{
   cameraId: CameraId
@@ -248,13 +244,7 @@ function onMouseUp(evt: Event){
     adminStore.setPortal(data);
   } else if(movedEntity.value) {
     const originCoords = camera.utils.anglesToCoords({angleX: THREE.MathUtils.radToDeg(movedEntity.value.object3D.rotation.x), angleY: THREE.MathUtils.radToDeg(movedEntity.value.object3D.rotation.y)});
-    adminStore.setCameraViewOrigin({
-      cameraId: props.cameraId,
-      origin: {
-        originX: originCoords.x,
-        originY: originCoords.y,
-      }, 
-    });
+    updateCurrentCamera({viewOriginX: originCoords.x, viewOriginY: originCoords.y}, 'view origin');
   }
   movedPortalCameraId.value = undefined;
   movedEntity.value = undefined;
@@ -267,10 +257,6 @@ function onMouseMove(ev: MouseEvent){
   // console.log(ev);
   if(!camera.currentCamera) return;
   if (movedEntity.value){
-    // movedEntity.value.object3D.rotation.reorder('YXZ');
-    // movedEntity.value.object3D.rotation.y -= THREE.MathUtils.degToRad(ev.movementX * 0.15);
-    // const newZ = movedEntity.value.object3D.rotation.x - THREE.MathUtils.degToRad(ev.movementY * 0.15);
-    // movedEntity.value.object3D.rotation.x = THREE.MathUtils.clamp(newZ, -Math.PI / 2, Math.PI / 2);
     const newX = camera.currentCamera.viewOrigin.x + ev.movementX * xSpeed;
     camera.currentCamera.viewOrigin.x = (1.0 + newX) % 1.0;
     camera.currentCamera.viewOrigin.y += ev.movementY * ySpeed;
@@ -304,7 +290,6 @@ function setVideoDimensionsFromTag(vTag: HTMLVideoElement){
 async function loadCamera(cameraId: CameraId) {
   console.log('loading camera');
   await camera.joinCamera(cameraId);
-  is360Camera.value = camera.currentCamera?.cameraType !== 'normal';
   const tracks = await camera.consumeCurrentCamera();
   console.log(tracks);
   if(!videoTag.value){
@@ -372,9 +357,9 @@ async function createOrCenterOnPortal(cameraId: CameraId) {
     (rotationTarget as HTMLElement).addEventListener('animationcomplete', () => {
       if(!rotationTarget) return;
       const newRotation = rotationTarget.getAttribute('rotation');
-      // @ts-expect-error
+      // @ts-ignore
       rotationTarget.components['look-controls'].pitchObject.rotation.x = THREE.MathUtils.degToRad(newRotation.x);
-      // @ts-expect-error
+      // @ts-ignore
       rotationTarget.components['look-controls'].yawObject.rotation.y = THREE.MathUtils.degToRad(newRotation.y);
       rotationTarget.setAttribute('look-controls', {enabled: true});
       rotationTarget.removeAttribute('animation');
@@ -401,8 +386,6 @@ function rotateCameraToOrigin(){
   if(!cameraEntity.value || !camera.viewOrigin) return;
   const cameraTag = cameraEntity.value;
   cameraTag.setAttribute('look-controls', {enabled: false});
-  // cameraTa.value?.object3D.rotateY(camera.viewOrigin?.angleY??0);
-  // cameraTa.value?.object3D.rotateX(camera.viewOrigin?.angleX??0);
   // @ts-ignore
   cameraTag.components['look-controls'].pitchObject.rotation.x = THREE.MathUtils.degToRad(camera.viewOrigin.angleX);
   // @ts-ignore
@@ -411,75 +394,14 @@ function rotateCameraToOrigin(){
 }
 
 function setCameraName(){
-  if(!camera.currentCamera) return;
-  adminStore.setCameraName(camera.currentCamera.cameraId, camera.currentCamera.name);
+  updateCurrentCamera({name: camera.currentCamera?.name}, 'camera name');
   isEditingCameraName.value = false;
 }
 
-function updateCamera(){
+function updateCurrentCamera(input: Parameters<typeof adminStore.updateCamera>[1], reason?: string){
   if(!camera.currentCamera) return;
-  adminStore.updateCamera(camera.currentCamera.cameraId, {
-    orientation: 180,
-  });
+  adminStore.updateCamera(camera.currentCamera.cameraId, input, reason);
 }
-
-function toggle360Camera(){
-  console.log('toggle clicked');
-  if(!camera.currentCamera) return;
-  adminStore.setCameraType(camera.currentCamera.cameraId, is360Camera.value?'panoramic360':'normal');
-}
-
-// NOTE: Not completely sure why we have to do this. Using vue to v-for over the portals didnt work for some reason.
-function manuallyUpdatePortals () {
-  if(!camera.portals || !portalsEntity.value) return;
-  const allPortalEntities = portalsEntity.value.children;
-  for (let i = 0; i < allPortalEntities.length; i++) {
-    const element = allPortalEntities[i];
-    if(element instanceof HTMLElement){
-      element.dataset.status = 'dangling';
-    }
-  }
-  for(const pKey in camera.portals) {
-    const portal = camera.portals[pKey as CameraId];
-    const portalTag = portalsEntity.value.querySelector(`[data-portal-id="${pKey}"]`);
-    if(!portalTag) {
-      console.log('creating portal entity!!!');
-      const newPortal = document.createElement('a-entity');
-      newPortal.dataset.portalId = pKey;
-      const newBox = document.createElement('a-box');
-      newBox.setAttribute('scale', '0.2 0.2 0.2');
-      newBox.setAttribute('position', `0 0 ${-portal.distance}`);
-      newBox.setAttribute('color', '#ef2d44');
-      // newBox.setAttribute('mixin', 'cursorHighlight')
-      newBox.setAttribute('hover-highlight', '');
-      newBox.classList.add('clickable');
-      newBox.addEventListener('mousedown', () => movedPortalCameraId.value = portal.toCameraId);
-      newPortal.appendChild(newBox);
-      portalsEntity.value.appendChild(newPortal);
-      newPortal.setAttribute('rotation', `${portal.angleX} ${portal.angleY} 0`);
-    } else {
-      console.log('updating portal entity!!!');
-      portalTag.setAttribute('rotation', `${portal.angleX} ${portal.angleY} 0`);
-      if(portalTag instanceof HTMLElement) {
-        delete portalTag.dataset.status;
-      }
-    }
-  }
-  for (let i = allPortalEntities.length-1; i >= 0; i--) {
-    const element = allPortalEntities[i];
-    if(element instanceof HTMLElement){
-      if(element.dataset.status === 'dangling') {
-        console.log('removing portal tag');
-        element.remove();
-      }
-    }
-  }
-}
-
-watch(() => camera.portals, (portals) => {
-  console.log('portals watcher triggered', portals);
-  // manuallyUpdatePortals();
-});
 
 watch(() => props.cameraId, async (newCamerId) => {
   console.log('cameraId changed');

@@ -77,7 +77,7 @@
             material="transparent: false; depthTest: false"
           />
           <a-entity
-            v-for="portal in camera.portals"
+            v-for="portal in persistedPortals"
             :key="portal.toCameraId"
             :position="`${(portal.x-0.5)*fixedWidth} ${(portal.y-0.5)*videoHeight} 0`"
           >
@@ -88,6 +88,7 @@
               material="depthTest:false; shader: flat;"
               scale="0.2 0.2 0.2"
               class="clickable"
+              @mousedown="goToCamera(portal.toCameraId, $event)"
             />
             <a-text
               value="Teeeext"
@@ -97,17 +98,18 @@
             />
           </a-entity>
         </a-entity>
-        <a-videosphere
+        <a-entity
           :visible="camera.is360Camera"
-          :geometry="`phiLength:${persistedFOV?.phiLength??360}; phiStart:${persistedFOV?.phiStart??0}`"
-          ref="vSphereTag"
-          src="#main-video-1"
-          :rotation="`0 90 ${camera.isRoofMounted? '180': '0'}`"
-          radius="10"
-          color="#fff"
-          material="color: #fff; depthTest:false; fog: false"
-        />
-        <a-entity>
+        >
+          <a-videosphere
+            :geometry="`phiLength:${persistedFOV?.phiLength??360}; phiStart:${persistedFOV?.phiStart??0}`"
+            ref="vSphereTag"
+            src="#main-video-1"
+            :rotation="`0 90 ${camera.isRoofMounted? '180': '0'}`"
+            radius="10"
+            color="#fff"
+            material="color: #fff; depthTest:false; fog: false"
+          />
           <a-entity
             v-for="portal in persistedPortals"
             :key="portal.toCameraId"

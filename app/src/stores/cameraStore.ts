@@ -103,7 +103,7 @@ export const useCameraStore = defineStore('camera', () => {
   // const currentCameraReactive = toReactive(currentCamera);
 
   const producers = computed(() => {
-    console.log('computed producers re-evaluated');
+    // console.log('computed producers re-evaluated');
     return currentCamera.value?.producers;
   });
 

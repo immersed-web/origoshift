@@ -17,6 +17,12 @@
       max="30"
       v-model="cinemaDistance"
     >
+    <button
+      class="btn btn-xs"
+      @click="triggerManualCurtainCheck"
+    >
+      curtain
+    </button>
     <a-scene
       class="w-full h-screen"
       embedded
@@ -65,7 +71,7 @@
         material="depthTest: false"
       >
         <a-entity
-          :visible="!camera.is360Camera"
+          :visible="!persistedCameraStore.is360Camera"
           :position="`0 ${0} ${cinemaDistance}`"
         >
           <a-video
@@ -73,11 +79,11 @@
             crossorigin="anonymous"
             :width="fixedWidth"
             :height="videoHeight"
-            :rotation="`0 0 ${camera.isRoofMounted?'180': 0}`"
+            :rotation="`0 0 ${persistedCameraStore.isRoofMounted?'180': 0}`"
             material="transparent: false; depthTest: false"
           />
           <a-entity
-            v-for="portal in persistedPortals"
+            v-for="portal in persistedCameraStore.portals"
             :key="portal.toCameraId"
             :position="`${(portal.x-0.5)*fixedWidth} ${(portal.y-0.5)*videoHeight} 0`"
           >
@@ -99,19 +105,19 @@
           </a-entity>
         </a-entity>
         <a-entity
-          :visible="camera.is360Camera"
+          :visible="persistedCameraStore.is360Camera"
         >
           <a-videosphere
-            :geometry="`phiLength:${persistedFOV?.phiLength??360}; phiStart:${persistedFOV?.phiStart??0}`"
+            :geometry="`phiLength:${persistedCameraStore.FOV?.phiLength??360}; phiStart:${persistedCameraStore.FOV?.phiStart??0}`"
             ref="vSphereTag"
             src="#main-video-1"
-            :rotation="`0 90 ${camera.isRoofMounted? '180': '0'}`"
+            :rotation="`0 90 ${persistedCameraStore.isRoofMounted? '180': '0'}`"
             radius="10"
             color="#fff"
             material="color: #fff; depthTest:false; fog: false"
           />
           <a-entity
-            v-for="portal in persistedPortals"
+            v-for="portal in persistedCameraStore.portals"
             :key="portal.toCameraId"
             :rotation="`${portal.angleX} ${portal.angleY} 0`"
           >
@@ -137,7 +143,7 @@
             :key="n"
             ref="videoTags"
             :id="`main-video-${n}`"
-            :class="{'rotate-180': isRoofMounted}"
+            :class="{'rotate-180': persistedCameraStore.isRoofMounted}"
             crossorigin="anonymous"
           />
         </div>
@@ -157,7 +163,7 @@
 import { useRouter } from 'vue-router';
 import { useSoupStore } from '@/stores/soupStore';
 import type { CameraId, VenueId } from 'schemas';
-import { computed, onBeforeUnmount, onMounted, ref, shallowReactive, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, shallowReactive, shallowRef, watch } from 'vue';
 import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
 import { computedWithControl } from '@vueuse/core';
@@ -185,25 +191,35 @@ const cameraRigTag = ref<Entity>();
 const soup = useSoupStore();
 const venueStore = useVenueStore();
 const camera = useCameraStore();
-const is360Camera = computed(() => camera.currentCamera?.cameraType !== 'normal');
-const persistedPortals = computedWithControl(() => undefined, () => {
-  console.log('computedPortals triggered');
-  return camera.portals;
+const persistedCameraStore = computedWithControl(()=> undefined, () => {
+  console.log('persistedCamera triggered');
+  // NOTE: we cant simply wrap the whole camera store in a computedWithControl for some reason I dont have time to look into.
+  // Instead we here return the separate parts of the store we actually need
+  return {currentCamera: camera.currentCamera, FOV: camera.FOV, portals: camera.portals, is360Camera: camera.is360Camera, isRoofMounted: camera.isRoofMounted };
+
 });
-const persistedFOV = computedWithControl(() => undefined, () => {
-  return camera.FOV;
-});
-const isRoofMounted = computed(() => {
-  return camera.currentCamera?.orientation === 180 ? true : false;
-});
-let activeVideoTag = 1; // Since we switch _before_ retrieving video stream we set initial value to the second videotag so it will switch to first videotag on pageload. Yes, its a bit hacky :-)
-watch(() => camera.producers, async (updatedProducers) => {
+// const persistedPortals = computedWithControl(() => undefined, () => {
+//   console.log('computedPortals triggered');
+//   return camera.portals;
+// });
+// const persistedFOV = computedWithControl(() => undefined, () => {
+//   return camera.FOV;
+// });
+// watch(() => camera.producers, async (updatedProducers) => {
   // console.log('cameraProducers were updated:', toRaw(updatedProducers));
+  // init();
+// });
+
+let activeVideoTagIndex = 1; // Since we switch _before_ retrieving video stream we set initial value to the second videotag so it will switch to first videotag on pageload. Yes, its a bit hacky :-)
+const activeVideoTag = shallowRef<HTMLVideoElement>();
+
+async function consumeAndHandleResult() {
   const rcvdTracks = await camera.consumeCurrentCamera();
-  ++activeVideoTag;
-  activeVideoTag %= 2;
-  const videoTag = videoTags[activeVideoTag];
-  if(!videoTag) return;
+  ++activeVideoTagIndex;
+  activeVideoTagIndex %= 2;
+  activeVideoTag.value = videoTags[activeVideoTagIndex];
+  const vtag = activeVideoTag.value;
+  if(!vtag) return;
 
   if(!rcvdTracks?.videoTrack && !import.meta.env.DEV ){
     console.error('no videotrack from camera');
@@ -211,35 +227,52 @@ watch(() => camera.producers, async (updatedProducers) => {
   }
   if(!rcvdTracks?.videoTrack){
     console.warn('falling back to using demo video because we are in dev mode');
-    videoTag.muted = true;
-    videoTag.loop = true;
-    videoTag.srcObject = null;
-    videoTag.setAttribute('crossorigin', 'anonymous');
+    vtag.muted = true;
+    vtag.loop = true;
+    vtag.srcObject = null;
+    vtag.setAttribute('crossorigin', 'anonymous');
     // videoTag.src = 'https://cdn.bitmovin.com/content/assets/playhouse-vr/progressive.mp4';
     // videoTag.src = 'https://bitmovin.com/player-content/playhouse-vr/progressive.mp4';
-    videoTag.src = 'https://video.360cities.net/aeropicture/01944711_VIDEO_0520_1_H264-1920x960.mp4';
+    vtag.src = 'https://video.360cities.net/aeropicture/01944711_VIDEO_0520_1_H264-1920x960.mp4';
   }else{
-    videoTag.muted = false;
-    videoTag.loop = false;
-    videoTag.srcObject = new MediaStream([rcvdTracks.videoTrack]);
+    vtag.muted = false;
+    vtag.loop = false;
+    vtag.srcObject = new MediaStream([rcvdTracks.videoTrack]);
   }
-  videoTag.play();
-  videoTag.addEventListener('playing', () => {
+  vtag.play();
+  vtag.addEventListener('playing', () => {
     console.log('playing event triggered.');
-    setVideoDimensionsFromTag(videoTag);
     tryPrepareSceneAndFadeFromBlack();
   }, {once: true});
   if(rcvdTracks?.audioTrack && audioTag.value){
     audioTag.value.srcObject = new MediaStream([rcvdTracks.audioTrack]);
   }
-});
+  
+}
 
+let fallbackTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
+const overrideIsCurtainReady = ref(false);
+function triggerManualCurtainCheck(){
+  overrideIsCurtainReady.value = true;
+  tryPrepareSceneAndFadeFromBlack();
+}
 function tryPrepareSceneAndFadeFromBlack(){
-  if(videoTags[activeVideoTag].paused || isFadingToBlack || isZoomingInOnPortal){
+  if(videoTags[activeVideoTagIndex].paused
+    || isFadingToBlack 
+    || isZoomingInOnPortal 
+    // || !overrideIsCurtainReady.value
+  ){
     console.log('not yet ready to reveal after portal jump. returning');
+    // fallbackTimeout = setTimeout(() => {
+    //   console.warn('FALLBACK FADE TRIGGERED because we never reached a ready state for curtain animations');
+    //   tryPrepareSceneAndFadeFromBlack();
+    // }, 20000);
     return;
   }
+  // clearTimeout(fallbackTimeout);
   console.log('preparing environment after portal jump');
+
+  persistedCameraStore.trigger();
   console.log('offsetting vieworigin:', camera.viewOrigin);
   cameraRigTag.value?.setAttribute('rotation', `0 ${camera.viewOrigin?.angleY??0} 0`);
 
@@ -257,16 +290,20 @@ function tryPrepareSceneAndFadeFromBlack(){
   cameraTag.value.setAttribute('look-controls', {enabled: true});
 
   console.log('Switching v-sphere source');
-  vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
-  vSphereTag.value?.setAttribute('visible', is360Camera.value);
+  vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTagIndex+1}`);
+  // vSphereTag.value?.setAttribute('visible', camera.is360Camera);
   console.log('switching a-video source');
-  aVideoTag.value?.setAttribute('src', `#main-video-${activeVideoTag+1}`);
-  aVideoTag.value?.setAttribute('visible', !is360Camera.value);
+  aVideoTag.value?.setAttribute('src', `#main-video-${activeVideoTagIndex+1}`);
+  // aVideoTag.value?.setAttribute('visible', !camera.is360Camera);
 
-  persistedPortals.trigger();
-  persistedFOV.trigger();
+  // persistedPortals.trigger();
+  // persistedFOV.trigger();
+
+  setVideoDimensionsFromTag(activeVideoTag.value!);
   
   cameraRigTag.value?.object3D.position.set(0,0,0);
+  
+  overrideIsCurtainReady.value = false;
   
   curtainTag.value?.emit('fadeFromBlack');
 }
@@ -294,13 +331,13 @@ async function loadStuff(){
 
   await camera.joinCamera(props.cameraId);
   console.log('joined camera');
+  consumeAndHandleResult();
 }
-
 // These will hold to play state of the animations.
 let isFadingToBlack = false;
 let isZoomingInOnPortal = false;
 function goToCamera(cameraId: CameraId, event: Event) {
-  videoTags[activeVideoTag].pause();
+  videoTags[activeVideoTagIndex].pause();
   isFadingToBlack = true;
   curtainTag.value?.emit('fadeToBlack');
   (curtainTag.value as HTMLElement).addEventListener('animationcomplete__to_black', () => {
@@ -336,6 +373,7 @@ function goToCamera(cameraId: CameraId, event: Event) {
 onMounted(async () => {
   if(soup.userHasInteracted){
     await loadStuff();
+    // persistedCameraStore.trigger();
   }
 });
 

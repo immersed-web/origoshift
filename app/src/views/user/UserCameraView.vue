@@ -72,7 +72,7 @@
       >
         <a-entity
           :visible="!persistedCameraStore.is360Camera"
-          :position="`0 ${0} ${cinemaDistance}`"
+          :position="`0 ${0} -${cinemaDistance}`"
         >
           <a-video
             ref="aVideoTag"

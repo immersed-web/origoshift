@@ -86,7 +86,7 @@
         :height="videoHeight"
         :width="fixedWidth"
         :rotation="`0 0 ${cameraRotation}`"
-        :position="`0 ${videoHeight*0.5} 10`"
+        :position="`0 ${videoHeight*0.5} -10`"
         :visible="!camera.is360Camera"
         src="#main-video"
       />

@@ -5,6 +5,10 @@ export * from '@prisma/client'
 // TODO: We really would like to use this but faaacking zod once again complains about infer not being found... Sigh
 // export * from './zod';
 
+// export type JSONDB = Prisma.JsonValue
+
+type SettingsInput = Prisma.CameraUpdateInput['settings']
+export type JSONDB = Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue | undefined 
 
 export const userSelectAll = {
   userId: true,

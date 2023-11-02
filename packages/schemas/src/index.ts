@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { JwtPayload as JwtShapeFromLib } from 'jsonwebtoken'
-import { Role, Venue, VirtualSpace3DModel, Visibility, Camera, CameraType as PrismaCameraType } from "database";
+import { Role, Venue, VirtualSpace3DModel, Visibility, Camera, CameraType as PrismaCameraType, JSONDB, Prisma } from "database";
 import { toZod } from "tozod";
 
 type RemoveIndex<T> = {
@@ -9,27 +9,65 @@ type RemoveIndex<T> = {
 
 type JWTDefaultPayload = RemoveIndex<JwtShapeFromLib>
 
-// type Implements<Model> = {
-//   [key in keyof Model]-?: undefined extends Model[key]
-//     ? null extends Model[key]
-//       ? z.ZodNullableType<z.ZodOptionalType<z.ZodType<Model[key]>>>
-//       : z.ZodOptionalType<z.ZodType<Model[key]>>
-//     : null extends Model[key]
-//     ? z.ZodNullableType<z.ZodType<Model[key]>>
-//     : z.ZodType<Model[key]>;
-// };
+type Implements<Model> = {
+  [key in keyof Model]-?: undefined extends Model[key]
+    ? null extends Model[key]
+      ? z.ZodNullableType<z.ZodOptionalType<z.ZodType<Model[key]>>>
+      : z.ZodOptionalType<z.ZodType<Model[key]>>
+    : null extends Model[key]
+    ? z.ZodNullableType<z.ZodType<Model[key]>>
+    : z.ZodType<Model[key]>;
+};
 
-// function implement<Model = never>() {
-//   return {
-//     with: <
-//       Schema extends Implements<Model> & {
-//         [unknownKey in Exclude<keyof Schema, keyof Model>]: never;
-//       }
-//     >(
-//       schema: Schema
-//     ) => z.object(schema),
-//   };
-// }
+function implement<Model = never>() {
+  return {
+    with: <
+      Schema extends Implements<Model> & {
+        [unknownKey in Exclude<keyof Schema, keyof Model>]: never;
+      }
+    >(
+      schema: Schema
+    ) => z.object(schema),
+  };
+}
+
+// const literalSchema = z.union([z.string(), z.number(), z.boolean()]);
+// type Literal = z.infer<typeof literalSchema>;
+// type Json = Literal | { [key: string]: Json } | Json[];
+// const JsonSchema: z.ZodType<JSONDB> = z.lazy(() =>
+//   z.union([literalSchema, z.array(JsonSchema), z.record(JsonSchema)])
+// );
+
+type NullableJsonInput = Prisma.JsonValue | null | 'JsonNull' | 'DbNull' | Prisma.NullTypes.DbNull | Prisma.NullTypes.JsonNull;
+
+const transformJsonNull = (v?: NullableJsonInput) => {
+  if (!v || v === 'DbNull') return Prisma.DbNull;
+  if (v === 'JsonNull') return Prisma.JsonNull;
+  return v;
+};
+
+const JsonValueSchema: z.ZodType<Prisma.JsonValue> = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.lazy(() => z.array(JsonValueSchema)),
+  z.lazy(() => z.record(JsonValueSchema)),
+]);
+
+const NullableJsonValueSchema = z
+  .union([JsonValueSchema, z.literal('DbNull'), z.literal('JsonNull')])
+  .nullable()
+  .transform((v) => transformJsonNull(v));
+
+const InputJsonValueSchema: z.ZodType<Prisma.InputJsonValue> = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.lazy(() => z.array(InputJsonValueSchema.nullable())),
+  z.lazy(() => z.record(InputJsonValueSchema.nullable())),
+]);
+
+const NullableJsonNullValueInputSchema = z.enum(['DbNull','JsonNull',]).transform((v) => transformJsonNull(v));
 
 // const jwtDefaultPayload = implement<JWTDefaultPayload>().with({
 //   aud: z.string().optional(),
@@ -194,7 +232,7 @@ export type CameraPortalUpdate = z.TypeOf<typeof CameraPortalUpdateSchema>
 // })
 // export type CameraTypeUpdate = z.TypeOf<typeof CameraTypeUpdateSchema>;
 
-type CameraUpdatePayload = Partial<Pick<Camera,
+type CameraUpdatePayload = Partial<Pick<Prisma.CameraUpdateInput,
   'name'
   | 'fovStart'
   | 'fovEnd'
@@ -204,9 +242,10 @@ type CameraUpdatePayload = Partial<Pick<Camera,
   | 'viewOriginY'
   | 'settings'
   >>;
-export const CameraUpdateSchema = z.object({
-  cameraId: CameraIdSchema,
-  data: z.object({
+
+
+
+const CameraUpdatePayloadSchema = implement<CameraUpdatePayload>().with({
     name: z.string().optional(),
     cameraType: z.enum(['panoramic360', 'normal']).optional(),
     viewOriginX: z.number().optional(),
@@ -214,8 +253,24 @@ export const CameraUpdateSchema = z.object({
     fovStart: z.number().optional(),
     fovEnd: z.number().optional(),
     orientation: z.number().optional(),
-    settings: z.object({}).passthrough().optional(),
-  }) satisfies z.ZodType<CameraUpdatePayload>,
+    // settings: JsonSchema.optional().nullable(),
+    // settings: InputJsonValueSchema,
+    settings: z.union([ z.lazy(() => NullableJsonNullValueInputSchema),InputJsonValueSchema ]).optional(),
+})
+
+export const CameraUpdateSchema = z.object({
+  cameraId: CameraIdSchema,
+  data: CameraUpdatePayloadSchema,
+  // data: z.object({
+  //   name: z.string().optional(),
+  //   cameraType: z.enum(['panoramic360', 'normal']).optional(),
+  //   viewOriginX: z.number().optional(),
+  //   viewOriginY: z.number().optional(),
+  //   fovStart: z.number().optional(),
+  //   fovEnd: z.number().optional(),
+  //   orientation: z.number().optional(),
+  //   settings: z.object({}).passthrough().optional(),
+  // }) satisfies z.ZodType<CameraUpdatePayload>,
   reason: z.string().optional(),
 });
 export type CameraUpdate = z.TypeOf<typeof CameraUpdateSchema>

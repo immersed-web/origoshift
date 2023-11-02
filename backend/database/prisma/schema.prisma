@@ -5,10 +5,15 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// generator zod {
+//   provider    = "zod-prisma"
+//   output      = "../src/zod"
+//   modelSuffix = "SchemaGenerated"
+// }
+
 generator zod {
-  provider    = "zod-prisma"
-  output      = "../src/zod"
-  modelSuffix = "SchemaGenerated"
+  provider = "zod-prisma-types"
+  output   = "../src/zod"
 }
 
 datasource db {
@@ -42,7 +47,7 @@ enum Visibility {
 }
 
 model User {
-  userId        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
+  userId        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   updatedAt     DateTime @updatedAt
   username      String   @unique
   password      String
@@ -53,7 +58,7 @@ model User {
 }
 
 model Venue {
-  venueId               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
+  venueId               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                  String        @unique
   doorsOpeningTime      DateTime?
   doorsAutoOpen         Boolean       @default(false)
@@ -78,16 +83,16 @@ model Venue {
 }
 
 model VirtualSpace {
-  vrId                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
+  vrId                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   extraSettings         Json?
   venue                 Venue                @relation(fields: [ownerVenueId], references: [venueId], onDelete: Cascade)
-  ownerVenueId          String               @unique @db.Uuid ///@zod.uuid()
+  ownerVenueId          String               @unique @db.Uuid
   virtualSpace3DModel   VirtualSpace3DModel? @relation(fields: [virtualSpace3DModelId], references: [modelId])
-  virtualSpace3DModelId String?              @db.Uuid ///@zod.uuid()
+  virtualSpace3DModelId String?              @db.Uuid
 }
 
 model VirtualSpace3DModel {
-  modelId       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
+  modelId       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   modelUrl      String
   navmeshUrl    String
   public        Boolean        @default(false)
@@ -102,19 +107,18 @@ enum CameraType {
 }
 
 model Camera {
-  cameraId    String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid ///@zod.uuid()
-  name        String
-  venue       Venue      @relation(fields: [venueId], references: [venueId], onDelete: Cascade)
-  venueId     String     @db.Uuid ///@zod.uuid()
-  senderId    String?    @db.Uuid ///@zod.uuid()
-  cameraType  CameraType @default(panoramic360)
-  viewOriginX Float      @default(0.5)
-  viewOriginY Float      @default(0.5)
-  fovStart    Float      @default(0)
-  fovEnd      Float      @default(1.0)
-  orientation Float      @default(0)
-
-  settings          Json
+  cameraId          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String
+  venue             Venue          @relation(fields: [venueId], references: [venueId], onDelete: Cascade)
+  venueId           String         @db.Uuid
+  senderId          String?        @db.Uuid
+  cameraType        CameraType     @default(panoramic360)
+  viewOriginX       Float          @default(0.5)
+  viewOriginY       Float          @default(0.5)
+  fovStart          Float          @default(0)
+  fovEnd            Float          @default(1.0)
+  orientation       Float          @default(0)
+  settings          Json?
   cameraPortals     CameraPortal[] @relation("fromCamera")
   fromCameraPortals CameraPortal[] @relation("toCamera")
 
@@ -124,12 +128,12 @@ model Camera {
 
 model CameraPortal {
   fromCamera   Camera @relation("fromCamera", fields: [fromCameraId], references: [cameraId], onDelete: Cascade)
-  fromCameraId String @db.Uuid ///@zod.uuid()
+  fromCameraId String @db.Uuid
   x            Float
   y            Float
   distance     Float
   toCamera     Camera @relation("toCamera", fields: [toCameraId], references: [cameraId], onDelete: Cascade)
-  toCameraId   String @db.Uuid ///@zod.uuid()
+  toCameraId   String @db.Uuid
 
   @@id([fromCameraId, toCameraId])
 }

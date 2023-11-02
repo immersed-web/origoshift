@@ -112,6 +112,7 @@ export const adminRouter = router({
       include: cameraIncludeStuff,
       data
     });
+    
     const camera = ctx.venue.cameras.get(cameraId);
     if(!camera) return;
     camera.prismaData = dbResponse;

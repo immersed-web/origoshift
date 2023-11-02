@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { JwtPayload as JwtShapeFromLib } from 'jsonwebtoken'
-import { Role, Venue, VirtualSpace3DModel, Visibility, Camera, CameraType as PrismaCameraType, JSONDB, Prisma } from "database";
+import { Role, Venue, VirtualSpace3DModel, Visibility, Camera, CameraType as PrismaCameraType, Prisma } from "database";
 
 type RemoveIndex<T> = {
   [ K in keyof T as string extends K ? never : number extends K ? never : K ] : T[K]

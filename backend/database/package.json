@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "module": "./dist/esm/index.js",
   "author": "Gunnar Oledal",
   "license": "MIT",
   "prisma": {
@@ -10,8 +11,8 @@
     "schema": "./prisma/schema.prisma"
   },
   "scripts": {
-    "build": "tsc --build",
-    "build:watch": "tsc --build --watch",
+    "build": "tsup",
+    "build:watch": "tsup --watch",
     "clean": "tsc --build --clean",
     "generate": "prisma generate",
     "migrate:deploy": "dotenv -e ../../.env -- prisma migrate deploy",

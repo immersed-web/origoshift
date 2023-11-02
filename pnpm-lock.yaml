@@ -303,10 +303,8 @@ importers:
       '@types/jsonwebtoken': ^8.5.8
       database: workspace:*
       jsonwebtoken: ^8.5.1
-      tozod: ^3.0.0
       ts-extras: ^0.11.0
     dependencies:
-      tozod: 3.0.0
       ts-extras: 0.11.0
     devDependencies:
       '@types/jsonwebtoken': 8.5.9

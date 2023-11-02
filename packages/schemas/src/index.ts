@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { JwtPayload as JwtShapeFromLib } from 'jsonwebtoken'
 import { Role, Venue, VirtualSpace3DModel, Visibility, Camera, CameraType as PrismaCameraType, JSONDB, Prisma } from "database";
-import { toZod } from "tozod";
 
 type RemoveIndex<T> = {
   [ K in keyof T as string extends K ? never : number extends K ? never : K ] : T[K]
@@ -69,17 +68,7 @@ const InputJsonValueSchema: z.ZodType<Prisma.InputJsonValue> = z.union([
 
 const NullableJsonNullValueInputSchema = z.enum(['DbNull','JsonNull',]).transform((v) => transformJsonNull(v));
 
-// const jwtDefaultPayload = implement<JWTDefaultPayload>().with({
-//   aud: z.string().optional(),
-//   exp: z.number().optional(),
-//   iat: z.number().optional(),
-//   iss: z.string().optional(),
-//   jti: z.string().optional(),
-//   nbf: z.number().optional(),
-//   sub: z.string().optional(),
-// })
-
-const jwtDefaultPayload: toZod<JWTDefaultPayload> = z.object({
+const jwtDefaultPayload = implement<JWTDefaultPayload>().with({
   aud: z.string().optional(),
   exp: z.number().optional(),
   iat: z.number().optional(),
@@ -165,15 +154,6 @@ export type Vr3DModelId = z.TypeOf<typeof Vr3DModelIdSchema>;
 export const SenderIdSchema = UuidSchema.brand<'SenderId'>();
 export type SenderId = z.TypeOf<typeof SenderIdSchema>;
 
-//TODO: Find out why zod complains about infer not existing. Because of that we cant use zod-prisma :-(
-// import { VenueSchemaGenerated } from 'database'
-// export const VenueUpdateSchema = VenueSchemaGenerated.pick({
-//   name: true,
-//   doorsOpeningTime: true,
-//   streamStartTime: true,
-// })
-
-
 export type VenueListInfo = {venueId: VenueId } & Pick<Venue, 'name' | 'doorsOpeningTime' | 'streamStartTime' | 'visibility'>
 
 export const visibilityOptions = ['private', 'unlisted', 'public'] as const satisfies Readonly<Visibility[]>
@@ -223,15 +203,6 @@ export const CameraPortalUpdateSchema = z.object({
     });
 export type CameraPortalUpdate = z.TypeOf<typeof CameraPortalUpdateSchema>
 
-// const cameraTypeOptions = ['panoramic360', 'normal'] as const satisfies Readonly<PrismaCameraType[]>
-// const CameraTypeSchema = z.enum(cameraTypeOptions);
-// export type CameraType = z.TypeOf<typeof CameraTypeSchema>
-// export const CameraTypeUpdateSchema = z.object({
-//   cameraId: CameraIdSchema,
-//   cameraType: CameraTypeSchema,
-// })
-// export type CameraTypeUpdate = z.TypeOf<typeof CameraTypeUpdateSchema>;
-
 type CameraUpdatePayload = Partial<Pick<Prisma.CameraUpdateInput,
   'name'
   | 'fovStart'
@@ -261,16 +232,6 @@ const CameraUpdatePayloadSchema = implement<CameraUpdatePayload>().with({
 export const CameraUpdateSchema = z.object({
   cameraId: CameraIdSchema,
   data: CameraUpdatePayloadSchema,
-  // data: z.object({
-  //   name: z.string().optional(),
-  //   cameraType: z.enum(['panoramic360', 'normal']).optional(),
-  //   viewOriginX: z.number().optional(),
-  //   viewOriginY: z.number().optional(),
-  //   fovStart: z.number().optional(),
-  //   fovEnd: z.number().optional(),
-  //   orientation: z.number().optional(),
-  //   settings: z.object({}).passthrough().optional(),
-  // }) satisfies z.ZodType<CameraUpdatePayload>,
   reason: z.string().optional(),
 });
 export type CameraUpdate = z.TypeOf<typeof CameraUpdateSchema>

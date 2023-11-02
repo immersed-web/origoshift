@@ -7,8 +7,7 @@ export * from '@prisma/client'
 
 // export type JSONDB = Prisma.JsonValue
 
-type SettingsInput = Prisma.CameraUpdateInput['settings']
-export type JSONDB = Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue | undefined 
+// export type JSONDB = Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue | undefined 
 
 export const userSelectAll = {
   userId: true,

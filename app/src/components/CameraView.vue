@@ -223,7 +223,7 @@ function onCurtainStateChanged() {
     fallbackTimeout = setTimeout(() => {
       console.warn('FALLBACK FADE TRIGGERED because we never reached a ready state for curtain animations');
       prepareSceneAndFadeFromBlack();
-    }, 20000);
+    }, 7000);
     return;
   }
   clearTimeout(fallbackTimeout);

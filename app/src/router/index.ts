@@ -157,7 +157,7 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from) => {
-  console.log('beforeEach: ', to, from);
+  // console.log('beforeEach: ', to, from);
   const authStore = useAuthStore();
 
   // if(to.path === '/' && authStore.role){

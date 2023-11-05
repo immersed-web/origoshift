@@ -1,10 +1,4 @@
 <template>
-  <button
-    class="btn btn-sm"
-    @click="triggerManualCurtainCheck"
-  >
-    curtain
-  </button>
   <div v-if="!camera.currentCamera">
     Försöker öppna kameran
   </div>
@@ -171,7 +165,7 @@ const soup = useSoupStore();
 const venueStore = useVenueStore();
 const camera = useCameraStore();
 const persistedCameraStore = computedWithControl(()=> undefined, () => {
-  console.log('persistedCamera triggered');
+  // console.log('persistedCamera triggered');
   // NOTE: we cant simply wrap the whole camera store in a computedWithControl for some reason I dont have time to look into.
   // Instead we here return the separate parts of the store we actually need
   return {currentCamera: camera.currentCamera, FOV: camera.FOV, portals: camera.portals, is360Camera: camera.is360Camera, isRoofMounted: camera.isRoofMounted };
@@ -209,7 +203,7 @@ async function consumeAndHandleResult() {
   }
   vtag.play();
   vtag.addEventListener('playing', () => {
-    console.log('playing event triggered.');
+    // console.log('playing event triggered.');
     onCurtainStateChanged();
   }, {once: true});
   if(rcvdTracks?.audioTrack && audioTag.value){
@@ -219,18 +213,12 @@ async function consumeAndHandleResult() {
 }
 
 let fallbackTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
-const manualIsCurtainReady = ref(false);
-function triggerManualCurtainCheck(){
-  manualIsCurtainReady.value = true;
-  onCurtainStateChanged();
-}
 function onCurtainStateChanged() {
   if(videoTags[activeVideoTagIndex].paused
     || isFadingToBlack 
     || isZoomingInOnPortal 
-    || !manualIsCurtainReady.value
   ){
-    console.log('not yet ready to reveal after portal jump. returning');
+    // console.log('not yet ready to reveal after portal jump. returning');
     clearTimeout(fallbackTimeout);
     fallbackTimeout = setTimeout(() => {
       console.warn('FALLBACK FADE TRIGGERED because we never reached a ready state for curtain animations');
@@ -240,14 +228,12 @@ function onCurtainStateChanged() {
   }
   clearTimeout(fallbackTimeout);
   prepareSceneAndFadeFromBlack();
-
-  manualIsCurtainReady.value = false;
 }
 function prepareSceneAndFadeFromBlack(){
   console.log('preparing environment after portal jump');
 
   persistedCameraStore.trigger();
-  console.log('offsetting vieworigin:', camera.viewOrigin);
+  // console.log('offsetting vieworigin:', camera.viewOrigin);
   cameraRigTag.value?.setAttribute('rotation', `0 ${camera.viewOrigin?.angleY??0} 0`);
 
   if(!cameraTag.value){
@@ -260,15 +246,14 @@ function prepareSceneAndFadeFromBlack(){
   cameraTag.value.components['look-controls'].yawObject.rotation.y = 0;
   cameraTag.value.setAttribute('look-controls', {enabled: true});
 
-  console.log('Switching v-sphere source');
+  // console.log('Switching v-sphere source');
   vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTagIndex+1}`);
-  console.log('switching a-video source');
+  // console.log('switching a-video source');
   aVideoTag.value?.setAttribute('src', `#main-video-${activeVideoTagIndex+1}`);
 
   setVideoDimensionsFromTag(activeVideoTag.value!);
   
   cameraRigTag.value?.object3D.position.set(0,0,0);
-  
   
   curtainTag.value?.emit('fadeFromBlack');
 }
@@ -279,7 +264,7 @@ const videoHeight = ref(1.0);
 function setVideoDimensionsFromTag(vTag: HTMLVideoElement){
   const w = vTag.videoWidth;
   const h = vTag.videoHeight;
-  console.log(w,h);
+  // console.log(w,h);
   const ratio = w / h;
   videoHeight.value = fixedWidth/ratio;
 }
@@ -314,7 +299,7 @@ function goToCamera(cameraId: CameraId, event: Event) {
   isFadingToBlack = true;
   curtainTag.value?.emit('fadeToBlack');
   (curtainTag.value as HTMLElement).addEventListener('animationcomplete__to_black', () => {
-    console.log('fade to black animation complete');
+    // console.log('fade to black animation complete');
     isFadingToBlack = false;
     onCurtainStateChanged();
   }, {once: true});
@@ -331,7 +316,7 @@ function goToCamera(cameraId: CameraId, event: Event) {
   isZoomingInOnPortal = true;
   cameraRigTag.value?.setAttribute('animation', animationString);
   (cameraRigTag.value as HTMLElement)?.addEventListener('animationcomplete', () => {
-    console.log('zoom animation complete');
+    // console.log('zoom animation complete');
     isZoomingInOnPortal = false;
     onCurtainStateChanged();
   }, {once: true});
@@ -347,7 +332,6 @@ onMounted(async () => {
   console.log('mounted');
   if(soup.userHasInteracted){
     await loadStuff();
-    // persistedCameraStore.trigger();
   }
 });
 

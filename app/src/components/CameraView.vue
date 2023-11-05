@@ -4,7 +4,7 @@
   </div>
   <a-scene
     v-else
-    class="w-full h-screen"
+    class=""
     embedded
     cursor="rayOrigin: mouse; fuse: false;"
     raycaster="objects: .clickable"
@@ -144,7 +144,7 @@ import { THREE, type Entity } from 'aframe';
 const props = withDefaults(defineProps<{
   venueId: VenueId,
   cameraId: CameraId,
-  editable: boolean
+  editable?: boolean
 }>(), {
   editable: false,
 });

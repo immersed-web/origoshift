@@ -8,11 +8,15 @@
     </button>
   </div>
     
-  <CameraView
+  <div
     v-else
-    :camera-id="props.cameraId"
-    :venue-id="props.venueId"
-  />
+    class="w-full h-screen"
+  >
+    <CameraView
+      :camera-id="props.cameraId"
+      :venue-id="props.venueId"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">

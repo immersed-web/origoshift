@@ -173,14 +173,14 @@ export class Venue {
   }
 
   getAdminOnlyState() {
-    const { clientIds, owners } = this;
+    const { venueId, clientIds, owners } = this;
     const detachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string}> = {};
     this.detachedSenders.forEach(s => detachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username});
     const cameras: Record<CameraId, ReturnType<Camera['getPublicState']>> = {};
     this.cameras.forEach(cam => cameras[cam.cameraId] = cam.getPublicState());
 
     // const publicState =  this.getPublicState();
-    return { clientIds, owners ,detachedSenders, cameras };
+    return { venueId, clientIds, owners ,detachedSenders, cameras };
   }
 
   //
@@ -205,7 +205,6 @@ export class Venue {
 
   _notifyStateUpdated(reason?: string){
     const publicState = this.getPublicState();
-    // const adminOnlyState = this.getAdminOnlyState();
     this.clients.forEach(c => {
       // if(
       //   hasAtLeastSecurityLevel(c.role, 'moderator')
@@ -237,30 +236,6 @@ export class Venue {
       }
     });
   }
-
-  // _notifySenderAddedOrRemoved(senderState: ReturnType<SenderClient['getPublicState']>, added: boolean, reason?: string){
-  //   log.info('Notifying SenderAddedOrRemoved to clients!!!');
-  //   log.info(this.clients.size);
-  //   this.clients.forEach(c => {
-  //     log.info(`notifying client ${c.username} (${c.connectionId}) (${c.clientType})`);
-  //     if(!c.notify.senderAddedOrRemoved){
-  //       log.warn('client didnt have observer attached');
-  //       return;
-  //     }
-  //     c.notify.senderAddedOrRemoved({data: {senderState, added}, reason});
-  //   });
-  // }
-
-
-  // _notifyClients<K extends NotifyKey, Input extends NotifyInput<K>['data']>(key: K extends NotifyKey ? K : never, data: Input, reason?: string){
-  //   // const data = this.getPublicState();
-  //   this.clients.forEach(c => {
-  //     const notifyFunction = c.notify[key];
-  //     if(notifyFunction){
-  //       notifyFunction({});
-  //     }
-  //   });
-  // }
 
   /**
    * adds a client (client or sender) to this venues collection of clients. Also takes care of assigning the venue inside the client itself

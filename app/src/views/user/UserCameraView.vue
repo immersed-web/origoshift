@@ -17,18 +17,15 @@
 
 <script setup lang="ts">
 import CameraView from '@/components/CameraView.vue';
-// import { useRouter } from 'vue-router';
 import { useSoupStore } from '@/stores/soupStore';
 import type { CameraId, VenueId } from 'schemas';
-import { onBeforeUnmount, onMounted, ref, shallowReactive, shallowRef, watch } from 'vue';
+import { onBeforeUnmount, onMounted } from 'vue';
 import { useCameraStore } from '@/stores/cameraStore';
 
 const props = defineProps<{
   venueId: VenueId,
   cameraId: CameraId,
 }>();
-
-// const router = useRouter();
 
 const soup = useSoupStore();
 const camera = useCameraStore();
@@ -40,14 +37,9 @@ onMounted(async () => {
   // }
 });
 
-// watch(router.currentRoute, () => {
-//   // loadStuff();
-// });
-
 onBeforeUnmount(() => {
   console.log('Leaving camera');
   camera.leaveCurrentCamera();
 });
-
 
 </script>

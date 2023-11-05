@@ -1,4 +1,10 @@
 <template>
+  <button
+    class="btn btn-sm"
+    @click="triggerManualCurtainCheck"
+  >
+    curtain
+  </button>
   <div v-if="!camera.currentCamera">
     Försöker öppna kameran
   </div>
@@ -204,7 +210,7 @@ async function consumeAndHandleResult() {
   vtag.play();
   vtag.addEventListener('playing', () => {
     console.log('playing event triggered.');
-    tryPrepareSceneAndFadeFromBlack();
+    onCurtainStateChanged();
   }, {once: true});
   if(rcvdTracks?.audioTrack && audioTag.value){
     audioTag.value.srcObject = new MediaStream([rcvdTracks.audioTrack]);
@@ -212,26 +218,32 @@ async function consumeAndHandleResult() {
   
 }
 
-// let fallbackTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
-// const overrideIsCurtainReady = ref(false);
-// function triggerManualCurtainCheck(){
-//   overrideIsCurtainReady.value = true;
-//   tryPrepareSceneAndFadeFromBlack();
-// }
-function tryPrepareSceneAndFadeFromBlack(){
+let fallbackTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
+const manualIsCurtainReady = ref(false);
+function triggerManualCurtainCheck(){
+  manualIsCurtainReady.value = true;
+  onCurtainStateChanged();
+}
+function onCurtainStateChanged() {
   if(videoTags[activeVideoTagIndex].paused
     || isFadingToBlack 
     || isZoomingInOnPortal 
-    // || !overrideIsCurtainReady.value
+    || !manualIsCurtainReady.value
   ){
     console.log('not yet ready to reveal after portal jump. returning');
-    // fallbackTimeout = setTimeout(() => {
-    //   console.warn('FALLBACK FADE TRIGGERED because we never reached a ready state for curtain animations');
-    //   tryPrepareSceneAndFadeFromBlack();
-    // }, 20000);
+    clearTimeout(fallbackTimeout);
+    fallbackTimeout = setTimeout(() => {
+      console.warn('FALLBACK FADE TRIGGERED because we never reached a ready state for curtain animations');
+      prepareSceneAndFadeFromBlack();
+    }, 20000);
     return;
   }
-  // clearTimeout(fallbackTimeout);
+  clearTimeout(fallbackTimeout);
+  prepareSceneAndFadeFromBlack();
+
+  manualIsCurtainReady.value = false;
+}
+function prepareSceneAndFadeFromBlack(){
   console.log('preparing environment after portal jump');
 
   persistedCameraStore.trigger();
@@ -242,9 +254,6 @@ function tryPrepareSceneAndFadeFromBlack(){
     throw Error('template ref undefined. That should not happen!');
   }
   cameraTag.value.setAttribute('look-controls', {enabled: false});
-  // const lookControls = cameraTag.value.components['look-controls'] as unknown as { pitchObject: {rotaion: THREE.Euler}, yawObject: {rotation: THREE.Euler}};
-  // lookControls.pitchObject.rotaion.x = 0;
-  // lookControls.yawObject.rotation.y = 0;
   // @ts-ignore
   cameraTag.value.components['look-controls'].pitchObject.rotation.x = 0;
   // @ts-ignore
@@ -253,19 +262,13 @@ function tryPrepareSceneAndFadeFromBlack(){
 
   console.log('Switching v-sphere source');
   vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTagIndex+1}`);
-  // vSphereTag.value?.setAttribute('visible', camera.is360Camera);
   console.log('switching a-video source');
   aVideoTag.value?.setAttribute('src', `#main-video-${activeVideoTagIndex+1}`);
-  // aVideoTag.value?.setAttribute('visible', !camera.is360Camera);
-
-  // persistedPortals.trigger();
-  // persistedFOV.trigger();
 
   setVideoDimensionsFromTag(activeVideoTag.value!);
   
   cameraRigTag.value?.object3D.position.set(0,0,0);
   
-  // overrideIsCurtainReady.value = false;
   
   curtainTag.value?.emit('fadeFromBlack');
 }
@@ -303,7 +306,7 @@ function onPortalMouseDown(portal: ComputedPortal, evt: MouseEvent){
     goToCamera(portal.toCameraId, evt);
   }
 }
-// These will hold to play state of the animations.
+// These will hold the play state of the animations.
 let isFadingToBlack = false;
 let isZoomingInOnPortal = false;
 function goToCamera(cameraId: CameraId, event: Event) {
@@ -313,7 +316,7 @@ function goToCamera(cameraId: CameraId, event: Event) {
   (curtainTag.value as HTMLElement).addEventListener('animationcomplete__to_black', () => {
     console.log('fade to black animation complete');
     isFadingToBlack = false;
-    tryPrepareSceneAndFadeFromBlack();
+    onCurtainStateChanged();
   }, {once: true});
 
   // Move/zoom animation -----
@@ -330,7 +333,7 @@ function goToCamera(cameraId: CameraId, event: Event) {
   (cameraRigTag.value as HTMLElement)?.addEventListener('animationcomplete', () => {
     console.log('zoom animation complete');
     isZoomingInOnPortal = false;
-    tryPrepareSceneAndFadeFromBlack();
+    onCurtainStateChanged();
   }, {once: true});
   const sphereShrinkAnimationString = `property: geometry.radius; to: ${dir.length()}; dur: 500; easing: easeInQuad;`;
   vSphereTag.value?.setAttribute('animation', sphereShrinkAnimationString);

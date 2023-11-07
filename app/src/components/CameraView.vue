@@ -492,13 +492,6 @@ function onMouseMove(ev: MouseEvent){
   }
 }
 
-// function updateCurrentCamera(input: Parameters<typeof adminStore.updateCamera>[1], reason?: string){
-//   if(!camera.currentCamera) return;
-//   const adminStore = useAdminStore();
-//   adminStore.updateCamera(camera.currentCamera.cameraId, input, reason);
-// }
-
-// const movedEntity = ref<Entity>();
 function onMouseUp(evt: Event){
   if(!(evt instanceof MouseEvent) || !props.editable) return;
   const adminStore = useAdminStore();
@@ -514,7 +507,6 @@ function onMouseUp(evt: Event){
     console.log('setting portal:', data);
     adminStore.setPortal(data);
   } else if(isViewOriginMoved.value) {
-    // const originCoords = camera.utils.anglesToCoords({angleX: THREE.MathUtils.radToDeg(movedEntity.value.object3D.rotation.x), angleY: THREE.MathUtils.radToDeg(movedEntity.value.object3D.rotation.y)});
     adminStore.updateCamera(camera.currentCamera!.cameraId, {viewOriginX: camera.currentCamera?.viewOrigin.x, viewOriginY: camera.currentCamera?.viewOrigin.y }, 'view origin');
   }
   movedPortalCameraId.value = undefined;

@@ -14,11 +14,9 @@
 
     # reverse_proxy /* localhost:8080
     # reverse_proxy /* localhost:5173
-    root * app/dist/
-    try_files {path} /index.html
-    file_server {
-      root app/dist
-    }
+    root * app/dist  # will be used as the start directory for the ditrectives below
+    try_files {path} /index.html # catch all (non existent files) redirect for SPA frontend
+    file_server  # serve the files!
   }
   log
 }

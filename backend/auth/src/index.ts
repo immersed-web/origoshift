@@ -161,5 +161,7 @@ const port = 3333;
 app.listen(port, () => {
   console.log(`listening on ${port}`);
   if (process.env.DEVELOPMENT)
-    console.log('Running in dev mode!!!');
+    console.log('Running in DEVELOPMENT mode!!!');
+  else
+    console.log('Running in PRODUCTION mode');
 });

@@ -1,3 +1,13 @@
+(development) {
+  reverse_proxy /* localhost:5173
+}
+
+(production) {
+  root * app/dist  # will be used as the start directory for the ditrectives below
+  try_files {path} /index.html # catch all (non existent files) redirect for SPA frontend
+  file_server  # serve the files!
+}
+
 {$EXPOSED_SERVER_URL} {
   # Important to use the route directive so that the reverse_proxy is matched first
   # (default is try_files before reverse_proxy)
@@ -11,12 +21,8 @@
     handle_path /files* {
       reverse_proxy localhost:9002
     }
-
-    # reverse_proxy /* localhost:8080
-    # reverse_proxy /* localhost:5173
-    root * app/dist  # will be used as the start directory for the ditrectives below
-    try_files {path} /index.html # catch all (non existent files) redirect for SPA frontend
-    file_server  # serve the files!
+    
+    import {$ENVIRONMENT:production}
   }
   log
 }

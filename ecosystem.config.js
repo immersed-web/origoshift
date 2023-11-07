@@ -5,10 +5,12 @@ const path = require('path');
 
 let envString = fs.readFileSync(path.join(__dirname, '.env'));
 const envVars = dotenv.parse(envString);
+envVars['ENVIRONMNENT'] = 'production';
 if(process.env.DEVELOPMENT){
   console.log('RUNNING IN DEV MODE');
   // envString = fs.readFileSync(path.join(__dirname, '.env.dev'));
   envVars['DEVELOPMENT'] = true;
+  envVars['ENVIRONMENT'] = 'development'
 }
 
 const authEnvs = _.pick(envVars, [

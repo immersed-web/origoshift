@@ -1,6 +1,6 @@
 import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { defineStore } from 'pinia';
-import type { CameraId, SenderId, VenueId, Visibility, CameraPortalUpdate, ConnectionId, CameraUpdate } from 'schemas/esm';
+import type { CameraId, SenderId, VenueId, CameraPortalUpdate, CameraUpdate } from 'schemas/esm';
 import { ref } from 'vue';
 import { useConnectionStore } from './connectionStore';
 import { useVenueStore } from './venueStore';

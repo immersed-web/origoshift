@@ -37,26 +37,26 @@ function implement<Model = never>() {
 //   z.union([literalSchema, z.array(JsonSchema), z.record(JsonSchema)])
 // );
 
-type NullableJsonInput = Prisma.JsonValue | null | 'JsonNull' | 'DbNull' | Prisma.NullTypes.DbNull | Prisma.NullTypes.JsonNull;
+// type NullableJsonInput = Prisma.JsonValue | null | 'JsonNull' | 'DbNull' | Prisma.NullTypes.DbNull | Prisma.NullTypes.JsonNull;
 
-const transformJsonNull = (v?: NullableJsonInput) => {
-  if (!v || v === 'DbNull') return Prisma.DbNull;
-  if (v === 'JsonNull') return Prisma.JsonNull;
-  return v;
-};
+// const transformJsonNull = (v?: NullableJsonInput) => {
+//   if (!v || v === 'DbNull') return Prisma.DbNull;
+//   if (v === 'JsonNull') return Prisma.JsonNull;
+//   return v;
+// };
 
-const JsonValueSchema: z.ZodType<Prisma.JsonValue> = z.union([
-  z.string(),
-  z.number(),
-  z.boolean(),
-  z.lazy(() => z.array(JsonValueSchema)),
-  z.lazy(() => z.record(JsonValueSchema)),
-]);
+// const JsonValueSchema: z.ZodType<Prisma.JsonValue> = z.union([
+//   z.string(),
+//   z.number(),
+//   z.boolean(),
+//   z.lazy(() => z.array(JsonValueSchema)),
+//   z.lazy(() => z.record(JsonValueSchema)),
+// ]);
 
-const NullableJsonValueSchema = z
-  .union([JsonValueSchema, z.literal('DbNull'), z.literal('JsonNull')])
-  .nullable()
-  .transform((v) => transformJsonNull(v));
+// const NullableJsonValueSchema = z
+//   .union([JsonValueSchema, z.literal('DbNull'), z.literal('JsonNull')])
+//   .nullable()
+//   .transform((v) => transformJsonNull(v));
 
 const InputJsonValueSchema: z.ZodType<Prisma.InputJsonValue> = z.union([
   z.string(),
@@ -66,7 +66,7 @@ const InputJsonValueSchema: z.ZodType<Prisma.InputJsonValue> = z.union([
   z.lazy(() => z.record(InputJsonValueSchema.nullable())),
 ]);
 
-const NullableJsonNullValueInputSchema = z.enum(['DbNull','JsonNull',]).transform((v) => transformJsonNull(v));
+// const NullableJsonNullValueInputSchema = z.enum(['DbNull','JsonNull',]).transform((v) => transformJsonNull(v));
 
 const jwtDefaultPayload = implement<JWTDefaultPayload>().with({
   aud: z.string().optional(),
@@ -225,8 +225,8 @@ const CameraUpdatePayloadSchema = implement<CameraUpdatePayload>().with({
     fovEnd: z.number().optional(),
     orientation: z.number().optional(),
     // settings: JsonSchema.optional().nullable(),
-    // settings: InputJsonValueSchema,
-    settings: z.union([ z.lazy(() => NullableJsonNullValueInputSchema),InputJsonValueSchema ]).optional(),
+    settings: InputJsonValueSchema.optional(),
+    // settings: z.union([ z.lazy(() => NullableJsonNullValueInputSchema),InputJsonValueSchema ]).optional(),
 })
 
 export const CameraUpdateSchema = z.object({

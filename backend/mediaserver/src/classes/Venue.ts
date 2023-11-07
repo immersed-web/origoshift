@@ -130,21 +130,31 @@ export class Venue {
     return Array.from(this.senderClients.keys());
   });
   //TODO: Find a way to use reactivity or memoization smoothly for backend instead of getters. We want to avoid unneccesary deep reactivity for performance
-  get detachedSenders() {
-    log.info('detachedSenders recalculated!');
+  detachedSenders = computed(() => {
     const senderArray = Array.from(this.senderClients.entries());
-    const sendersWithoutCameraArray: typeof senderArray = senderArray.filter(([k, sender]) => !sender.camera);
+    const sendersWithoutCameraArray: typeof senderArray = senderArray.filter(([_k, sender]) => !sender.camera);
     return new Map(sendersWithoutCameraArray);
-    // TODO: Verify that my new version above works and that the old one below is unneccesary
-    // const sendersInCamsConnectionIds = [] as ConnectionId[];
-    // this.cameras.forEach(c => {
-    //   if(c.sender) {
-    //     sendersInCamsConnectionIds.push(c.sender.connectionId);
-    //   }
-    // });
-    // const sendersConnectionIds = Array.from(this.senderClients.entries());
-    // return new Map(sendersConnectionIds.filter(([sId, sender]) => !sendersInCamsConnectionIds.includes(sId)));
-  }
+  });
+  publicDetachedSender = computed(() => {
+    const publicDetachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string}> = {};
+    this.detachedSenders.value.forEach(s => publicDetachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username});
+    return publicDetachedSenders;
+  });
+  // get detachedSenders() {
+  //   log.info('detachedSenders recalculated!');
+  //   const senderArray = Array.from(this.senderClients.entries());
+  //   const sendersWithoutCameraArray: typeof senderArray = senderArray.filter(([k, sender]) => !sender.camera);
+  //   return new Map(sendersWithoutCameraArray);
+  //   // TODO: Verify that my new version above works and that the old one below is unneccesary
+  //   // const sendersInCamsConnectionIds = [] as ConnectionId[];
+  //   // this.cameras.forEach(c => {
+  //   //   if(c.sender) {
+  //   //     sendersInCamsConnectionIds.push(c.sender.connectionId);
+  //   //   }
+  //   // });
+  //   // const sendersConnectionIds = Array.from(this.senderClients.entries());
+  //   // return new Map(sendersConnectionIds.filter(([sId, sender]) => !sendersInCamsConnectionIds.includes(sId)));
+  // }
 
   get _isEmpty() {
     return this.clients.size === 0 && this.senderClients.size === 0;
@@ -174,13 +184,13 @@ export class Venue {
 
   getAdminOnlyState() {
     const { venueId, clientIds, owners } = this;
-    const detachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string}> = {};
-    this.detachedSenders.forEach(s => detachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username});
+    // const detachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string}> = {};
+    // this.detachedSenders.value.forEach(s => detachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username});
     const cameras: Record<CameraId, ReturnType<Camera['getPublicState']>> = {};
     this.cameras.forEach(cam => cameras[cam.cameraId] = cam.getPublicState());
 
     // const publicState =  this.getPublicState();
-    return { venueId, clientIds, owners ,detachedSenders, cameras };
+    return { venueId, clientIds, owners , detachedSenders: this.publicDetachedSender.value, cameras };
   }
 
   //

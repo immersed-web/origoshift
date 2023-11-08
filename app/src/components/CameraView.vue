@@ -1,5 +1,16 @@
 <template>
-  <div v-if="!camera.currentCamera">
+  <div
+    class="flex justify-center items-center"
+    v-if="!soup.userHasInteracted"
+  >
+    <button
+      class="btn btn-primary btn-lg"
+      @click="loadStuff"
+    >
+      Starta
+    </button>
+  </div>
+  <div v-else-if="!camera.currentCamera">
     Försöker öppna kameran
   </div>
   <a-scene
@@ -145,7 +156,7 @@
       </a-entity>
     </a-entity>
   </a-scene>
-  <div class="flex hidden">
+  <div class="hidden">
     <div class="">
       <video
         autoplay
@@ -456,9 +467,7 @@ watch(() => props.cameraId, () => {
 
 onMounted(async () => {
   console.log('mounted');
-  if(soup.userHasInteracted){
-    await loadStuff();
-  }
+  await loadStuff();
   document.addEventListener('mouseup', onMouseUp);
   document.addEventListener('pointermove', onMouseMove);
 });

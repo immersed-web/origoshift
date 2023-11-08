@@ -53,8 +53,8 @@
       <template v-if="editedCameraId">
         <AdminCameraEditor :camera-id="editedCameraId" />
       </template>
-      <template v-else-if="editedSenderId && hasDetachedSenders">
-        <AdminSenderEditor :sender-id="editedSenderId" />
+      <template v-else-if="editedSender">
+        <AdminSenderEditor :sender="editedSender" />
       </template>
     </div>
   </div>
@@ -175,7 +175,7 @@
 import { useAdminStore } from '@/stores/adminStore';
 import { useSoupStore } from '@/stores/soupStore';
 import { computed, onBeforeMount, reactive, ref } from 'vue';
-import type { CameraId, CameraPortalUpdate, SenderId } from 'schemas';
+import type { CameraId, CameraPortalUpdate, ConnectionId, SenderId } from 'schemas';
 import { useCameraStore } from '@/stores/cameraStore';
 import AdminCameraEditor from './components/AdminCameraEditor.vue';
 import AdminSenderEditor from './components/AdminSenderEditor.vue';
@@ -201,9 +201,19 @@ const portalPosition: Partial<CameraPortalUpdate['portal']> & {absoluteX?: numbe
 
 const editedCameraId = ref<CameraId>();
 const editedSenderId = ref<SenderId>();
+const editedSender = computed(() => {
+  const detachedSenders = adminStore.adminOnlyVenueState?.detachedSenders;
+  if(!detachedSenders || !editedSenderId.value) return undefined;
+  for(const prop in detachedSenders){
+    const s = detachedSenders[prop as ConnectionId];
+    if(s.senderId === editedSenderId.value){
+      return s;
+    }
+  }
+  return undefined;
+});
 
 async function consumeCamera(cameraId: CameraId){
-  // await connection.client.camera.joinCamera.mutate({cameraId});
   await cameraStore.joinCamera(cameraId);
   await cameraStore.consumeCurrentCamera();
 }
@@ -234,14 +244,4 @@ onBeforeMount(async ()=> {
   soupStore.createReceiveTransport();
 });
 
-function positionPortal(ev: MouseEvent) {
-  const clickedElement = ev.target as HTMLElement;
-  const x = ev.offsetX / clickedElement.offsetWidth;
-  const y = ev.offsetY / clickedElement.offsetHeight;
-  console.log('coords: ', x, y);
-  portalPosition.x = x;
-  portalPosition.absoluteX = ev.offsetX;
-  portalPosition.y = y;
-  portalPosition.absoluteY = ev.offsetY;
-}
 </script>

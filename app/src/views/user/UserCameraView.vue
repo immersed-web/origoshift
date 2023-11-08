@@ -1,18 +1,19 @@
 <template>
-  <div v-if="!soup.userHasInteracted">
-    <button
-      @click="soup.userHasInteracted = true"
-      class="btn btn-primary"
-    >
-      Starta
-    </button>
-  </div>
-    
   <div
-    v-else
     class="w-full h-screen"
   >
+    <div
+      class="w-full h-full flex justify-center items-center"
+      v-if="!soup.userHasInteracted"
+    >
+      <button
+        class="btn btn-primary btn-lg"
+      >
+        Starta
+      </button>
+    </div>
     <CameraView
+      v-else
       :camera-id="props.cameraId"
       :venue-id="props.venueId"
     />

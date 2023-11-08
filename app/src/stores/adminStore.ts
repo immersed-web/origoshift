@@ -1,9 +1,10 @@
 import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { defineStore } from 'pinia';
-import type { CameraId, SenderId, VenueId, CameraPortalUpdate, CameraUpdate } from 'schemas/esm';
+import type { CameraId, SenderId, VenueId, CameraPortalUpdate, CameraUpdate, ConnectionId } from 'schemas/esm';
 import { ref } from 'vue';
 import { useConnectionStore } from './connectionStore';
 import { useVenueStore } from './venueStore';
+import { useSoupStore } from './soupStore';
 
 type _ReceivedAdminVenueState = SubscriptionValue<RouterOutputs['admin']['subVenueStateUpdated']>['data'];
 export const useAdminStore = defineStore('admin', () => {
@@ -63,17 +64,6 @@ export const useAdminStore = defineStore('admin', () => {
     console.log('Created, loaded and joined venue', venueId);
   }
 
-  // TODO: Shouldn't have to redefine VenueUpdate type
-  // async function updateVenue (name?: string, visibility?: Visibility, doorsOpeningTime?: Date | null, doorsAutoOpen?: boolean, streamStartTime?: Date | null) {
-  //   await connection.client.admin.updateVenue.mutate({
-  //     name: name,
-  //     visibility: visibility,
-  //     doorsOpeningTime: doorsOpeningTime,
-  //     doorsAutoOpen: doorsAutoOpen,
-  //     streamStartTime: streamStartTime,
-  //   });
-  // }
-
   async function deleteCurrentVenue() {
     if(venueStore.currentVenue?.venueId){
       const venueId = venueStore.currentVenue.venueId;
@@ -82,10 +72,6 @@ export const useAdminStore = defineStore('admin', () => {
       await connection.client.admin.deleteVenue.mutate({venueId});
     }
   }
-
-  // async function loadVenue (venueId: VenueId) {
-  //   return await connection.client.admin.loadVenue.mutate({venueId});
-  // }
 
   async function loadAndJoinVenueAsAdmin ( venueId: VenueId) {
     const {publicVenueState, adminOnlyVenueState: aOnlyState} = await connection.client.admin.loadAndJoinVenue.mutate({venueId});
@@ -105,10 +91,6 @@ export const useAdminStore = defineStore('admin', () => {
     await connection.client.admin.setSenderForCamera.mutate({cameraId, senderId});
   }
   
-  // async function setCameraViewOrigin(data: CameraViewOriginUpdate){
-  //   await connection.client.admin.setCameraViewOrigin.mutate(data);
-  // }
-  
   async function setPortal(data: CameraPortalUpdate) {
     await connection.client.admin.setCameraPortal.mutate(data);
   }
@@ -123,6 +105,16 @@ export const useAdminStore = defineStore('admin', () => {
   async function deleteCamera(cameraId: CameraId){
     await connection.client.admin.deleteCamera.mutate({cameraId});
   }
+  
+  async function consumeDetachedSenderVideo(connectionId: ConnectionId) {
+    const p = adminOnlyVenueState.value?.detachedSenders[connectionId].producers;
+    if(p === undefined) return;
+    if(!p.videoProducer) return;
+    const soup = useSoupStore();
+    soup.closeAllConsumers();
+    return soup.consume(p.videoProducer.producerId);
+    // const response = await connection.client.soup.createConsumer.mutate({ producerId:p.videoProducer?.producerId});
+  }
 
 
   return {
@@ -136,5 +128,6 @@ export const useAdminStore = defineStore('admin', () => {
     setPortal,
     deletePortal,
     deleteCamera,
+    consumeDetachedSenderVideo,
   };
 });

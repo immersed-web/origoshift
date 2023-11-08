@@ -12,11 +12,10 @@ import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate, SenderId, hasAtLe
 import { Prisma } from 'database';
 import prisma, { cameraIncludeStuff } from '../modules/prismaClient';
 
-import { Camera, VrSpace, type UserClient, SenderClient, BaseClient  } from './InternalClasses';
-import { computed, shallowReactive } from '@vue/reactivity';
+import { Camera, VrSpace, type UserClient, SenderClient, BaseClient, PublicProducers  } from './InternalClasses';
+import { computed, ref, shallowReactive } from '@vue/reactivity';
 import { ProducerId } from 'schemas/mediasoup';
 import { isPast } from 'date-fns';
-// import { NotifierInputData } from 'trpc/trpc-utils';
 
 const basicUserSelect = {
   select: {
@@ -44,16 +43,13 @@ export class Venue {
   private constructor(prismaData: VenueResponse, router: soupTypes.Router){
     this.router = router;
     this.prismaData = prismaData;
+
     if(prismaData.virtualSpace){
       this.vrSpace = new VrSpace(this, prismaData.virtualSpace);
     }
     prismaData.cameras.forEach(c => {
       this.loadCamera(c.cameraId as CameraId);
     });
-
-    // this.owners.forEach(o => {
-    //   o.
-    // })
   }
 
   private prismaData: VenueResponse;
@@ -62,12 +58,6 @@ export class Venue {
     return this.prismaData.venueId as VenueId;
   }
   get name() { return this.prismaData.name; }
-  // set name(data : VenueUpdate) {
-  //   if(data.name) { this.prismaData.name = data.name;}
-  //   // if(data.description) { this.prismaData = data.description;}
-
-  //   prisma.venue.update({where: {venueId: this.prismaData.venueId}, data: this.prismaData});
-  // }
 
   get owners()  {
     return this.prismaData.owners.reduce<Record<UserId, typeof this.prismaData.owners[number]>>((prev, cur) => {
@@ -116,7 +106,6 @@ export class Venue {
   router: soupTypes.Router;
   vrSpace?: VrSpace;
 
-  // cameras: Map<CameraId, Camera> = new Map();
   cameras = shallowReactive<Map<CameraId, Camera>>(new Map());
 
   private clients: Map<ConnectionId, UserClient> = new Map();
@@ -124,37 +113,28 @@ export class Venue {
     return Array.from(this.clients.keys());
   }
 
-  // senderClients: Map<ConnectionId, SenderClient> = new Map();
-  private senderClients  = shallowReactive<Map<ConnectionId, SenderClient>>(new Map());
+  private detachedDirtyFlag = ref<number>(0);
+  invalidateDetachedSenders(){
+    this.detachedDirtyFlag.value++;
+  }
+  private senderClients = shallowReactive<Map<ConnectionId, SenderClient>>(new Map());
   senderClientIds = computed(() => {
     return Array.from(this.senderClients.keys());
   });
-  //TODO: Find a way to use reactivity or memoization smoothly for backend instead of getters. We want to avoid unneccesary deep reactivity for performance
   detachedSenders = computed(() => {
+    this.detachedDirtyFlag.value;
     const senderArray = Array.from(this.senderClients.entries());
-    const sendersWithoutCameraArray: typeof senderArray = senderArray.filter(([_k, sender]) => !sender.camera);
+    const sendersWithoutCameraArray: typeof senderArray = senderArray.filter(([_k, sender]) => {
+      return !sender.camera;
+    });
     return new Map(sendersWithoutCameraArray);
   });
-  publicDetachedSender = computed(() => {
-    const publicDetachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string}> = {};
-    this.detachedSenders.value.forEach(s => publicDetachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username});
+  publicDetachedSenders = computed(() => {
+    const publicDetachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string, producers: PublicProducers }> = {};
+    this.detachedSenders.value.forEach(s => publicDetachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username, producers: s.publicProducers.value});
+    
     return publicDetachedSenders;
   });
-  // get detachedSenders() {
-  //   log.info('detachedSenders recalculated!');
-  //   const senderArray = Array.from(this.senderClients.entries());
-  //   const sendersWithoutCameraArray: typeof senderArray = senderArray.filter(([k, sender]) => !sender.camera);
-  //   return new Map(sendersWithoutCameraArray);
-  //   // TODO: Verify that my new version above works and that the old one below is unneccesary
-  //   // const sendersInCamsConnectionIds = [] as ConnectionId[];
-  //   // this.cameras.forEach(c => {
-  //   //   if(c.sender) {
-  //   //     sendersInCamsConnectionIds.push(c.sender.connectionId);
-  //   //   }
-  //   // });
-  //   // const sendersConnectionIds = Array.from(this.senderClients.entries());
-  //   // return new Map(sendersConnectionIds.filter(([sId, sender]) => !sendersInCamsConnectionIds.includes(sId)));
-  // }
 
   get _isEmpty() {
     return this.clients.size === 0 && this.senderClients.size === 0;
@@ -184,13 +164,10 @@ export class Venue {
 
   getAdminOnlyState() {
     const { venueId, clientIds, owners } = this;
-    // const detachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string}> = {};
-    // this.detachedSenders.value.forEach(s => detachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username});
     const cameras: Record<CameraId, ReturnType<Camera['getPublicState']>> = {};
     this.cameras.forEach(cam => cameras[cam.cameraId] = cam.getPublicState());
 
-    // const publicState =  this.getPublicState();
-    return { venueId, clientIds, owners , detachedSenders: this.publicDetachedSender.value, cameras };
+    return { venueId, clientIds, owners , detachedSenders: this.publicDetachedSenders.value, cameras };
   }
 
   //
@@ -242,6 +219,7 @@ export class Venue {
     const data = this.getAdminOnlyState();
     this.clients.forEach(c => {
       if(hasAtLeastSecurityLevel(c.role, 'moderator')){
+        log.info(`notifying adminOnlyVenuestate (${reason}) to client ${c.username} (${c.connectionId})`);
         c.notify.venueStateUpdatedAdminOnly?.({data, reason});
       }
     });
@@ -562,7 +540,7 @@ export class Venue {
     }
     const camera = new Camera(prismaCamera, this, maybeSender);
     this.cameras.set(camera.cameraId, camera);
-
+    
     this._notifyStateUpdated('camera loaded');
     this._notifyAdminOnlyState('camera loaded');
   }
@@ -632,6 +610,7 @@ export class Venue {
 
   // static async clientRequestLoadVenue()
   static async loadVenue(venueId: VenueId, ownerId: UserId, worker?: soupTypes.Worker) {
+    log.info(`*****TRYING TO LOAD VENUE: ${venueId}`);
     try {
       const loadedVenue = Venue.venues.get(venueId);
       if(loadedVenue){
@@ -661,11 +640,11 @@ export class Venue {
       }
       const router = await worker.createRouter(mediasoupConfig.router);
       const venue = new Venue(dbResponse, router);
-      log.info(`*****LOADING VENUE: ${venue.name} (${venue.venueId})`);
-      log.info('venueIncludeStuff: ', venueIncludeStuff);
-      log.info('venue was loaded with db data:', dbResponse);
+      // log.info('venueIncludeStuff: ', venueIncludeStuff);
+      // log.info('venue was loaded with db data:', dbResponse);
 
       Venue.venues.set(venue.venueId, venue);
+      log.info(`*****LOADED VENUE: ${venue.name} ${venue.venueId})`);
       return venue;
     } catch (e) {
       log.error('failed to load venue');

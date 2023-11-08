@@ -22,7 +22,6 @@ export class Camera {
       this.setSender(sender);
     }
     effect(() =>{
-      // this.producers;
       log.info('Producers updated:', this.producers.value);
       this._notifyStateUpdated('producers updated');
     });
@@ -168,6 +167,7 @@ export class Camera {
     this.prismaData.senderId = sender.senderId;
     // await this.saveToDb();
     this.sender.value = sender;
+    this.venue.invalidateDetachedSenders();
     sender._setCamera(this.cameraId);
     this._notifyStateUpdated('sender attached to camera');
   }

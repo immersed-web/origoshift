@@ -232,29 +232,6 @@ export class BaseClient {
     return pProducers;
   });
 
-  // getPublicProducers(): PublicProducers{
-  //   let videoProducer = undefined;
-  //   if( this.videoProducer) {
-  //     const {id, paused } = this.videoProducer;
-  //     videoProducer = {producerId: id as ProducerId, paused};
-  //   }
-  //   let audioProducer = undefined;
-  //   if( this.audioProducer) {
-  //     const {id, paused } = this.audioProducer;
-  //     audioProducer = {producerId: id as ProducerId, paused};
-  //   }
-  //   return {
-  //     videoProducer,
-  //     audioProducer,
-  //   };
-  //   // const producerObj: Record<ProducerId, {producerId: ProducerId, kind: soupTypes.MediaKind, paused: boolean }> = {};
-  //   // this.producers.forEach((p) => {
-  //   //   const pId = p.id as ProducerId;
-  //   //   producerObj[pId] = { producerId: pId, kind: p.kind, paused: p.paused};
-  //   // });
-  //   // return producerObj;
-  // }
-
   getPublicState(){
     // const ownedVenues = this.ownedVenues.map(v => v.venueId);
 

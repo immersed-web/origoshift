@@ -49,6 +49,7 @@ export const soupRouter = router({
     }
     await chosenTransport.connect({dtlsParameters});
   }),
+  // TODO: We should increase security so clients cant produce at all
   createProducer: clientInVenueP.input(CreateProducerPayloadSchema).mutation(async ({ctx, input}) => {
     log.info('received createProducer request!');
     const client: UserClient | SenderClient = ctx.client;
@@ -95,6 +96,9 @@ export const soupRouter = router({
     }
     const producerId = input.producerId;
     return await ctx.client.createConsumer({producerId});
+  }),
+  closeConsumer: clientInVenueP.input(CreateConsumerPayloadSchema).mutation( async ({ctx, input}) => {
+    ctx.client.closeConsumer(input.producerId);
   }),
   pauseOrResumeConsumer: p.input(z.object({
     producerId: ProducerIdSchema,

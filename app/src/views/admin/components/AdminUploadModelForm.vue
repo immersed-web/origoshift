@@ -59,7 +59,7 @@ const url = computed(() => {
 });
 
 const config = {
-  url: `${import.meta.env.EXPOSED_FILESERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PORT}`,
+  url: `${import.meta.env.EXPOSED_FILESERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PORT}${import.meta.env.EXPOSED_FILESERVER_PATH}`,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -47,7 +47,7 @@ export const useVenueStore = defineStore('venue', () => {
       return currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl;
     }
     else {
-      let path = `${import.meta.env.EXPOSED_FILESERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PORT}`;
+      let path = `${import.meta.env.EXPOSED_FILESERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PORT}${import.meta.env.EXPOSED_FILESERVER_PATH}`;
       path += '/uploads/3d_models/';
       path += currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl;
       return path;

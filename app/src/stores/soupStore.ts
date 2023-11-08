@@ -3,7 +3,7 @@ import type { RouterOutputs } from '@/modules/trpcClient';
 import { soupDevice, attachTransportEvents, type ProduceAppData } from '@/modules/mediasoup';
 import type {types as soupTypes } from 'mediasoup-client';
 import { computed, reactive, ref, shallowReactive, shallowRef, toRaw } from 'vue';
-import { useIntervalFn } from '@vueuse/core';
+import { useIntervalFn, useEventListener } from '@vueuse/core';
 import { useConnectionStore } from './connectionStore';
 import type { ConsumerId, ProducerId, ProducerInfo } from 'schemas/mediasoup';
 
@@ -41,6 +41,12 @@ export const useSoupStore = defineStore('soup', () =>{
     // });
     // console.dir(toRaw(consumerStats));
   }, 5000);
+  
+  useIntervalFn(() => {
+    userHasInteracted.value = navigator.userActivation.hasBeenActive;
+  }, 4000);
+  
+  useEventListener(document, 'click', () => userHasInteracted.value = navigator.userActivation.hasBeenActive);
 
   // Perhaps unintuitive to have producerId as key.
   // But presumably the most common case is to need the consumer belonging to a specific producer.
@@ -223,9 +229,6 @@ export const useSoupStore = defineStore('soup', () =>{
     if (!producerId) {
       throw Error('consume called without producerId! Please provide one!');
     }
-    // if (!receiveTransport.value) {
-    //   throw Error('No receiveTransport present. Needed to be able to consume');
-    // }
     const foundConsumer = consumers.get(producerId);
     if(foundConsumer){
       console.log('re-using already existing consumer');
@@ -234,16 +237,6 @@ export const useSoupStore = defineStore('soup', () =>{
     const consumerOptions = await connectionStore.client.soup.createConsumer.mutate({producerId});
 
     return await _handleReceivedConsumerOptions(consumerOptions);
-    // console.log('createConsumerRequest gave these options: ', consumerOptions);
-    // const consumer = await receiveTransport.value.consume(consumerOptions);
-    // //Not a bug to use producerID! It's on purpose.
-    // consumers.set(producerId, consumer);
-
-    // const consumerId = consumer.id as ConsumerId;
-    // // safe to unpause from server now
-    // await connectionStore.client.soup.pauseOrResumeConsumer.mutate({producerId, pause: false});
-
-    // return { track: consumer.track, consumerId};
   }
 
   async function _handleReceivedConsumerOptions(consumerOptions: RouterOutputs['soup']['createConsumer']){
@@ -280,6 +273,19 @@ export const useSoupStore = defineStore('soup', () =>{
 
   async function resumeConsumer (producerId: ProducerId) {
     pauseResumeConsumer(producerId, false);
+  }
+  
+  // TODO: Negotiate with backend!!
+  async function closeConsumer (producerId: ProducerId) {
+    await connectionStore.client.soup.closeConsumer.mutate({producerId});
+    // consumers.get(producerId)?.close();
+    // consumers.delete(producerId);
+  }
+  
+  function closeAllConsumers(){
+    consumers.forEach(c => {
+      closeConsumer(c.producerId as ProducerId);
+    });
   }
 
   async function pauseResumeConsumer (producerId: ProducerId, wasPaused: boolean) {
@@ -359,5 +365,7 @@ export const useSoupStore = defineStore('soup', () =>{
     consume,
     pauseConsumer,
     resumeConsumer,
+    closeConsumer,
+    closeAllConsumers,
   };
 });

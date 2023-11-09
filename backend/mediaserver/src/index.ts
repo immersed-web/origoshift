@@ -219,7 +219,7 @@ app.ws<WSUserData>('/*', {
 
     onSocketClose(ws, Buffer.from(msg).toString());
   }
-}).listen(9001, (listenSocket) => {
+}).listen(Number.parseInt(process.env.MEDIASOUP_PORT || '9001'), (listenSocket) => {
   if (listenSocket) {
     console.log('listenSocket:' ,listenSocket);
     console.log('Listening to port 9001');

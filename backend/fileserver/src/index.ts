@@ -69,5 +69,5 @@ app.post('/remove', (req,res) => {
 })
 
 // Run Express app
-const port = process.env.EXPOSED_FILESERVER_PORT?.split(':',)[1]
+const port = Number.parseInt(process.env.FILESERVER_PORT || '9002')
 app.listen(port, () => console.log('Application listening on port ' + port))

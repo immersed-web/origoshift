@@ -13,14 +13,14 @@ if(process.env.DEVELOPMENT){
   envVars['ENVIRONMENT'] = 'development'
 }
 
-const authEnvs = _.pick(envVars, [
-  'DEVELOPMENT',
-  'DATABASE_URL',
-  'JWT_SECRET',
-  'JWT_ISSUER',
-  'JWT_AUDIENCE',
-  'SESSION_KEY',
-]);
+// const authEnvs = _.pick(envVars, [
+//   'DEVELOPMENT',
+//   'DATABASE_URL',
+//   'JWT_SECRET',
+//   'JWT_ISSUER',
+//   'JWT_AUDIENCE',
+//   'SESSION_KEY',
+// ]);
 
 const scripts = {
   // frontend: 'quasar serve ./dist/spa --history --port=9000',
@@ -49,7 +49,7 @@ module.exports = {
       name   : "auth",
       script: scripts.auth,
       cwd    : "./backend/auth/",
-      env: authEnvs
+      env: envVars
     },
     {
       name: 'file server',
@@ -67,9 +67,7 @@ module.exports = {
       name: 'caddy',
       script: scripts.caddy,
       cwd: "./",
-      env: {
-        EXPOSED_SERVER_URL: envVars.EXPOSED_SERVER_URL
-      }
+      env: envVars
     }
   ]
 }

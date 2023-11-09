@@ -3,7 +3,7 @@ import axios, { type AxiosResponse } from 'axios';
 import type {JwtPayload, JwtUserData } from 'schemas';
 import decodeJwt from 'jwt-decode';
 
-const completeAuthUrl = `${import.meta.env.EXPOSED_AUTH_URL}${import.meta.env.EXPOSED_AUTH_PORT}${import.meta.env.EXPOSED_AUTH_PATH}`;
+const completeAuthUrl = `https://${import.meta.env.EXPOSED_SERVER_URL}${import.meta.env.EXPOSED_AUTH_PATH}`;
 console.log('authUrl: ', completeAuthUrl);
 const authEndpoint = axios.create({ baseURL: completeAuthUrl, withCredentials: true });
 

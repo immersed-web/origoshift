@@ -157,7 +157,7 @@ app.get('/guest-jwt', (req, res) => {
 });
 
 
-const port = 3333;
+const port = Number.parseInt(process.env.AUTH_PORT || '3333');
 app.listen(port, () => {
   console.log(`listening on ${port}`);
   if (process.env.DEVELOPMENT)

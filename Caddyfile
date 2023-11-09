@@ -1,28 +1,28 @@
 (development) {
-  reverse_proxy /* localhost:5173
+	reverse_proxy /* localhost:5173
 }
 
 (production) {
-  root * app/dist  # will be used as the start directory for the ditrectives below
-  try_files {path} /index.html # catch all (non existent files) redirect for SPA frontend
-  file_server  # serve the files!
+	root * app/dist # will be used as the start directory for the ditrectives below
+	try_files {path} /index.html # catch all (non existent files) redirect for SPA frontend
+	file_server # serve the files!
 }
 
 {$EXPOSED_SERVER_URL} {
-  # Important to use the route directive so that the reverse_proxy is matched first
-  # (default is try_files before reverse_proxy)
-  route { 
-    handle_path /auth* {
-      reverse_proxy localhost:3333
-    }
-    handle_path /socket* {
-      reverse_proxy localhost:9001
-    }
-    handle_path /files* {
-      reverse_proxy localhost:9002
-    }
-    
-    import {$ENVIRONMENT:production}
-  }
-  log
+	# Important to use the route directive so that the reverse_proxy is matched first
+	# (default is try_files before reverse_proxy)
+	route {
+		handle_path /auth* {
+			reverse_proxy localhost:{$AUTH_PORT}
+		}
+		handle_path /socket* {
+			reverse_proxy localhost:{$MEDIASOUP_PORT}
+		}
+		handle_path /files* {
+			reverse_proxy localhost:{$FILESERVER_PORT}
+		}
+
+		import {$ENVIRONMENT:production}
+	}
+	log
 }

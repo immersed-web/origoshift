@@ -42,15 +42,15 @@ export const useVenueStore = defineStore('venue', () => {
     },
   });
 
+  const urlToFileserver = `https://${import.meta.env.EXPOSED_SERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PATH}`;
   const modelUrl = computed(() => {
     if(currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl.indexOf('https://') === 0){
       return currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl;
     }
     else {
-      let path = `${import.meta.env.EXPOSED_FILESERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PORT}${import.meta.env.EXPOSED_FILESERVER_PATH}`;
-      path += '/uploads/3d_models/';
-      path += currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl;
-      return path;
+      let url = urlToFileserver + '/uploads/3d_models/';
+      url += currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl;
+      return url;
     }
   });
 
@@ -62,10 +62,9 @@ export const useVenueStore = defineStore('venue', () => {
       return currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshUrl;
     }
     else {
-      let path = `${import.meta.env.EXPOSED_FILESERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PORT}`;
-      path += '/uploads/3d_models/';
-      path += currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshUrl;
-      return path;
+      let url = urlToFileserver + '/uploads/3d_models/';
+      url += currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshUrl;
+      return url;
     }
   });
 

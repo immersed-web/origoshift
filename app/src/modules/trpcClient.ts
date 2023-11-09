@@ -10,12 +10,7 @@ import superjson from 'superjson';
 import { shallowRef, type ShallowRef, computed, type ComputedRef } from 'vue';
 import { devtoolsLink } from 'trpc-client-devtools-link';
 
-
-let port = '';
-if(import.meta.env.EXPOSED_MEDIASOUP_PORT){
-  port = `:${import.meta.env.EXPOSED_MEDIASOUP_PORT}`;
-}
-const wsBaseURL = `${import.meta.env.EXPOSED_MEDIASOUP_URL}${port}${import.meta.env.EXPOSED_MEDIASOUP_PATH}`;
+const wsBaseURL = `wss://${import.meta.env.EXPOSED_SERVER_URL}${import.meta.env.EXPOSED_MEDIASOUP_PATH}`;
 
 export function isTRPCClientError(
   cause: unknown,

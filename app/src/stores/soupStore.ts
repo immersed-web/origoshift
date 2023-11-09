@@ -43,9 +43,11 @@ export const useSoupStore = defineStore('soup', () =>{
   }, 5000);
   
   useIntervalFn(() => {
+    // @ts-ignore
     userHasInteracted.value = navigator.userActivation.hasBeenActive;
   }, 4000);
   
+  // @ts-ignore seems userActivation isnt added to lib.dom.d.ts
   useEventListener(document, 'click', () => userHasInteracted.value = navigator.userActivation.hasBeenActive);
 
   // Perhaps unintuitive to have producerId as key.

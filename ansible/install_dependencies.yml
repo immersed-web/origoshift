@@ -42,5 +42,12 @@
           - build
       changed_when: true
     - name: Build all the node projects
-      ansible.builtin.command: pnpm -r build
+      ansible.builtin.command:
+        chdir: "{{ playbook_dir }}/.."
+        argv:
+          - pnpm
+          - --filter
+          - "!./packages/**"
+          - -r
+          - build
       changed_when: true

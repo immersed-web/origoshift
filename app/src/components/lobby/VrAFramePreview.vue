@@ -5,6 +5,7 @@
     ref="scene"
     cont
     id="ascene"
+    vr-mode-ui="enabled: false"
   >
     <a-assets @loaded="onLoaded">
       <a-asset-item

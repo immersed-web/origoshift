@@ -5,6 +5,7 @@ import type { RouterOutputs } from '@/modules/trpcClient';
 import { computed, ref } from 'vue';
 import { useSoupStore } from './soupStore';
 import { THREE } from 'aframe';
+import { useVenueStore } from './venueStore';
 
 type _ReceivedPublicCameraState = RouterOutputs['camera']['joinCamera'];
 
@@ -148,7 +149,14 @@ export const useCameraStore = defineStore('camera', () => {
       const {track} = await soup.consume(currentCamera.value.producers.videoProducer.producerId);
       receivedTracks.videoTrack = track;
     }
-    if(currentCamera.value.producers.audioProducer){
+    const venueStore = useVenueStore();
+    const mainAudio = venueStore.currentVenue?.mainAudioProducerId;
+    if(mainAudio){
+      console.log('CONSUMING MAIN AUDIO!');
+      const {track} = await soup.consume(mainAudio);
+      receivedTracks.audioTrack = track;
+    }
+    else if(currentCamera.value.producers.audioProducer){
       const {track} = await soup.consume(currentCamera.value.producers.audioProducer.producerId);
       receivedTracks.audioTrack = track;
     }

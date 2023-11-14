@@ -23,6 +23,12 @@ export class Camera {
     }
     effect(() =>{
       log.info('Producers updated:', this.producers.value);
+      
+      const audioProducer = this.producers.value.audioProducer;
+      if(audioProducer && this.venue){
+        log.warn('TEMP HACK: Making any audio main audio!');
+        this.venue.mainAudioCameraId.value = this.cameraId;
+      }
       this._notifyStateUpdated('producers updated');
     });
     
@@ -34,7 +40,6 @@ export class Camera {
   sender = shallowRef<SenderClient>();
   producers = computed(() => {
     if(!this.sender.value) {
-      // return undefined;
       const emptyProducers: PublicProducers = {};
       return emptyProducers;
     }

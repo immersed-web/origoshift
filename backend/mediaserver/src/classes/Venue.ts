@@ -13,7 +13,7 @@ import { Prisma } from 'database';
 import prisma, { cameraIncludeStuff } from '../modules/prismaClient';
 
 import { Camera, VrSpace, type UserClient, SenderClient, BaseClient, PublicProducers  } from './InternalClasses';
-import { computed, ref, shallowReactive } from '@vue/reactivity';
+import { computed, ref, shallowReactive, effect } from '@vue/reactivity';
 import { ProducerId } from 'schemas/mediasoup';
 import { isPast } from 'date-fns';
 
@@ -49,6 +49,11 @@ export class Venue {
     }
     prismaData.cameras.forEach(c => {
       this.loadCamera(c.cameraId as CameraId);
+    });
+    
+    effect(() => {
+      this.mainAudioProducer;
+      this._notifyStateUpdated('mainAdudioUpdated');
     });
   }
 
@@ -107,6 +112,13 @@ export class Venue {
   vrSpace?: VrSpace;
 
   cameras = shallowReactive<Map<CameraId, Camera>>(new Map());
+  mainAudioCameraId = ref<CameraId>();
+  mainAudioProducer = computed(() => {
+    if(!this.mainAudioCameraId.value) return undefined;
+    const c = this.cameras.get(this.mainAudioCameraId.value);
+
+    return c?.producers.value.audioProducer;
+  });
 
   private clients: Map<ConnectionId, UserClient> = new Map();
   get clientIds() {
@@ -153,12 +165,14 @@ export class Venue {
         name: c.name,
       };
     });
+    const mainAudioProducerId = this.mainAudioProducer.value?.producerId;
     return {
       venueId, name, visibility,
       doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, doorsAreOpen,
       streamStartTime, streamAutoStart, streamManuallyStarted, /*streamIsStarted*/ streamIsActive,
       vrSpace: this.vrSpace?.getPublicState(),
       cameras,
+      mainAudioProducerId,
     };
   }
 

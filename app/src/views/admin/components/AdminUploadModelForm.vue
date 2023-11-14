@@ -7,11 +7,13 @@
           accept=".gltf, .glb"
           class="file-input file-input-bordered w-full max-w-xs"
           ref="fileInput"
+          @change="onFilesPicked"
         >
       </div>
       <button
         type="submit"
         class="btn btn-primary"
+        :disabled="!isFileSizeOk"
       >
         Ladda upp {{ props.name }}
       </button>
@@ -64,6 +66,22 @@ const config = {
     'Content-Type': 'application/json',
   },
 };
+
+const maxSize = 50 * 1024 * 1024;
+const isFileSizeOk = ref(false);
+function onFilesPicked(evt: Event){
+  console.log('files picked:', evt);
+  if(fileInput.value?.files){
+    for(const file of fileInput.value.files) {
+      if(file.size > maxSize){
+        isFileSizeOk.value = false;
+        return;
+      }
+    }
+  }
+  isFileSizeOk.value = true;
+
+}
 
 const fileInput : Ref<HTMLInputElement | undefined> = ref();
 const uploadFile = async () => {

@@ -23,13 +23,15 @@ app.get('/hello', (req,res) => {
   res.send('Heal the world!')
 })
 
+// TODO: Verify JWT and require at least moderator role.
+
 // Upload 3D model
 app.post('/upload', (req,res) => {
 
   let data = {modelUrl:''}
   console.log(modelsDir)
 
-  const form = formidable({uploadDir: modelsDir, keepExtensions: true})
+  const form = formidable({uploadDir: modelsDir, keepExtensions: true, maxFileSize: 50 * 1024 * 1024})
   form.on('file', (field, file) => {
     console.log(field,file.originalFilename)
     if(file.originalFilename){

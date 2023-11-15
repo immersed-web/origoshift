@@ -2,44 +2,102 @@ import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { soupDevice, attachTransportEvents, type ProduceAppData } from '@/modules/mediasoup';
 import type {types as soupTypes } from 'mediasoup-client';
-import { computed, reactive, ref, shallowReactive, shallowRef, toRaw } from 'vue';
+import { reactive, ref, shallowReactive, shallowRef } from 'vue';
 import { useIntervalFn, useEventListener } from '@vueuse/core';
 import { useConnectionStore } from './connectionStore';
 import type { ConsumerId, ProducerId, ProducerInfo } from 'schemas/mediasoup';
 
+type QualityLimitationReason = 'cpu' | 'bandwidth' | 'none' | 'other';
+// Seems like dom.lib.d.ts once again misses som definitions (perhaps they are not standardized yet?)
+type ExtendedRTCOutboundStreamStats = RTCOutboundRtpStreamStats & { qualityLimitationReason?: QualityLimitationReason, qualityLimitationDurations?: Record<QualityLimitationReason, number>, encoderImplementation?: string};
+type ProducerStats = {outgoingBitrate?: number} & Pick<ExtendedRTCOutboundStreamStats,
+'timestamp'
+|'bytesSent'
+|'frameWidth'
+|'frameHeight'
+|'framesPerSecond'
+|'qualityLimitationReason'
+|'qualityLimitationDurations'
+|'targetBitrate'
+// |'availableOutgoingBitrate'
+|'encoderImplementation'>;
+
 type ProducerData = {
   producer?: soupTypes.Producer,
-  stats?: Awaited<ReturnType<soupTypes.Producer['getStats']>> | undefined,
+  stats?: ProducerStats | undefined,
+  _prevStats?: ProducerStats | undefined,
+}
+
+function calculateBitRate(prevStamp: number, stamp: number, prevBytes?: number, bytes?: number){
+  if(!prevBytes || !bytes) return undefined;
+  const deltaBytes = bytes - prevBytes;
+  const deltaTimeS = (stamp - prevStamp) * 0.001;
+  const bitrate = 8 * deltaBytes / deltaTimeS;
+  console.log('calc bitrate:', deltaBytes, deltaTimeS);
+  return Math.floor(bitrate);
+}
+function pick<O extends {}, K extends keyof O>(obj: O, arr: Array<K>){
+  return arr.reduce((acc, curr) => {
+    acc[curr] = obj[curr];
+    return acc;
+  },
+  {} as Partial<Pick<O, K>>) as Pick<O,K>;
+}
+function extractProducersStats(newRtcStats: RTCStatsReport, prevProducerStats?: ProducerStats) {
+  const newProducerState: ProducerStats = {timestamp: 0};
+  for(const report of newRtcStats.values()){
+    if(report.type === 'outbound-rtp'){
+      const rtpStreamStats: ProducerStats =  pick(report as ExtendedRTCOutboundStreamStats, ['timestamp','bytesSent','targetBitrate', 'frameWidth', 'frameHeight', 'framesPerSecond', 'qualityLimitationDurations', 'qualityLimitationReason', 'encoderImplementation']);
+      if(prevProducerStats){
+        rtpStreamStats.outgoingBitrate = calculateBitRate(prevProducerStats.timestamp, rtpStreamStats.timestamp, prevProducerStats.bytesSent, rtpStreamStats.bytesSent);
+      }
+      Object.assign(newProducerState, rtpStreamStats);
+    } 
+    else if(report.type === 'candidate-pair'){
+      const candidatePairStats = pick(report as RTCIceCandidatePairStats, ['availableOutgoingBitrate']);
+      Object.assign(newProducerState, candidatePairStats);
+    }
+  }
+  return newProducerState;
 }
 export const useSoupStore = defineStore('soup', () =>{
   const deviceLoaded = ref(false);
   const sendTransport = shallowRef<soupTypes.Transport>();
   const receiveTransport = shallowRef<soupTypes.Transport>();
   const userHasInteracted = ref(false);
-  // const producers = shallowReactive<Map<ProducerId, soupTypes.Producer>>(new Map());
   const videoProducer: ProducerData = reactive({
     producer: undefined,
     stats: undefined,
+    _prevStats: undefined,
   });
   const audioProducer: ProducerData = reactive({
     producer: undefined,
     stats: undefined,
+    _prevStats: undefined,
   });
-  // const producersStats = reactive<Record<ProducerId, >>({});
 
   useIntervalFn(async () => {
     if(videoProducer.producer){
-      videoProducer.stats = await videoProducer.producer.getStats();
+      const s = await videoProducer.producer.getStats();
+      videoProducer._prevStats = videoProducer.stats;
+      videoProducer.stats = extractProducersStats(s, videoProducer._prevStats);
+      //  = Object.fromEntries(s.entries());
     }
     if(audioProducer.producer){
-      audioProducer.stats = await audioProducer.producer.getStats();
+      const s = await audioProducer.producer.getStats();
+      audioProducer._prevStats = audioProducer.stats;
+      audioProducer.stats = extractProducersStats(s, audioProducer._prevStats);
     }
-    consumers.forEach(async (c, k) => consumerStats.set(k, await c.getStats()));
-    // producers.forEach(async (p, k) => {
-    //   const stats = await p.getStats();
-    //   producersStats[k] = stats;
-    // });
-    // console.dir(toRaw(consumerStats));
+    consumers.forEach(async (c, k) => {
+      const stats = await c.getStats();
+      const collectedStats: Record<string, unknown> = {};
+      for(const report of stats.values()){
+        if(report.kind !== 'video') continue;
+        collectedStats[report.id] = report;
+      }
+      consumerStats.set(k, collectedStats);
+    });
+
   }, 5000);
   
   useIntervalFn(() => {
@@ -53,7 +111,7 @@ export const useSoupStore = defineStore('soup', () =>{
   // Perhaps unintuitive to have producerId as key.
   // But presumably the most common case is to need the consumer belonging to a specific producer.
   const consumers = shallowReactive<Map<ProducerId, soupTypes.Consumer>>(new Map());
-  const consumerStats = shallowReactive<Map<ProducerId, RTCStatsReport>>(new Map());
+  const consumerStats = shallowReactive<Map<ProducerId, unknown>>(new Map());
 
   const connectionStore = useConnectionStore();
 

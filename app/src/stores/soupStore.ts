@@ -19,8 +19,17 @@ type ProducerStats = {outgoingBitrate?: number} & Pick<ExtendedRTCOutboundStream
 |'qualityLimitationReason'
 |'qualityLimitationDurations'
 |'targetBitrate'
-// |'availableOutgoingBitrate'
-|'encoderImplementation'>;
+|'encoderImplementation'
+>
+& Pick<RTCIceCandidatePairStats, 'availableOutgoingBitrate'>;
+
+type ConsumerStats = {incomingBitrate?: number} & Pick<RTCInboundRtpStreamStats, 
+'timestamp'
+|'bytesReceived'
+|'frameWidth'
+|'frameHeight'
+|'framesPerSecond'
+>
 
 type ProducerData = {
   producer?: soupTypes.Producer,
@@ -60,6 +69,21 @@ function extractProducersStats(newRtcStats: RTCStatsReport, prevProducerStats?: 
   }
   return newProducerState;
 }
+function extractConsumerStats(newRtcStats: RTCStatsReport, prevConsumerStats?: ConsumerStats){
+  const newConsumerStat: ConsumerStats = {timestamp: 0};
+  for(const report of newRtcStats.values()){
+    if(report.type === 'inbound-rtp'){
+      console.log('extracting from inbound-rtp: ', report);
+      const rtpStreamStats: ConsumerStats = pick(report as RTCInboundRtpStreamStats, ['timestamp', 'bytesReceived', 'frameWidth', 'frameHeight', 'framesPerSecond']);
+      console.log('filtered report:', rtpStreamStats);
+      if(prevConsumerStats) {
+        rtpStreamStats.incomingBitrate = calculateBitRate(prevConsumerStats.timestamp, rtpStreamStats.timestamp, prevConsumerStats.bytesReceived, rtpStreamStats.bytesReceived);
+      }
+      Object.assign(newConsumerStat, rtpStreamStats);
+    } 
+  }
+  return newConsumerStat;
+}
 export const useSoupStore = defineStore('soup', () =>{
   const deviceLoaded = ref(false);
   const sendTransport = shallowRef<soupTypes.Transport>();
@@ -89,13 +113,16 @@ export const useSoupStore = defineStore('soup', () =>{
       audioProducer.stats = extractProducersStats(s, audioProducer._prevStats);
     }
     consumers.forEach(async (c, k) => {
-      const stats = await c.getStats();
-      const collectedStats: Record<string, unknown> = {};
-      for(const report of stats.values()){
-        if(report.kind !== 'video') continue;
-        collectedStats[report.id] = report;
-      }
-      consumerStats.set(k, collectedStats);
+      let cStats = consumerStats.get(k);
+      if(cStats){
+        cStats._prevStats = cStats.stats;
+      }else{
+        cStats = {stats: undefined, _prevStats: undefined};
+      } 
+      const s = await c.getStats();
+      cStats.stats = extractConsumerStats(s, cStats._prevStats);
+
+      consumerStats.set(k, cStats);
     });
 
   }, 5000);
@@ -111,7 +138,7 @@ export const useSoupStore = defineStore('soup', () =>{
   // Perhaps unintuitive to have producerId as key.
   // But presumably the most common case is to need the consumer belonging to a specific producer.
   const consumers = shallowReactive<Map<ProducerId, soupTypes.Consumer>>(new Map());
-  const consumerStats = shallowReactive<Map<ProducerId, unknown>>(new Map());
+  const consumerStats = shallowReactive<Map<ProducerId, {stats: ConsumerStats | undefined, _prevStats: ConsumerStats | undefined}>>(new Map());
 
   const connectionStore = useConnectionStore();
 

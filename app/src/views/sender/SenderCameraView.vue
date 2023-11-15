@@ -45,10 +45,6 @@
           </span>
           </span>
         </label>
-        <textarea
-          class="textarea textarea-bordered resize"
-          placeholder="Dummy stuff"
-        />
       </div>
       <select
         v-model="pickedVideoInput"

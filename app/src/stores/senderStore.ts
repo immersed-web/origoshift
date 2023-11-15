@@ -11,7 +11,7 @@ export const useSenderStore = defineStore('sender', () => {
   const savedPickedDeviceId = ref<string>();
   const senderState = ref<ReceivedSenderState>();
   const senderId = ref<SenderId>();
-  // const savedProducers = reactive<Map<MediaDeviceInfo['deviceId'], {producerId: ProducerId, deviceId: MediaDeviceInfo['deviceId'], type: soupTypes.MediaKind}>>(new Map());
+  const stereoAudio = ref(false);
   const cameraId = ref<CameraId>();
 
   const connection = useConnectionStore();
@@ -24,7 +24,7 @@ export const useSenderStore = defineStore('sender', () => {
     },
   });
 
-  const initSenderId = async () => {
+  const _initSenderId = async () => {
     if(senderId.value) {
       console.log('GONNA SEND MY SENDERID TO SERVER!!!');
       connection.client.sender.setSenderId.mutate(senderId.value);
@@ -47,19 +47,20 @@ export const useSenderStore = defineStore('sender', () => {
      * Helps in syncing of senderId between server instance and localstorage.
      * If an id exists it sends it to backend. If undefined it fetches from backend.
      */
-    initSenderId,
+    _initSenderId,
     setFOVForCamera,
     senderId,
     savedPickedDeviceId,
     // savedProducers,
     cameraId,
+    stereoAudio,
   };
 },
 {
   persist: {
     afterRestore(ctx) {
       console.log('AFTER RESTORE:', toRaw(ctx.store));
-      ctx.store.initSenderId();
+      ctx.store._initSenderId();
     },
   },
 });

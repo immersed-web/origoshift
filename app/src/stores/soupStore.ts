@@ -211,20 +211,22 @@ export const useSoupStore = defineStore('soup', () =>{
         await connectionStore.client.soup.connectTransport.mutate(connectData);
       });
   }
-  async function produce({track, producerInfo, producerId}: {track: MediaStreamTrack, producerId?: ProducerId, producerInfo: ProducerInfo}){
+
+  async function produce({track, producerInfo, producerId, codecOptions}: {track: MediaStreamTrack, producerId?: ProducerId, producerInfo: ProducerInfo, codecOptions?: soupTypes.ProducerCodecOptions}){
     if(!sendTransport.value){
       throw Error('no transport. Cant produce');
     }
     if(track.kind === 'video' && videoProducer.producer){
-      closeVideoProducer();
+      await closeVideoProducer();
     } else if(track.kind === 'audio' && audioProducer.producer) {
-      closeAudioProducer();
+      await closeAudioProducer();
     }
     const appData: ProduceAppData = {
       producerInfo,
       producerId,
     };
     const producer = await sendTransport.value.produce({
+      codecOptions,
       track,
       encodings: [{
         maxBitrate: 25_000_000,
@@ -247,7 +249,8 @@ export const useSoupStore = defineStore('soup', () =>{
     videoProducer.producer.close();
     videoProducer.producer = undefined;
     videoProducer.stats = undefined;
-    connectionStore.client.soup.closeVideoProducer.mutate();
+    videoProducer._prevStats = undefined;
+    await connectionStore.client.soup.closeVideoProducer.mutate();
   }
 
   async function closeAudioProducer(){
@@ -258,7 +261,8 @@ export const useSoupStore = defineStore('soup', () =>{
     audioProducer.producer.close();
     audioProducer.producer = undefined;
     audioProducer.stats = undefined;
-    connectionStore.client.soup.closeAudioProducer.mutate();
+    audioProducer._prevStats = undefined;
+    await connectionStore.client.soup.closeAudioProducer.mutate();
   }
 
   async function replaceVideoProducerTrack (track: MediaStreamTrack) {

@@ -30,6 +30,26 @@
         Video info: {{ videoInfo }}
         Mediasoup device loaded: {{ soup.deviceLoaded }}
       </pre>
+      <div class="form-control w-fit">
+        <label class="label cursor-pointer">
+          <input
+            v-model="senderStore.stereoAudio"
+            type="checkbox"
+            class="toggle"
+          >
+          <span class="label-text ">Stereoljud<span
+            class="tooltip"
+            data-tip="Tänk på att stereo kräver mer bandbredd så använd bara om nödvändigt"
+          >
+            <span class="material-icons">info</span>
+          </span>
+          </span>
+        </label>
+        <textarea
+          class="textarea textarea-bordered resize"
+          placeholder="Dummy stuff"
+        />
+      </div>
       <select
         v-model="pickedVideoInput"
         class="select select-primary"
@@ -183,6 +203,8 @@ watch(pickedAudioInput, (pickedDevice) => startAudio(pickedDevice!));
 const pickedVideoInput = shallowRef<MediaDeviceInfo>();
 watch(pickedVideoInput, (pickedDevice) => startVideo(pickedDevice!));
 
+watch(() => senderStore.stereoAudio, () => startAudio(pickedAudioInput.value!));
+
 const audioTrack = shallowRef<MediaStreamTrack>();
 async function startAudio(audioDevice: MediaDeviceInfo){
   const audioStream = await navigator.mediaDevices.getUserMedia({
@@ -190,6 +212,12 @@ async function startAudio(audioDevice: MediaDeviceInfo){
       deviceId: {
         exact: audioDevice.deviceId,
       },
+      echoCancellation: false,
+      noiseSuppression: false,
+      autoGainControl: false,
+      channelCount: 2,
+      sampleRate: 44100,
+      sampleSize: 16,
     },
   });
   console.log(audioStream);
@@ -199,6 +227,9 @@ async function startAudio(audioDevice: MediaDeviceInfo){
     isPaused: false,
   };
   const producerId = await soup.produce({
+    codecOptions: {
+      opusStereo: senderStore.stereoAudio?true:undefined,
+    },
     // producerId: restoredProducerId,
     track: audioTrack.value,
     producerInfo,

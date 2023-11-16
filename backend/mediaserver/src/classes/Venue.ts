@@ -73,7 +73,6 @@ export class Venue {
 
   get visibility() { return this.prismaData.visibility; }
 
-  // private _doorOpen = false;
   get doorsOpeningTime() { return this.prismaData.doorsOpeningTime; }
   get doorsAutoOpen() { return this.prismaData.doorsAutoOpen; }
   get doorsManuallyOpened() { return this.prismaData.doorsManuallyOpened; }
@@ -97,16 +96,6 @@ export class Venue {
   get streamIsActive() {
     return this.streamIsStarted && !this.streamManuallyEnded;
   }
-
-  // get allowGuests() { return this.prismaData.allowGuests; }
-  // get publiclyListed() { return this.prismaData.publiclyListed; }
-
-  // openDoors(){
-  //   this._doorOpen = true;
-  // }
-  // closeDoors(){
-  //   this._doorOpen = false;
-  // }
 
   router: soupTypes.Router;
   vrSpace?: VrSpace;

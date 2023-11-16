@@ -11,7 +11,7 @@ log.enable(process.env.DEBUG);
 type ReceivedVirtualSpace = Exclude<Venue['prismaData']['virtualSpace'], null>;
 
 export class VrSpace {
-  private _isOpen = false;
+  // private _isOpen = false;
   private venue: Venue;
   private prismaData: ReceivedVirtualSpace;
   private clients: Venue['clients'];
@@ -32,20 +32,20 @@ export class VrSpace {
     this.clients = new Map();
   }
 
-  get isOpen(){
-    return this._isOpen;
-  }
+  // get isOpen(){
+  //   return this._isOpen;
+  // }
 
-  open () {
-    this._isOpen = true;
-  }
+  // open () {
+  //   this._isOpen = true;
+  // }
 
-  close () {
-    this._isOpen = false;
-    this.clients.forEach(client => {
-      this.removeClient(client);
-    });
-  }
+  // close () {
+  //   this._isOpen = false;
+  //   this.clients.forEach(client => {
+  //     this.removeClient(client);
+  //   });
+  // }
 
   getPublicState() {
     // return 'NOT IMPLEMENTED YET';
@@ -55,10 +55,14 @@ export class VrSpace {
   }
 
   addClient (client: UserClient){
-    if(!this.isOpen){
+    if(!this.venue.doorsAreOpen){
       log.warn(`You tried to add client ${client.username} to the vr space in ${this.venue.name} that isnt open. No bueno!`);
       return;
     }
+    // if(!this.isOpen){
+    //   log.warn(`You tried to add client ${client.username} to the vr space in ${this.venue.name} that isnt open. No bueno!`);
+    //   return;
+    // }
     if(!this.venue.clientIds.includes(client.connectionId)){
       throw Error('must be in the related venue when joining a vr space!');
     }

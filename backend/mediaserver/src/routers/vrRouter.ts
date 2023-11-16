@@ -12,14 +12,14 @@ export const vrRouter = router({
   createVrSpace: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasNoVrSpaceM).mutation(({ctx}) => {
     ctx.venue.CreateAndAddVirtualSpace();
   }),
-  openVrSpace: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).mutation(({ctx}) => {
-    ctx.vrSpace.open();
-  }),
-  closeVrSpace: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).mutation(({ctx}) => {
-    ctx.vrSpace.close();
-  }),
+  // openVrSpace: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).mutation(({ctx}) => {
+  //   ctx.vrSpace.open();
+  // }),
+  // closeVrSpace: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).mutation(({ctx}) => {
+  //   ctx.vrSpace.close();
+  // }),
   enterVrSpace: userInVenueP.use(currentVenueHasVrSpaceM).mutation(({ctx}) =>{
-    if(!ctx.vrSpace.isOpen){
+    if(!ctx.venue.doorsAreOpen){
       throw new TRPCError({code: 'FORBIDDEN', message: 'The vr space is not opened to users at this point. Very sad!'});
     }
     ctx.vrSpace.addClient(ctx.client);

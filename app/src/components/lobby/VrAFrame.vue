@@ -4,7 +4,7 @@
     raycaster="objects: .clickable"
     ref="scene"
   >
-    <a-assets @loaded="onLoaded">
+    <a-assets v-once>
       <a-asset-item
         id="model-asset"
         :src="modelUrl"
@@ -22,18 +22,20 @@
     <a-sky color="#ECECEC" />
 
     <!-- The model -->
-    <a-entity v-if="loaded">
-      <a-entity
+    <a-entity>
+      <a-gltf-model
+        @model-loaded="onModelLoaded"
         id="model"
-        gltf-model="#model-asset"
+        ref="modelTag"
+        src="#model-asset"
         :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
       />
-      <a-entity
+      <a-gltf-model
         id="navmesh"
-        gltf-model="#navmesh-asset"
+        src="#navmesh-asset"
         :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
         class="clickable"
-        @mousedown="navmeshClicked"
+        @click="navmeshClicked"
         raycaster-listen
         @raycast-change="navmeshHovered"
         :visible="showNavMesh"
@@ -60,7 +62,8 @@
     <a-entity>
       <a-camera
         id="camera"
-        look-controls
+        ref="playerTag"
+        look-controls="reverseMouseDrag: true; reverseTouchDrag: true;"
         wasd-controls="acceleration:100;"
         emit-move="intervals: 40 500"
         position="0 1.65 0"
@@ -99,7 +102,7 @@
 
 <script setup lang="ts">
 import 'aframe';
-import type { AFrame, Scene, THREE } from 'aframe';
+import { type Scene, type Entity, THREE } from 'aframe';
 import { ref, onMounted, computed } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import type { ClientTransform } from 'schemas';
@@ -121,6 +124,8 @@ const props = defineProps({
 
 // A-frame
 const scene = ref<Scene>();
+const modelTag = ref<Entity>();
+const playerTag = ref<Entity>();
 
 const modelUrl = computed(() => {
   return props.modelUrl;
@@ -168,11 +173,19 @@ function startTransformSubscription() {
   console.log('Subscribe to client transforms',transformSubscription);
 }
 
-// Load a-frame assets
-const loaded = ref(false);
+function onModelLoaded(){
+  if(modelTag.value && playerTag.value){
+    console.log('centering camera on model bbox');
+    // const obj3D = modelTag.value.components.mesh;
+    // const obj3D = modelTag.value.object3DMap;
+    const obj3D = modelTag.value.getObject3D('mesh');
+    console.log(obj3D);
+    
+    const bbox = new THREE.Box3().setFromObject(obj3D);
+    const modelCenter = bbox.getCenter(new THREE.Vector3());
+    playerTag.value.object3D.position.set(modelCenter.x, modelCenter.y, modelCenter.z);
 
-function onLoaded () {
-  loaded.value = true;
+  }
 }
 
 // Move callbacks

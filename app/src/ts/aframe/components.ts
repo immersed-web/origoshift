@@ -17,6 +17,8 @@ const registerComponents = () => {
 
   // @ts-ignore
   import('aframe-environment-component');
+  // @ts-ignore
+  import('aframe-orbit-controls');
 };
 
 export default {

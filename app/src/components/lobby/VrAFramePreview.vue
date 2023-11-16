@@ -1,13 +1,13 @@
 <template>
   <a-scene
     embedded
-    cursor="rayOrigin: mouse"
     ref="scene"
-    cont
     id="ascene"
-    vr-mode-ui="enabled: false"
+    xr-mode-ui="enabled: false"
   >
-    <a-assets @loaded="onLoaded">
+    <a-assets
+      v-once
+    >
       <a-asset-item
         id="model-asset"
         :src="modelUrl"
@@ -18,32 +18,27 @@
       />
     </a-assets>
 
+    <!-- for some super weird reason orbit controls doesnt work with the a-camera primitive  -->
+    <a-entity
+      camera
+      ref="cameraTag"
+    />
     <a-sky color="#ECECEC" />
 
     <!-- The model -->
-    <a-entity v-if="loaded">
-      <a-entity
+    <a-entity>
+      <a-gltf-model
+        @model-loaded="onModelLoaded"
         id="model"
-        gltf-model="#model-asset"
+        ref="modelTag"
+        src="#model-asset"
         :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
       />
-      <a-entity
+      <a-gltf-model
         id="navmesh"
-        gltf-model="#navmesh-asset"
+        src="#navmesh-asset"
         :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
         visible="false"
-      />
-    </a-entity>
-
-    <!-- Avatar wrapper element -->
-    <a-entity position="2 0 0">
-      <!-- The camera / own avatar -->
-      <!-- The navmesh needs to refer to the actual entity, not only the asset -->
-      <a-camera
-        look-controls
-        wasd-controls="acceleration:100;"
-        position="0 2 0"
-        :simple-navmesh-constraint="'navmesh:#'+navmeshId+'; fall:0.5; height:1.65;'"
       />
     </a-entity>
   </a-scene>
@@ -51,7 +46,7 @@
 
 <script setup lang="ts">
 import 'aframe';
-import type { Scene } from 'aframe';
+import { type Scene, type Entity, THREE } from 'aframe';
 import { ref, computed } from 'vue';
 
 // Props & emits
@@ -63,20 +58,38 @@ const props = defineProps({
 
 // A-frame
 const scene = ref<Scene>();
+const modelTag = ref<Entity>();
+const cameraTag = ref<Entity>();
+const cameraRigTag = ref<Entity>();
 
 const modelUrl = computed(() => {
   return props.modelUrl;
 });
 
-const navmeshId = computed(() => {
-  return props.navmeshUrl !== '' ? 'navmesh' : 'model';
-});
+// const navmeshId = computed(() => {
+//   return props.navmeshUrl !== '' ? 'navmesh' : 'model';
+// });
 
-// Load a-frame assets
-const loaded = ref(false);
+function onModelLoaded(){
+  if(modelTag.value && cameraTag.value){
+    console.log('centering camera on model bbox');
+    // const obj3D = modelTag.value.components.mesh;
+    // const obj3D = modelTag.value.object3DMap;
+    const obj3D = modelTag.value.getObject3D('mesh');
+    console.log(obj3D);
+    
+    const bbox = new THREE.Box3().setFromObject(obj3D);
+    const modelCenter = bbox.getCenter(new THREE.Vector3());
+    // cameraRigTag.value.object3D.position.set(modelCenter.x, modelCenter.y, modelCenter.z);
 
-function onLoaded () {
-  loaded.value = true;
+    let orbitControlSettings = `autoRotate: true; rotateSpeed: 1; initialPosition: ${modelCenter.x} ${modelCenter.y+2} ${modelCenter.z+5};`;
+    orbitControlSettings += `target:${modelCenter.x} ${modelCenter.y} ${modelCenter.z};`;
+    cameraTag.value.setAttribute('orbit-controls', orbitControlSettings);
+    // cameraTag.value.setAttribute('orbit-controls', 'initialPosition', '0  0');
+    // cameraTag.value.setAttribute('orbit-controls', );
+    // cameraTag.value.setAttribute('orbit-controls', 'enabled', 'true');
+    // console.log(modelCenter);
+  }
 }
 
 </script>

@@ -54,7 +54,7 @@ function pick<O extends {}, K extends keyof O>(obj: O, arr: Array<K>){
 }
 function extractProducersStats(newRtcStats: RTCStatsReport, prevProducerStats?: ProducerStats) {
   const newProducerState: ProducerStats = {timestamp: 0};
-  for(const report of newRtcStats.values()){
+  for(const report of Array.from(newRtcStats.values())){
     if(report.type === 'outbound-rtp'){
       const rtpStreamStats: ProducerStats =  pick(report as ExtendedRTCOutboundStreamStats, ['timestamp','bytesSent','targetBitrate', 'frameWidth', 'frameHeight', 'framesPerSecond', 'qualityLimitationDurations', 'qualityLimitationReason', 'encoderImplementation']);
       if(prevProducerStats){
@@ -71,7 +71,7 @@ function extractProducersStats(newRtcStats: RTCStatsReport, prevProducerStats?: 
 }
 function extractConsumerStats(newRtcStats: RTCStatsReport, prevConsumerStats?: ConsumerStats){
   const newConsumerStat: ConsumerStats = {timestamp: 0};
-  for(const report of newRtcStats.values()){
+  for(const report of Array.from(newRtcStats.values())){
     if(report.type === 'inbound-rtp'){
       console.log('extracting from inbound-rtp: ', report);
       const rtpStreamStats: ConsumerStats = pick(report as RTCInboundRtpStreamStats, ['timestamp', 'bytesReceived', 'frameWidth', 'frameHeight', 'framesPerSecond']);
@@ -88,7 +88,7 @@ export const useSoupStore = defineStore('soup', () =>{
   const deviceLoaded = ref(false);
   const sendTransport = shallowRef<soupTypes.Transport>();
   const receiveTransport = shallowRef<soupTypes.Transport>();
-  const userHasInteracted = ref(false);
+  const userHasInteracted = ref(navigator.userActivation.hasBeenActive);
   const videoProducer: ProducerData = reactive({
     producer: undefined,
     stats: undefined,

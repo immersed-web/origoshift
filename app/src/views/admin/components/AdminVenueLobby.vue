@@ -87,7 +87,7 @@ onMounted(() => {
 });
 
 const openVirtualSpace = async () => {
-  await connectionStore.client.vr.openVrSpace.mutate();
+  // await connectionStore.client.vr.openVrSpace.mutate();
   await connectionStore.client.vr.enterVrSpace.mutate();
   router.push({name: 'adminLobby'});
   // TODO: Open in new tab, without losing superadmin login

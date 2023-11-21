@@ -1,7 +1,7 @@
 <template>
   <a-scene
     embedded
-    ref="scene"
+    ref="sceneTag"
     id="ascene"
     xr-mode-ui="enabled: false"
   >
@@ -57,10 +57,9 @@ const props = defineProps({
 });
 
 // A-frame
-const scene = ref<Scene>();
+const sceneTag = ref<Scene>();
 const modelTag = ref<Entity>();
 const cameraTag = ref<Entity>();
-const cameraRigTag = ref<Entity>();
 
 const modelUrl = computed(() => {
   return props.modelUrl;
@@ -90,6 +89,17 @@ function onModelLoaded(){
     // cameraTag.value.setAttribute('orbit-controls', 'enabled', 'true');
     // console.log(modelCenter);
   }
+  
+  // Below is testcode for trying out the built-in equirectangular screen capture of aframe scene
+  // if(sceneTag.value){
+  //   const screenshotComponent = sceneTag.value.components.screenshot;
+  //   // @ts-ignore
+  //   const canvasScreenshot = screenshotComponent.getCanvas();
+  //   console.log(canvasScreenshot);
+
+  //   // @ts-ignore
+  //   screenshotComponent.saveCapture();
+  // }
 }
 
 </script>

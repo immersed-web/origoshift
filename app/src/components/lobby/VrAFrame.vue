@@ -20,6 +20,12 @@
     </a-assets>
 
     <a-sky color="#ECECEC" />
+    <a-sphere
+      @click="goToStream"
+      color="red"
+      position="30 6 0"
+      class="clickable"
+    />
 
     <!-- The model -->
     <a-entity>
@@ -59,7 +65,7 @@
       />
     </a-entity>
 
-    <a-entity>
+    <a-entity ref="playerOriginTag">
       <a-camera
         id="camera"
         ref="playerTag"
@@ -79,6 +85,14 @@
           animation="property: object3D.position.y; to: 0.1; dir: alternate; dur: 500; loop: true"
         />
       </a-camera>
+      <a-entity
+        laser-controls="hand:left"
+        raycaster="objects: .clickable"
+      />
+      <a-entity
+        laser-controls="hand:right"
+        raycaster="objects: .clickable"
+      />
     </a-entity>
 
 
@@ -109,10 +123,15 @@ import type { ClientTransform } from 'schemas';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { useClientStore } from '@/stores/clientStore';
 import { useConnectionStore } from '@/stores/connectionStore';
+import { useRouter } from 'vue-router';
+import { useVenueStore } from '@/stores/venueStore';
+import { useAutoEnterXR } from '@/composables/autoEnterXR';
 
+const router = useRouter();
 // Stores
 const connectionStore = useConnectionStore();
 const clientStore = useClientStore();
+const venueStore = useVenueStore();
 
 // Props & emits
 const props = defineProps({
@@ -124,8 +143,10 @@ const props = defineProps({
 
 // A-frame
 const scene = ref<Scene>();
+useAutoEnterXR(scene);
 const modelTag = ref<Entity>();
 const playerTag = ref<Entity>();
+const playerOriginTag = ref<Entity>();
 
 const modelUrl = computed(() => {
   return props.modelUrl;
@@ -174,18 +195,29 @@ function startTransformSubscription() {
 }
 
 function onModelLoaded(){
-  if(modelTag.value && playerTag.value){
+  if(modelTag.value && playerOriginTag.value){
     console.log('centering camera on model bbox');
-    // const obj3D = modelTag.value.components.mesh;
-    // const obj3D = modelTag.value.object3DMap;
     const obj3D = modelTag.value.getObject3D('mesh');
-    console.log(obj3D);
+    // console.log(obj3D);
     
     const bbox = new THREE.Box3().setFromObject(obj3D);
     const modelCenter = bbox.getCenter(new THREE.Vector3());
-    playerTag.value.object3D.position.set(modelCenter.x, modelCenter.y, modelCenter.z);
+    playerOriginTag.value.object3D.position.set(modelCenter.x, modelCenter.y, modelCenter.z);
 
   }
+}
+
+function goToStream(){
+  console.log('sphere clicked');
+  if(!venueStore.currentVenue) return;
+  const firstCamera = Object.keys(venueStore.currentVenue.cameras)[0];
+  router.push({
+    name: 'userCamera',
+    params: {
+      venueId: venueStore.currentVenue.venueId,
+      cameraId: firstCamera,
+    },
+  });
 }
 
 // Move callbacks

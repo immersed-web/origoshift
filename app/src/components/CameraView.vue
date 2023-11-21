@@ -15,10 +15,11 @@
   </div>
   <a-scene
     v-else
+    ref="sceneTag"
     embedded
     cursor="rayOrigin: mouse; fuse: false;"
     raycaster="objects: .clickable"
-    :vr-mode-ui="`enabled: ${!props.editable}`"
+    :xr-mode-ui="`enabled: ${!props.editable}`"
   >
     <a-assets>
       <a-mixin
@@ -183,8 +184,9 @@ import { computedWithControl } from '@vueuse/core';
 import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
 import 'aframe';
-import { THREE, type Entity } from 'aframe';
+import { THREE, type Entity, type Scene } from 'aframe';
 import { useAdminStore } from '@/stores/adminStore';
+import { useAutoEnterXR } from '@/composables/autoEnterXR';
 
 const props = withDefaults(defineProps<{
   venueId: VenueId,
@@ -203,6 +205,8 @@ const router = useRouter();
 const videoTags = shallowReactive<HTMLVideoElement[]>([]);
 const audioTag = ref<HTMLAudioElement>();
 
+const sceneTag = ref<Scene>();
+useAutoEnterXR(sceneTag);
 const vSphereTag = ref<Entity>();
 const aVideoTag = ref<Entity>();
 const curtainTag = ref<Entity>();

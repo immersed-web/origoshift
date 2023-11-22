@@ -1,57 +1,41 @@
 import 'aframe';
 
+type MoveUpdate = {orientation: [number, number, number, number], position: [number, number, number]}
 export default () => {
 
   AFRAME.registerComponent('emit-move', {
     schema: {
-      intervals: {type: 'string', default: '100 1000'},
+      interval: {type: '', default: 100},
     },
     position: '',
     orientation: '',
-    intervals: [] as number[],
-    lastEmit: [Date.now()] as number[],
-    firstEmitSent: [false] as boolean[],
-    finalEmitSent: [false] as boolean[],
-    emitPosition: function (i: number) {
-      this.lastEmit[i] = Date.now();
-      // this.el.emit('move'+i, {position: [this.el.object3D.position.x, this.el.object3D.position.y, this.el.object3D.position.z]);
-      this.el.emit('move'+i, {position: this.el.object3D.position.toArray(), orientation: this.el.object3D.quaternion.toArray()});
+    interval: 0,
+    throttledEmitMovement: undefined as unknown as (moveUpdate: MoveUpdate) => void,
+    emitMovement: function (newTransform: MoveUpdate) {
+      this.el.emit('move', newTransform);
     },
-    init: function () {
-      this.intervals = (this.data.intervals as string).split(' ').map(i => parseInt(i));
-      console.log('Intervals', this.intervals);
+    update: function(){
+      this.interval = this.data.interval;
+      // @ts-ignore
+      this.throttledEmitMovement = AFRAME.utils.throttleLeadingAndTrailing(this.emitMovement, this.interval, this);
     },
     tick: function () {
-      const newPosition = AFRAME.utils.coordinates.stringify(this.el.object3D.position);
+      const worldPos = this.el.object3D.getWorldPosition(new AFRAME.THREE.Vector3());
+      const newPosition = AFRAME.utils.coordinates.stringify(worldPos);
       const moved = newPosition !== this.position;
-      const newOrientation = AFRAME.utils.coordinates.stringify(this.el.object3D.quaternion);
+
+      const worldRot = this.el.object3D.getWorldQuaternion(new AFRAME.THREE.Quaternion());
+      const newOrientation = AFRAME.utils.coordinates.stringify(worldRot);
       const rotated = newOrientation !== this.orientation;
-      this.intervals.forEach((interval,i) => {
-        this.emitTest(i, newPosition, moved || rotated);
-      });
-      if(moved){
-        this.position = newPosition;
-      }
-      if(rotated){
-        this.orientation = newOrientation;
-      }
-    },
-    emitTest: function (i: number, position: string, changed: boolean){
-      // If entity has moved since last tick
-      if (changed) {
-        // this.position = newPosition;
-        if(!this.firstEmitSent[i] || Date.now() - this.lastEmit[i] > this.intervals[i]){
-          this.emitPosition(i);
-        }
-        this.firstEmitSent[i] = true,
-        this.finalEmitSent[i] = false;
-      }
-      // First tick after entity stopped moving
-      else if(!this.finalEmitSent[i]){
-        this.emitPosition(i);
-        this.firstEmitSent[i] = false;
-        this.finalEmitSent[i] = true;
-      }
+
+      if(moved || rotated) {
+        const position = worldPos.toArray();
+        const orientation = worldRot.toArray() as [number, number, number, number];
+        const transform = {position, orientation};
+        this.throttledEmitMovement(transform);
+      } 
+      this.position = newPosition;
+      this.orientation = newOrientation;
     },
   });
 

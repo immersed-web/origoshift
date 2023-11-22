@@ -1,6 +1,5 @@
-import type { VirtualSpace } from 'database';
 import { ClientTransforms, VrSpaceId } from 'schemas';
-import { throttle} from 'lodash';
+import { throttle, pick} from 'lodash';
 import type { UserClient, Venue } from './InternalClasses';
 
 import { Log } from 'debug-level';
@@ -51,7 +50,12 @@ export class VrSpace {
     // return 'NOT IMPLEMENTED YET';
     const {extraSettings, ...returnState} = this.prismaData;
     const s = extraSettings as Record<string, unknown>;
-    return {...returnState, settings: s};
+    const clientsWithProducers = Array.from(this.clients.entries()).map(([cId, client]) => {
+      const cData = pick(client.getPublicState(), ['userId', 'connectionId', 'producers', 'role', 'username', 'transform']);
+      return [cId, cData] as const;
+    });
+    const clientsRecord = Object.fromEntries(clientsWithProducers);
+    return {...returnState, settings: s, clients: clientsRecord};
   }
 
   addClient (client: UserClient){
@@ -59,10 +63,6 @@ export class VrSpace {
       log.warn(`You tried to add client ${client.username} to the vr space in ${this.venue.name} that isnt open. No bueno!`);
       return;
     }
-    // if(!this.isOpen){
-    //   log.warn(`You tried to add client ${client.username} to the vr space in ${this.venue.name} that isnt open. No bueno!`);
-    //   return;
-    // }
     if(!this.venue.clientIds.includes(client.connectionId)){
       throw Error('must be in the related venue when joining a vr space!');
     }
@@ -76,18 +76,32 @@ export class VrSpace {
   }
 
   sendPendingTransforms = throttle(() => {
-    this.emitToAllClients('clientTransforms', this.pendingTransforms);
+    this.emitTransformsToAllClients();
     this.pendingTransforms = {};
   }, 100, {
     trailing: true
   });
-
-  emitToAllClients: UserClient['userClientEvent']['emit'] = (event, ...args) => {
-    let allEmittersHadListeners = true;
+  
+  _notifyStateUpdated(reason?: string){
+    const data = this.getPublicState();
     this.clients.forEach(c => {
-      const hadEmitter = c.userClientEvent.emit(event, ...args);
-      allEmittersHadListeners &&= hadEmitter;
-      log.debug(`emitted ${event} to ${c.username} (${c.connectionId}), had listener(s): ${hadEmitter}`);
+      c.notify.vrSpaceStateUpdated?.({data, reason});
+    });
+  }
+
+  emitTransformsToAllClients = () => {
+    let allEmittersHadListeners = true;
+    // this.clients.forEach(c => {
+    //   const hadEmitter = c.userClientEvent.emit(event, ...args);
+    //   allEmittersHadListeners &&= hadEmitter;
+    //   log.debug(`emitted ${event} to ${c.username} (${c.connectionId}), had listener(s): ${hadEmitter}`);
+    // });
+    this.clients.forEach(c => {
+      if(!c.notify.clientTransforms){
+        allEmittersHadListeners = false;
+        return;
+      }
+      c.notify.clientTransforms({data: this.pendingTransforms});
     });
     if(!allEmittersHadListeners){
       log.warn('not all emitters had attached listeners');

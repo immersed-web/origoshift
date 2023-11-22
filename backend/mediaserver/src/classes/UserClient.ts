@@ -6,7 +6,7 @@ process.env.DEBUG = 'UserClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
 import { ClientTransform, ClientTransforms, ConnectionId, UserId, UserRole, VenueId, CameraId, ClientType } from 'schemas';
-import { loadUserPrismaData, SenderClient, Venue } from './InternalClasses';
+import { loadUserPrismaData, SenderClient, Venue, VrSpace } from './InternalClasses';
 import { FilteredEvents, NonFilteredEvents, NotifierSignature } from 'trpc/trpc-utils';
 import { BaseClient } from './InternalClasses';
 import { ProducerId } from 'schemas/mediasoup';
@@ -49,7 +49,9 @@ export class UserClient extends BaseClient {
 
   notify = {
     ...super.notify,
-    senderAddedOrRemoved: undefined as NotifierSignature<{senderState: ReturnType<SenderClient['getPublicState']>, added: boolean}>
+    senderAddedOrRemoved: undefined as NotifierSignature<{senderState: ReturnType<SenderClient['getPublicState']>, added: boolean}>,
+    vrSpaceStateUpdated: undefined as NotifierSignature<ReturnType<VrSpace['getPublicState']>>,
+    clientTransforms: undefined as NotifierSignature<ClientTransforms>
   };
 
   unload() {

@@ -5,8 +5,9 @@ log.enable(process.env.DEBUG);
 
 import { ClientTransformSchema, VirtualSpace3DModelCreateSchema, VirtualSpace3DModelRemoveSchema, VirtualSpace3DModelUpdateSchema } from 'schemas';
 import { procedure as p, router, isVenueOwnerM, isUserClientM, userInVenueP, currentVenueAdminP, currentVenueHasVrSpaceM, currentVenueHasNoVrSpaceM, currentVrSpaceHasModelM } from '../trpc/trpc';
-import { attachToEvent } from '../trpc/trpc-utils';
+import { NotifierInputData, attachToEvent } from '../trpc/trpc-utils';
 import { TRPCError } from '@trpc/server';
+import { observable } from '@trpc/server/observable';
 
 export const vrRouter = router({
   createVrSpace: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasNoVrSpaceM).mutation(({ctx}) => {
@@ -24,6 +25,9 @@ export const vrRouter = router({
     }
     ctx.vrSpace.addClient(ctx.client);
   }),
+  leaveVrSpace: userInVenueP.use(currentVenueHasVrSpaceM).mutation(({ctx, input}) => {
+    ctx.vrSpace.removeClient(ctx.client);
+  }),
   getState: userInVenueP.use(currentVenueHasVrSpaceM).query(({ctx}) => {
     ctx.vrSpace.getPublicState();
   }),
@@ -39,7 +43,7 @@ export const vrRouter = router({
   update3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVrSpaceHasModelM).input(VirtualSpace3DModelUpdateSchema).mutation(({input, ctx}) => {
     ctx.venue.Update3DModel(input);
   }),
-  transforms: router({
+  clients: router({
     updateTransform: userInVenueP.use(currentVenueHasVrSpaceM).input(ClientTransformSchema).mutation(({input, ctx}) =>{
       log.debug(`transform received from ${ctx.username} (${ctx.connectionId})`);
       log.debug(input);
@@ -58,8 +62,18 @@ export const vrRouter = router({
     }),
     subClientTransforms: p.use(isUserClientM).subscription(({ctx}) => {
       console.log(`${ctx.username} started subscription to transforms`);
-      return attachToEvent(ctx.client.userClientEvent, 'clientTransforms');
+      // return attachToEvent(ctx.client.userClientEvent, 'clientTransforms');
       // return attachEmitter(venue.vrSpace.emitter, 'transforms');
+      return observable<NotifierInputData<typeof ctx.client.notify.clientTransforms>>(scriber => {
+        ctx.client.notify.clientTransforms = scriber.next;
+        return () => ctx.client.notify.clientTransforms = undefined;
+      });
+    }),
+    subVrSpaceStateUpdated: p.use(isUserClientM).subscription(({ctx}) => {
+      return observable<NotifierInputData<typeof ctx.client.notify.vrSpaceStateUpdated>>(scriber => {
+        ctx.client.notify.vrSpaceStateUpdated = scriber.next;
+        return () => ctx.client.notify.vrSpaceStateUpdated = undefined;
+      });
     })
   })
 });

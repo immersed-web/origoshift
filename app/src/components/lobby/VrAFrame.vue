@@ -70,11 +70,10 @@
         id="camera"
         ref="playerTag"
         look-controls="reverseMouseDrag: true; reverseTouchDrag: true;"
-        wasd-controls="acceleration:100;"
-        emit-move="intervals: 40 500"
+        wasd-controls="acceleration:75;"
+        emit-move="interval: 40"
         position="0 1.65 0"
-        @move0="cameraMoveFast"
-        @move1="cameraMoveSlow"
+        @move="cameraMoveFast"
         :simple-navmesh-constraint="'navmesh:#'+navmeshId+'; fall:0.5; height:1.65;'"
       >
         <a-entity
@@ -103,7 +102,7 @@
       <!-- The avatars -->
       <a-entity v-if="clientStore.clientTransforms">
         <RemoteAvatar
-          v-for="[id, transform] in Object.entries(clientStore.clientTransforms).filter(e => e[0] !== clientStore.clientState?.connectionId)"
+          v-for="(transform, id) in otherClients"
           :key="id"
           :id="'avatar-'+id"
           :transform="transform"
@@ -126,6 +125,7 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { useRouter } from 'vue-router';
 import { useVenueStore } from '@/stores/venueStore';
 import { useAutoEnterXR } from '@/composables/autoEnterXR';
+import { throttle } from 'lodash-es';
 
 const router = useRouter();
 // Stores
@@ -154,6 +154,12 @@ const modelUrl = computed(() => {
 
 const navmeshId = computed(() => {
   return props.navmeshUrl !== '' ? 'navmesh' : 'model';
+});
+
+const otherClients = computed(() => {
+  if(!clientStore.clientTransforms) return {};
+  const filteredArr = Object.entries(clientStore.clientTransforms).filter(([cId, transform]) => cId !== clientStore.clientState?.connectionId);
+  return Object.fromEntries(filteredArr);
 });
 
 // Server, Client, etc.
@@ -185,9 +191,9 @@ function startTransformSubscription() {
   if(transformSubscription){
     transformSubscription.unsubscribe();
   }
-  transformSubscription = connectionStore.client.vr.transforms.subClientTransforms.subscribe(undefined, {
-    onData(data) {
-      clientStore.clientTransforms = {...clientStore.clientTransforms, ...data};
+  transformSubscription = connectionStore.client.vr.clients.subClientTransforms.subscribe(undefined, {
+    onData(transformMsg) {
+      clientStore.clientTransforms = {...clientStore.clientTransforms, ...transformMsg.data};
       // console.log('received transform data!', data, clientStore.clientTransforms);
     },
   });
@@ -222,20 +228,29 @@ function goToStream(){
 
 // Move callbacks
 
-async function cameraMoveSlow (e: CustomEvent<{position: [number, number, number], orientation: [number, number, number, number]}>){
-  // console.log('Camera move slow', positionStr);
+// async function cameraMoveSlow (e: CustomEvent<{position: [number, number, number], orientation: [number, number, number, number]}>){
+//   // console.log('Camera move slow', positionStr);
+//   if(connectionStore.clientExists){
+//     const position: ClientTransform['position'] = e.detail.position;
+//     const orientation: ClientTransform['orientation'] = e.detail.orientation;
+//     await connectionStore.client.vr.clients.updateTransform.mutate({position, orientation});
+//   }
+// }
+
+const throttledTransformMutation = throttle(async (transformEvent: CustomEvent<ClientTransform>) => {
+  console.log('Slow move event!');
   if(connectionStore.clientExists){
-    // const position: ClientTransform['position'] = e.detail;
-    // const randomRot: ClientTransform['orientation'] = [Math.random(),Math.random(),Math.random(),Math.random()];
-    const position: ClientTransform['position'] = e.detail.position;
-    const orientation: ClientTransform['orientation'] = e.detail.orientation;
-    await connectionStore.client.vr.transforms.updateTransform.mutate({position, orientation});
+    // const position: ClientTransform['position'] = transformEvent.detail.position;
+    // const orientation: ClientTransform['orientation'] = transformEvent.detail.orientation;
+    await connectionStore.client.vr.clients.updateTransform.mutate(transformEvent.detail);
   }
-}
+}, 200, {trailing: true});
 
 const cameraPosition = ref([0,0,0] as [number, number, number]);
-function cameraMoveFast (e: CustomEvent<[number, number, number]>){
-  cameraPosition.value = e.detail;
+function cameraMoveFast (e: CustomEvent<{position: [number, number, number], orientation: [number, number, number, number]}>){
+  console.log('Fst move event!!');
+  cameraPosition.value = e.detail.position;
+  throttledTransformMutation(e);
 }
 
 // Display message
@@ -251,13 +266,14 @@ function navmeshHovered(e: THREE.Event) {
 }
 
 function teleportTo (point: THREE.Vector3){
+  console.log(point);
   const cam = document.querySelector('#camera');
-  cam.setAttribute('position', {x: point.x, y: point.y + 1.65, z: point.z});
+  cam.setAttribute('position', `${point.x} ${point.y + 1.65} ${point.z}`);
 }
 
 function previewTeleport (point: THREE.Vector3){
-  const cam = document.querySelector('#teleportPreview');
-  cam.setAttribute('position', point);
+  const teleportRing = document.querySelector('#teleportPreview');
+  teleportRing.setAttribute('position', point);
 }
 
 </script>

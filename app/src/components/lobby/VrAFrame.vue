@@ -265,12 +265,9 @@ function navmeshHovered(e: THREE.Event) {
 
 function teleportTo (point: THREE.Vector3){
   console.log(point);
-  // const cam = document.querySelector('#camera');
   playerOriginTag.value?.setAttribute('position', aframeUtils.coordinates.stringify(point));
   playerTag.value?.object3D.position.setX(0);
   playerTag.value?.object3D.position.setZ(0);
-  // const playerPos = playerTag.value!.getAttribute('position');
-
 }
 
 function previewTeleport (point: THREE.Vector3){

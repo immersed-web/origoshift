@@ -115,7 +115,7 @@
 
 <script setup lang="ts">
 import 'aframe';
-import { type Scene, type Entity, THREE } from 'aframe';
+import { type Scene, type Entity, THREE, utils as aframeUtils } from 'aframe';
 import { ref, onMounted, computed } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import type { ClientTransform } from 'schemas';
@@ -238,7 +238,6 @@ function goToStream(){
 // }
 
 const throttledTransformMutation = throttle(async (transformEvent: CustomEvent<ClientTransform>) => {
-  console.log('Slow move event!');
   if(connectionStore.clientExists){
     // const position: ClientTransform['position'] = transformEvent.detail.position;
     // const orientation: ClientTransform['orientation'] = transformEvent.detail.orientation;
@@ -248,7 +247,6 @@ const throttledTransformMutation = throttle(async (transformEvent: CustomEvent<C
 
 const cameraPosition = ref([0,0,0] as [number, number, number]);
 function cameraMoveFast (e: CustomEvent<{position: [number, number, number], orientation: [number, number, number, number]}>){
-  console.log('Fst move event!!');
   cameraPosition.value = e.detail.position;
   throttledTransformMutation(e);
 }
@@ -267,8 +265,12 @@ function navmeshHovered(e: THREE.Event) {
 
 function teleportTo (point: THREE.Vector3){
   console.log(point);
-  const cam = document.querySelector('#camera');
-  cam.setAttribute('position', `${point.x} ${point.y + 1.65} ${point.z}`);
+  // const cam = document.querySelector('#camera');
+  playerOriginTag.value?.setAttribute('position', aframeUtils.coordinates.stringify(point));
+  playerTag.value?.object3D.position.setX(0);
+  playerTag.value?.object3D.position.setZ(0);
+  // const playerPos = playerTag.value!.getAttribute('position');
+
 }
 
 function previewTeleport (point: THREE.Vector3){

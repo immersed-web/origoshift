@@ -23,10 +23,13 @@ export const vrRouter = router({
     if(!ctx.venue.doorsAreOpen){
       throw new TRPCError({code: 'FORBIDDEN', message: 'The vr space is not opened to users at this point. Very sad!'});
     }
-    ctx.vrSpace.addClient(ctx.client);
+    // ctx.vrSpace.addClient(ctx.client);
+    ctx.client.joinVrSpace();
+    return ctx.vrSpace.getPublicState();
   }),
   leaveVrSpace: userInVenueP.use(currentVenueHasVrSpaceM).mutation(({ctx, input}) => {
-    ctx.vrSpace.removeClient(ctx.client);
+    ctx.client.leaveVrSpace();
+    // ctx.vrSpace.removeClient(ctx.client);
   }),
   getState: userInVenueP.use(currentVenueHasVrSpaceM).query(({ctx}) => {
     ctx.vrSpace.getPublicState();
@@ -43,14 +46,17 @@ export const vrRouter = router({
   update3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVrSpaceHasModelM).input(VirtualSpace3DModelUpdateSchema).mutation(({input, ctx}) => {
     ctx.venue.Update3DModel(input);
   }),
-  clients: router({
+  subVrSpaceStateUpdated: p.use(isUserClientM).subscription(({ctx}) => {
+    console.log(`${ctx.username} started subscription to vrSpaceStateUpdate`);
+    return observable<NotifierInputData<typeof ctx.client.notify.vrSpaceStateUpdated>>(scriber => {
+      ctx.client.notify.vrSpaceStateUpdated = scriber.next;
+      return () => ctx.client.notify.vrSpaceStateUpdated = undefined;
+    });
+  }),
+  transform: router({
     updateTransform: userInVenueP.use(currentVenueHasVrSpaceM).input(ClientTransformSchema).mutation(({input, ctx}) =>{
       log.debug(`transform received from ${ctx.username} (${ctx.connectionId})`);
       log.debug(input);
-      const venue = ctx.venue;
-      if(!venue){
-        throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'You are not in a venue. You shouldnt send transform data!'});
-      }
       ctx.client.transform = input;
       const vrSpace = ctx.vrSpace;
       vrSpace.pendingTransforms[ctx.connectionId] = input;
@@ -69,11 +75,5 @@ export const vrRouter = router({
         return () => ctx.client.notify.clientTransforms = undefined;
       });
     }),
-    subVrSpaceStateUpdated: p.use(isUserClientM).subscription(({ctx}) => {
-      return observable<NotifierInputData<typeof ctx.client.notify.vrSpaceStateUpdated>>(scriber => {
-        ctx.client.notify.vrSpaceStateUpdated = scriber.next;
-        return () => ctx.client.notify.vrSpaceStateUpdated = undefined;
-      });
-    })
   })
 });

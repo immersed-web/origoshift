@@ -16,6 +16,7 @@
       <a-asset-item
         id="avatar-asset"
         src="/models/avatar/AVATAR_V1.gltf"
+        @loaded="avatarModelFileLoaded = true"
       />
     </a-assets>
 
@@ -100,9 +101,9 @@
       <!-- The camera / own avatar -->
       <!-- The navmesh needs to refer to the actual entity, not only the asset -->
       <!-- The avatars -->
-      <a-entity v-if="clientStore.clientTransforms">
+      <a-entity v-if="avatarModelFileLoaded">
         <RemoteAvatar
-          v-for="(transform, id) in otherClients"
+          v-for="[id, transform] in vrSpaceStore.clientTransforms"
           :key="id"
           :id="'avatar-'+id"
           :transform="transform"
@@ -116,22 +117,27 @@
 <script setup lang="ts">
 import 'aframe';
 import { type Scene, type Entity, THREE, utils as aframeUtils } from 'aframe';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import type { ClientTransform } from 'schemas';
-import type { Unsubscribable } from '@trpc/server/observable';
-import { useClientStore } from '@/stores/clientStore';
+// import type { Unsubscribable } from '@trpc/server/observable';
+// import { useClientStore } from '@/stores/clientStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useRouter } from 'vue-router';
 import { useVenueStore } from '@/stores/venueStore';
 import { useAutoEnterXR } from '@/composables/autoEnterXR';
 import { throttle } from 'lodash-es';
+// import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
+import { useSoupStore } from '@/stores/soupStore';
+import { useVrSpaceStore } from '@/stores/vrSpaceStore';
 
 const router = useRouter();
 // Stores
 const connectionStore = useConnectionStore();
-const clientStore = useClientStore();
+const vrSpaceStore = useVrSpaceStore();
+// const clientStore = useClientStore();
 const venueStore = useVenueStore();
+const soupStore = useSoupStore();
 
 // Props & emits
 const props = defineProps({
@@ -148,6 +154,8 @@ const modelTag = ref<Entity>();
 const playerTag = ref<Entity>();
 const playerOriginTag = ref<Entity>();
 
+const avatarModelFileLoaded = ref(false);
+
 const modelUrl = computed(() => {
   return props.modelUrl;
 });
@@ -156,49 +164,75 @@ const navmeshId = computed(() => {
   return props.navmeshUrl !== '' ? 'navmesh' : 'model';
 });
 
-const otherClients = computed(() => {
-  if(!clientStore.clientTransforms) return {};
-  const filteredArr = Object.entries(clientStore.clientTransforms).filter(([cId, transform]) => cId !== clientStore.clientState?.connectionId);
-  return Object.fromEntries(filteredArr);
-});
-
-// Server, Client, etc.
 
 onMounted(async () => {
 
-  startTransformSubscription();
+  await vrSpaceStore.enterVrSpace();
 
-  connectionStore.client.venue.subClientAddedOrRemoved.subscribe(undefined, {
-    onData(data){
-      console.log(data);
-      if(!data.added){
-        delete clientStore.clientTransforms?.[data.client.connectionId];
-      }
-    },
-  });
+  // startTransformSubscription();
+
+  
+  // connectionStore.client.vr.clients.subVrSpaceStateUpdated.subscribe(undefined, {
+  //   onData(vrSpaceState) {
+  //     clients.value  = vrSpaceState.data;
+  //   },
+  // });
+
+  // connectionStore.client.venue.subClientAddedOrRemoved.subscribe(undefined, {
+  //   onData(data){
+  //     console.log(data);
+  //     if(!data.added){
+  //       delete clientStore.clientTransforms?.[data.client.connectionId];
+  //     }
+  //   },
+  // });
+  
+  try{
+
+    if(!soupStore.deviceLoaded) {
+      await soupStore.loadDevice();
+    }
+    await soupStore.createSendTransport();
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
+    const [track] = stream.getAudioTracks();
+    soupStore.produce({
+      track,
+      producerInfo: {
+        isPaused: false,
+      },
+    });
+  } catch(e){
+    console.error('failed to setup the mediasoup stuff');
+  }
 
   // Clear clients on C key down
   window.addEventListener('keydown', (event) => {
     if (event.key === 'c') {
-      clientStore.clientTransforms = {};
+      // clientStore.clientTransforms = {};
     }
   });
 
 });
 
-let transformSubscription: Unsubscribable | undefined = undefined;
-function startTransformSubscription() {
-  if(transformSubscription){
-    transformSubscription.unsubscribe();
-  }
-  transformSubscription = connectionStore.client.vr.clients.subClientTransforms.subscribe(undefined, {
-    onData(transformMsg) {
-      clientStore.clientTransforms = {...clientStore.clientTransforms, ...transformMsg.data};
-      // console.log('received transform data!', data, clientStore.clientTransforms);
-    },
-  });
-  console.log('Subscribe to client transforms',transformSubscription);
-}
+// let transformSubscription: Unsubscribable | undefined = undefined;
+// function startTransformSubscription() {
+//   if(transformSubscription){
+//     transformSubscription.unsubscribe();
+//   }
+//   transformSubscription = connectionStore.client.vr.clients.subClientTransforms.subscribe(undefined, {
+//     onData(transformMsg) {
+//       clientStore.clientTransforms = {...clientStore.clientTransforms, ...transformMsg.data};
+//       // console.log('received transform data!', data, clientStore.clientTransforms);
+//     },
+//   });
+//   console.log('Subscribe to client transforms',transformSubscription);
+// }
+
+onBeforeUnmount(() => {
+  vrSpaceStore.leaveVrSpace();
+});
 
 function onModelLoaded(){
   if(modelTag.value && playerOriginTag.value){
@@ -209,7 +243,13 @@ function onModelLoaded(){
     const bbox = new THREE.Box3().setFromObject(obj3D);
     const modelCenter = bbox.getCenter(new THREE.Vector3());
     playerOriginTag.value.object3D.position.set(modelCenter.x, modelCenter.y, modelCenter.z);
-
+    const worldPos = playerTag.value!.object3D.getWorldPosition(new THREE.Vector3());
+    const worldRot = playerTag.value!.object3D.getWorldQuaternion(new THREE.Quaternion());
+    const trsfm: ClientTransform = {
+      position: worldPos.toArray(),
+      orientation: worldRot.toArray() as [number, number, number, number],
+    };
+    vrSpaceStore.updateTransform(trsfm);
   }
 }
 
@@ -238,11 +278,12 @@ function goToStream(){
 // }
 
 const throttledTransformMutation = throttle(async (transformEvent: CustomEvent<ClientTransform>) => {
-  if(connectionStore.clientExists){
-    // const position: ClientTransform['position'] = transformEvent.detail.position;
-    // const orientation: ClientTransform['orientation'] = transformEvent.detail.orientation;
-    await connectionStore.client.vr.clients.updateTransform.mutate(transformEvent.detail);
-  }
+  // if(connectionStore.clientExists){
+  //   // const position: ClientTransform['position'] = transformEvent.detail.position;
+  //   // const orientation: ClientTransform['orientation'] = transformEvent.detail.orientation;
+  //   await connectionStore.client.vr.transform.updateTransform.mutate(transformEvent.detail);
+  // }
+  await vrSpaceStore.updateTransform(transformEvent.detail);
 }, 200, {trailing: true});
 
 const cameraPosition = ref([0,0,0] as [number, number, number]);

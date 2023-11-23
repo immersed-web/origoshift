@@ -1,4 +1,4 @@
-import { ClientTransforms, VrSpaceId } from 'schemas';
+import { ClientTransforms, ConnectionId, VrSpaceId } from 'schemas';
 import { throttle, pick} from 'lodash';
 import type { UserClient, Venue } from './InternalClasses';
 
@@ -47,7 +47,6 @@ export class VrSpace {
   // }
 
   getPublicState() {
-    // return 'NOT IMPLEMENTED YET';
     const {extraSettings, ...returnState} = this.prismaData;
     const s = extraSettings as Record<string, unknown>;
     const clientsWithProducers = Array.from(this.clients.entries()).map(([cId, client]) => {
@@ -55,7 +54,7 @@ export class VrSpace {
       return [cId, cData] as const;
     });
     const clientsRecord = Object.fromEntries(clientsWithProducers);
-    return {...returnState, settings: s, clients: clientsRecord};
+    return {...returnState, settings: s, clients: clientsRecord as Record<ConnectionId, (typeof clientsRecord)[string]>};
   }
 
   addClient (client: UserClient){
@@ -67,12 +66,15 @@ export class VrSpace {
       throw Error('must be in the related venue when joining a vr space!');
     }
     this.clients.set(client.connectionId, client);
+    log.info(`added client ${client.connectionId} to vrSpace`);
     client.isInVrSpace = true;
+    this._notifyStateUpdated('client added to vrSpace');
   }
 
   removeClient (client: UserClient){
     client.isInVrSpace = false;
-    return this.clients.delete(client.connectionId);
+    this.clients.delete(client.connectionId);
+    this._notifyStateUpdated('client removed from vrSpace');
   }
 
   sendPendingTransforms = throttle(() => {
@@ -85,6 +87,10 @@ export class VrSpace {
   _notifyStateUpdated(reason?: string){
     const data = this.getPublicState();
     this.clients.forEach(c => {
+      log.info(`notifying vrSpaceState (${reason}) to client ${c.username} (${c.connectionId})`);
+      for(const [id, c] of Object.entries(data.clients)){
+        log.info(`${id} pos: ${c.transform?.position}`);
+      }
       c.notify.vrSpaceStateUpdated?.({data, reason});
     });
   }

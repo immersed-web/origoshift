@@ -5,19 +5,15 @@ const log = new Log('UserClient');
 process.env.DEBUG = 'UserClient*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { ClientTransform, ClientTransforms, ConnectionId, UserId, UserRole, VenueId, CameraId, ClientType } from 'schemas';
+import { ClientTransform, ClientTransforms, VenueId, CameraId, ClientType } from 'schemas';
 import { loadUserPrismaData, SenderClient, Venue, VrSpace } from './InternalClasses';
-import { FilteredEvents, NonFilteredEvents, NotifierSignature } from 'trpc/trpc-utils';
+import { NonFilteredEvents, NotifierSignature } from 'trpc/trpc-utils';
 import { BaseClient } from './InternalClasses';
-import { ProducerId } from 'schemas/mediasoup';
+import { effect } from '@vue/reactivity';
 
 
-type UserVrEvents = NonFilteredEvents<{
-  'clientTransforms': (transforms: ClientTransforms) => void
-}>
-
-type UserClientEvents = UserVrEvents
-& NonFilteredEvents<{
+type UserClientEvents =
+NonFilteredEvents<{
   'myStateUpdated': (data: { myState: ReturnType<UserClient['getPublicState']>, reason?: string }) => void
 }>;
 
@@ -28,16 +24,17 @@ type UserClientEvents = UserVrEvents
 export class UserClient extends BaseClient {
   constructor(...args: ConstructorParameters<typeof BaseClient>){
     super(...args);
-    // this.base = new BaseClient(...args);
     log.info(`Creating user client ${this.username} (${this.connectionId})`);
     log.debug('prismaData:', this.prismaData);
 
 
+    effect(() => {
+      if(!this.vrSpace) return;
+      this.publicProducers;
+      this.vrSpace._notifyStateUpdated('a client updated producers');
+    });
 
     this.userClientEvent = new TypedEmitter();
-    // this.event = new TypedEmitter();
-    // this.userEvents = new TypedEmitter();
-    // this.vrEvents = new TypedEmitter();
 
     this.notify = {...this.notify, ...super.notify};
   }

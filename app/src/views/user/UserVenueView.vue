@@ -83,7 +83,6 @@
 </template>
 
 <script setup lang="ts">
-import { useClientStore } from '@/stores/clientStore';
 import { useRouter } from 'vue-router';
 import { useConnectionStore } from '@/stores/connectionStore';
 import type { VenueId, VenueListInfo } from 'schemas';
@@ -124,7 +123,7 @@ const router = useRouter();
 // const clientStore = useClientStore();
 
 const openLobby = async () => {
-  await connection.client.vr.enterVrSpace.mutate();
+  // TODO: should we perhaps do this on entering vr instead?
   router.push({name: 'userLobby'});
 };
 

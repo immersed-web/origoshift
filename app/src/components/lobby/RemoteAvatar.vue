@@ -1,9 +1,7 @@
 <template>
   <a-entity
-    remote-avatar="interpolationTime: 500"
-    @close="distanceClose"
-    @far="distanceFar"
     ref="remoteAvatar"
+    :position="`${props.transform.position[0]} ${props.transform.position[1]} ${props.transform.position[2]} `"
   >
     <a-entity
       gltf-model="#avatar-asset"
@@ -16,9 +14,9 @@
 <script setup lang="ts">
 
 import 'aframe';
-import type { Entity } from 'aframe';
+import { type Entity, THREE } from 'aframe';
 import type { ClientTransform } from 'schemas';
-import { ref, type PropType, watch  } from 'vue';
+import { ref, type PropType, watch, onMounted  } from 'vue';
 
 // Props & emits
 const props = defineProps({
@@ -40,18 +38,31 @@ function distanceFar (e: CustomEvent<number>){
   distanceColor.value = 'white';
   // console.log('Went away', e.detail);
 }
+onMounted(() => {
+  if(!remoteAvatar.value) {
+    console.error('remoteAvatar entity ref undefined');
+    return;
+  }
+  // remoteAvatar.value.object3D.setRotationFromQuaternion(new THREE.Quaternion(...props.transform.position));
+  // remoteAvatar.value.object3D.position.set(...props.transform.position);
+});
 
 const remoteAvatar = ref<Entity>();
 watch(() => props.transform, () => {
-  if(!remoteAvatar.value) { return; }
-  remoteAvatar.value.emit('moveTo', {position: props.transform.position});
-  remoteAvatar.value.emit('rotateTo', {orientation: props.transform.orientation});
+  if(!remoteAvatar.value) {
+    console.error('could update avatar transform cause entityRef was undefined');
+    return;
+  }
+  // remoteAvatar.value.emit('moveTo', {position: props.transform.position});
+  // remoteAvatar.value.emit('rotateTo', {orientation: props.transform.orientation});
+  // remoteAvatar.value.object3D.setRotationFromQuaternion(new THREE.Quaternion(...props.transform.position));
+  // remoteAvatar.value.object3D.position.set(...props.transform.position);
 });
 
-watch(() => props.cameraPosition, () => {
-  if(!remoteAvatar.value) { return; }
-  remoteAvatar.value.emit('cameraPosition', {position: props.cameraPosition});
-});
+// watch(() => props.cameraPosition, () => {
+//   if(!remoteAvatar.value) { return; }
+//   remoteAvatar.value.emit('cameraPosition', {position: props.cameraPosition});
+// });
 
 </script>
 

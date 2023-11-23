@@ -6,16 +6,14 @@ log.enable(process.env.DEBUG);
 import { ConnectionId, JwtUserData, UserId, UserRole, VenueId, ConnectionIdSchema, VenueListInfo } from 'schemas';
 import { types as soupTypes } from 'mediasoup';
 import type { types as soupClientTypes } from 'mediasoup-client';
-import { ConsumerId, CreateConsumerPayload, CreateProducerPayload, ProducerId, TransportId  } from 'schemas/mediasoup';
+import { ConsumerId, CreateProducerPayload, ProducerId, TransportId  } from 'schemas/mediasoup';
 import { SenderClient, UserClient, Venue, Camera } from './InternalClasses';
-import { CustomListenerSignature, FilteredEvents, NotifierInputData, NonFilteredEvents, NotifierSignature, SingleParamListenerSignature } from 'trpc/trpc-utils';
+import { FilteredEvents, NonFilteredEvents, NotifierSignature } from 'trpc/trpc-utils';
 import { randomUUID } from 'crypto';
 import { Prisma, userDeselectPassword, userSelectAll } from 'database';
 import prismaClient from '../modules/prismaClient';
-import { ListenerSignature, TypedEmitter } from 'tiny-typed-emitter';
-import { observable } from '@trpc/server/observable';
-import { keyBy } from 'lodash';
-import { computed, ref, shallowRef } from '@vue/reactivity';
+import { TypedEmitter } from 'tiny-typed-emitter';
+import { computed, ref, shallowRef, effect } from '@vue/reactivity';
 
 type SoupObjectClosePayload =
       {type: 'transport', id: TransportId }
@@ -231,6 +229,7 @@ export class BaseClient {
     }
     return pProducers;
   });
+  
 
   getPublicState(){
     // const ownedVenues = this.ownedVenues.map(v => v.venueId);

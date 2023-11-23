@@ -1,7 +1,6 @@
 // import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
-import type { ClientTransforms } from 'schemas';
 import { useConnectionStore } from './connectionStore';
 import { ref, computed } from 'vue';
 
@@ -17,7 +16,6 @@ export const useClientStore = defineStore('client', () => {
   // Its minor because the idea is to only interact with this store if userClient (not if senderCLient).
   // But we should probably make sure the clientState isnt assigned if the user is a senderClient, to help future selfs avoid pain.
   const clientState = ref<RouterOutputs['user']['getClientState']>();
-  const clientTransforms = ref<ClientTransforms>();
 
   const initials = computed(() => {
     return clientState.value?.username ? clientState.value?.username.split(' ').map(n => n[0]).join('') : '';
@@ -45,7 +43,6 @@ export const useClientStore = defineStore('client', () => {
 
   return {
     clientState,
-    clientTransforms,
     initials,
     fetchClientState,
   };

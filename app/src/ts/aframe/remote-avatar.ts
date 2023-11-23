@@ -42,14 +42,14 @@ export default () => {
 
       this.el.addEventListener('moveTo', function (e) {
         // // Interpolate with buffered-interpolation
-        console.log('Move to',e);
+        // console.log('Move to',e);
         const pos = (e as DetailEvent<{position: [number, number, number]}>).detail.position;
         interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(pos[0], pos[1], pos[2]));
       });
 
       this.el.addEventListener('rotateTo', function (e) {
         // // Interpolate with buffered-interpolation
-        console.log('Rotate to',e);
+        // console.log('Rotate to',e);
         const rot = (e as DetailEvent<{orientation: [number, number, number, number]}>).detail.orientation;
         interpolationBuffer.setQuaternion(new AFRAME.THREE.Quaternion(rot[0], rot[1], rot[2], rot[3]));
       });

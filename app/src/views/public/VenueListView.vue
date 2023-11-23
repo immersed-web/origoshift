@@ -96,7 +96,7 @@ onBeforeMount(async () =>{
 
 const venuesOngoing = computed(() => {
   return venuesAllowed.value.filter(v => {
-    if(!venuesLoaded.value) { return false;}
+    if(!venuesLoaded.value || !(v.venueId in venuesLoaded.value)) { return false;}
     const vLoaded = venuesLoaded.value[v.venueId as VenueId];
     return vLoaded.state.doorsAreOpen || vLoaded.state.streamIsActive;
   });

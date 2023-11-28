@@ -250,6 +250,7 @@ function onModelLoaded(){
       orientation: worldRot.toArray() as [number, number, number, number],
     };
     vrSpaceStore.updateTransform(trsfm);
+    playerTag.value?.addEventListener('move', throttledTransformMutation);
   }
 }
 
@@ -286,10 +287,10 @@ const throttledTransformMutation = throttle(async (transformEvent: CustomEvent<C
   await vrSpaceStore.updateTransform(transformEvent.detail);
 }, 200, {trailing: true});
 
-const cameraPosition = ref([0,0,0] as [number, number, number]);
-function cameraMoveFast (e: CustomEvent<{position: [number, number, number], orientation: [number, number, number, number]}>){
+const cameraPosition = ref<ClientTransform['position']>([0,0,0]);
+function cameraMoveFast (e: CustomEvent<ClientTransform>){
   cameraPosition.value = e.detail.position;
-  throttledTransformMutation(e);
+  // throttledTransformMutation(e);
 }
 
 // Display message

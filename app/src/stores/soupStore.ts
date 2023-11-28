@@ -42,7 +42,7 @@ function calculateBitRate(prevStamp: number, stamp: number, prevBytes?: number, 
   const deltaBytes = bytes - prevBytes;
   const deltaTimeS = (stamp - prevStamp) * 0.001;
   const bitrate = 8 * deltaBytes / deltaTimeS;
-  console.log('calc bitrate:', deltaBytes, deltaTimeS);
+  // console.log('calc bitrate:', deltaBytes, deltaTimeS);
   return Math.floor(bitrate);
 }
 function pick<O extends {}, K extends keyof O>(obj: O, arr: Array<K>){

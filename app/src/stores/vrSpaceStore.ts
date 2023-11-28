@@ -28,13 +28,13 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
   
   connection.client.vr.transform.subClientTransforms.subscribe(undefined, {
     onData(value) {
-      console.log('clientTransforms updated:', value.data);
+      // console.log('clientTransforms updated:', value.data);
       for(const [cId, tsfm] of Object.entries(value.data)) {
         // if(cId === clientStore.clientState?.connectionId){
         //   continue;
         // }
         if(clientStore.clientState?.connectionId === cId){
-          console.log('skipping because is own transform. cId:', cId);
+          // console.log('skipping because is own transform. cId:', cId);
           continue;
         }
         clientTransforms.value.set(cId as ConnectionId, tsfm);
@@ -52,7 +52,7 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
   // });
   
   function updateTransformsFromVrSpaceState(){
-    console.log('UODATING tranfsorms from vrState -------------');
+    console.log('UPDATING transforms from received vrState -------------');
     if(!currentVrSpace.value){
       console.warn('currentVrSpace is undefined. skipping transform update.');
       return;
@@ -65,11 +65,11 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
     // }, {} as ClientTransforms);
     // receivedClientTransforms = clientTrsfm;
     
-    console.log('clientTransform before update:', toRaw(clientTransforms.value));
+    // console.log('clientTransform before update:', toRaw(clientTransforms.value));
     
     for(const [cId, {transform}] of Object.entries(currentVrSpace.value.clients)){
       if(!transform){
-        console.log('skipping because is client has no transform');
+        console.log('skipping because client has no transform');
         continue;
       }
       
@@ -85,7 +85,7 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
       console.log(`removing client (${cId}) that is no longer in the vrSpace from clientTransforms`);
       clientTransforms.value.delete(cId);
     }
-    console.log('clientTransform after update:', toRaw(clientTransforms.value));
+    // console.log('clientTransform after update:', toRaw(clientTransforms.value));
   }
   
   async function enterVrSpace() {

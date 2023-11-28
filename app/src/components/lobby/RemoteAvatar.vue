@@ -1,7 +1,7 @@
 <template>
   <a-entity
     ref="remoteAvatar"
-    :position="`${props.transform.position[0]} ${props.transform.position[1]} ${props.transform.position[2]} `"
+    remote-avatar="interpolationTime: 350"
   >
     <a-entity
       gltf-model="#avatar-asset"
@@ -14,15 +14,15 @@
 <script setup lang="ts">
 
 import 'aframe';
-import { type Entity, THREE } from 'aframe';
+import type { Entity } from 'aframe';
 import type { ClientTransform } from 'schemas';
-import { ref, type PropType, watch, onMounted  } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 
 // Props & emits
-const props = defineProps({
-  transform: {type: Object as PropType<ClientTransform>, required: true},
-  cameraPosition: {type: Array<Number>, required: true},
-});
+const props = defineProps<{
+  transform: ClientTransform,
+  cameraPosition: Array<Number>,
+}>();
 
 // Remote avatar
 const scale = ref([Math.random(), Math.random(), Math.random()]);
@@ -38,25 +38,26 @@ function distanceFar (e: CustomEvent<number>){
   distanceColor.value = 'white';
   // console.log('Went away', e.detail);
 }
-onMounted(() => {
+onMounted(async () => {
   if(!remoteAvatar.value) {
     console.error('remoteAvatar entity ref undefined');
     return;
   }
-  // remoteAvatar.value.object3D.setRotationFromQuaternion(new THREE.Quaternion(...props.transform.position));
-  // remoteAvatar.value.object3D.position.set(...props.transform.position);
+  // TODO: Risky thing here. We rely on this code executuing before the remote-avatar component initializes.
+  // The remote-avatar component will read and set the entitie's interpolationbuffer in the init function. 
+  remoteAvatar.value.object3D.position.set(...props.transform.position);
+  remoteAvatar.value.object3D.quaternion.set(...props.transform.orientation);
 });
 
 const remoteAvatar = ref<Entity>();
 watch(() => props.transform, () => {
+  // console.log('remote avatar transform updated!');
   if(!remoteAvatar.value) {
     console.error('could update avatar transform cause entityRef was undefined');
     return;
   }
-  // remoteAvatar.value.emit('moveTo', {position: props.transform.position});
-  // remoteAvatar.value.emit('rotateTo', {orientation: props.transform.orientation});
-  // remoteAvatar.value.object3D.setRotationFromQuaternion(new THREE.Quaternion(...props.transform.position));
-  // remoteAvatar.value.object3D.position.set(...props.transform.position);
+  remoteAvatar.value.emit('moveTo', {position: props.transform.position});
+  remoteAvatar.value.emit('rotateTo', {orientation: props.transform.orientation});
 });
 
 // watch(() => props.cameraPosition, () => {

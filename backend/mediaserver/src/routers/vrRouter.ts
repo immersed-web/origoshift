@@ -3,7 +3,7 @@ const log = new Log('Router:VR');
 process.env.DEBUG = 'Router:VR*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { ClientTransformSchema, VirtualSpace3DModelCreateSchema, VirtualSpace3DModelRemoveSchema, VirtualSpace3DModelUpdateSchema } from 'schemas';
+import { ClientTransformSchema, ClientTransforms, ClientTransform, ConnectionId, VirtualSpace3DModelCreateSchema, VirtualSpace3DModelRemoveSchema, VirtualSpace3DModelUpdateSchema } from 'schemas';
 import { procedure as p, router, isVenueOwnerM, isUserClientM, userInVenueP, currentVenueAdminP, currentVenueHasVrSpaceM, currentVenueHasNoVrSpaceM, currentVrSpaceHasModelM } from '../trpc/trpc';
 import { NotifierInputData, attachToEvent } from '../trpc/trpc-utils';
 import { TRPCError } from '@trpc/server';
@@ -63,8 +63,17 @@ export const vrRouter = router({
       vrSpace.sendPendingTransforms();
 
     }),
-    getClientTransforms: userInVenueP.use(currentVenueHasVrSpaceM).query(() => {
+    getClientTransforms: userInVenueP.use(currentVenueHasVrSpaceM).query(({ input, ctx }) => {
       return 'NOT IMPLEMENTED YET' as const;
+      // const state = ctx.vrSpace.getPublicState();
+      // const transformDict: Record<ConnectionId, ClientTransform> = {};
+      // for(const [cId, {transform}] of Object.entries(state.clients)){
+      //   const cIdTyped = cId as ConnectionId;
+      //   if(transform){
+      //     transformDict[cIdTyped] = transform;
+      //   }
+      // }
+      // return transformDict;
     }),
     subClientTransforms: p.use(isUserClientM).subscription(({ctx}) => {
       console.log(`${ctx.username} started subscription to transforms`);

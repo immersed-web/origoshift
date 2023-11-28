@@ -176,6 +176,7 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import StepsContainer from '@/components/design/StepsContainer.vue';
 import StepsItem from '@/components/design/StepsItem.vue';
 import { useAdminStore } from '@/stores/adminStore';
+import { useClientStore } from '@/stores/clientStore';
 
 // Router
 const router = useRouter();
@@ -184,6 +185,7 @@ const router = useRouter();
 const connection = useConnectionStore();
 const venueStore = useVenueStore();
 const adminStore = useAdminStore();
+const clientStore = useClientStore();
 
 async function updateDoors(open: boolean){
   await connection.client.admin.updateVenue.mutate({
@@ -214,6 +216,8 @@ onUnmounted(async () => {
 
 const deleteVenue = async () => {
   await adminStore.deleteCurrentVenue();
+  // TODO: quick hack to make sure venuelist is updated...
+  await clientStore.fetchClientState();
   router.push({name: 'adminHome'});
 };
 

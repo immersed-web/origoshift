@@ -29,7 +29,7 @@ export const adminRouter = router({
     ctx.client.loadPrismaDataAndNotifySelf('updated venue info/settings');
     ctx.venue._notifyStateUpdated('venue settings/data updated');
   }),
-  deleteVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
+  deleteVenue: atLeastModeratorP.use(isUserClientM).input(z.object({venueId: VenueIdSchema})).mutation(async ({ctx, input}) => {
     const venueId = input.venueId;
     if(Venue.venueIsLoaded({venueId})){
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'Cant delete a venue when its loaded. Unload it first!'});
@@ -41,6 +41,7 @@ export const adminRouter = router({
     }
 
     const deletedVenue = await Venue.deleteVenue(venueId);
+    await ctx.client.loadPrismaDataAndNotifySelf('venue deleted');
     return deletedVenue.venueId;
   }),
   loadVenue: atLeastModeratorP.input(z.object({venueId: VenueIdSchema})).mutation(async ({input, ctx}) => {

@@ -60,7 +60,7 @@ export const useAdminStore = defineStore('admin', () => {
 
   async function createVenue () {
     const venueId = await connection.client.admin.createNewVenue.mutate({name: `event-${Math.trunc(Math.random() * 1000)}`});
-    loadAndJoinVenueAsAdmin(venueId);
+    await loadAndJoinVenueAsAdmin(venueId);
     console.log('Created, loaded and joined venue', venueId);
   }
 

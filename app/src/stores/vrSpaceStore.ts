@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 
 import type { ClientTransform, ConnectionId } from 'schemas';
-import { ref, toRaw } from 'vue';
+import { ref } from 'vue';
 import { useConnectionStore } from './connectionStore';
 import type { RouterOutputs, SubscriptionValue } from '@/modules/trpcClient';
 import { useClientStore } from './clientStore';
@@ -12,7 +12,7 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
   const connection = useConnectionStore();
   const clientStore = useClientStore();
 
-  const clientTransforms = ref<Map<ConnectionId, ClientTransform>>(new Map());
+  // const clientTransforms = ref<Map<ConnectionId, ClientTransform>>(new Map());
   const currentVrSpace = ref<SubscriptionValue<RouterOutputs['vr']['subVrSpaceStateUpdated']>['data']>();
   
   
@@ -28,6 +28,7 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
   
   connection.client.vr.transform.subClientTransforms.subscribe(undefined, {
     onData(value) {
+      if(!currentVrSpace.value) return;
       // console.log('clientTransforms updated:', value.data);
       for(const [cId, tsfm] of Object.entries(value.data)) {
         // if(cId === clientStore.clientState?.connectionId){
@@ -37,7 +38,8 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
           // console.log('skipping because is own transform. cId:', cId);
           continue;
         }
-        clientTransforms.value.set(cId as ConnectionId, tsfm);
+        currentVrSpace.value.clients[cId as ConnectionId].transform = tsfm;
+        // clientTransforms.value.set(cId as ConnectionId, tsfm);
       }
     },
   });
@@ -78,19 +80,19 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
         continue;
       }
       console.log(`setting transform for ${cId} to:`, transform);
-      clientTransforms.value.set(cId as ConnectionId, transform);
+      // clientTransforms.value.set(cId as ConnectionId, transform);
     }
-    for(const cId of clientTransforms.value.keys()){
-      if(cId in currentVrSpace.value.clients) continue;
-      console.log(`removing client (${cId}) that is no longer in the vrSpace from clientTransforms`);
-      clientTransforms.value.delete(cId);
-    }
+    // for(const cId of clientTransforms.value.keys()){
+    //   if(cId in currentVrSpace.value.clients) continue;
+    //   console.log(`removing client (${cId}) that is no longer in the vrSpace from clientTransforms`);
+    //   clientTransforms.value.delete(cId);
+    // }
     // console.log('clientTransform after update:', toRaw(clientTransforms.value));
   }
   
   async function enterVrSpace() {
     currentVrSpace.value = await connection.client.vr.enterVrSpace.mutate();
-    updateTransformsFromVrSpaceState();
+    // updateTransformsFromVrSpaceState();
   }
   async function leaveVrSpace() {
     await connection.client.vr.leaveVrSpace.mutate();
@@ -101,7 +103,7 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
   
   return {
     currentVrSpace,
-    clientTransforms,
+    // clientTransforms,
     enterVrSpace,
     leaveVrSpace,
     updateTransform,

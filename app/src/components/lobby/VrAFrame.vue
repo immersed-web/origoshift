@@ -102,13 +102,17 @@
       <!-- The navmesh needs to refer to the actual entity, not only the asset -->
       <!-- The avatars -->
       <a-entity v-if="avatarModelFileLoaded">
-        <RemoteAvatar
-          v-for="[id, transform] in vrSpaceStore.clientTransforms"
+        <template
+          v-for="(clientInfo, id) in vrSpaceStore.currentVrSpace?.clients"
           :key="id"
-          :id="'avatar-'+id"
-          :transform="transform"
-          :camera-position="cameraPosition"
-        />
+        >
+          <RemoteAvatar
+            v-if="clientInfo.connectionId !== clientStore.clientState?.connectionId"
+            :id="'avatar-'+id"
+            :client-info="clientInfo"
+            :camera-position="cameraPosition"
+          />
+        </template>
       </a-entity>
     </a-entity>
   </a-scene>
@@ -117,12 +121,11 @@
 <script setup lang="ts">
 import 'aframe';
 import { type Scene, type Entity, THREE, utils as aframeUtils } from 'aframe';
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
+import { ref, onMounted, computed, onBeforeUnmount, watch, reactive } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
-import type { ClientTransform } from 'schemas';
+import type { ConnectionId, ClientTransform } from 'schemas';
 // import type { Unsubscribable } from '@trpc/server/observable';
-// import { useClientStore } from '@/stores/clientStore';
-import { useConnectionStore } from '@/stores/connectionStore';
+import { useClientStore } from '@/stores/clientStore';
 import { useRouter } from 'vue-router';
 import { useVenueStore } from '@/stores/venueStore';
 import { useAutoEnterXR } from '@/composables/autoEnterXR';
@@ -130,12 +133,12 @@ import { throttle } from 'lodash-es';
 // import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { useSoupStore } from '@/stores/soupStore';
 import { useVrSpaceStore } from '@/stores/vrSpaceStore';
+import type { ProducerId } from 'schemas/mediasoup';
 
 const router = useRouter();
 // Stores
-const connectionStore = useConnectionStore();
 const vrSpaceStore = useVrSpaceStore();
-// const clientStore = useClientStore();
+const clientStore = useClientStore();
 const venueStore = useVenueStore();
 const soupStore = useSoupStore();
 
@@ -154,6 +157,8 @@ const modelTag = ref<Entity>();
 const playerTag = ref<Entity>();
 const playerOriginTag = ref<Entity>();
 
+const audioTags = reactive<Map<ConnectionId, HTMLAudioElement>>(new Map());
+
 const avatarModelFileLoaded = ref(false);
 
 const modelUrl = computed(() => {
@@ -165,7 +170,31 @@ const navmeshId = computed(() => {
 });
 
 
+watch(audioTags, async (newAudioTags) => {
+  console.log('audiotags updated:' );
+  if(!vrSpaceStore.currentVrSpace) return;
+  const clients = vrSpaceStore.currentVrSpace.clients;
+  if(!clients) return;
+  for( const [cId, clientData] of Object.entries(clients)){
+    const cIdTyped = cId as ConnectionId;
+    if(clientStore.clientState?.connectionId === cIdTyped) continue;
+    const tag = newAudioTags.get(cIdTyped);
+    if(!tag) continue;
+    const producerId = clientData.producers.audioProducer?.producerId;
+    if(!producerId) continue;
+    if(soupStore.consumers.has(producerId)) continue;
+    const { track, consumerId} = await soupStore.consume(producerId);
+    console.log('consumed producer:', producerId);
+    tag.srcObject = new MediaStream([track]);
+  }
+});
+
+
 onMounted(async () => {
+  if(!soupStore.deviceLoaded){
+    await soupStore.loadDevice();
+  }
+  await soupStore.createReceiveTransport();
 
   await vrSpaceStore.enterVrSpace();
 

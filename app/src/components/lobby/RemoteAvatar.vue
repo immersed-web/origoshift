@@ -2,6 +2,7 @@
   <a-entity
     ref="remoteAvatar"
     remote-avatar="interpolationTime: 350"
+    mediastream-audio-source
   >
     <a-entity
       gltf-model="#avatar-asset"
@@ -15,15 +16,20 @@
 
 import 'aframe';
 import type { Entity } from 'aframe';
-import type { ClientTransform } from 'schemas';
+import type { ClientTransform, ConnectionId } from 'schemas';
 import { ref, watch, onMounted } from 'vue';
+import type { useVrSpaceStore } from '@/stores/vrSpaceStore';
+import type { ProducerId } from 'schemas/mediasoup';
+import { useSoupStore } from '@/stores/soupStore';
 
 // Props & emits
 const props = defineProps<{
-  transform: ClientTransform,
+  clientInfo:  NonNullable<ReturnType<typeof useVrSpaceStore>['currentVrSpace']>['clients'][ConnectionId]
+  // transform: ClientTransform,
+  // audioStream?: MediaStream,
   cameraPosition: Array<Number>,
 }>();
-
+const soupStore = useSoupStore();
 // Remote avatar
 const scale = ref([Math.random(), Math.random(), Math.random()]);
 
@@ -45,20 +51,48 @@ onMounted(async () => {
   }
   // TODO: Risky thing here. We rely on this code executuing before the remote-avatar component initializes.
   // The remote-avatar component will read and set the entitie's interpolationbuffer in the init function. 
-  remoteAvatar.value.object3D.position.set(...props.transform.position);
-  remoteAvatar.value.object3D.quaternion.set(...props.transform.orientation);
+  if(props.clientInfo.transform){
+    remoteAvatar.value.object3D.position.set(...props.clientInfo.transform.position);
+    remoteAvatar.value.object3D.quaternion.set(...props.clientInfo.transform.orientation);
+  }
 });
 
 const remoteAvatar = ref<Entity>();
-watch(() => props.transform, () => {
+watch(() => props.clientInfo.transform, (newTransform) => {
   // console.log('remote avatar transform updated!');
   if(!remoteAvatar.value) {
     console.error('could update avatar transform cause entityRef was undefined');
     return;
   }
-  remoteAvatar.value.emit('moveTo', {position: props.transform.position});
-  remoteAvatar.value.emit('rotateTo', {orientation: props.transform.orientation});
+  if(!newTransform) {
+    console.warn('clientInfo transform was undefined');
+    return;
+  }
+  remoteAvatar.value.emit('moveTo', {position: newTransform.position});
+  remoteAvatar.value.emit('rotateTo', {orientation: newTransform.orientation});
 });
+
+watch(() => props.clientInfo.producers.audioProducer?.producerId, async (newAudioProducerId) => {
+  if(!newAudioProducerId){
+    console.log('newProducerId was undefined');
+    return;
+  }
+  console.log('setting stream for avatar!');
+
+  const stream = await getStreamFromProducerId(newAudioProducerId);
+  remoteAvatar.value?.emit('mediaStream', stream);
+
+});
+
+async function getStreamFromProducerId(producerId?: ProducerId){
+  if(!producerId) return undefined;
+  let consumer = soupStore.consumers.get(producerId);
+  if(!consumer){
+    const {track } = await soupStore.consume(producerId);
+    return new MediaStream([track]);
+  }
+  return new MediaStream([consumer.track]);
+}
 
 // watch(() => props.cameraPosition, () => {
 //   if(!remoteAvatar.value) { return; }

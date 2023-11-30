@@ -79,9 +79,9 @@ function extractConsumerStats(newRtcStats: RTCStatsReport, prevConsumerStats?: C
   const newConsumerStat: ConsumerStats = {timestamp: 0};
   for(const report of Array.from(newRtcStats.values())){
     if(report.type === 'inbound-rtp'){
-      console.log('extracting from inbound-rtp: ', report);
+      // console.log('extracting from inbound-rtp: ', report);
       const rtpStreamStats: ConsumerStats = pick(report as RTCInboundRtpStreamStats, ['timestamp', 'bytesReceived', 'frameWidth', 'frameHeight', 'framesPerSecond']);
-      console.log('filtered report:', rtpStreamStats);
+      // console.log('filtered report:', rtpStreamStats);
       if(prevConsumerStats) {
         rtpStreamStats.incomingBitrate = calculateBitRate(prevConsumerStats.timestamp, rtpStreamStats.timestamp, prevConsumerStats.bytesReceived, rtpStreamStats.bytesReceived);
       }

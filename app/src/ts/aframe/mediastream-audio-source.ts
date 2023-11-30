@@ -20,7 +20,7 @@ export default () => {
     // audioSourceNode: null as MediaElementAudioSourceNode | null,
     // audioEl: null as HTMLAudioElement | null,
     events: {
-      mediaStream: function(e: DetailEvent<{stream: MediaStream}>){
+      'setMediaStream': function(e: DetailEvent<{stream: MediaStream}>){
         console.log('mediastream component received stream event!!');
         if(this.stream === e.detail.stream){
           console.warn('That stream was already assigned to the entity! Skipping');
@@ -30,24 +30,35 @@ export default () => {
         this.stream = e.detail.stream;
         this.positionalAudio?.setMediaStreamSource(this.stream);
         this.positionalAudio?.play();
+        if(!this.levelEntity){
+          console.error('no level entity!!');
+          return;
+        }
+        this.levelEntity?.setAttribute('visible', true);
       },
-      removeStream: function(e: DetailEvent<undefined>){
-        // TODO: implement this
-      },
+      // removeStream: function(e: DetailEvent<undefined>){
+      //   // TODO: implement this
+      // },
     },
 
     init: function () {
       this._setupSound = this._setupSound.bind(this);
       this._setupSound();
-      console.log('mediastream-audio-source initialized');
       this.levelEntity = this.el.querySelector('.audio-level') as Entity;
+      if(this.levelEntity){
+        this.levelEntity.setAttribute('visible', false);
+      }
+      console.log('mediastream-audio-source initialized');
     },
     tick(){
-      if(!this.analyzer) return;
+      if(!this.analyzer){
+        console.error('no analyzer!');
+        return;
+      }
       const data = this.analyzer.getFrequencyData();
       let sum = 0;
       data.forEach(n => sum+= n);
-      this.audioLevel = sum * 0.01;
+      this.audioLevel = sum * 0.005;
       this.levelEntity?.object3D.scale.setScalar(1 + this.audioLevel);
     },
     update(oldData) {

@@ -1,5 +1,5 @@
 import 'aframe';
-import type { DetailEvent } from 'aframe';
+import type { DetailEvent, Entity } from 'aframe';
 import InterpolationBuffer from 'buffered-interpolation';
 import type { ClientTransform } from 'schemas';
 
@@ -17,6 +17,7 @@ export default () => {
     interpolationBuffer: undefined as InterpolationBuffer | undefined,
     cameraPosition: new AFRAME.THREE.Vector3(),
     distance: 1000,
+    distanceDebugEntity: undefined as Entity | undefined,
 
     // Component a-frame callbacks
     init: function () {
@@ -26,6 +27,11 @@ export default () => {
       this.interpolationBuffer?.setPosition(pos);
       const rot = this.el.object3D.quaternion.clone();
       this.interpolationBuffer?.setQuaternion(rot);
+      
+      const foundEl = this.el.querySelector('.distance-debug');
+      if(foundEl) {
+        this.distanceDebugEntity = foundEl as Entity;
+      }
       
       console.log('Remote avatar initialized');
     },
@@ -40,6 +46,9 @@ export default () => {
         this.interpolationBuffer.update(timeDelta);
       }
       this.distanceToCamera();
+      if(this.distanceDebugEntity){
+        this.distanceDebugEntity.setAttribute('value', `${this.distance.toFixed(2)}`);
+      }
     },
     events: {
       // setTransform: function(e: DetailEvent<ClientTransform>) {
@@ -63,15 +72,15 @@ export default () => {
         const rot = e.detail.orientation;
         this.interpolationBuffer!.setQuaternion(new AFRAME.THREE.Quaternion(rot[0], rot[1], rot[2], rot[3]));
       },
-      cameraPosition: function (e: DetailEvent<Pick<ClientTransform, 'position'>>) {
-        // console.log('Camera position', e.detail.position);
+      // cameraPosition: function (e: DetailEvent<Pick<ClientTransform, 'position'>>) {
+      //   // console.log('Camera position', e.detail.position);
 
-        const pos = e.detail.position;
-        this.cameraPosition.x = pos[0];
-        this.cameraPosition.y = pos[1];
-        this.cameraPosition.z = pos[2];
-        // cameraPosition.copy(new AFRAME.THREE.Vector3(e.detail.position[0], e.detail.position[1], e.detail.position[2]));
-      },
+      //   const pos = e.detail.position;
+      //   this.cameraPosition.x = pos[0];
+      //   this.cameraPosition.y = pos[1];
+      //   this.cameraPosition.z = pos[2];
+      //   // cameraPosition.copy(new AFRAME.THREE.Vector3(e.detail.position[0], e.detail.position[1], e.detail.position[2]));
+      // },
     },
 
     // Component functions
@@ -82,7 +91,12 @@ export default () => {
       const distanceOld = this.distance;
       // Note: calculating distance between LOCAL position vectors, not taking into account the world position.
       // This should be fine as long as the camera and the avatars share the same origin position.
-      this.distance = this.el.object3D.position.distanceTo(this.cameraPosition);
+      const camera = this.el.sceneEl?.camera;
+      if(!camera) return;
+      const camWorldPos = camera.getWorldPosition(new THREE.Vector3());
+      const avatarWorldPos = this.el.object3D.getWorldPosition(new THREE.Vector3());
+      this.distance = avatarWorldPos.distanceTo(camWorldPos);
+      // this.distance = this.el.object3D.position.distanceTo(this.cameraPosition);
       const threshold = 3;
       if(distanceOld > threshold && this.distance <= threshold){
         // console.log('I am close', this.el);

@@ -3,11 +3,24 @@
     ref="remoteAvatar"
     remote-avatar="interpolationTime: 350"
     mediastream-audio-source
+    @loaded="onAvatarEntityLoaded"
   >
+    <a-circle
+      side="double"
+      class="audio-level"
+      position="0 3 0"
+      color="yellow"
+    />
     <a-entity
       gltf-model="#avatar-asset"
       position="0 -1.5 0"
       rotation="0 180 0"
+    />
+    <audio
+      ref="dummyAudioTag"
+      muted
+      autoplay
+      playsinline
     />
   </a-entity>
 </template>
@@ -21,6 +34,7 @@ import { ref, watch, onMounted } from 'vue';
 import type { useVrSpaceStore } from '@/stores/vrSpaceStore';
 import type { ProducerId } from 'schemas/mediasoup';
 import { useSoupStore } from '@/stores/soupStore';
+import { useIntervalFn } from '@vueuse/core';
 
 // Props & emits
 const props = defineProps<{
@@ -58,6 +72,7 @@ onMounted(async () => {
 });
 
 const remoteAvatar = ref<Entity>();
+const dummyAudioTag = ref<HTMLAudioElement>();
 watch(() => props.clientInfo.transform, (newTransform) => {
   // console.log('remote avatar transform updated!');
   if(!remoteAvatar.value) {
@@ -72,26 +87,58 @@ watch(() => props.clientInfo.transform, (newTransform) => {
   remoteAvatar.value.emit('rotateTo', {orientation: newTransform.orientation});
 });
 
-watch(() => props.clientInfo.producers.audioProducer?.producerId, async (newAudioProducerId) => {
-  if(!newAudioProducerId){
-    console.log('newProducerId was undefined');
+let stream: MediaStream | undefined;
+// let rtpReceiver: RTCRtpReceiver | undefined;
+
+watch(() => props.clientInfo.producers.audioProducer, async (newAudioProducer) => {
+  console.log('audioProducer was updated!');
+  if(!newAudioProducer){
+    console.log('newProducer was undefined');
+    return;
+  }
+  stream = await getStreamFromProducerId(newAudioProducer.producerId);
+  if(dummyAudioTag.value && stream){
+    dummyAudioTag.value.srcObject = stream;
+  }
+  if(!remoteAvatar.value?.hasLoaded){
+    console.warn('skipping to set stream because aframe entity was not yet ready or undefined');
     return;
   }
   console.log('setting stream for avatar!');
-
-  const stream = await getStreamFromProducerId(newAudioProducerId);
-  remoteAvatar.value?.emit('mediaStream', stream);
-
+  remoteAvatar.value?.emit('mediaStream', {stream});
 });
+
+// const volume = ref(0);
+// useIntervalFn(() => {
+//   if(!rtpReceiver) return;
+//   console.log(rtpReceiver);
+//   const syncSources = rtpReceiver.getContributingSources();
+//   // console.log(syncSources);
+
+// }, 200);
+
+function onAvatarEntityLoaded(e: DetailEvent<any>){
+  console.log('avatar a-entity loaded!');
+  if(!remoteAvatar.value){
+    console.error('remoteAvatar was undefined');
+    return;
+  }
+  if(stream){
+    console.log('emitting mediastream to entity');
+    remoteAvatar.value.emit('mediaStream', {stream});
+  }
+}
 
 async function getStreamFromProducerId(producerId?: ProducerId){
   if(!producerId) return undefined;
-  let consumer = soupStore.consumers.get(producerId);
-  if(!consumer){
-    const {track } = await soupStore.consume(producerId);
-    return new MediaStream([track]);
+  let consumerData = soupStore.consumers.get(producerId);
+  if(!consumerData){
+    await soupStore.consume(producerId);
+    consumerData = soupStore.consumers.get(producerId)!;
+    // return new MediaStream([track]);
   }
-  return new MediaStream([consumer.track]);
+  // rtpReceiver = consumerData.consumer.rtpReceiver;
+  return new MediaStream([consumerData.consumer.track]);
 }
 
 // watch(() => props.cameraPosition, () => {

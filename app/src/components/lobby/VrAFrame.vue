@@ -170,25 +170,24 @@ const navmeshId = computed(() => {
 });
 
 
-watch(audioTags, async (newAudioTags) => {
-  console.log('audiotags updated:' );
-  if(!vrSpaceStore.currentVrSpace) return;
-  const clients = vrSpaceStore.currentVrSpace.clients;
-  if(!clients) return;
-  for( const [cId, clientData] of Object.entries(clients)){
-    const cIdTyped = cId as ConnectionId;
-    if(clientStore.clientState?.connectionId === cIdTyped) continue;
-    const tag = newAudioTags.get(cIdTyped);
-    if(!tag) continue;
-    const producerId = clientData.producers.audioProducer?.producerId;
-    if(!producerId) continue;
-    if(soupStore.consumers.has(producerId)) continue;
-    const { track, consumerId} = await soupStore.consume(producerId);
-    console.log('consumed producer:', producerId);
-    tag.srcObject = new MediaStream([track]);
-  }
-});
-
+// watch(audioTags, async (newAudioTags) => {
+//   console.log('audiotags updated:' );
+//   if(!vrSpaceStore.currentVrSpace) return;
+//   const clients = vrSpaceStore.currentVrSpace.clients;
+//   if(!clients) return;
+//   for( const [cId, clientData] of Object.entries(clients)){
+//     const cIdTyped = cId as ConnectionId;
+//     if(clientStore.clientState?.connectionId === cIdTyped) continue;
+//     const tag = newAudioTags.get(cIdTyped);
+//     if(!tag) continue;
+//     const producerId = clientData.producers.audioProducer?.producerId;
+//     if(!producerId) continue;
+//     if(soupStore.consumers.has(producerId)) continue;
+//     const { track, consumerId} = await soupStore.consume(producerId);
+//     console.log('consumed producer:', producerId);
+//     tag.srcObject = new MediaStream([track]);
+//   }
+// });
 
 onMounted(async () => {
   if(!soupStore.deviceLoaded){
@@ -196,7 +195,6 @@ onMounted(async () => {
   }
   await soupStore.createReceiveTransport();
 
-  await vrSpaceStore.enterVrSpace();
 
   // startTransformSubscription();
 
@@ -217,16 +215,12 @@ onMounted(async () => {
   // });
   
   try{
-
-    if(!soupStore.deviceLoaded) {
-      await soupStore.loadDevice();
-    }
     await soupStore.createSendTransport();
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: true,
     });
     const [track] = stream.getAudioTracks();
-    soupStore.produce({
+    await soupStore.produce({
       track,
       producerInfo: {
         isPaused: false,
@@ -235,6 +229,8 @@ onMounted(async () => {
   } catch(e){
     console.error('failed to setup the mediasoup stuff');
   }
+
+  await vrSpaceStore.enterVrSpace();
 
   // Clear clients on C key down
   window.addEventListener('keydown', (event) => {

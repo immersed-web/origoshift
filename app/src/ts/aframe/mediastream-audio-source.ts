@@ -1,4 +1,4 @@
-import type { DetailEvent, Scene } from 'aframe';
+import type { DetailEvent, Entity, Scene } from 'aframe';
 
 export default () => {
   AFRAME.registerComponent('mediastream-audio-source', {
@@ -13,11 +13,15 @@ export default () => {
       audioElement: {type: 'selector', default: '#completelyRandomAsIHopeyouneverhaveanidthisspecific'},
     },
     positionalAudio: null as THREE.PositionalAudio | null,
+    analyzer: null as THREE.AudioAnalyser | null,
+    audioLevel: 1,
+    levelEntity: undefined as Entity | undefined,
     stream: null as MediaStream | null,
     // audioSourceNode: null as MediaElementAudioSourceNode | null,
     // audioEl: null as HTMLAudioElement | null,
     events: {
       mediaStream: function(e: DetailEvent<{stream: MediaStream}>){
+        console.log('mediastream component received stream event!!');
         if(this.stream === e.detail.stream){
           console.warn('That stream was already assigned to the entity! Skipping');
           return;
@@ -27,14 +31,25 @@ export default () => {
         this.positionalAudio?.setMediaStreamSource(this.stream);
         this.positionalAudio?.play();
       },
+      removeStream: function(e: DetailEvent<undefined>){
+        // TODO: implement this
+      },
     },
 
     init: function () {
       this._setupSound = this._setupSound.bind(this);
       this._setupSound();
       console.log('mediastream-audio-source initialized');
+      this.levelEntity = this.el.querySelector('.audio-level') as Entity;
     },
-
+    tick(){
+      if(!this.analyzer) return;
+      const data = this.analyzer.getFrequencyData();
+      let sum = 0;
+      data.forEach(n => sum+= n);
+      this.audioLevel = sum * 0.01;
+      this.levelEntity?.object3D.scale.setScalar(1 + this.audioLevel);
+    },
     update(oldData) {
     // if (!this.positionalAudio) {
     //   return;
@@ -94,6 +109,8 @@ export default () => {
       }
 
       this.positionalAudio = new THREE.PositionalAudio(sceneEl.audioListener);
+      this.analyzer = new THREE.AudioAnalyser(this.positionalAudio, 32);
+
       el.setObject3D(this.attrName!, this.positionalAudio);
 
       // if(!this.audioEl?.srcObject) return;

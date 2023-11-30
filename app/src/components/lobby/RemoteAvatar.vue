@@ -45,9 +45,6 @@ import { useIntervalFn } from '@vueuse/core';
 // Props & emits
 const props = defineProps<{
   clientInfo:  NonNullable<ReturnType<typeof useVrSpaceStore>['currentVrSpace']>['clients'][ConnectionId]
-  // transform: ClientTransform,
-  // audioStream?: MediaStream,
-  cameraPosition: Array<Number>,
 }>();
 const soupStore = useSoupStore();
 // Remote avatar
@@ -78,7 +75,8 @@ onMounted(async () => {
 });
 onBeforeUnmount(async () => {
   const pId = props.clientInfo.producers.audioProducer?.producerId;
-  if(pId){
+  if(pId && soupStore.consumers.has(pId)){
+    console.log('gonna closeConsumer with producerId:', pId);
     await soupStore.closeConsumer(pId);
   }
 });
@@ -95,6 +93,7 @@ watch(() => props.clientInfo.transform, (newTransform) => {
     console.warn('clientInfo transform was undefined');
     return;
   }
+  console.log('emitting received transform to avatar entity');
   remoteAvatar.value.emit('moveTo', {position: newTransform.position});
   remoteAvatar.value.emit('rotateTo', {orientation: newTransform.orientation});
 });
@@ -144,11 +143,6 @@ async function getStreamFromProducerId(producerId?: ProducerId){
   // rtpReceiver = consumerData.consumer.rtpReceiver;
   return new MediaStream([consumerData.consumer.track]);
 }
-
-// watch(() => props.cameraPosition, () => {
-//   if(!remoteAvatar.value) { return; }
-//   remoteAvatar.value.emit('cameraPosition', {position: props.cameraPosition});
-// });
 
 </script>
 

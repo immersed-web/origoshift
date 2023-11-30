@@ -22,21 +22,26 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
     onData(vrSpaceState) {
       console.log(`vrSpaceState updated. ${vrSpaceState.reason}:`, vrSpaceState.data);
       currentVrSpace.value = vrSpaceState.data;
-      updateTransformsFromVrSpaceState();
+      // updateTransformsFromVrSpaceState();
     },
   });
   
   connection.client.vr.transform.subClientTransforms.subscribe(undefined, {
     onData(value) {
       if(!currentVrSpace.value) return;
-      // console.log('clientTransforms updated:', value.data);
+      console.log('clientTransforms update received:', value.data);
       for(const [cId, tsfm] of Object.entries(value.data)) {
+        const cIdTyped = cId as ConnectionId;
         // if(cId === clientStore.clientState?.connectionId){
         //   continue;
         // }
         if(clientStore.clientState?.connectionId === cId){
-          // console.log('skipping because is own transform. cId:', cId);
+          console.log('skipping because is own transform. cId:', cId);
           continue;
+        }
+        if(!currentVrSpace.value.clients[cIdTyped]){
+          console.warn('received a clientTransform for a client that isnt listed in vrSpaceState');
+          return;
         }
         currentVrSpace.value.clients[cId as ConnectionId].transform = tsfm;
         // clientTransforms.value.set(cId as ConnectionId, tsfm);

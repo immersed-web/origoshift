@@ -110,7 +110,6 @@
             v-if="clientInfo.connectionId !== clientStore.clientState?.connectionId"
             :id="'avatar-'+id"
             :client-info="clientInfo"
-            :camera-position="cameraPosition"
           />
         </template>
       </a-entity>
@@ -157,8 +156,6 @@ const modelTag = ref<Entity>();
 const playerTag = ref<Entity>();
 const playerOriginTag = ref<Entity>();
 
-const audioTags = reactive<Map<ConnectionId, HTMLAudioElement>>(new Map());
-
 const avatarModelFileLoaded = ref(false);
 
 const modelUrl = computed(() => {
@@ -169,50 +166,11 @@ const navmeshId = computed(() => {
   return props.navmeshUrl !== '' ? 'navmesh' : 'model';
 });
 
-
-// watch(audioTags, async (newAudioTags) => {
-//   console.log('audiotags updated:' );
-//   if(!vrSpaceStore.currentVrSpace) return;
-//   const clients = vrSpaceStore.currentVrSpace.clients;
-//   if(!clients) return;
-//   for( const [cId, clientData] of Object.entries(clients)){
-//     const cIdTyped = cId as ConnectionId;
-//     if(clientStore.clientState?.connectionId === cIdTyped) continue;
-//     const tag = newAudioTags.get(cIdTyped);
-//     if(!tag) continue;
-//     const producerId = clientData.producers.audioProducer?.producerId;
-//     if(!producerId) continue;
-//     if(soupStore.consumers.has(producerId)) continue;
-//     const { track, consumerId} = await soupStore.consume(producerId);
-//     console.log('consumed producer:', producerId);
-//     tag.srcObject = new MediaStream([track]);
-//   }
-// });
-
 onMounted(async () => {
   if(!soupStore.deviceLoaded){
     await soupStore.loadDevice();
   }
   await soupStore.createReceiveTransport();
-
-
-  // startTransformSubscription();
-
-  
-  // connectionStore.client.vr.clients.subVrSpaceStateUpdated.subscribe(undefined, {
-  //   onData(vrSpaceState) {
-  //     clients.value  = vrSpaceState.data;
-  //   },
-  // });
-
-  // connectionStore.client.venue.subClientAddedOrRemoved.subscribe(undefined, {
-  //   onData(data){
-  //     console.log(data);
-  //     if(!data.added){
-  //       delete clientStore.clientTransforms?.[data.client.connectionId];
-  //     }
-  //   },
-  // });
   
   try{
     await soupStore.createSendTransport();
@@ -255,8 +213,9 @@ onMounted(async () => {
 //   console.log('Subscribe to client transforms',transformSubscription);
 // }
 
-onBeforeUnmount(() => {
-  vrSpaceStore.leaveVrSpace();
+onBeforeUnmount(async () => {
+  await soupStore.closeAudioProducer();
+  await vrSpaceStore.leaveVrSpace();
 });
 
 function onModelLoaded(){

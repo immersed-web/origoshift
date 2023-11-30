@@ -456,6 +456,8 @@ export const useSoupStore = defineStore('soup', () =>{
     consumers,
     // consumerStats,
     produce,
+    closeVideoProducer,
+    closeAudioProducer,
     replaceVideoProducerTrack,
     replaceAudioProducerTrack,
     pauseVideoProducer,

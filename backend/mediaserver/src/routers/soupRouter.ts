@@ -85,7 +85,7 @@ export const soupRouter = router({
     return 'Not implemented yet' as const;
   }),
   createConsumer: clientInVenueP.input(CreateConsumerPayloadSchema).mutation(async ({ctx, input}) => {
-    log.info('received createConsumer request');
+    log.info(`received createConsumer request from ${ctx.username} (${ctx.connectionId}) for producer:`, input.producerId);
     const client = ctx.client;
     if(!client.receiveTransport){
       throw new TRPCError({code:'PRECONDITION_FAILED', message:'A transport is required to create a consumer'});

@@ -22,6 +22,7 @@ export default () => {
           console.warn('That stream was already assigned to the entity! Skipping');
           return;
         }
+        console.log('Attaching new stream to entity');
         this.stream = e.detail.stream;
         this.positionalAudio?.setMediaStreamSource(this.stream);
         this.positionalAudio?.play();

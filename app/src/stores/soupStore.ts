@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { soupDevice, attachTransportEvents, type ProduceAppData } from '@/modules/mediasoup';
 import type {types as soupTypes } from 'mediasoup-client';
-import { reactive, ref, shallowReactive, shallowRef } from 'vue';
+import { reactive, ref, shallowReactive, shallowRef, markRaw, type Raw } from 'vue';
 import { useIntervalFn, useEventListener } from '@vueuse/core';
 import { useConnectionStore } from './connectionStore';
 import type { ConsumerId, ProducerId, ProducerInfo } from 'schemas/mediasoup';
@@ -32,9 +32,15 @@ type ConsumerStats = {incomingBitrate?: number} & Pick<RTCInboundRtpStreamStats,
 >
 
 type ProducerData = {
-  producer?: soupTypes.Producer,
+  producer?: Raw<soupTypes.Producer>,
   stats?: ProducerStats | undefined,
   _prevStats?: ProducerStats | undefined,
+}
+
+type ConsumerData = {
+  consumer: Raw<soupTypes.Consumer>,
+  stats?: ConsumerStats,
+  _prevStats?: ConsumerStats,
 }
 
 function calculateBitRate(prevStamp: number, stamp: number, prevBytes?: number, bytes?: number){
@@ -113,16 +119,16 @@ export const useSoupStore = defineStore('soup', () =>{
       audioProducer.stats = extractProducersStats(s, audioProducer._prevStats);
     }
     consumers.forEach(async (c, k) => {
-      let cStats = consumerStats.get(k);
-      if(cStats){
-        cStats._prevStats = cStats.stats;
+      // let cStats = consumerStats.get(k);
+      if(c.stats){
+        c._prevStats = c.stats;
       }else{
-        cStats = {stats: undefined, _prevStats: undefined};
+        // cStats = {stats: undefined, _prevStats: undefined};
       } 
-      const s = await c.getStats();
-      cStats.stats = extractConsumerStats(s, cStats._prevStats);
+      const s = await c.consumer.getStats();
+      c.stats = extractConsumerStats(s, c._prevStats);
 
-      consumerStats.set(k, cStats);
+      // consumerStats.set(k, cStats);
     });
 
   }, 5000);
@@ -137,8 +143,8 @@ export const useSoupStore = defineStore('soup', () =>{
 
   // Perhaps unintuitive to have producerId as key.
   // But presumably the most common case is to need the consumer belonging to a specific producer.
-  const consumers = shallowReactive<Map<ProducerId, soupTypes.Consumer>>(new Map());
-  const consumerStats = shallowReactive<Map<ProducerId, {stats: ConsumerStats | undefined, _prevStats: ConsumerStats | undefined}>>(new Map());
+  const consumers = reactive<Map<ProducerId, ConsumerData>>(new Map());
+  // const consumerStats = shallowReactive<Map<ProducerId, {stats: ConsumerStats | undefined, _prevStats: ConsumerStats | undefined}>>(new Map());
 
   const connectionStore = useConnectionStore();
 
@@ -150,9 +156,9 @@ export const useSoupStore = defineStore('soup', () =>{
           const { consumerInfo: {consumerId, producerId} } = data;
           const con = consumers.get(producerId);
           if(con) {
-            con.close();
+            con.consumer.close();
             consumers.delete(producerId);
-            consumerStats.delete(producerId);
+            // consumerStats.delete(producerId);
           }
           break;
         }
@@ -323,7 +329,7 @@ export const useSoupStore = defineStore('soup', () =>{
     const foundConsumer = consumers.get(producerId);
     if(foundConsumer){
       console.log('re-using already existing consumer');
-      return { track: foundConsumer.track, consumerId: foundConsumer.id as ConsumerId};
+      return { track: foundConsumer.consumer.track, consumerId: foundConsumer.consumer.id as ConsumerId};
     }
     const consumerOptions = await connectionStore.client.soup.createConsumer.mutate({producerId});
 
@@ -340,15 +346,18 @@ export const useSoupStore = defineStore('soup', () =>{
       if(foundConsumer){
         console.log('consumer also already existed in frontend. Will keep it');
         return {
-          track: foundConsumer.track,
-          consumerId: foundConsumer.id as ConsumerId,
+          track: foundConsumer.consumer.track,
+          consumerId: foundConsumer.consumer.id as ConsumerId,
         };
       }
       console.error('consumer existed in backend but not in frontend. Not good!');
     }
     const consumer = await receiveTransport.value.consume(consumerOptions);
     console.assert(!consumers.has(consumerOptions.producerId), 'a new consumer was created in backend but one for that producer already existed in frontend. This is REEEEAAAAL BAAAD. What have you done Gunhaxxor?');
-    consumers.set(consumerOptions.producerId, consumer);
+    const consumerData: ConsumerData = {
+      consumer: markRaw(consumer),
+    };
+    consumers.set(consumerOptions.producerId, consumerData);
 
     // safe to unpause from server now
     connectionStore.client.soup.pauseOrResumeConsumer.mutate({producerId: consumerOptions.producerId, pause: false});
@@ -375,7 +384,7 @@ export const useSoupStore = defineStore('soup', () =>{
   
   function closeAllConsumers(){
     consumers.forEach(c => {
-      closeConsumer(c.producerId as ProducerId);
+      closeConsumer(c.consumer.producerId as ProducerId);
     });
   }
 
@@ -386,9 +395,9 @@ export const useSoupStore = defineStore('soup', () =>{
     }
     // const consumerId = consumer.id as ConsumerId;
     if (wasPaused) {
-      consumer.pause();
+      consumer.consumer.pause();
     } else {
-      consumer.resume();
+      consumer.consumer.resume();
     }
     await connectionStore.client.soup.pauseOrResumeConsumer.mutate({producerId, pause: wasPaused});
   }
@@ -445,7 +454,7 @@ export const useSoupStore = defineStore('soup', () =>{
     // producers,
     // producersStats,
     consumers,
-    consumerStats,
+    // consumerStats,
     produce,
     replaceVideoProducerTrack,
     replaceAudioProducerTrack,

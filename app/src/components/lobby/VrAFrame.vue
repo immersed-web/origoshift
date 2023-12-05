@@ -117,8 +117,8 @@
 </template>
 
 <script setup lang="ts">
-import 'aframe';
-import { type Scene, type Entity, THREE, utils as aframeUtils } from 'aframe';
+// import 'aframe';
+import { type Scene, type Entity, THREE, utils as aframeUtils, type DetailEvent } from 'aframe';
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import type { ClientTransform } from 'schemas';
@@ -246,8 +246,15 @@ function navmeshClicked(e: THREE.Event) {
 }
 
 function navmeshHovered(e: THREE.Event) {
-  previewTeleport(e.detail);
+  console.log('navmesh rayCasted:', e);
+  previewTeleport(e.detail.point);
 }
+
+// function onIntersected(e: DetailEvent<any>){
+//   const isInXR = aframeUtils.device.checkHeadsetConnected();
+//   console.log('isHeadsetConnected:', isInXR);
+//   console.log('intersected:', e.detail);
+// }
 
 function teleportTo (point: THREE.Vector3){
   console.log(point);

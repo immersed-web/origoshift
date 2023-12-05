@@ -72,9 +72,8 @@
         ref="playerTag"
         look-controls="reverseMouseDrag: true; reverseTouchDrag: true;"
         wasd-controls="acceleration:75;"
-        emit-move="interval: 40"
+        emit-move="interval: 20"
         position="0 1.65 0"
-        @move="cameraMoveFast"
         :simple-navmesh-constraint="'navmesh:#'+navmeshId+'; fall:0.5; height:1.65;'"
       >
         <a-entity
@@ -103,7 +102,7 @@
       <!-- The avatars -->
       <a-entity v-if="avatarModelFileLoaded">
         <template
-          v-for="(clientInfo, id) in vrSpaceStore.currentVrSpace?.clients"
+          v-for="(clientInfo, id) in clients"
           :key="id"
         >
           <RemoteAvatar
@@ -120,9 +119,9 @@
 <script setup lang="ts">
 import 'aframe';
 import { type Scene, type Entity, THREE, utils as aframeUtils } from 'aframe';
-import { ref, onMounted, computed, onBeforeUnmount, watch, reactive } from 'vue';
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
-import type { ConnectionId, ClientTransform } from 'schemas';
+import type { ClientTransform } from 'schemas';
 // import type { Unsubscribable } from '@trpc/server/observable';
 import { useClientStore } from '@/stores/clientStore';
 import { useRouter } from 'vue-router';
@@ -132,7 +131,6 @@ import { throttle } from 'lodash-es';
 // import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { useSoupStore } from '@/stores/soupStore';
 import { useVrSpaceStore } from '@/stores/vrSpaceStore';
-import type { ProducerId } from 'schemas/mediasoup';
 
 const router = useRouter();
 // Stores
@@ -166,6 +164,11 @@ const navmeshId = computed(() => {
   return props.navmeshUrl !== '' ? 'navmesh' : 'model';
 });
 
+const clients = computed(() => vrSpaceStore.currentVrSpace?.clients);
+// watch(clients, (newClients, oldClients) => {
+//   console.log('clients was updated. new:', newClients, 'old:', oldClients);
+// });
+
 onMounted(async () => {
   if(!soupStore.deviceLoaded){
     await soupStore.loadDevice();
@@ -189,29 +192,7 @@ onMounted(async () => {
   }
 
   await vrSpaceStore.enterVrSpace();
-
-  // Clear clients on C key down
-  window.addEventListener('keydown', (event) => {
-    if (event.key === 'c') {
-      // clientStore.clientTransforms = {};
-    }
-  });
-
 });
-
-// let transformSubscription: Unsubscribable | undefined = undefined;
-// function startTransformSubscription() {
-//   if(transformSubscription){
-//     transformSubscription.unsubscribe();
-//   }
-//   transformSubscription = connectionStore.client.vr.clients.subClientTransforms.subscribe(undefined, {
-//     onData(transformMsg) {
-//       clientStore.clientTransforms = {...clientStore.clientTransforms, ...transformMsg.data};
-//       // console.log('received transform data!', data, clientStore.clientTransforms);
-//     },
-//   });
-//   console.log('Subscribe to client transforms',transformSubscription);
-// }
 
 onBeforeUnmount(async () => {
   await soupStore.closeAudioProducer();
@@ -234,6 +215,7 @@ function onModelLoaded(){
       orientation: worldRot.toArray() as [number, number, number, number],
     };
     vrSpaceStore.updateTransform(trsfm);
+    // @ts-ignore
     playerTag.value?.addEventListener('move', throttledTransformMutation);
   }
 }
@@ -251,31 +233,9 @@ function goToStream(){
   });
 }
 
-// Move callbacks
-
-// async function cameraMoveSlow (e: CustomEvent<{position: [number, number, number], orientation: [number, number, number, number]}>){
-//   // console.log('Camera move slow', positionStr);
-//   if(connectionStore.clientExists){
-//     const position: ClientTransform['position'] = e.detail.position;
-//     const orientation: ClientTransform['orientation'] = e.detail.orientation;
-//     await connectionStore.client.vr.clients.updateTransform.mutate({position, orientation});
-//   }
-// }
-
 const throttledTransformMutation = throttle(async (transformEvent: CustomEvent<ClientTransform>) => {
-  // if(connectionStore.clientExists){
-  //   // const position: ClientTransform['position'] = transformEvent.detail.position;
-  //   // const orientation: ClientTransform['orientation'] = transformEvent.detail.orientation;
-  //   await connectionStore.client.vr.transform.updateTransform.mutate(transformEvent.detail);
-  // }
   await vrSpaceStore.updateTransform(transformEvent.detail);
-}, 200, {trailing: true});
-
-const cameraPosition = ref<ClientTransform['position']>([0,0,0]);
-function cameraMoveFast (e: CustomEvent<ClientTransform>){
-  cameraPosition.value = e.detail.position;
-  // throttledTransformMutation(e);
-}
+}, 100, {trailing: true});
 
 // Display message
 const displayMessage = ref('');

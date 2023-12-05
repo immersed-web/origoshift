@@ -36,7 +36,7 @@
 import 'aframe';
 import type { Entity } from 'aframe';
 import type { ClientTransform, ConnectionId } from 'schemas';
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue';
 import type { useVrSpaceStore } from '@/stores/vrSpaceStore';
 import type { ProducerId } from 'schemas/mediasoup';
 import { useSoupStore } from '@/stores/soupStore';
@@ -62,6 +62,7 @@ function distanceFar (e: CustomEvent<number>){
   // console.log('Went away', e.detail);
 }
 onMounted(async () => {
+  console.log('remoteAvatar mounted');
   if(!remoteAvatar.value) {
     console.error('remoteAvatar entity ref undefined');
     return;
@@ -74,6 +75,7 @@ onMounted(async () => {
   }
 });
 onBeforeUnmount(async () => {
+  console.log('remoteAvatar will unmount');
   const pId = props.clientInfo.producers.audioProducer?.producerId;
   if(pId && soupStore.consumers.has(pId)){
     console.log('gonna closeConsumer with producerId:', pId);
@@ -83,6 +85,7 @@ onBeforeUnmount(async () => {
 
 const remoteAvatar = ref<Entity>();
 const dummyAudioTag = ref<HTMLAudioElement>();
+watch(() => props.clientInfo, (n, o) => console.log('remoteAvatar prop updated. new:', n, ' old:', o));
 watch(() => props.clientInfo.transform, (newTransform) => {
   // console.log('remote avatar transform updated!');
   if(!remoteAvatar.value) {
@@ -98,38 +101,49 @@ watch(() => props.clientInfo.transform, (newTransform) => {
   remoteAvatar.value.emit('rotateTo', {orientation: newTransform.orientation});
 });
 
-let stream: MediaStream | undefined;
-// let rtpReceiver: RTCRtpReceiver | undefined;
+let stream = shallowRef<MediaStream>();
+watch(stream, () => {
+  if(!stream.value) {
+    console.error('stream became undefined');
+    return;
+  }
+  if(!dummyAudioTag.value){
+    console.error('audio dummytag was undefined');
+    return;
+  }
+  dummyAudioTag.value.srcObject = stream.value;
+  if(!remoteAvatar.value?.hasLoaded){
+    console.warn('skipping to emit stream because aframe entity (and thus the components) was not yet ready or undefined');
+    return;
+  }
+  console.log('emitting stream for avatar after stream was updated:', stream.value);
+  remoteAvatar.value.emit('setMediaStream', {stream: stream.value});
+});
 
-watch(() => props.clientInfo.producers.audioProducer, async (newAudioProducer) => {
-  console.log('audioProducer was updated!');
-  if(!newAudioProducer){
+watch(() => props.clientInfo.producers.audioProducer?.producerId, async (newAudioProducerId, oldAudioProducerId) => {
+  console.log('audioProducer was updated. new:', newAudioProducerId, ' old:', oldAudioProducerId);
+  if(!newAudioProducerId){
     console.log('newProducer was undefined');
     return;
   }
-  stream = await getStreamFromProducerId(newAudioProducer.producerId);
-  if(dummyAudioTag.value && stream){
-    console.log('attaching stream to dummy audio tag');
-    dummyAudioTag.value.srcObject = stream;
-  }
-  if(!remoteAvatar.value?.hasLoaded){
-    console.warn('skipping to set stream because aframe entity was not yet ready or undefined');
+  stream.value = await getStreamFromProducerId(newAudioProducerId);
+}, {immediate: true});
+
+async function onAvatarEntityLoaded(e: DetailEvent<any>){
+  console.log('avatar a-entity loaded!');
+  // NOTE: For some reason the event isnt received by the entity if we dont put it on the event queue.
+  // I guess there is something that makes the entity trigger the loaded event before it is actually fully ready.
+  await new Promise(res => setTimeout(res, 0));
+  if(!stream.value){
+    console.log('stream is undefined. Will not emit');
     return;
   }
-  console.log('emitting stream for avatar after audioproducer was updated!');
-  remoteAvatar.value.emit('setMediaStream', {stream});
-});
-
-function onAvatarEntityLoaded(e: DetailEvent<any>){
-  console.log('avatar a-entity loaded!');
   if(!remoteAvatar.value){
     console.error('remoteAvatar was undefined');
     return;
   }
-  if(stream){
-    console.log('emitting mediastream to entity after avatar entity loaded');
-    remoteAvatar.value.emit('mediaStream', {stream});
-  }
+  console.log('emitting mediastream to entity after avatar entity loaded', stream.value);
+  remoteAvatar.value.emit('setMediaStream', {stream: stream.value});
 }
 
 async function getStreamFromProducerId(producerId?: ProducerId){

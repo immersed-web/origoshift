@@ -29,7 +29,6 @@ export const useClientStore = defineStore('client', () => {
 
   const initConnection = async () => {
     clientState.value = await connection.client.user.getClientState.query();
-    // await this.updateClientState();
     connection.client.user.subOwnClientState.subscribe(undefined, {
       onData: (data) => {
         console.log(`clientState received. Reason: ${data.reason}`);

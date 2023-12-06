@@ -1,22 +1,31 @@
 <template>
   <div v-if="!url">
     <form @submit.prevent="uploadFile">
-      <div class="form-control w-full max-w-xs">
+      <div class="form-control">
         <input
           type="file"
           accept=".gltf, .glb"
-          class="file-input file-input-bordered w-full max-w-xs"
+          class="file-input file-input-bordered max-w-xs"
           ref="fileInput"
           @change="onFilesPicked"
         >
+        <div class="flex flex-nowrap items-center gap-2">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            :disabled="!isFileSizeOk"
+          >
+            Ladda upp {{ props.name }}
+          </button>
+          <div
+            :class="{'invisible': uploadProgress === 0}"
+            class="radial-progress text-primary"
+            :style="`--value:${smoothedProgress}; --size:2.5rem`"
+          >
+            {{ smoothedProgress.toFixed(0) }}%
+          </div>
+        </div>
       </div>
-      <button
-        type="submit"
-        class="btn btn-primary"
-        :disabled="!isFileSizeOk"
-      >
-        Ladda upp {{ props.name }}
-      </button>
     </form>
   </div>
   <div v-else>
@@ -43,9 +52,11 @@
 <script setup lang="ts">
 
 import { type Ref, ref, computed } from 'vue';
+import { useTransition } from '@vueuse/core';
 import axios from 'axios';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useVenueStore } from '@/stores/venueStore';
+import { useAuthStore } from '@/stores/authStore';
 
 // Props & emits
 const props = defineProps({
@@ -55,6 +66,7 @@ const props = defineProps({
 
 const connectionStore = useConnectionStore();
 const venueStore = useVenueStore();
+const authStore = useAuthStore();
 
 const url = computed(() => {
   return props.model === 'model' ? venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelUrl : venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.navmeshUrl;
@@ -69,6 +81,8 @@ const config = {
 
 const maxSize = 50 * 1024 * 1024;
 const isFileSizeOk = ref(false);
+const uploadProgress = ref(0);
+const smoothedProgress = useTransition(uploadProgress);
 function onFilesPicked(evt: Event){
   console.log('files picked:', evt);
   if(fileInput.value?.files){
@@ -92,12 +106,29 @@ const uploadFile = async () => {
         data.append('gltf', file, file.name);
       });
 
+      if(!venueStore.currentVenue?.venueId){
+        console.error('no currentVenue');
+        return;
+      }
+      // data.set('venueId', venueStore.currentVenue.venueId);
+      // data.set('token', authStore.tokenOrThrow());
+
       const response = await axios.post(config.url + '/upload', data, {
         headers: {
           'Content-Type': 'multipart/form-data;',
+          'token': authStore.tokenOrThrow(),
+          'venueId': venueStore.currentVenue.venueId,
+          'fileNameSuffix': props.model,
         },
         timeout: 60000,
+        onUploadProgress(progressEvent) {
+          console.log(progressEvent);
+          if(!progressEvent.progress) return;
+          uploadProgress.value = progressEvent.progress * 100;
+        },
+        
       });
+      uploadProgress.value = 0;
       // console.log(response);
       if(props.model === 'model'){
         create3DModel(response.data.modelUrl);

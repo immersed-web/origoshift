@@ -2,6 +2,8 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import formidable, {IncomingForm} from 'formidable';
 import fs from 'fs'
+import { verifyJwtToken } from 'shared-modules/jwtUtils';
+import { hasAtLeastSecurityLevel } from 'schemas';
 
 const app : Express = express()
 app.set('trust proxy', true);
@@ -23,15 +25,43 @@ app.get('/hello', (req,res) => {
   res.send('Heal the world!')
 })
 
-// TODO: Verify JWT and require at least moderator role.
-
 // Upload 3D model
 app.post('/upload', (req,res) => {
 
   let data = {modelUrl:''}
   console.log(modelsDir)
+  
+  const venueId = req.header('venueId')
+  const token = req.header('token')
+  const fileNameSuffix = req.header('fileNameSuffix') || 'model'
 
-  const form = formidable({uploadDir: modelsDir, keepExtensions: true, maxFileSize: 50 * 1024 * 1024})
+  if(!token){
+    res.status(401).end('I need that auth header set, dude!');
+    return;
+  }
+  if(!venueId) {
+    res.status(400).end('I need that venueId header set, dude!');
+    return;
+  }
+  let userInfo = undefined
+  try{
+    userInfo = verifyJwtToken(token)
+  } catch(e: unknown){
+    res.status(401).end('Invalid token. I refuse!');
+    return;
+  }
+  if(!hasAtLeastSecurityLevel(userInfo.role, 'moderator')){
+    res.status(403).end('your access level is too low. No upload for you!!');
+    return;
+  }
+
+  const form = formidable({
+    uploadDir: modelsDir, 
+    keepExtensions: true, 
+    maxFileSize: 50 * 1024 * 1024,
+    filename(name, ext, part, form) {
+      return `${venueId}.${fileNameSuffix}${ext}`;
+    },})
   form.on('file', (field, file) => {
     console.log(field,file.originalFilename)
     if(file.originalFilename){
@@ -44,6 +74,9 @@ app.post('/upload', (req,res) => {
         res.status(403).json({msg: 'Only .gltf or .glb files are allowed'});
       }
     }
+  })
+  form.on('field', (field, data) => {
+    console.log('received formfield:', field, data);
   })
   form.on('end', () => {
     if(data.modelUrl !== ''){

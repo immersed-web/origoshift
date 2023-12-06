@@ -20,7 +20,7 @@
       />
     </a-assets>
 
-    <a-sky color="#ECECEC" />
+    <a-sky color="lightskyblue" />
     <a-sphere
       @click="goToStream"
       color="red"

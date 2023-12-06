@@ -23,7 +23,7 @@
       camera
       ref="cameraTag"
     />
-    <a-sky color="#ECECEC" />
+    <a-sky color="lightskyblue" />
 
     <!-- The model -->
     <a-entity>

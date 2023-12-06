@@ -24,12 +24,15 @@
           </div>
           <div>
             Clients:
-            <div v-if="clientStore.clientTransforms">
+            <div v-if="vrSpaceStore.currentVrSpace">
               <div
-                v-for="[id, transform] in Object.entries(clientStore.clientTransforms)"
+                v-for="({transform}, id) in vrSpaceStore.currentVrSpace.clients"
                 :key="id"
               >
-                <div class="collapse">
+                <div
+                  v-if="id !== clientStore.clientState?.connectionId"
+                  class="collapse"
+                >
                   <input
                     type="checkbox"
                     class="min-h-0"
@@ -61,7 +64,10 @@
 import VrAFrame from '../../components/lobby/VrAFrame.vue';
 import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
+import { useVrSpaceStore } from '@/stores/vrSpaceStore';
 import { ref } from 'vue';
+
+const vrSpaceStore = useVrSpaceStore();
 
 const venueStore = useVenueStore();
 const clientStore = useClientStore();

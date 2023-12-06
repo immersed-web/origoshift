@@ -1,13 +1,13 @@
 <template>
   <div>
     <div class="min-h-screen">
-      <div class="absolute bottom-5 left-5 z-10 rounded-md bg-base-100 p-2 flex items-center gap-4">
+      <!-- <div class="absolute bottom-5 left-5 z-10 rounded-md bg-base-100 p-2 flex items-center gap-4">
         <button
           class="btn btn-primary"
         >
           Öppna 360-vy för samtliga deltagare
         </button>
-      </div>
+      </div> -->
       <div class="absolute top-5 right-5 z-10 rounded-md bg-base-100 text-xs p-2">
         <div class="flex flex-col">
           <div>Modell: {{ venueStore.modelUrl }}</div>

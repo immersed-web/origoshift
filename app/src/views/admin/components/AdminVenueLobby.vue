@@ -38,29 +38,28 @@
         <h3>3D-modell</h3>
         <div class="grid gap-2">
           <VrAFramePreview
-            v-if="venueStore.currentVenue?.vrSpace?.virtualSpace3DModel"
+            v-if="venueStore.modelUrl"
             class="flex-1 border"
             :model-url="venueStore.modelUrl"
             :navmesh-url="venueStore.navmeshUrl"
-            :model-scale="venueStore.currentVenue.vrSpace.virtualSpace3DModel.scale"
           />
           <div>
             <h4>3D-modell</h4>
-            <AdminUploadModelForm model="model" />
+            <AdminUploadModelForm model-type="model" />
           </div>
           <div v-if="venueStore.currentVenue?.vrSpace?.virtualSpace3DModel">
             <h4>Navmesh</h4>
             <AdminUploadModelForm
-              model="navmesh"
+              model-type="navmesh"
               name="navmesh"
             />
-            <h4>Skala</h4>
+            <!-- <h4>Skala</h4>
             <input
               class="w-full max-w-xs input input-bordered"
               type="number"
               v-model="modelScale"
               @change="updateScale"
-            >
+            > -->
           </div>
         </div>
       </div>

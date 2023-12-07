@@ -31,6 +31,7 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
         // if(cId === clientStore.clientState?.connectionId){
         //   continue;
         // }
+        // TODO: why should we skip ourselves. We wont perhaps use it, but if we did we would at least have our own latest transform
         if(clientStore.clientState?.connectionId === cId){
           // console.log('skipping because is own transform. cId:', cId);
           continue;

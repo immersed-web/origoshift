@@ -52,6 +52,7 @@
     </div>
     <div class="min-h-screen z-0">
       <VrAFrame
+        v-if="venueStore.modelUrl"
         :model-url="venueStore.modelUrl"
         :navmesh-url="venueStore.navmeshUrl"
         :show-nav-mesh="showNavMesh"
@@ -65,12 +66,15 @@ import VrAFrame from '../../components/lobby/VrAFrame.vue';
 import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
 import { useVrSpaceStore } from '@/stores/vrSpaceStore';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 const vrSpaceStore = useVrSpaceStore();
-
 const venueStore = useVenueStore();
 const clientStore = useClientStore();
+
+// const baseUrl = `https://${import.meta.env.EXPOSED_SERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PATH}`;
+// const modelUrl = computed(() => baseUrl + '/model/' + venueStore.currentVenue?.venueId);
+// const navmeshUrl = computed(() => baseUrl + '/navmesh/' + venueStore.currentVenue?.venueId);
 
 const showNavMesh = ref<boolean>();
 

@@ -43,31 +43,23 @@ export const useVenueStore = defineStore('venue', () => {
   });
 
   const urlToFileserver = `https://${import.meta.env.EXPOSED_SERVER_URL}${import.meta.env.EXPOSED_FILESERVER_PATH}`;
+  const urlToModelsFolder = urlToFileserver + '/uploads/3d_models/';
   const modelUrl = computed(() => {
-    if(currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl.indexOf('https://') === 0){
-      return currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl;
+    if(!currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelFileFormat){
+      return undefined;
     }
-    else {
-      let url = urlToFileserver + '/uploads/3d_models/';
-      url += currentVenue.value?.vrSpace?.virtualSpace3DModel?.modelUrl;
-      return url;
-    }
+    const modelId = currentVenue.value.vrSpace.virtualSpace3DModelId;
+    const extension = currentVenue.value.vrSpace.virtualSpace3DModel.modelFileFormat;
+    return urlToModelsFolder + modelId + '.model.' + extension;
   });
-
   const navmeshUrl = computed(() => {
-    if(currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshUrl === ''){
-      return modelUrl.value;
+    if(!currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshFileFormat){
+      return undefined;
     }
-    else if(currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshUrl.indexOf('https://') === 0){
-      return currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshUrl;
-    }
-    else {
-      let url = urlToFileserver + '/uploads/3d_models/';
-      url += currentVenue.value?.vrSpace?.virtualSpace3DModel?.navmeshUrl;
-      return url;
-    }
+    const modelId = currentVenue.value.vrSpace.virtualSpace3DModelId;
+    const extension = currentVenue.value.vrSpace.virtualSpace3DModel.navmeshFileFormat;
+    return urlToModelsFolder + modelId + '.navmesh.' + extension;
   });
-
 
   async function loadAndJoinVenue (venueId: VenueId) {
     currentVenue.value = await connection.client.venue.loadAndJoinVenue.mutate({venueId});

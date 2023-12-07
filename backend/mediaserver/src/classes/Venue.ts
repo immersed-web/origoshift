@@ -29,24 +29,30 @@ const venueIncludeStuff  = {
   whitelistedUsers: basicUserSelect,
   blackListedUsers: basicUserSelect,
   owners: basicUserSelect,
-  virtualSpace: {include: {virtualSpace3DModel: true}},
+  // virtualSpace: {select: {vrId: true}},
+  virtualSpace: { include: { virtualSpace3DModel: true }},
   cameras: {
     include: cameraIncludeStuff
   },
 } satisfies Prisma.VenueInclude;
 const args = {include: venueIncludeStuff} satisfies Prisma.VenueArgs;
 type VenueResponse = Prisma.VenueGetPayload<typeof args>
-
-// type NotifyKey = keyof UserClient['notify'];
-// type NotifyInput<K extends NotifyKey> = NotifierInputData<UserClient['notify'][K]>
 export class Venue {
   private constructor(prismaData: VenueResponse, router: soupTypes.Router){
     this.router = router;
-    this.prismaData = prismaData;
 
     if(prismaData.virtualSpace){
       this.vrSpace = new VrSpace(this, prismaData.virtualSpace);
     }
+    
+    // Venue shouldn't care about database data for children after the child is created. set to null to explicitly clarify this.
+    prismaData.virtualSpace = null;
+    this.prismaData = prismaData;
+    
+    // TODO: do same as we do with vrspace and exclude cameras from prismadata before we assign. We want one source of truth and that should be
+    // the prismaData in each class instance. The reason we include it in the constructor is because constructors are not allowed to be async, and
+    // thus we cant load data in each class's constructor. So we pass prisma data down from parents to child classes. But after that we should strive to 
+    // make each instance responsible for managing their own prismaData.
     prismaData.cameras.forEach(c => {
       this.loadCamera(c.cameraId as CameraId);
     });
@@ -57,7 +63,7 @@ export class Venue {
     });
   }
 
-  private prismaData: VenueResponse;
+  private prismaData: Omit<VenueResponse, 'virtualSpace'>;
 
   get venueId() {
     return this.prismaData.venueId as VenueId;
@@ -196,15 +202,6 @@ export class Venue {
   _notifyStateUpdated(reason?: string){
     const publicState = this.getPublicState();
     this.clients.forEach(c => {
-      // if(
-      //   hasAtLeastSecurityLevel(c.role, 'moderator')
-      //   && -1 !== c.ownedVenues.findIndex((v) => v.venueId === this.venueId)
-      // ){
-
-      //   // c.notify.venueStateUpdatedAdminOnly?.({data: adminOnlyState, reason});
-      // }else {
-      //   c.notify.venueStateUpdated?.({data: publicState, reason});
-      // }
       log.info(`notifying venuestate (${reason}) to client ${c.username} (${c.connectionId})`);
       c.notify.venueStateUpdated?.({data: publicState, reason});
     });
@@ -371,72 +368,53 @@ export class Venue {
   // Virtual space (lobby) stuff
 
   async CreateAndAddVirtualSpace() {
-    this.prismaData.virtualSpace = await prisma.virtualSpace.create({
+    const response = await prisma.virtualSpace.create({
       include: {
         virtualSpace3DModel: true,
       },
       data: {
+        // NOTE: models are a separate table and thus a related model. This is if we in the future want to be able to reuse a model in several venues.
+        // But for now we will only have one model per venue. Thus we can simply create one with default values here directly.
+        virtualSpace3DModel: {
+          create: {
+            // use defaults so empty object
+          }
 
-        // virtualSpace3DModel:  {
-
-        //   // create: {
-        //   //   scale: 1,
-        //   //   modelUrl: 'google.com',
-        //   //   navmeshUrl: 'google.se'
-        //   // }
-        // },
-        // settings: {
-        //   cool: 'asdfasdf',
-        // },
+        },
         venue: {
           connect: {venueId: this.prismaData.venueId},
         }
       }
     });
-    this.vrSpace = new VrSpace(this, this.prismaData.virtualSpace);
+    this.vrSpace = new VrSpace(this, response);
     this._notifyStateUpdated('Created virtual space');
   }
 
-  async Create3DModel(modelUrl: string) {
-    if(this.prismaData.virtualSpace){
-      this.prismaData.virtualSpace.virtualSpace3DModel = await prisma.virtualSpace3DModel.create({
-        data: {
-          modelUrl: modelUrl,
-          navmeshUrl: '',
-          public: false,
-          scale: 1,
-          virtualSpaces: {
-            connect: {vrId: this.prismaData.virtualSpace.vrId}
-          }
-        },
-      });
-      this._notifyStateUpdated('Created 3d model');
-    }
-  }
+  // async Create3DModel(modelUrl: string) {
+  //   if(this.prismaData.virtualSpace){
+  //     this.prismaData.virtualSpace.virtualSpace3DModel = await prisma.virtualSpace3DModel.create({
+  //       data: {
+  //         modelUrl: modelUrl,
+  //         navmeshUrl: '',
+  //         public: false,
+  //         scale: 1,
+  //         virtualSpaces: {
+  //           connect: {vrId: this.prismaData.virtualSpace.vrId}
+  //         }
+  //       },
+  //     });
+  //     this._notifyStateUpdated('Created 3d model');
+  //   }
+  // }
 
-  async UpdateNavmesh (modelUrl: string) {
-    if(this.prismaData.virtualSpace?.virtualSpace3DModel){
-      this.prismaData.virtualSpace.virtualSpace3DModel.navmeshUrl = modelUrl;
-      await prisma.virtualSpace3DModel.update({where: {modelId: this.prismaData.virtualSpace.virtualSpace3DModel.modelId}, data: {navmeshUrl: modelUrl}});
-      this._notifyStateUpdated('Updated navmesh');
-    }
-  }
+  // async UpdateNavmesh (modelUrl: string) {
+  //   if(this.prismaData.virtualSpace?.virtualSpace3DModel){
+  //     this.prismaData.virtualSpace.virtualSpace3DModel.navmeshUrl = modelUrl;
+  //     await prisma.virtualSpace3DModel.update({where: {modelId: this.prismaData.virtualSpace.virtualSpace3DModel.modelId}, data: {navmeshUrl: modelUrl}});
+  //     this._notifyStateUpdated('Updated navmesh');
+  //   }
+  // }
 
-  async Update3DModel (input: VirtualSpace3DModelUpdate) {
-    log.info('Update 3D model', input);
-    await prisma.virtualSpace3DModel.update({where: {modelId: input.modelId}, data: input});
-  }
-
-  async Remove3DModel(modelId: string) {
-    if(this.prismaData.virtualSpace && this.prismaData.virtualSpace.virtualSpace3DModel){
-      this.prismaData.virtualSpace.virtualSpace3DModel = await prisma.virtualSpace3DModel.delete(
-        {
-          where: {modelId}
-        }
-      );
-      this._notifyStateUpdated('Removed 3d model');
-    }
-  }
 
   async createNewCamera(name: string, senderId?: SenderId){
     const result = await prisma.camera.create({

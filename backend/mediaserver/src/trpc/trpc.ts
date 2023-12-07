@@ -92,16 +92,16 @@ export const currentVenueHasVrSpaceM = isInVenueM.unstable_pipe(({ctx, next}) =>
   });
 });
 
-export const currentVrSpaceHasModelM = isInVenueM.unstable_pipe(({ctx, next}) => {
-  if(!ctx.venue.vrSpace?.getPublicState().virtualSpace3DModel){
-    throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'the VR space doesnt have a model. Now cry!'});
-  }
-  return next({
-    ctx: {
-      vr3DModel: ctx.venue.vrSpace.getPublicState().virtualSpace3DModel,
-    }
-  });
-});
+// export const currentVrSpaceHasModelM = isInVenueM.unstable_pipe(({ctx, next}) => {
+//   if(!ctx.venue.vrSpace?.getPublicState().virtualSpace3DModel){
+//     throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'the VR space doesnt have a model. Now cry!'});
+//   }
+//   return next({
+//     ctx: {
+//       vr3DModel: ctx.venue.vrSpace.getPublicState().virtualSpace3DModel,
+//     }
+//   });
+// });
 
 export const currentVenueHasNoVrSpaceM = isInVenueM.unstable_pipe(({ctx, next, path}) => {
   if(ctx.venue.vrSpace){

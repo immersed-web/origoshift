@@ -1,18 +1,27 @@
-import { ClientTransforms, ConnectionId, VrSpaceId } from 'schemas';
+import { ClientTransforms, ConnectionId, VirtualSpace3DModelUpdate, VrSpaceId } from 'schemas';
 import { throttle, pick} from 'lodash';
 import type { UserClient, Venue } from './InternalClasses';
 
 import { Log } from 'debug-level';
+import prismaClient from '../modules/prismaClient';
+import { Prisma } from 'database';
 const log = new Log('VR:Space');
 process.env.DEBUG = 'VR:Space*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-type ReceivedVirtualSpace = Exclude<Venue['prismaData']['virtualSpace'], null>;
+// type ReceivedVirtualSpace = Exclude<Venue['prismaData']['virtualSpace'], null>;
+
+const vrSpaceQuery = {
+  include: {
+    virtualSpace3DModel: true,
+  }
+} satisfies Prisma.VirtualSpaceArgs;
+type VrSpaceDbResponse = Prisma.VirtualSpaceGetPayload<typeof vrSpaceQuery>
 
 export class VrSpace {
   // private _isOpen = false;
   private venue: Venue;
-  private prismaData: ReceivedVirtualSpace;
+  private prismaData: VrSpaceDbResponse;
   private clients: Venue['clients'];
 
   get vrSpaceId() {
@@ -25,7 +34,7 @@ export class VrSpace {
 
 
   pendingTransforms: ClientTransforms = {};
-  constructor(venue: Venue, vrSpace: ReceivedVirtualSpace){
+  constructor(venue: Venue, vrSpace: VrSpaceDbResponse){
     this.venue = venue;
     this.prismaData = vrSpace;
     this.clients = new Map();
@@ -115,8 +124,44 @@ export class VrSpace {
     return allEmittersHadListeners;
   };
 
+  async Update3DModel (input: VirtualSpace3DModelUpdate) {
+    log.info('Update 3D model', input);
+    const response = await prismaClient.virtualSpace3DModel.update({where: {modelId: input.vr3DModelId}, data: input.data});
+    this.prismaData.virtualSpace3DModel = response;
+    this._notifyStateUpdated(input.reason);
+    
+    //In this particular case we actually want to notify the venue rather than the vrSpace instance
+    this.venue._notifyStateUpdated('vr3Dmodel Updated');
+  }
+
+  // async Remove3DModel(modelId: string) {
+  //   if(this.prismaData.virtualSpace.virtualSpace3DModel){
+  //     this.prismaData.virtualSpace.virtualSpace3DModel = await prisma.virtualSpace3DModel.delete(
+  //       {
+  //         where: {modelId}
+  //       }
+  //     );
+  //     this._notifyStateUpdated('Removed 3d model');
+  //   }
+  // }
+
   // make this instance eligible for GC. Make sure we cut all the references to the instance in here!
   unload() {
     //clean up listeners and such in here!
   }
+  
+  // static async loadVrSpace(venue: Venue, vrSpaceId: string) {
+  //   const response = await prismaClient.virtualSpace.findUnique({
+  //     where: {
+  //       vrId: vrSpaceId,
+  //     },
+  //     include: {
+  //       virtualSpace3DModel: true,
+  //     }
+  //   });
+  //   if(!response){
+  //     throw Error('failed to load vrSpace. Didnt find vrSpace with that id in db');
+  //   }
+  //   return new VrSpace(venue, response);
+  // }
 }

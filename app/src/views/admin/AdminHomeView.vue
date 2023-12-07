@@ -23,12 +23,6 @@
         </div>
       </div>
     </div>
-    <!-- <button
-      class="btn btn-outline btn-primary"
-      @click="$router.push({name: 'camera'})"
-    >
-      Gå till kamera-vy
-    </button> -->
   </div>
 </template>
 
@@ -70,9 +64,6 @@ onBeforeMount(async () => {
 // View functionality
 async function createVenue () {
   await adminStore.createVenue();
-  router.push({name: authStore.routePrefix + 'Venue'});
-
-  // clientStore.createVenue();
 }
 
 const pickVenueAndNavigate = async (venueId: VenueId) => {

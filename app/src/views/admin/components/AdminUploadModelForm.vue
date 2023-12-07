@@ -1,7 +1,7 @@
 <template>
-  <div v-if="!url">
+  <div v-if="!modelExists">
     <form @submit.prevent="uploadFile">
-      <div class="form-control">
+      <div class="form-control gap-1">
         <input
           type="file"
           accept=".gltf, .glb"
@@ -13,7 +13,7 @@
           <button
             type="submit"
             class="btn btn-primary"
-            :disabled="!isFileSizeOk"
+            :disabled="uploadDisabled"
           >
             Ladda upp {{ props.name }}
           </button>
@@ -24,6 +24,13 @@
           >
             {{ smoothedProgress.toFixed(0) }}%
           </div>
+        </div>
+        <div
+          v-if="error"
+          role="alert"
+          class="alert alert-error text-sm"
+        >
+          {{ error }}
         </div>
       </div>
     </form>
@@ -51,25 +58,31 @@
 
 <script setup lang="ts">
 
-import { type Ref, ref, computed } from 'vue';
-import { useTransition } from '@vueuse/core';
+import { type Ref, ref, computed, shallowRef } from 'vue';
+import { autoResetRef, useTransition } from '@vueuse/core';
 import axios from 'axios';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useVenueStore } from '@/stores/venueStore';
 import { useAuthStore } from '@/stores/authStore';
 
 // Props & emits
-const props = defineProps({
-  model: {type: String, required: true, validator(value: string){return ['model','navmesh'].includes(value);} },
-  name: {type: String, default: '3D-modell'},
+// const props = defineProps({
+//   model: {type: String, required: true, validator(value: string){return ['model','navmesh'].includes(value);} },
+//   name: {type: String, default: '3D-modell'},
+// });
+const props =  withDefaults(defineProps<{
+  modelType: 'model' | 'navmesh',
+  name?: string,
+}>(),{
+  name: '3D-modell',
 });
 
 const connectionStore = useConnectionStore();
 const venueStore = useVenueStore();
 const authStore = useAuthStore();
 
-const url = computed(() => {
-  return props.model === 'model' ? venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelUrl : venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.navmeshUrl;
+const modelExists = computed(() => {
+  return props.modelType === 'model' ? !!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelFileFormat : !!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.navmeshFileFormat;
 });
 
 const config = {
@@ -79,35 +92,64 @@ const config = {
   },
 };
 
+const uploadedFileName = computed(() => {
+  const modelId = venueStore.currentVenue?.vrSpace?.virtualSpace3DModelId;
+  const modelFileFormat = venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelFileFormat;
+  const navmeshFileFormat = venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.navmeshFileFormat;
+  const fileFormat = props.modelType === 'model' ? modelFileFormat : navmeshFileFormat;
+  if(!modelId || !fileFormat) {
+    return undefined;
+  }
+  return `${modelId}.${props.modelType}.${fileFormat}`;
+});
+
+const uploadDisabled = computed(() => {
+  return !pickedFile.value || !extension.value || uploadProgress.value !== 0;
+});
+
+const pickedFile = shallowRef<File>();
+const error = autoResetRef<string | undefined>(undefined, 3000);
+const extension = ref<'gltf' | 'glb'>();
 const maxSize = 50 * 1024 * 1024;
-const isFileSizeOk = ref(false);
 const uploadProgress = ref(0);
 const smoothedProgress = useTransition(uploadProgress);
 function onFilesPicked(evt: Event){
+  pickedFile.value = undefined;
   console.log('files picked:', evt);
-  if(fileInput.value?.files){
-    for(const file of fileInput.value.files) {
-      if(file.size > maxSize){
-        isFileSizeOk.value = false;
-        return;
-      }
-    }
+  if(!fileInput.value?.files){
+    return;
   }
-  isFileSizeOk.value = true;
-
+  const file = fileInput.value.files[0];
+  if(file.size > maxSize){
+    error.value = `maxstorlek (${maxSize/1024/1024}MB) överskriden`;
+    return;
+  }
+  const ext =  file.name.split('.').pop();
+  if(ext !== 'glb' && ext !== 'gltf'){
+    // isFileOk.value = false;
+    return;
+  }
+  extension.value = ext;
+  pickedFile.value = file;
 }
 
-const fileInput : Ref<HTMLInputElement | undefined> = ref();
+const fileInput = ref<HTMLInputElement>();
 const uploadFile = async () => {
+  if(!extension.value) {
+    return;
+  }
+  const ctl = new AbortController();
   try {
-    if(fileInput.value?.files){
+    if(pickedFile.value){
       const data = new FormData();
-      Array.from(fileInput.value.files).forEach(file => {
-        data.append('gltf', file, file.name);
-      });
+      data.append('gltf', pickedFile.value, pickedFile.value.name);
+      // Array.from(fileInput.value.files).forEach(file => {
+      //   data.append('gltf', file, file.name);
+      // });
+      pickedFile.value = undefined;
 
-      if(!venueStore.currentVenue?.venueId){
-        console.error('no currentVenue');
+      if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModelId){
+        console.error('no virtualSpace3DModelId');
         return;
       }
       // data.set('venueId', venueStore.currentVenue.venueId);
@@ -117,38 +159,56 @@ const uploadFile = async () => {
         headers: {
           'Content-Type': 'multipart/form-data;',
           'token': authStore.tokenOrThrow(),
-          'venueId': venueStore.currentVenue.venueId,
-          'fileNameSuffix': props.model,
+          // 'venueId': venueStore.currentVenue.venueId,
+          'model-id': venueStore.currentVenue.vrSpace.virtualSpace3DModelId,
+          'file-name-suffix': props.modelType,
         },
+        signal: ctl.signal,
         timeout: 60000,
         onUploadProgress(progressEvent) {
           console.log(progressEvent);
           if(!progressEvent.progress) return;
           uploadProgress.value = progressEvent.progress * 100;
         },
-        
       });
+      console.log(extension);
+      update3DModel(extension.value);
       uploadProgress.value = 0;
       // console.log(response);
-      if(props.model === 'model'){
-        create3DModel(response.data.modelUrl);
-      }
-      else if (props.model === 'navmesh'){
-        updateNavmesh(response.data.modelUrl);
-      }
+      // if(props.model === 'model'){
+      //   create3DModel(response.data.modelUrl);
+      // }
+      // else if (props.model === 'navmesh'){
+      //   updateNavmesh(response.data.modelUrl);
+      // }
     }
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    error.value = 'failed to send file';
+    uploadProgress.value = 0;
+    extension.value = undefined;
+    ctl.abort('failed to send file');
+
     // throw new Error(err);
   }
 };
 
-const create3DModel = async (modelUrl: string) => {
-  await connectionStore.client.vr.create3DModel.mutate({modelUrl});
-};
+// const create3DModel = async (modelUrl: string) => {
+//   await connectionStore.client.vr.create3DModel.mutate({modelUrl});
+// };
 
-const updateNavmesh = async (modelUrl: string) => {
-  await connectionStore.client.vr.updateNavmesh.mutate({modelUrl});
+const update3DModel = async (extension: 'gltf' | 'glb' | null) => {
+  const modelId = venueStore.currentVenue?.vrSpace?.virtualSpace3DModelId;
+  if(!modelId) return;
+  await connectionStore.client.vr.update3DModel.mutate({
+    vr3DModelId: modelId,
+    data: {
+      modelFileFormat: props.modelType === 'model'? extension : undefined,
+      navmeshFileFormat: props.modelType === 'navmesh' ? extension : undefined,
+    },
+    reason: props.modelType === 'model' ? '3D-model updated' : 'navmesh model updated',
+  });
+
 };
 
 // Remove 3d model
@@ -156,7 +216,7 @@ const removeFile = async () => {
   try {
 
     const body = {
-      fileName: url.value,
+      fileName: uploadedFileName.value,
     };
 
     console.log(body);
@@ -164,24 +224,11 @@ const removeFile = async () => {
     await axios.post(config.url + '/remove', body, {
       timeout: 60000,
     });
-    if(props.model === 'model'){
-      remove3DModel();
-    }
-    else if (props.model === 'navmesh'){
-      updateNavmesh('');
-    }
+    update3DModel(null);
   } catch (err) {
     console.log(err);
-    // throw new Error(err);
   }
 };
-
-const remove3DModel = async () => {
-  if(venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelId){
-    await connectionStore.client.vr.remove3DModel.mutate({modelId: venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelId});
-  }
-};
-
 </script>
 
 <style scoped>

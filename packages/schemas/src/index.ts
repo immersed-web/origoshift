@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { JwtPayload as JwtShapeFromLib } from 'jsonwebtoken'
-import { Role, Venue, VirtualSpace3DModel, Visibility, Camera, CameraType as PrismaCameraType, Prisma } from "database";
+import { Role, Venue, VirtualSpace3DModel, Visibility, Camera, CameraType as PrismaCameraType, Prisma, ModelFileFormat } from "database";
 
 type RemoveIndex<T> = {
   [ K in keyof T as string extends K ? never : number extends K ? never : K ] : T[K]
@@ -173,21 +173,35 @@ export const VenueUpdateSchema = z.object({
 }) satisfies z.ZodType<Partial<Venue>>
 export type VenueUpdate = z.TypeOf<typeof VenueUpdateSchema>;
 
-export const VirtualSpace3DModelCreateSchema = z.object({
-  modelUrl: z.string()
-}) satisfies z.ZodType<Partial<VirtualSpace3DModel>>
-export type VirtualSpace3DCreate = z.TypeOf<typeof VirtualSpace3DModelCreateSchema>
+// export const VirtualSpace3DModelCreateSchema = z.object({
+//   modelUrl: z.string()
+// }) satisfies z.ZodType<Partial<VirtualSpace3DModel>>
+// export type VirtualSpace3DCreate = z.TypeOf<typeof VirtualSpace3DModelCreateSchema>
 
-export const VirtualSpace3DModelRemoveSchema = z.object({
-  modelId: Vr3DModelIdSchema
-})
-export type VirtualSpace3DRemove = z.TypeOf<typeof VirtualSpace3DModelRemoveSchema>
+// export const VirtualSpace3DModelRemoveSchema = z.object({
+//   modelId: Vr3DModelIdSchema
+// })
+// export type VirtualSpace3DRemove = z.TypeOf<typeof VirtualSpace3DModelRemoveSchema>
 
+const ModelFileFormatSchema = z.enum(['glb', 'gltf'] as const satisfies Readonly<ModelFileFormat[]>);
+type Vr3DModelUpdatePayload = Partial<Pick<Prisma.VirtualSpace3DModelUpdateInput,
+  'modelFileFormat'
+  | 'navmeshFileFormat'
+  | 'public'
+  | 'scale'
+>>
+const VirtualSpace3DModelUpdatePayloadSchema = z.object({
+  modelFileFormat: ModelFileFormatSchema.nullable().optional(),
+  navmeshFileFormat: ModelFileFormatSchema.nullable().optional(),
+  public: z.boolean().optional(),
+  scale: z.number().optional(),
+}) satisfies z.ZodType<Vr3DModelUpdatePayload>
 export const VirtualSpace3DModelUpdateSchema = z.object({
-  modelId: Vr3DModelIdSchema,
-  scale: z.number().optional()
+  vr3DModelId: Vr3DModelIdSchema,
+  data: VirtualSpace3DModelUpdatePayloadSchema,
+  reason: z.string().optional(),
 })
-export type VirtualSpace3DModelUpdate = z.TypeOf<typeof VirtualSpace3DModelRemoveSchema>
+export type VirtualSpace3DModelUpdate = z.TypeOf<typeof VirtualSpace3DModelUpdateSchema>
 
 export const CameraIdSchema = UuidSchema.brand<'CameraId'>();
 export type CameraId = z.TypeOf<typeof CameraIdSchema>;

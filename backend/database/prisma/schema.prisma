@@ -91,13 +91,18 @@ model VirtualSpace {
   virtualSpace3DModelId String?              @db.Uuid
 }
 
+enum ModelFileFormat {
+  gltf
+  glb
+}
+
 model VirtualSpace3DModel {
-  modelId       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  modelUrl      String
-  navmeshUrl    String
-  public        Boolean        @default(false)
-  scale         Float
-  virtualSpaces VirtualSpace[]
+  modelId           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  modelFileFormat   ModelFileFormat?
+  navmeshFileFormat ModelFileFormat?
+  public            Boolean          @default(false)
+  scale             Float            @default(1)
+  virtualSpaces     VirtualSpace[]
 }
 
 enum CameraType {

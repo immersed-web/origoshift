@@ -3,9 +3,9 @@ const log = new Log('Router:VR');
 process.env.DEBUG = 'Router:VR*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { ClientTransformSchema, ClientTransforms, ClientTransform, ConnectionId, VirtualSpace3DModelCreateSchema, VirtualSpace3DModelRemoveSchema, VirtualSpace3DModelUpdateSchema } from 'schemas';
-import { procedure as p, router, isVenueOwnerM, isUserClientM, userInVenueP, currentVenueAdminP, currentVenueHasVrSpaceM, currentVenueHasNoVrSpaceM, currentVrSpaceHasModelM } from '../trpc/trpc';
-import { NotifierInputData, attachToEvent } from '../trpc/trpc-utils';
+import { ClientTransformSchema, ClientTransforms, ClientTransform, ConnectionId, VirtualSpace3DModelUpdateSchema } from 'schemas';
+import { procedure as p, router, isVenueOwnerM, isUserClientM, userInVenueP, currentVenueAdminP, currentVenueHasVrSpaceM, currentVenueHasNoVrSpaceM } from '../trpc/trpc';
+import { NotifierInputData } from '../trpc/trpc-utils';
 import { TRPCError } from '@trpc/server';
 import { observable } from '@trpc/server/observable';
 
@@ -34,17 +34,17 @@ export const vrRouter = router({
   getState: userInVenueP.use(currentVenueHasVrSpaceM).query(({ctx}) => {
     ctx.vrSpace.getPublicState();
   }),
-  create3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).input(VirtualSpace3DModelCreateSchema).mutation(({input, ctx}) => {
-    ctx.venue.Create3DModel(input.modelUrl);
-  }),
-  remove3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).input(VirtualSpace3DModelRemoveSchema).mutation(({input, ctx}) => {
-    ctx.venue.Remove3DModel(input.modelId);
-  }),
-  updateNavmesh: currentVenueAdminP.use(isVenueOwnerM).use(currentVrSpaceHasModelM).input(VirtualSpace3DModelCreateSchema).mutation(({input, ctx}) => {
-    ctx.venue.UpdateNavmesh(input.modelUrl);
-  }),
-  update3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVrSpaceHasModelM).input(VirtualSpace3DModelUpdateSchema).mutation(({input, ctx}) => {
-    ctx.venue.Update3DModel(input);
+  // create3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).input(VirtualSpace3DModelCreateSchema).mutation(({input, ctx}) => {
+  //   ctx.venue.Create3DModel(input.modelUrl);
+  // }),
+  // remove3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).input(VirtualSpace3DModelRemoveSchema).mutation(({input, ctx}) => {
+  //   ctx.venue.Remove3DModel(input.modelId);
+  // }),
+  // updateNavmesh: currentVenueAdminP.use(isVenueOwnerM).use(currentVrSpaceHasModelM).input(VirtualSpace3DModelCreateSchema).mutation(({input, ctx}) => {
+  //   ctx.venue.UpdateNavmesh(input.modelUrl);
+  // }),
+  update3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).input(VirtualSpace3DModelUpdateSchema).mutation(({input, ctx}) => {
+    ctx.vrSpace.Update3DModel(input);
   }),
   subVrSpaceStateUpdated: p.use(isUserClientM).subscription(({ctx}) => {
     console.log(`${ctx.username} started subscription to vrSpaceStateUpdate`);

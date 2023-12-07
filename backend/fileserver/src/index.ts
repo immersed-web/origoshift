@@ -2,16 +2,26 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import formidable, {IncomingForm} from 'formidable';
 import fs from 'fs'
+import path from 'path';
 import { verifyJwtToken } from 'shared-modules/jwtUtils';
 import { hasAtLeastSecurityLevel } from 'schemas';
 
 const app : Express = express()
-app.set('trust proxy', true);
-app.use(express.urlencoded({ extended: true }));
+app.set('trust proxy', 1);
+// app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // CORS Stuff
-app.use(cors()); //Beware: CORS on all paths from all origins
+// app.use(cors()); //Beware: CORS on all paths from all origins
+if(!process.env.EXPOSED_SERVER_URL){
+  console.error('no SERVER_URL env provided. Required! Quitting');
+  process.exit(1);
+}
+
+app.use(cors({
+  origin: [process.env.EXPOSED_SERVER_URL],
+  credentials: true
+}));
 
 // Static file serving
 const publicDir = '../../public/'
@@ -25,22 +35,67 @@ app.get('/hello', (req,res) => {
   res.send('Heal the world!')
 })
 
+// app.get('/:modelType/:venueId', (req, res) => {
+//   const venueId = req.params.venueId;
+//   const modelType = req.params.modelType;
+//   console.log(`received ${modelType} request`);
+//   if(modelType !== 'model' && modelType !== 'navmesh') {
+//     res.status(400).end('no good request. modeltype should be "model" or "navmesh"');
+//     return;
+//   }
+//   const parsedpath = path.parse(venueId);
+//   if(parsedpath.dir !== '' || parsedpath.root !== '') {
+//     res.status(400).end('no good request. venueId should be a venueId, not a path');
+//     return;
+//   }
+//   let fileName = `${venueId}.${modelType}`
+//   let pathToFile = modelsDir + fileName;
+// //   const pathToGlb = path.resolve(pathToFile+'.glb');
+// //   const pathToGltf = path.resolve(pathToFile+'.gltf');
+// //   console.log(pathToGltf);
+// //   const parsed = path.parse(pathToGlb);
+// //   console.log(parsed);
+// // console.log(fs.existsSync(parsed.dir + '/' + parsed.base));
+  
+//   let extension = '.glb'
+//   if(fs.existsSync(pathToFile + '.gltf')){
+//     // console.log(`${pathToGltf} found`);
+//     extension = '.gltf'
+//   }
+//   // } else if(fs.existsSync(pathToGlb)){
+//   //   console.log(`${pathToGlb} found`);
+//   //   extension = '.glb'
+//   // } else {
+//   //   console.error('no file found!!!');
+//   //   res.status(404).end('didnt find the file');
+//   //   return;
+//   // }
+//   try{
+//     res.sendFile(`${fileName}${extension}`, {
+//       root: modelsDir
+//     })
+//   } catch (e) {
+//     console.error(e);
+//     res.status(404).end('no file found');
+//   }
+// })
+
 // Upload 3D model
 app.post('/upload', (req,res) => {
 
   let data = {modelUrl:''}
-  console.log(modelsDir)
+  // console.log(modelsDir)
   
-  const venueId = req.header('venueId')
+  const modelId = req.header('model-id')
   const token = req.header('token')
-  const fileNameSuffix = req.header('fileNameSuffix') || 'model'
+  const fileNameSuffix = req.header('file-name-suffix') || 'model'
 
   if(!token){
     res.status(401).end('I need that auth header set, dude!');
     return;
   }
-  if(!venueId) {
-    res.status(400).end('I need that venueId header set, dude!');
+  if(!modelId) {
+    res.status(400).end('I need that modelId header set, dude!');
     return;
   }
   let userInfo = undefined
@@ -60,7 +115,7 @@ app.post('/upload', (req,res) => {
     keepExtensions: true, 
     maxFileSize: 50 * 1024 * 1024,
     filename(name, ext, part, form) {
-      return `${venueId}.${fileNameSuffix}${ext}`;
+      return `${modelId}.${fileNameSuffix}${ext}`;
     },})
   form.on('file', (field, file) => {
     console.log(field,file.originalFilename)

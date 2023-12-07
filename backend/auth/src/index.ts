@@ -41,13 +41,15 @@ if (devMode) {
   cookieHttpOnly = false;
   cookieSecure = false;
 } else {
-  if (process.env.SERVER_URL) {
-    console.log('restricting CORS for production');
-    app.use(cors({
-      origin: [process.env.SERVER_URL],
-      credentials: true
-    }));
+  if (!process.env.EXPOSED_SERVER_URL) {
+    console.error('no EXPOSED_SERVER_URL provided from env');
+    process.exit(1);
   }
+  console.log('restricting CORS for production');
+  app.use(cors({
+    origin: [process.env.EXPOSED_SERVER_URL],
+    credentials: true
+  }));
 }
 
 app.use((req, res, next) => {

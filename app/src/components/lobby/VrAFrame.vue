@@ -45,6 +45,7 @@
         @click="navmeshClicked"
         raycaster-listen
         @raycast-change="navmeshHovered"
+        model-opacity="0.7"
         :visible="showNavMesh"
       />
     </a-entity>

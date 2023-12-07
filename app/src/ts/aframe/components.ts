@@ -6,6 +6,7 @@ import navmesh from './simple-navmesh-constraint';
 import raycasterListen from './raycaster-listen';
 import hoverHighlight from './hover-highlight';
 import mediastreamAudioSource from './mediastream-audio-source';
+import modelOpacity from './model-opacity';
 
 const registerComponents = () => {
   console.log('Register a-frame components');
@@ -16,6 +17,7 @@ const registerComponents = () => {
   rotationControl();
   hoverHighlight();
   mediastreamAudioSource();
+  modelOpacity();
 
   // @ts-ignore
   import('aframe-environment-component');

@@ -4,8 +4,9 @@
 import 'material-icons/iconfont/material-icons.css';
 
 // Register a-frame components
-import components from './ts/aframe/components';
-components.registerAframeComponents();
+// import components from './ts/aframe/components';
+// components.registerAframeComponents();
+import('./ts/aframe/components').then((c) => c.default.registerAframeComponents());
 
 </script>
 

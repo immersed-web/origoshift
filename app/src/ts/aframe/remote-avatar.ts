@@ -1,4 +1,4 @@
-import 'aframe';
+// import 'aframe';
 import type { DetailEvent, Entity } from 'aframe';
 import InterpolationBuffer from 'buffered-interpolation';
 import type { ClientTransform } from 'schemas';

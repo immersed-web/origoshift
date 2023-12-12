@@ -1,5 +1,5 @@
 
-import AFRAME, { type Entity, THREE, type DetailEvent } from 'aframe';
+import type { Entity, DetailEvent } from 'aframe';
 
 export default () => {
   AFRAME.registerComponent<{

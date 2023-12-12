@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 
-import 'aframe';
+// import 'aframe';
 import type { Entity } from 'aframe';
 import type { ClientTransform, ConnectionId } from 'schemas';
 import { ref, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue';

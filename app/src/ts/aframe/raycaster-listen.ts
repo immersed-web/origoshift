@@ -1,5 +1,5 @@
-import 'aframe';
-import { THREE, type DetailEvent, type Entity } from 'aframe';
+// import 'aframe';
+import type { DetailEvent, Entity } from 'aframe';
 
 export default () => {
 

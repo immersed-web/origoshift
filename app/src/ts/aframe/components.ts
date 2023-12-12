@@ -21,8 +21,11 @@ const registerComponents = () => {
 
   // @ts-ignore
   import('aframe-environment-component');
-  // @ts-ignore
-  import('aframe-orbit-controls');
+  
+  // // @ts-ignore
+  // import('aframe-orbit-controls');
+  // We had to tweak the orbit controls to avoid grab cursor leaking outside canvas element. Pull request is submitted to superframe.
+  import('./orbit-controls/orbit-controls');
 };
 
 export default {

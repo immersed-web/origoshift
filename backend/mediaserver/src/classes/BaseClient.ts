@@ -404,7 +404,7 @@ export class BaseClient {
         log.info('NO NOTIFIER ATTACHED for Client!');
         return;
       }
-      this.notify.soupObjectClosed({data: {type: 'consumer', consumerInfo: { consumerId, producerId }}, reason: 'transport for the consumer was closed'});
+      this.notify.soupObjectClosed({data: {type: 'consumer', consumerInfo: { consumerId, producerId }}, reason: 'producer for the consumer was closed'});
     });
 
     consumer.on('producerpause', () => {
@@ -423,7 +423,7 @@ export class BaseClient {
   closeConsumer(producerId: ProducerId, reason = 'Closing consumer for client'){
     const consumer = this.consumers.get(producerId);
     if(!consumer){
-      throw Error('no consumer with that producerId found');
+      throw Error('failed to close consumer. no consumer with that producerId found');
     }
     consumer.close();
     // this.clientEvent.emit('soupObjectClosed', {type: 'consumer', consumerInfo: {consumerId: consumer.id as ConsumerId, producerId}, reason: 'closing all consumers for client'});

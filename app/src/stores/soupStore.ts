@@ -377,12 +377,14 @@ export const useSoupStore = defineStore('soup', () =>{
   
   // TODO: Negotiate with backend!!
   async function closeConsumer (producerId: ProducerId) {
+    console.log('---- closing own consumer with producerId:', producerId);
     await connectionStore.client.soup.closeConsumer.mutate({producerId});
     // consumers.get(producerId)?.close();
     // consumers.delete(producerId);
   }
   
   function closeAllConsumers(){
+    console.log('---- closing all consumers');
     consumers.forEach(c => {
       closeConsumer(c.consumer.producerId as ProducerId);
     });

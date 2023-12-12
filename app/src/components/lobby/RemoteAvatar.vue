@@ -1,9 +1,11 @@
 <template>
   <a-entity
     ref="remoteAvatar"
-    remote-avatar="interpolationTime: 350"
+    remote-avatar="interpolationTime: 350;"
     mediastream-audio-source
     @loaded="onAvatarEntityLoaded"
+    @near-range-entered="onNearRangeEntered"
+    @near-range-exited="onNearRangeExited"
   >
     <a-text
       class="distance-debug"
@@ -15,7 +17,7 @@
       side="double"
       class="audio-level"
       position="0 3 0"
-      color="yellow"
+      :color="distanceColor"
     />
     <a-entity
       gltf-model="#avatar-asset"
@@ -34,12 +36,11 @@
 <script setup lang="ts">
 
 import type { Entity } from 'aframe';
-import type { ClientTransform, ConnectionId } from 'schemas';
-import { ref, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue';
+import type { ConnectionId } from 'schemas';
+import { ref, computed, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue';
 import type { useVrSpaceStore } from '@/stores/vrSpaceStore';
 import type { ProducerId } from 'schemas/mediasoup';
 import { useSoupStore } from '@/stores/soupStore';
-import { useIntervalFn } from '@vueuse/core';
 
 // Props & emits
 const props = defineProps<{
@@ -47,18 +48,24 @@ const props = defineProps<{
 }>();
 const soupStore = useSoupStore();
 // Remote avatar
-const scale = ref([Math.random(), Math.random(), Math.random()]);
+// const scale = ref([Math.random(), Math.random(), Math.random()]);
 
 // Distance to client camera callbacks
 const distanceColor = ref('white');
-function distanceClose (e: CustomEvent<number>){
+async function onNearRangeEntered (e: CustomEvent<number>){
   distanceColor.value = 'green';
-  // console.log('Came close', e.detail);
+  if(stream.value) return;
+  stream.value = await getStreamFromProducerId(producerId.value);
+  console.log('Came close', e.detail);
 }
 
-function distanceFar (e: CustomEvent<number>){
+function onNearRangeExited (e: CustomEvent<number>){
   distanceColor.value = 'white';
-  // console.log('Went away', e.detail);
+  if(producerId.value && soupStore.consumers.has(producerId.value)){
+    closeConsumer();
+  }
+  stream.value = undefined;
+  console.log('Went away', e.detail);
 }
 onMounted(async () => {
   console.log('remoteAvatar mounted');
@@ -103,7 +110,7 @@ watch(() => props.clientInfo.transform, (newTransform) => {
 let stream = shallowRef<MediaStream>();
 watch(stream, () => {
   if(!stream.value) {
-    console.error('stream became undefined');
+    // console.error('stream became undefined');
     return;
   }
   if(!dummyAudioTag.value){
@@ -119,14 +126,16 @@ watch(stream, () => {
   remoteAvatar.value.emit('setMediaStream', {stream: stream.value});
 });
 
-watch(() => props.clientInfo.producers.audioProducer?.producerId, async (newAudioProducerId, oldAudioProducerId) => {
+const producerId = computed(() => props.clientInfo.producers.audioProducer?.producerId);
+
+watch(producerId, async (newAudioProducerId, oldAudioProducerId) => {
   console.log('audioProducer was updated. new:', newAudioProducerId, ' old:', oldAudioProducerId);
   if(!newAudioProducerId){
     console.log('newProducer was undefined');
     return;
   }
   stream.value = await getStreamFromProducerId(newAudioProducerId);
-}, {immediate: true});
+}, {immediate: false});
 
 async function onAvatarEntityLoaded(e: DetailEvent<any>){
   console.log('avatar a-entity loaded!');
@@ -145,6 +154,7 @@ async function onAvatarEntityLoaded(e: DetailEvent<any>){
   remoteAvatar.value.emit('setMediaStream', {stream: stream.value});
 }
 
+// TODO: dynamically consume/unconsume depending on near-range state.
 async function getStreamFromProducerId(producerId?: ProducerId){
   if(!producerId) return undefined;
   let consumerData = soupStore.consumers.get(producerId);
@@ -155,6 +165,11 @@ async function getStreamFromProducerId(producerId?: ProducerId){
   }
   // rtpReceiver = consumerData.consumer.rtpReceiver;
   return new MediaStream([consumerData.consumer.track]);
+}
+
+async function closeConsumer(){
+  if(!producerId.value) return;
+  soupStore.closeConsumer(producerId.value);
 }
 
 </script>

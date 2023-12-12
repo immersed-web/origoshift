@@ -8,7 +8,9 @@ export default () => {
 
     // Component schema (incoming properties)
     schema: {
-      interpolationTime: {type: 'number', default: 500},
+      interpolationTime: { type: 'number', default: 500 },
+      nearRangeThreshold: { type: 'number', default: 7 },
+      nearRangeHysteresis: { type: 'number', default: 4 },
     },
     // dependencies: ['position', 'orientation'],
 
@@ -16,6 +18,7 @@ export default () => {
     interpolationBuffer: undefined as InterpolationBuffer | undefined,
     cameraPosition: new AFRAME.THREE.Vector3(),
     distance: 1000,
+    isNearRange: false,
     distanceDebugEntity: undefined as Entity | undefined,
 
     // Component a-frame callbacks
@@ -71,15 +74,6 @@ export default () => {
         const rot = e.detail.orientation;
         this.interpolationBuffer!.setQuaternion(new AFRAME.THREE.Quaternion(rot[0], rot[1], rot[2], rot[3]));
       },
-      // cameraPosition: function (e: DetailEvent<Pick<ClientTransform, 'position'>>) {
-      //   // console.log('Camera position', e.detail.position);
-
-      //   const pos = e.detail.position;
-      //   this.cameraPosition.x = pos[0];
-      //   this.cameraPosition.y = pos[1];
-      //   this.cameraPosition.z = pos[2];
-      //   // cameraPosition.copy(new AFRAME.THREE.Vector3(e.detail.position[0], e.detail.position[1], e.detail.position[2]));
-      // },
     },
 
     // Component functions
@@ -87,7 +81,7 @@ export default () => {
       this.interpolationBuffer = new InterpolationBuffer(undefined, this.data.interpolationTime / 1000);
     },
     distanceToCamera: function () {
-      const distanceOld = this.distance;
+      // const distanceOld = this.distance;
       // Note: calculating distance between LOCAL position vectors, not taking into account the world position.
       // This should be fine as long as the camera and the avatars share the same origin position.
       const camera = this.el.sceneEl?.camera;
@@ -95,15 +89,17 @@ export default () => {
       const camWorldPos = camera.getWorldPosition(new THREE.Vector3());
       const avatarWorldPos = this.el.object3D.getWorldPosition(new THREE.Vector3());
       this.distance = avatarWorldPos.distanceTo(camWorldPos);
-      // this.distance = this.el.object3D.position.distanceTo(this.cameraPosition);
-      const threshold = 3;
-      if(distanceOld > threshold && this.distance <= threshold){
+      const threshold = this.data.nearRangeThreshold as number;
+      const hysteresis = this.data.nearRangeHysteresis as number;
+      if(!this.isNearRange && this.distance <= threshold){
+        this.isNearRange = true;
         // console.log('I am close', this.el);
-        this.el.emit('close', this.distance);
+        this.el.emit('near-range-entered', this.distance);
       }
-      else if(distanceOld <= threshold && this.distance > threshold){
+      else if(this.isNearRange && this.distance > threshold + hysteresis){
+        this.isNearRange = false;
         // console.log('No longer close', this.el);
-        this.el.emit('far', this.distance);
+        this.el.emit('near-range-exited', this.distance);
       }
     },
   });

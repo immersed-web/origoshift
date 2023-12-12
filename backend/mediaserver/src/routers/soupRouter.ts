@@ -98,7 +98,9 @@ export const soupRouter = router({
     return await ctx.client.createConsumer({producerId});
   }),
   closeConsumer: clientInVenueP.input(CreateConsumerPayloadSchema).mutation( async ({ctx, input}) => {
-    ctx.client.closeConsumer(input.producerId);
+
+    // log.info(`received closeConsumer request from ${ctx.username} (${ctx.connectionId}) for producer:`, input.producerId);
+    ctx.client.closeConsumer(input.producerId, 'client closed its own consumer');
   }),
   pauseOrResumeConsumer: p.input(z.object({
     producerId: ProducerIdSchema,
@@ -106,7 +108,7 @@ export const soupRouter = router({
   })).mutation(({ctx, input}) => {
     const consumer = ctx.client.consumers.get(input.producerId);
     if(!consumer) {
-      throw new TRPCError({code: 'NOT_FOUND', message: 'no consumer witht that id found'});
+      throw new TRPCError({code: 'NOT_FOUND', message: `failed to ${input.pause?'pause':'resume'} consumer. no consumer with that id found`});
     }
     if(input.pause){
       consumer.pause();
@@ -119,7 +121,7 @@ export const soupRouter = router({
     return observable<NotifierInputData<typeof ctx.client.notify.soupObjectClosed>>(scriber =>{
       log.info(ctx.client.notify);
       ctx.client.notify['soupObjectClosed'] = (d) => {
-        log.info(`soupObject ${d.data.type} closed triggered for client ${ctx.username} (${ctx.clientType})`);
+        log.info(`soupObject ${d.data.type} closed triggered for client ${ctx.username} (${ctx.clientType}). reason: ${d.reason}`);
         scriber.next(d);
       };
       log.info(ctx.client.notify);

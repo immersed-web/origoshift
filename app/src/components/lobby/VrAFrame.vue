@@ -118,7 +118,6 @@
 </template>
 
 <script setup lang="ts">
-// import 'aframe';
 import { type Scene, type Entity, THREE, utils as aframeUtils, type DetailEvent } from 'aframe';
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';

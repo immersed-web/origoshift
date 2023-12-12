@@ -1,4 +1,3 @@
-// import 'aframe';
 // import { THREE, type DetailEvent, type EntityEventMap, type ThreeLib } from 'aframe';
 
 export default () => {

@@ -1,4 +1,3 @@
-// import 'aframe';
 import type { DetailEvent, Entity } from 'aframe';
 
 export default () => {

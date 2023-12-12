@@ -1,5 +1,4 @@
 // @ts-nocheck
-// import 'aframe';
 
 export default () => {
 

@@ -45,7 +45,6 @@
 </template>
 
 <script setup lang="ts">
-// import 'aframe';
 import { type Scene, type Entity, THREE } from 'aframe';
 import { ref, computed } from 'vue';
 

@@ -1,4 +1,3 @@
-// import 'aframe';
 
 type MoveUpdate = {orientation: [number, number, number, number], position: [number, number, number]}
 export default () => {

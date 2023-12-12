@@ -183,7 +183,6 @@ import { onBeforeUnmount, onMounted, ref, shallowReactive, shallowRef, watch } f
 import { computedWithControl } from '@vueuse/core';
 import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
-// import 'aframe';
 import { THREE, type Entity, type Scene } from 'aframe';
 import { useAdminStore } from '@/stores/adminStore';
 import { useAutoEnterXR } from '@/composables/autoEnterXR';

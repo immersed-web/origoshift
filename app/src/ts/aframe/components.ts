@@ -22,6 +22,9 @@ const registerComponents = () => {
   // @ts-ignore
   import('aframe-environment-component');
   
+  // @ts-ignore
+  import('aframe-blink-controls');
+
   // // @ts-ignore
   // import('aframe-orbit-controls');
   // We had to tweak the orbit controls to avoid grab cursor leaking outside canvas element. Pull request is submitted to superframe.

@@ -67,7 +67,14 @@
       />
     </a-entity>
 
-    <a-entity ref="playerOriginTag">
+    <a-entity
+      id="camera-rig"
+      ref="playerOriginTag"
+    >
+      <a-box
+        color="blue"
+        scale="0.1 0.1 0.1"
+      />
       <a-camera
         id="camera"
         ref="playerTag"
@@ -77,6 +84,10 @@
         position="0 1.65 0"
         :simple-navmesh-constraint="'navmesh:#'+navmeshId+'; fall:0.5; height:1.65;'"
       >
+        <a-box
+          position="0 -0.1 -0.2"
+          scale="0.1 0.1 0.1"
+        />
         <a-entity
           v-if="
             displayMessage.length"
@@ -86,12 +97,14 @@
         />
       </a-camera>
       <a-entity
+        id="left-hand"
         laser-controls="hand:left"
         raycaster="objects: .clickable"
       />
       <a-entity
-        laser-controls="hand:right"
-        raycaster="objects: .clickable"
+        id="right-hand"
+        oculus-touch-controls="hand:right"
+        blink-controls="cameraRig: #camera-rig; teleportOrigin: #camera; collisionEntities: #navmesh; button:"
       />
     </a-entity>
 

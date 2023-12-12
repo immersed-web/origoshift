@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 
-import { type Ref, ref, computed, shallowRef } from 'vue';
+import { ref, computed, shallowRef } from 'vue';
 import { autoResetRef, useTransition } from '@vueuse/core';
 import axios from 'axios';
 import { useConnectionStore } from '@/stores/connectionStore';
@@ -222,6 +222,9 @@ const removeFile = async () => {
     console.log(body);
 
     await axios.post(config.url + '/remove', body, {
+      headers: {
+        'token': authStore.tokenOrThrow(),
+      },
       timeout: 60000,
     });
     update3DModel(null);

@@ -148,10 +148,32 @@ app.post('/upload', (req,res) => {
 app.post('/remove', (req,res) => {
 
   console.log(req.body)
-  fs.unlink(modelsDir + req.body.fileName, (err) => {
+
+  const token = req.header('token')
+  if(!token){
+    res.status(401).end('I need that auth header set, dude!');
+    return;
+  }
+  let userInfo = undefined
+  try{
+    userInfo = verifyJwtToken(token)
+  } catch(e: unknown){
+    res.status(401).end('Invalid token. I refuse!');
+    return;
+  }
+  if(!hasAtLeastSecurityLevel(userInfo.role, 'moderator')){
+    res.status(403).end('your access level is too low. No file removal for you!!');
+    return;
+  }
+  const filename: string = req.body.fileName;
+  if(filename.includes('/') || filename.includes('..')) {
+    res.status(400).end('Dude. Why?')
+    return;
+  }
+  fs.unlink(modelsDir + filename, (err) => {
     if (err) {
       console.error(err)
-      res.status(403).end(JSON.stringify({msg: 'The file does not exist.'}));
+      res.status(404).end(JSON.stringify({msg: 'The file does not exist.'}));
       return
     }
     res.end();

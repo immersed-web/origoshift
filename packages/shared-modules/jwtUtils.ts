@@ -58,6 +58,6 @@ export const jwtMiddleware: Express.RequestHandler = (req, res, next) => {
     req.user = jwtObject;
     return next();
   } catch (e){
-    res.status(403).send('invalid token maddafakka!');
+    res.status(403).send('Ey Dude! Invalid autorization token. Cant allow that');
   }
 };

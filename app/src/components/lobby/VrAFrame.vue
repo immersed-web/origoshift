@@ -104,7 +104,7 @@
       <a-entity
         id="right-hand"
         oculus-touch-controls="hand:right"
-        blink-controls="cameraRig: #camera-rig; teleportOrigin: #camera; collisionEntities: #navmesh; button:"
+        blink-controls="cameraRig: #camera-rig; teleportOrigin: #camera; collisionEntities: #navmesh;"
       />
     </a-entity>
 

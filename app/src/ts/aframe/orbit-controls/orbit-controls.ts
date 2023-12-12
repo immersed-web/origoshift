@@ -54,11 +54,15 @@ AFRAME.registerComponent('orbit-controls', {
     const canvasEl = el.sceneEl!.canvas;
 
     canvasEl.style.cursor = 'grab';
+    let rotateTimer: ReturnType<typeof setTimeout> | undefined = undefined;
     canvasEl.addEventListener('mousedown', () => {
       canvasEl.style.cursor = 'grabbing';
+      if(rotateTimer) clearTimeout(rotateTimer);
+      this.controls.autoRotate = false;
     });
     canvasEl.addEventListener('mouseup', () => {
       canvasEl.style.cursor = 'grab';
+      rotateTimer = setTimeout(() => this.controls.autoRotate = this.data.autoRotate, 5000);
     });
 
     this.target = new THREE.Vector3();
@@ -142,12 +146,13 @@ AFRAME.registerComponent('orbit-controls', {
     controls.zoomToCursor = data.zoomToCursor;
   },
 
-  tick: function () {
+  tick: function (_, deltaTime) {
     const controls = this.controls;
     const data = this.data;
     if (!data.enabled) { return; }
     if (controls.enabled && (controls.enableDamping || controls.autoRotate)) {
-      this.controls.update();
+      const deltaTimeS = deltaTime * 0.001;
+      this.controls.update(deltaTimeS);
     }
   },
 

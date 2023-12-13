@@ -71,9 +71,12 @@
       id="camera-rig"
       ref="playerOriginTag"
     >
-      <a-box
+      <a-ring
         color="blue"
-        scale="0.1 0.1 0.1"
+        rotation="-90 0 0"
+        radius-outer="0.3"
+        radius-inner="0.2"
+        material="transparent: true; opacity: 0.4"
       />
       <a-camera
         id="camera"
@@ -84,10 +87,10 @@
         position="0 1.65 0"
         :simple-navmesh-constraint="'navmesh:#'+navmeshId+'; fall:0.5; height:1.65;'"
       >
-        <a-box
+        <!-- <a-box
           position="0 -0.1 -0.2"
           scale="0.1 0.1 0.1"
-        />
+        /> -->
         <a-entity
           v-if="
             displayMessage.length"
@@ -131,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { type Scene, type Entity, THREE, utils as aframeUtils, type DetailEvent } from 'aframe';
+import { type Scene, type Entity, utils as aframeUtils } from 'aframe';
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import type { ClientTransform } from 'schemas';

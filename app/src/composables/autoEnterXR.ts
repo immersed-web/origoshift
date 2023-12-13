@@ -55,4 +55,8 @@ export function useAutoEnterXR(sceneEl: Ref<Scene | undefined>){
       console.warn(sceneEl.value);
     }
   });
+  
+  return {
+    isImmersed,
+  };
 }

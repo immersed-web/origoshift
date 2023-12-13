@@ -140,7 +140,7 @@ watch(producerId, async (newAudioProducerId, oldAudioProducerId) => {
 async function onAvatarEntityLoaded(e: DetailEvent<any>){
   console.log('avatar a-entity loaded!');
   // NOTE: For some reason the event isnt received by the entity if we dont put it on the event queue.
-  // I guess there is something that makes the entity trigger the loaded event before it is actually fully ready.
+  // I guess there is something that makes the entity trigger the loaded event before it is _actually_ fully ready.
   await new Promise(res => setTimeout(res, 0));
   if(!stream.value){
     console.log('stream is undefined. Will not emit');

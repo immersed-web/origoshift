@@ -21,10 +21,12 @@
     </a-assets>
 
     <a-sky color="lightskyblue" />
-    <a-sphere
+    <StreamEntrance
       @click="goToStream"
       color="red"
       position="30 6 0"
+      :direction="270"
+      message="Välkommen in!!"
       class="clickable"
     />
 
@@ -134,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { type Scene, type Entity, utils as aframeUtils } from 'aframe';
+import type { Scene, Entity, utils as aframeUtils } from 'aframe';
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import type { ClientTransform } from 'schemas';
@@ -147,6 +149,7 @@ import { throttle } from 'lodash-es';
 // import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { useSoupStore } from '@/stores/soupStore';
 import { useVrSpaceStore } from '@/stores/vrSpaceStore';
+import StreamEntrance from './StreamEntrance.vue';
 
 const router = useRouter();
 // Stores

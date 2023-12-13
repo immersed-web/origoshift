@@ -28,7 +28,7 @@
         animation__from_black="property: components.material.material.color; type: color; to: #fff; dur: 500; startEvents: fadeFromBlack; easing: linear;"
       />
     </a-assets>
-    <a-entity environment="preset: tron; dressing: none;" />
+    <a-entity :environment="`preset: tron; dressing: none; active:${!freezeableCameraStore.is360Camera};`" />
     <a-entity
       ref="cameraRigTag"
       id="rig"
@@ -102,7 +102,7 @@
             :width="fixedWidth"
             :height="videoHeight"
             :rotation="`0 0 ${freezeableCameraStore.isRoofMounted?'180': 0}`"
-            material="transparent: false; depthTest: false"
+            material="transparent: false; depthTest: true"
           />
           <a-entity
             v-for="portal in freezeableCameraStore.portals"
@@ -113,7 +113,7 @@
               hover-highlight
               position="0 0 -0.1"
               color="yellow"
-              material="depthTest:false; shader: flat;"
+              material="depthTest: true; shader: flat;"
               scale="0.2 0.2 0.2"
               class="clickable"
               @mousedown="onPortalMouseDown(portal, $event)"
@@ -122,7 +122,7 @@
               value="Teeeext"
               align="center"
               position="0 -0.4 0"
-              material="depthTest: false"
+              material="depthTest: true"
             />
           </a-entity>
         </a-entity>
@@ -137,7 +137,7 @@
           :rotation="`0 90 ${freezeableCameraStore.isRoofMounted? '180': '0'}`"
           radius="10"
           color="#fff"
-          material="color: #fff; depthTest:false; fog: false"
+          material="color: #fff; depthTest:true; fog: false"
         />
         <a-entity
           v-for="portal in freezeableCameraStore.portals"
@@ -145,7 +145,7 @@
           :rotation="`${portal.angleX} ${portal.angleY} 0`"
         >
           <a-sphere
-            material="depthTest: false;"
+            material="depthTest: true;"
             :position="`0 0 ${-portal.distance}`"
             scale="0.2 0.2 0.2"
             color="#ef2d5e"

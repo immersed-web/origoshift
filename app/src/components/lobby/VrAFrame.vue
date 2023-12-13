@@ -23,10 +23,9 @@
     <a-sky color="lightskyblue" />
     <StreamEntrance
       @click="goToStream"
-      color="red"
       position="30 6 0"
-      :direction="270"
-      message="Välkommen in!!"
+      :direction="90"
+      message="Yoooooooo vad har du i kikaren??"
       class="clickable"
     />
 
@@ -136,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Scene, Entity, utils as aframeUtils } from 'aframe';
+import { type Scene, type Entity, utils as aframeUtils } from 'aframe';
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import type { ClientTransform } from 'schemas';
@@ -243,6 +242,7 @@ function goToStream(){
   console.log('sphere clicked');
   if(!venueStore.currentVenue) return;
   const firstCamera = Object.keys(venueStore.currentVenue.cameras)[0];
+  if(!firstCamera) return;
   router.push({
     name: 'userCamera',
     params: {

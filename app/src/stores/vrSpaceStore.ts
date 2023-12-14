@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 
 import type { ClientTransform, ConnectionId } from 'schemas';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { useConnectionStore } from './connectionStore';
 import type { RouterOutputs, SubscriptionValue } from '@/modules/trpcClient';
 import { useClientStore } from './clientStore';
@@ -14,7 +14,6 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
   const currentVrSpace = ref<SubscriptionValue<RouterOutputs['vr']['subVrSpaceStateUpdated']>['data']>();
 
 
-  // watch(() => currentVrSpace.value?.clients, (n, o) => console.log('clients in store watched. new:', n, ' old:', o));
   connection.client.vr.subVrSpaceStateUpdated.subscribe(undefined, {
     onData(vrSpaceState) {
       console.log(`vrSpaceState updated. ${vrSpaceState.reason}:`, vrSpaceState.data);

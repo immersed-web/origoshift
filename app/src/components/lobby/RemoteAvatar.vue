@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 
-import type { Entity } from 'aframe';
+import type { Entity, DetailEvent } from 'aframe';
 import type { ConnectionId } from 'schemas';
 import { ref, computed, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue';
 import type { useVrSpaceStore } from '@/stores/vrSpaceStore';

@@ -6,13 +6,16 @@ log.enable(process.env.DEBUG);
 import { VenueListInfo, VenueIdSchema } from 'schemas';
 import { z } from 'zod';
 import { procedure as p, atLeastModeratorP, router, isInVenueM, isUserClientM, clientInVenueP } from '../trpc/trpc';
-import { BaseClient, UserClient, Venue } from '../classes/InternalClasses';
+import { UserClient, Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
 import { Visibility } from 'database';
 import { TRPCError } from '@trpc/server';
-import { attachToEvent, attachToFilteredEvent, NotifierInputData } from '../trpc/trpc-utils';
+import { attachToEvent, attachToFilteredEvent, NotifierInputData, NotifierSignature } from '../trpc/trpc-utils';
 import { observable } from '@trpc/server/observable';
 import { uniqBy } from 'lodash';
+
+// type VenueNotify = BaseClient['notify']['venueStateUpdated'];
+type VenueStateUpdate = NotifierSignature<ReturnType<Venue['getPublicState']>>;
 
 export const venueRouter = router({
   listAllowedVenues: p.query(async ({ctx}) => {
@@ -84,7 +87,7 @@ export const venueRouter = router({
   }),
   subVenueStateUpdated: p.subscription(({ctx}) => {
     log.info(`attching venueStateUpdated notifier for client: ${ctx.username} (${ctx.connectionId})`);
-    return observable<NotifierInputData<BaseClient['notify']['venueStateUpdated']>>((scriber) => {
+    return observable<NotifierInputData<VenueStateUpdate>>((scriber) => {
       ctx.client.notify.venueStateUpdated = scriber.next;
       return () => ctx.client.notify.venueStateUpdated = undefined;
     });

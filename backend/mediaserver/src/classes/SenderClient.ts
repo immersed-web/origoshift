@@ -22,6 +22,12 @@ type SenderClientEvents =  SenderControlEvents
 }>;
 
 type SenderConstructorInput = ConstructorParameters<typeof BaseClient>[0] & {senderId?: SenderId};
+
+const senderNotifyAdditions = {
+  myStateUpdated: undefined as NotifierSignature<ReturnType<SenderClient['getPublicState']>>
+};
+type SenderNotifyMap = BaseClient['notify'] & typeof senderNotifyAdditions;
+
 export class SenderClient extends BaseClient{
   constructor({senderId = SenderIdSchema.parse(randomUUID()), ...args}: SenderConstructorInput){
     super(args);
@@ -29,7 +35,8 @@ export class SenderClient extends BaseClient{
     // this.base = new BaseClient(...args);
     log.info(`Creating sender client ${this.username} (${this.connectionId})`);
     log.debug('prismaData:', this.prismaData);
-
+    
+    Object.assign(this.notify, senderNotifyAdditions);
 
     this.senderClientEvent = new TypedEmitter();
   }
@@ -58,10 +65,7 @@ export class SenderClient extends BaseClient{
   // base: BaseClient;
   senderClientEvent: TypedEmitter<SenderClientEvents>;
 
-  notify = {
-    ...super.notify,
-    myStateUpdated: undefined as NotifierSignature<ReturnType<typeof this.getPublicState>>
-  };
+  declare notify: SenderNotifyMap;
 
   getPublicState(){
     const { senderId, cameraId, clientType } = this;

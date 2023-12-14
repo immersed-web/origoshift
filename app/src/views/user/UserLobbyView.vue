@@ -2,6 +2,7 @@
   <div>
     <div class="min-h-screen z-0">
       <VrAFrame
+        v-if="venueStore.modelUrl"
         :model-url="venueStore.modelUrl"
         :navmesh-url="venueStore.navmeshUrl"
         :model-scale="venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.scale"

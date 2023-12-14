@@ -138,9 +138,9 @@
         v-for="[k, c] in soupStore.consumers"
         :key="k"
       >
-      {{ c.id }}
-      {{ c.kind }}
-      {{ c.track }}
+      {{ c.consumer.id }}
+      {{ c.consumer.kind }}
+      {{ c.consumer.track }}
       </pre>
       <!-- <video
         ref="videoTag"

@@ -10,7 +10,7 @@
   "compilerOptions": {
     "strict": true,
     // "preserveSymlinks": true,
-    // "module": "Node16",
+    "module": "CommonJS",
     "moduleResolution": "node",
     // "allowSyntheticDefaultImports": true,
     // "target": "ES2021",

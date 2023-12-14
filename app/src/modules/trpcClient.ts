@@ -8,7 +8,7 @@ import superjson from 'superjson';
 // import { guestAutoToken, loginWithAutoToken, getToken } from '@/modules/authClient';
 
 import { shallowRef, type ShallowRef, computed, type ComputedRef } from 'vue';
-import { devtoolsLink } from 'trpc-client-devtools-link';
+// import { devtoolsLink } from 'trpc-client-devtools-link';
 
 const wsBaseURL = `wss://${import.meta.env.EXPOSED_SERVER_URL}${import.meta.env.EXPOSED_MEDIASOUP_PATH}`;
 
@@ -80,7 +80,7 @@ export const createTrpcClient = (getToken: () => string, clientType: ClientType 
     //   deserialize: unpack,
     // },
     links: [
-      devtoolsLink(),
+      // devtoolsLink(),
       wsLink({client: _wsClient}),
     ],
   });

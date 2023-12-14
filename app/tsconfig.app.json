@@ -1,5 +1,5 @@
 {
-  "extends": "@vue/tsconfig/tsconfig.json",
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
   "include": [
     "env.d.ts",
     "src/**/*",
@@ -9,8 +9,14 @@
     "src/**/__tests__/*"
   ],
   "compilerOptions": {
-    "strict": true,
-    "composite": true,
+    "noEmit": true,
+    // We disable composite and declaration in order to get rid of the dreaded
+    // "The inferred type of X cannot be named without a reference to Y". This is likely not portable. A type annotation is necessary.
+    // This is ts error TS2742
+    // See this github thread and the linked comment in particular:
+    // https://github.com/microsoft/TypeScript/issues/47663#issuecomment-1519138189
+    "declaration": false,
+    "composite": false,
     "baseUrl": ".",
     "paths": {
       "@/*": [

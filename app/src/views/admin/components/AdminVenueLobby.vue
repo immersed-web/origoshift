@@ -98,14 +98,14 @@ const createVirtualSpace = async () => {
   await connectionStore.client.vr.createVrSpace.mutate();
 };
 
-const updateScale = async () => {
-  if(venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelId){
-    await connectionStore.client.vr.update3DModel.mutate({
-      modelId: venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelId,
-      scale: modelScale.value,
-    });
-  }
-};
+// const updateScale = async () => {
+//   if(venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.modelId){
+//     await connectionStore.client.vr.update3DModel.mutate({
+//       modelId: venueStore.currentVenue.vrSpace.virtualSpace3DModel.modelId,
+//       scale: modelScale.value,
+//     });
+//   }
+// };
 
 </script>
 

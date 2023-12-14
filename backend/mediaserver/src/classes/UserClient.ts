@@ -17,6 +17,13 @@ NonFilteredEvents<{
   'myStateUpdated': (data: { myState: ReturnType<UserClient['getPublicState']>, reason?: string }) => void
 }>;
 
+const userNotifyAdditions = {
+  senderAddedOrRemoved: undefined as NotifierSignature<{senderState: ReturnType<SenderClient['getPublicState']>, added: boolean}>,
+  vrSpaceStateUpdated: undefined as NotifierSignature<ReturnType<VrSpace['getPublicState']>>,
+  clientTransforms: undefined as NotifierSignature<ClientTransforms>
+};
+type UserNotifyMap = BaseClient['notify'] & typeof userNotifyAdditions;
+
 /**
  * @class
  * This class represents the backend state of a user client connection.
@@ -36,7 +43,7 @@ export class UserClient extends BaseClient {
 
     this.userClientEvent = new TypedEmitter();
 
-    this.notify = {...this.notify, ...super.notify};
+    Object.assign(this.notify, userNotifyAdditions);
   }
   readonly clientType = 'client' as const satisfies ClientType;
 
@@ -44,12 +51,8 @@ export class UserClient extends BaseClient {
 
   userClientEvent: TypedEmitter<UserClientEvents>;
 
-  notify = {
-    ...super.notify,
-    senderAddedOrRemoved: undefined as NotifierSignature<{senderState: ReturnType<SenderClient['getPublicState']>, added: boolean}>,
-    vrSpaceStateUpdated: undefined as NotifierSignature<ReturnType<VrSpace['getPublicState']>>,
-    clientTransforms: undefined as NotifierSignature<ClientTransforms>
-  };
+  declare notify: UserNotifyMap; // Make typescript happy and allow to add our local notify keys in the constructor
+
 
   unload() {
     log.info(`unloading user client ${ this.username } ${this.connectionId} `);

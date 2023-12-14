@@ -8,13 +8,11 @@ import { z } from 'zod';
 import { procedure as p, atLeastModeratorP, router, isInVenueM, isUserClientM, clientInVenueP } from '../trpc/trpc';
 import { UserClient, Venue } from '../classes/InternalClasses';
 import prismaClient from '../modules/prismaClient';
-import { Visibility } from 'database';
 import { TRPCError } from '@trpc/server';
-import { attachToEvent, attachToFilteredEvent, NotifierInputData, NotifierSignature } from '../trpc/trpc-utils';
+import { attachToEvent, attachToFilteredEvent, NotifierInputData, NotifierSignature} from '../trpc/trpc-utils';
 import { observable } from '@trpc/server/observable';
 import { uniqBy } from 'lodash';
 
-// type VenueNotify = BaseClient['notify']['venueStateUpdated'];
 type VenueStateUpdate = NotifierSignature<ReturnType<Venue['getPublicState']>>;
 
 export const venueRouter = router({
@@ -22,7 +20,7 @@ export const venueRouter = router({
     const publicVenues = await prismaClient.venue.findMany({
       where: {
         visibility: {
-          equals: Visibility.public
+          equals: 'public'
         }
       },
       select: {
@@ -32,8 +30,8 @@ export const venueRouter = router({
         streamStartTime: true,
         visibility: true,
       } satisfies Record<keyof VenueListInfo, true>
-    });
-    const assembledVenues = uniqBy([...publicVenues as VenueListInfo[], ...ctx.client.allowedVenues.value], 'venueId');
+    }) as VenueListInfo[];
+    const assembledVenues = uniqBy([...publicVenues, ...ctx.client.allowedVenues.value], 'venueId');
 
     return assembledVenues;
   }),

@@ -3,7 +3,7 @@ const log = new Log('Router:VR');
 process.env.DEBUG = 'Router:VR*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
-import { ClientTransformSchema, ClientTransforms, ClientTransform, ConnectionId, VirtualSpace3DModelUpdateSchema } from 'schemas';
+import { ClientTransformSchema, VirtualSpace3DModelUpdateSchema } from 'schemas';
 import { procedure as p, router, isVenueOwnerM, isUserClientM, userInVenueP, currentVenueAdminP, currentVenueHasVrSpaceM, currentVenueHasNoVrSpaceM } from '../trpc/trpc';
 import { NotifierInputData } from '../trpc/trpc-utils';
 import { TRPCError } from '@trpc/server';

@@ -7,7 +7,7 @@ log.enable(process.env.DEBUG);
 
 import { ClientTransform, ClientTransforms, VenueId, CameraId, ClientType } from 'schemas';
 import { loadUserPrismaData, SenderClient, Venue, VrSpace } from './InternalClasses';
-import { NonFilteredEvents, NotifierSignature } from 'trpc/trpc-utils';
+import { NonFilteredEvents, NotifierSignature, Prettify } from 'trpc/trpc-utils';
 import { BaseClient } from './InternalClasses';
 import { effect } from '@vue/reactivity';
 
@@ -20,7 +20,7 @@ NonFilteredEvents<{
 const userNotifyAdditions = {
   senderAddedOrRemoved: undefined as NotifierSignature<{senderState: ReturnType<SenderClient['getPublicState']>, added: boolean}>,
   vrSpaceStateUpdated: undefined as NotifierSignature<ReturnType<VrSpace['getPublicState']>>,
-  clientTransforms: undefined as NotifierSignature<ClientTransforms>
+  clientTransforms: undefined as NotifierSignature<Prettify<ClientTransforms>>
 };
 type UserNotifyMap = BaseClient['notify'] & typeof userNotifyAdditions;
 

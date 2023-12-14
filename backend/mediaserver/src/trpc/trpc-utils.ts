@@ -7,6 +7,10 @@ const log = new Log('TRPCUtils');
 process.env.DEBUG = 'TRPCUtils*, ' + process.env.DEBUG;
 log.enable(process.env.DEBUG);
 
+export type Prettify<T> = {
+  [K in keyof T]: T[K]
+} & unknown;
+
 //Internal utility types
 export type NotifierInputData<MaybeFunc extends ((arg: any) => void) | undefined> = Parameters<Exclude<MaybeFunc, undefined>>[0]
 export type NotifierSignature<T extends Record<string, unknown>> = ((arg: {data: T, reason?: string}) => void) | undefined

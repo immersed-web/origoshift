@@ -30,6 +30,10 @@ function implement<Model = never>() {
   };
 }
 
+type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & unknown;
+
 // const literalSchema = z.union([z.string(), z.number(), z.boolean()]);
 // type Literal = z.infer<typeof literalSchema>;
 // type Json = Literal | { [key: string]: Json } | Json[];
@@ -154,7 +158,7 @@ export type Vr3DModelId = z.TypeOf<typeof Vr3DModelIdSchema>;
 export const SenderIdSchema = UuidSchema.brand<'SenderId'>();
 export type SenderId = z.TypeOf<typeof SenderIdSchema>;
 
-export type VenueListInfo = {venueId: VenueId } & Pick<Venue, 'name' | 'doorsOpeningTime' | 'streamStartTime' | 'visibility'>
+export type VenueListInfo = Prettify<{venueId: VenueId } & Pick<Venue, 'name' | 'doorsOpeningTime' | 'streamStartTime' | 'visibility'>>
 
 export const visibilityOptions = ['private', 'unlisted', 'public'] as const satisfies Readonly<Visibility[]>
 const VisibilitySchema = z.enum(visibilityOptions);

@@ -14,6 +14,7 @@ export default () => {
       this.el.addEventListener('raycaster-intersected-cleared', evt => {
         this.raycaster = null;
       });
+      this.tick = AFRAME.utils.throttleTick(this.tick!, 10, this);
     },
 
     tick: function () {

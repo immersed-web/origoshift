@@ -72,7 +72,7 @@ import { useRouter } from 'vue-router';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useVenueStore } from '@/stores/venueStore';
 import AdminUploadModelForm from './AdminUploadModelForm.vue';
-import VrAFramePreview from '@/components/lobby/VrAFramePreview.vue';
+import VrAFramePreview from '@/components/lobby/LobbyAFramePreview.vue';
 import { onMounted, ref } from 'vue';
 
 // Use imports

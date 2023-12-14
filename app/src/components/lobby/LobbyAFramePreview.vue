@@ -4,6 +4,8 @@
     ref="sceneTag"
     id="ascene"
     xr-mode-ui="enabled: false"
+    cursor__mouse="fuse:false; rayOrigin: mouse; mouseCursorStylesEnabled: true"
+    raycaster="objects: #navmesh"
   >
     <a-assets
       v-once
@@ -24,6 +26,13 @@
       ref="cameraTag"
     />
     <a-sky color="lightskyblue" />
+      
+    <a-ring
+      ref="cursorTag"
+      rotation="-90  0 0"
+      radius-inner="0.1"
+      radius-outer="0.2"
+    />
 
     <!-- The model -->
     <a-entity>
@@ -38,6 +47,8 @@
         id="navmesh"
         src="#navmesh-asset"
         :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
+        raycaster-listen
+        @raycast-change="onMouseEnter"
         visible="false"
       />
     </a-entity>
@@ -45,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { type Scene, type Entity, THREE } from 'aframe';
+import { type Scene, type Entity, type DetailEvent, THREE } from 'aframe';
 import { ref, computed } from 'vue';
 
 // Props & emits
@@ -59,6 +70,7 @@ const props = defineProps({
 const sceneTag = ref<Scene>();
 const modelTag = ref<Entity>();
 const cameraTag = ref<Entity>();
+const cursorTag = ref<Entity>();
 
 const modelUrl = computed(() => {
   return props.modelUrl;
@@ -67,6 +79,17 @@ const modelUrl = computed(() => {
 // const navmeshId = computed(() => {
 //   return props.navmeshUrl !== '' ? 'navmesh' : 'model';
 // });
+
+function onMouseEnter(evt: DetailEvent<any>){
+  console.log('model hovered',evt);
+  if(!cursorTag.value) return;
+  const point: THREE.Vector3 = evt.detail.point;
+  if(!point) {
+    console.error('no point from intersection event');
+    return;
+  }
+  cursorTag.value.object3D.position.set(...point.toArray());
+}
 
 function onModelLoaded(){
   if(modelTag.value && cameraTag.value){
@@ -78,15 +101,11 @@ function onModelLoaded(){
     
     const bbox = new THREE.Box3().setFromObject(obj3D);
     const modelCenter = bbox.getCenter(new THREE.Vector3());
-    // cameraRigTag.value.object3D.position.set(modelCenter.x, modelCenter.y, modelCenter.z);
+    // cameraTag.value.object3D.position.set(modelCenter.x, modelCenter.y, modelCenter.z);
 
     let orbitControlSettings = `autoRotate: true; rotateSpeed: 1; initialPosition: ${modelCenter.x} ${modelCenter.y+2} ${modelCenter.z+5};`;
     orbitControlSettings += `target:${modelCenter.x} ${modelCenter.y} ${modelCenter.z};`;
     cameraTag.value.setAttribute('orbit-controls', orbitControlSettings);
-    // cameraTag.value.setAttribute('orbit-controls', 'initialPosition', '0  0');
-    // cameraTag.value.setAttribute('orbit-controls', );
-    // cameraTag.value.setAttribute('orbit-controls', 'enabled', 'true');
-    // console.log(modelCenter);
   }
   
   // Below is testcode for trying out the built-in equirectangular screen capture of aframe scene

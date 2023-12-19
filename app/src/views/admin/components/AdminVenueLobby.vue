@@ -61,7 +61,7 @@
             >
             <input
               type="radio"
-              value="entrance"
+              value="entranceposition"
               aria-label="Placera streaming-entré"
               class="btn btn-sm"
               v-model="currentCursorType"
@@ -104,24 +104,48 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { useVenueStore } from '@/stores/venueStore';
 import AdminUploadModelForm from './AdminUploadModelForm.vue';
 import VrAFramePreview from '@/components/lobby/LobbyAFramePreview.vue';
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
+// import { useAdminStore } from '@/stores/adminStore';
 
 // Use imports
 const router = useRouter();
 const connectionStore = useConnectionStore();
 const venueStore = useVenueStore();
+// const adminStore = useAdminStore();
 
-const currentCursorType = ref('');
+const currentCursorType = ref<'spawnpoint' | 'entranceposition' | ''>('');
 
 type Point = [number, number, number];
 
 function onCursorPlaced(point: Point){
-  currentCursorType.value = '',
   console.log('cursor placed:', point);
+  if(currentCursorType.value === 'entranceposition'){
+    setEntrancePosition(point);
+  } else if(currentCursorType.value === 'spawnpoint' ){
+    setSpawnpoint(point);
+  }
+  currentCursorType.value = '';
 }
 
-function setEntrancePosition(point: Point){
-  
+async function setEntrancePosition(point: Point){
+  const modelId = venueStore.currentVenue?.vrSpace?.virtualSpace3DModelId;
+  if(!modelId) return;
+  await connectionStore.client.vr.update3DModel.mutate({
+    vr3DModelId: modelId,
+    data: {
+      entrancePosition: point,
+    },
+  });
+}
+async function setSpawnpoint(point: Point){
+  const modelId = venueStore.currentVenue?.vrSpace?.virtualSpace3DModelId;
+  if(!modelId) return;
+  await connectionStore.client.vr.update3DModel.mutate({
+    vr3DModelId: modelId,
+    data: {
+      spawnPosition: point,
+    },
+  });
 }
 
 const openVirtualSpace = async () => {

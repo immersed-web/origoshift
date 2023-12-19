@@ -193,12 +193,18 @@ type Vr3DModelUpdatePayload = Partial<Pick<Prisma.VirtualSpace3DModelUpdateInput
   | 'navmeshFileFormat'
   | 'public'
   | 'scale'
+  | 'entrancePosition'
+  | 'entranceRotation'
+  | 'spawnPosition'
 >>
 const VirtualSpace3DModelUpdatePayloadSchema = z.object({
   modelFileFormat: ModelFileFormatSchema.nullable().optional(),
   navmeshFileFormat: ModelFileFormatSchema.nullable().optional(),
   public: z.boolean().optional(),
   scale: z.number().optional(),
+  entrancePosition: z.tuple([z.number(), z.number(), z.number()]).optional(),
+  entranceRotation: z.number().nullable().optional(),
+  spawnPosition: z.tuple([z.number(), z.number(), z.number()]).optional(),
 }) satisfies z.ZodType<Vr3DModelUpdatePayload>
 export const VirtualSpace3DModelUpdateSchema = z.object({
   vr3DModelId: Vr3DModelIdSchema,

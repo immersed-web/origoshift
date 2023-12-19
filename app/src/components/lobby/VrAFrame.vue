@@ -219,13 +219,18 @@ onBeforeUnmount(async () => {
 
 function onModelLoaded(){
   if(modelTag.value && playerOriginTag.value){
-    console.log('centering camera on model bbox');
-    const obj3D = modelTag.value.getObject3D('mesh');
     // console.log(obj3D);
-    
-    const bbox = new THREE.Box3().setFromObject(obj3D);
-    const modelCenter = bbox.getCenter(new THREE.Vector3());
-    playerOriginTag.value.object3D.position.set(modelCenter.x, modelCenter.y, modelCenter.z);
+    const startPos = new THREE.Vector3();
+    if(!vrSpaceStore.currentVrSpace?.virtualSpace3DModel?.spawnPosition){
+      console.log('centering player on model bbox');
+      const obj3D = modelTag.value.getObject3D('mesh');
+      const bbox = new THREE.Box3().setFromObject(obj3D);
+      bbox.getCenter(startPos);
+    } else {
+      console.log('centering player on spawnposition');
+      startPos.set(...vrSpaceStore.currentVrSpace.virtualSpace3DModel.spawnPosition as [number, number, number]);
+    }
+    playerOriginTag.value.object3D.position.set(startPos.x, startPos.y, startPos.z);
     const worldPos = playerTag.value!.object3D.getWorldPosition(new THREE.Vector3());
     const worldRot = playerTag.value!.object3D.getWorldQuaternion(new THREE.Quaternion());
     const trsfm: ClientTransform = {

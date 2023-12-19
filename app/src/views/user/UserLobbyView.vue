@@ -2,7 +2,7 @@
   <div>
     <div class="min-h-screen z-0">
       <VrAFrame
-        v-if="venueStore.modelUrl"
+        v-if="venueStore.modelUrl && vrSpaceStore.currentVrSpace"
         :model-url="venueStore.modelUrl"
         :navmesh-url="venueStore.navmeshUrl"
         :model-scale="venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.scale"
@@ -13,9 +13,12 @@
 
 <script setup lang="ts">
 import VrAFrame from '../../components/lobby/VrAFrame.vue';
+import { useVrSpaceStore } from '@/stores/vrSpaceStore';
 import { useVenueStore } from '@/stores/venueStore';
 
 const venueStore = useVenueStore();
+const vrSpaceStore = useVrSpaceStore();
+vrSpaceStore.enterVrSpace();
 
 </script>
 

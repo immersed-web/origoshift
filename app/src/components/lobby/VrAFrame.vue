@@ -187,6 +187,7 @@ const clients = computed(() => vrSpaceStore.currentVrSpace?.clients);
 //   console.log('clients was updated. new:', newClients, 'old:', oldClients);
 // });
 
+
 onMounted(async () => {
   if(!soupStore.deviceLoaded){
     await soupStore.loadDevice();
@@ -209,7 +210,7 @@ onMounted(async () => {
     console.error('failed to setup the mediasoup stuff');
   }
 
-  await vrSpaceStore.enterVrSpace();
+  // await vrSpaceStore.enterVrSpace();
 });
 
 onBeforeUnmount(async () => {

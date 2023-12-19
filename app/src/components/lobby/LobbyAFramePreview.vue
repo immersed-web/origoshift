@@ -48,7 +48,7 @@
         src="#navmesh-asset"
         :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
         raycaster-listen
-        @raycast-change="onMouseEnter"
+        @raycast-change="onIntersection"
         visible="false"
       />
     </a-entity>
@@ -80,14 +80,17 @@ const modelUrl = computed(() => {
 //   return props.navmeshUrl !== '' ? 'navmesh' : 'model';
 // });
 
-function onMouseEnter(evt: DetailEvent<any>){
-  console.log('model hovered',evt);
+function onIntersection(evt: DetailEvent<any>){
+  // console.log('model hovered',evt);
   if(!cursorTag.value) return;
   const point: THREE.Vector3 = evt.detail.point;
   if(!point) {
     console.error('no point from intersection event');
     return;
   }
+  // if(sceneTag.value){
+  //   sceneTag.value.canvas.style.cursor = 'pointer';
+  // }
   cursorTag.value.object3D.position.set(...point.toArray());
 }
 

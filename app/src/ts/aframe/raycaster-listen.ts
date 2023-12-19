@@ -2,22 +2,30 @@ import type { DetailEvent, Entity } from 'aframe';
 
 export default () => {
 
-  AFRAME.registerComponent<{raycaster: Entity | null, prev: THREE.Vector3}>('raycaster-listen', {
-    raycaster: null,
-    prev: new THREE.Vector3,
+  AFRAME.registerComponent('raycaster-listen', {
+    raycaster: null as null | Entity,
+    prev: new AFRAME.THREE.Vector3,
+    stashedCursorStyle: undefined as string | undefined,
     init: function () {
     // Use events to figure out what raycaster is listening so we don't have to
     // hardcode the raycaster.
       this.el.addEventListener('raycaster-intersected', (evt) => {
         this.raycaster = (evt as DetailEvent<{el: Entity}>).detail.el;
+        const canvas = this.el.sceneEl!.canvas;
+        this.stashedCursorStyle = canvas.style.cursor;
+        canvas.style.cursor = 'pointer';
       });
       this.el.addEventListener('raycaster-intersected-cleared', evt => {
         this.raycaster = null;
+        const canvas = this.el.sceneEl!.canvas;
+        if(this.stashedCursorStyle) { 
+          canvas.style.cursor = this.stashedCursorStyle;
+        }
       });
       this.tick = AFRAME.utils.throttleTick(this.tick!, 10, this);
     },
 
-    tick: function () {
+    tick: function (t, dt) {
       if (!this.raycaster) { return; }  // Not intersecting.
 
       // @ts-ignore

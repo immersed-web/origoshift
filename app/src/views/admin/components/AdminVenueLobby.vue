@@ -43,7 +43,7 @@
             :model-url="venueStore.modelUrl"
             :navmesh-url="venueStore.navmeshUrl"
             :is-cursor-active="currentCursorType !== ''"
-            @cursor-placed="currentCursorType = ''"
+            @cursor-placed="onCursorPlaced"
           />
           <div class="flex gap-2">
             <input
@@ -112,6 +112,17 @@ const connectionStore = useConnectionStore();
 const venueStore = useVenueStore();
 
 const currentCursorType = ref('');
+
+type Point = [number, number, number];
+
+function onCursorPlaced(point: Point){
+  currentCursorType.value = '',
+  console.log('cursor placed:', point);
+}
+
+function setEntrancePosition(point: Point){
+  
+}
 
 const openVirtualSpace = async () => {
   // await connectionStore.client.vr.openVrSpace.mutate();

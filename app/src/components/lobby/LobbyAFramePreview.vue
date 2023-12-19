@@ -27,7 +27,10 @@
     />
     <a-sky color="lightskyblue" />
       
-    <a-entity ref="cursorTag">
+    <a-entity
+      ref="cursorTag"
+      :visible="props.isCursorActive"
+    >
       <a-ring
         position="0 0.01 0"
         rotation="-90  0 0"
@@ -46,8 +49,8 @@
       />
       <a-gltf-model
         id="navmesh"
+        ref="navmeshTag"
         src="#navmesh-asset"
-        raycaster-listen
         @raycast-change="onIntersection"
         @raycast-out="onNoIntersection"
         @click="placeCursor"
@@ -58,21 +61,26 @@
 
 <script setup lang="ts">
 import { type Scene, type Entity, type DetailEvent, THREE } from 'aframe';
-import { ref }  from 'vue';
+import { ref, watch }  from 'vue';
 
-// Props & emits
-// const props = defineProps({
-//   modelUrl: {type: String, default: ''},
-//   navmeshUrl: {type: String, default: ''},
-//   modelScale: {type: Number, default: 1},
-// });
 const props = withDefaults(defineProps<{
   modelUrl?: string,
   navmeshUrl?: string,
-  // modelScale?: number,
+  isCursorActive?: boolean
 }>(), {
   modelUrl: '',
   navmeshUrl: '',
+  isCursorActive: false,
+});
+
+watch(() => props.isCursorActive, (cursorActive) => {
+  if(cursorActive) {
+    navmeshTag.value?.setAttribute('raycaster-listen', true);
+    cameraTag.value?.components['orbit-controls'].pause();
+  } else {
+    navmeshTag.value?.removeAttribute('raycaster-listen');
+    cameraTag.value?.components['orbit-controls'].play();
+  }
 });
 
 const emit = defineEmits<{
@@ -82,6 +90,7 @@ const emit = defineEmits<{
 // A-frame
 const sceneTag = ref<Scene>();
 const modelTag = ref<Entity>();
+const navmeshTag = ref<Entity>();
 const cameraTag = ref<Entity>();
 const cursorTag = ref<Entity>();
 
@@ -96,15 +105,12 @@ const cursorTag = ref<Entity>();
 function onIntersection(evt: DetailEvent<any>){
   // console.log('model hovered',evt);
   if(!cursorTag.value) return;
-  cursorTag.value?.setAttribute('visible', true); 
+  cursorTag.value?.setAttribute('visible', props.isCursorActive); 
   const point: THREE.Vector3 = evt.detail.point;
   if(!point) {
     console.error('no point from intersection event');
     return;
   }
-  // if(sceneTag.value){
-  //   sceneTag.value.canvas.style.cursor = 'pointer';
-  // }
   cursorTag.value.object3D.position.set(...point.toArray());
 }
 

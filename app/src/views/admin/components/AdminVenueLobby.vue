@@ -42,7 +42,38 @@
             class="flex-1 border"
             :model-url="venueStore.modelUrl"
             :navmesh-url="venueStore.navmeshUrl"
+            :is-cursor-active="currentCursorType !== ''"
+            @cursor-placed="currentCursorType = ''"
           />
+          <div class="flex gap-2">
+            <input
+              type="radio"
+              value=""
+              class="hidden"
+              v-model="currentCursorType"
+            >
+            <input
+              type="radio"
+              value="spawnpoint"
+              aria-label="Placera startplats"
+              class="btn btn-sm"
+              v-model="currentCursorType"
+            >
+            <input
+              type="radio"
+              value="entrance"
+              aria-label="Placera streaming-entré"
+              class="btn btn-sm"
+              v-model="currentCursorType"
+            >
+            <button
+              v-if="currentCursorType !== ''"
+              class="btn btn-sm btn-circle"
+              @click="currentCursorType = ''"
+            >
+              <span class="material-icons">close</span>
+            </button>
+          </div>
           <div>
             <h4>3D-modell</h4>
             <AdminUploadModelForm model-type="model" />
@@ -80,10 +111,7 @@ const router = useRouter();
 const connectionStore = useConnectionStore();
 const venueStore = useVenueStore();
 
-const modelScale = ref(1);
-onMounted(() => {
-  modelScale.value = venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.scale || 1;
-});
+const currentCursorType = ref('');
 
 const openVirtualSpace = async () => {
   // await connectionStore.client.vr.openVrSpace.mutate();

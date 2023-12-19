@@ -19,6 +19,12 @@
         :src="props.navmeshUrl"
       />
     </a-assets>
+    <StreamEntrance
+      v-if="entrancePosString"
+      :position="entrancePosString"
+      :direction="90"
+      message="Yoooooooo vad har du i kikaren??"
+    />
 
     <!-- for some super weird reason orbit controls doesnt work with the a-camera primitive  -->
     <a-entity
@@ -61,7 +67,12 @@
 
 <script setup lang="ts">
 import { type Scene, type Entity, type DetailEvent, THREE } from 'aframe';
-import { ref, watch }  from 'vue';
+import { ref, watch, computed }  from 'vue';
+import StreamEntrance from './StreamEntrance.vue';
+import { useVenueStore } from '@/stores/venueStore';
+
+
+const venueStore = useVenueStore();
 
 const props = withDefaults(defineProps<{
   modelUrl?: string,
@@ -81,6 +92,12 @@ watch(() => props.isCursorActive, (cursorActive) => {
     navmeshTag.value?.removeAttribute('raycaster-listen');
     cameraTag.value?.components['orbit-controls'].play();
   }
+});
+const entrancePosString = computed(() => {
+  const posArr = venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.entrancePosition;
+  if(!posArr) return undefined;
+  const v = new AFRAME.THREE.Vector3(...posArr as [number, number, number]);
+  return AFRAME.utils.coordinates.stringify(v);
 });
 
 const emit = defineEmits<{

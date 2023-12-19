@@ -12,13 +12,16 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import VrAFrame from '../../components/lobby/VrAFrame.vue';
 import { useVrSpaceStore } from '@/stores/vrSpaceStore';
 import { useVenueStore } from '@/stores/venueStore';
 
 const venueStore = useVenueStore();
 const vrSpaceStore = useVrSpaceStore();
-vrSpaceStore.enterVrSpace();
+onMounted(async () => {
+  await vrSpaceStore.enterVrSpace();
+});
 
 </script>
 

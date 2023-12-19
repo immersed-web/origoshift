@@ -22,8 +22,9 @@
 
     <a-sky color="lightskyblue" />
     <StreamEntrance
+      v-if="entrancePosString"
       @click="goToStream"
-      position="30 6 0"
+      :position="entrancePosString"
       :direction="90"
       message="Yoooooooo vad har du i kikaren??"
       class="clickable"
@@ -186,6 +187,13 @@ const clients = computed(() => vrSpaceStore.currentVrSpace?.clients);
 // watch(clients, (newClients, oldClients) => {
 //   console.log('clients was updated. new:', newClients, 'old:', oldClients);
 // });
+
+const entrancePosString = computed(() => {
+  const posArr = vrSpaceStore.currentVrSpace?.virtualSpace3DModel?.entrancePosition;
+  if(!posArr) return undefined;
+  const v = new AFRAME.THREE.Vector3(...posArr as [number, number, number]);
+  return AFRAME.utils.coordinates.stringify(v);
+});
 
 
 onMounted(async () => {

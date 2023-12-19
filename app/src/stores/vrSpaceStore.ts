@@ -47,7 +47,7 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
 
   
   async function enterVrSpace() {
-    await connection.client.vr.enterVrSpace.mutate();
+    currentVrSpace.value = await connection.client.vr.enterVrSpace.mutate();
   }
   async function leaveVrSpace() {
     await connection.client.vr.leaveVrSpace.mutate();

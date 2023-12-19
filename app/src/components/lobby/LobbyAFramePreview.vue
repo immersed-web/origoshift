@@ -50,6 +50,7 @@
         raycaster-listen
         @raycast-change="onIntersection"
         @raycast-out="onNoIntersection"
+        @click="placeCursor"
       />
     </a-entity>
   </a-scene>
@@ -73,6 +74,10 @@ const props = withDefaults(defineProps<{
   modelUrl: '',
   navmeshUrl: '',
 });
+
+const emit = defineEmits<{
+  'cursorPlaced': [point: [number, number, number]]
+}>();
 
 // A-frame
 const sceneTag = ref<Scene>();
@@ -107,6 +112,11 @@ function onNoIntersection(evt: DetailEvent<any>){
   console.log('raycast-out');
   if(!cursorTag.value) return;
   cursorTag.value?.setAttribute('visible', false); 
+}
+
+function placeCursor(evt: DetailEvent<{intersection: {point: THREE.Vector3}}>){
+  console.log(evt.detail.intersection);
+  emit('cursorPlaced', evt.detail.intersection.point.toArray());
 }
 
 function onModelLoaded(){

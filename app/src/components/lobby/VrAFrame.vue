@@ -209,8 +209,6 @@ onMounted(async () => {
   } catch(e){
     console.error('failed to setup the mediasoup stuff');
   }
-
-  // await vrSpaceStore.enterVrSpace();
 });
 
 onBeforeUnmount(async () => {

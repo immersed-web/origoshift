@@ -12,11 +12,11 @@
     >
       <a-asset-item
         id="model-asset"
-        :src="modelUrl"
+        :src="props.modelUrl"
       />
       <a-asset-item
         id="navmesh-asset"
-        :src="navmeshUrl"
+        :src="props.navmeshUrl"
       />
     </a-assets>
 
@@ -27,12 +27,14 @@
     />
     <a-sky color="lightskyblue" />
       
-    <a-ring
-      ref="cursorTag"
-      rotation="-90  0 0"
-      radius-inner="0.1"
-      radius-outer="0.2"
-    />
+    <a-entity ref="cursorTag">
+      <a-ring
+        position="0 0.01 0"
+        rotation="-90  0 0"
+        radius-inner="0.1"
+        radius-outer="0.2"
+      />
+    </a-entity>
 
     <!-- The model -->
     <a-entity>
@@ -41,15 +43,13 @@
         id="model"
         ref="modelTag"
         src="#model-asset"
-        :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
       />
       <a-gltf-model
         id="navmesh"
         src="#navmesh-asset"
-        :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
         raycaster-listen
         @raycast-change="onIntersection"
-        visible="false"
+        @raycast-out="onNoIntersection"
       />
     </a-entity>
   </a-scene>
@@ -57,13 +57,21 @@
 
 <script setup lang="ts">
 import { type Scene, type Entity, type DetailEvent, THREE } from 'aframe';
-import { ref, computed } from 'vue';
+import { ref }  from 'vue';
 
 // Props & emits
-const props = defineProps({
-  modelUrl: {type: String, default: ''},
-  navmeshUrl: {type: String, default: ''},
-  modelScale: {type: Number, default: 1},
+// const props = defineProps({
+//   modelUrl: {type: String, default: ''},
+//   navmeshUrl: {type: String, default: ''},
+//   modelScale: {type: Number, default: 1},
+// });
+const props = withDefaults(defineProps<{
+  modelUrl?: string,
+  navmeshUrl?: string,
+  // modelScale?: number,
+}>(), {
+  modelUrl: '',
+  navmeshUrl: '',
 });
 
 // A-frame
@@ -72,9 +80,9 @@ const modelTag = ref<Entity>();
 const cameraTag = ref<Entity>();
 const cursorTag = ref<Entity>();
 
-const modelUrl = computed(() => {
-  return props.modelUrl;
-});
+// const modelUrl = computed(() => {
+//   return props.modelUrl;
+// });
 
 // const navmeshId = computed(() => {
 //   return props.navmeshUrl !== '' ? 'navmesh' : 'model';
@@ -83,6 +91,7 @@ const modelUrl = computed(() => {
 function onIntersection(evt: DetailEvent<any>){
   // console.log('model hovered',evt);
   if(!cursorTag.value) return;
+  cursorTag.value?.setAttribute('visible', true); 
   const point: THREE.Vector3 = evt.detail.point;
   if(!point) {
     console.error('no point from intersection event');
@@ -92,6 +101,12 @@ function onIntersection(evt: DetailEvent<any>){
   //   sceneTag.value.canvas.style.cursor = 'pointer';
   // }
   cursorTag.value.object3D.position.set(...point.toArray());
+}
+
+function onNoIntersection(evt: DetailEvent<any>){
+  console.log('raycast-out');
+  if(!cursorTag.value) return;
+  cursorTag.value?.setAttribute('visible', false); 
 }
 
 function onModelLoaded(){

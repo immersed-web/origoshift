@@ -9,22 +9,37 @@ export default () => {
     init: function () {
     // Use events to figure out what raycaster is listening so we don't have to
     // hardcode the raycaster.
-      this.el.addEventListener('raycaster-intersected', (evt) => {
-        this.raycaster = (evt as DetailEvent<{el: Entity}>).detail.el;
+      // this.el.addEventListener('raycaster-intersected', (evt) => {
+      //   this.raycaster = (evt as DetailEvent<{el: Entity}>).detail.el;
+      //   const canvas = this.el.sceneEl!.canvas;
+      //   this.stashedCursorStyle = canvas.style.cursor;
+      //   canvas.style.cursor = 'pointer';
+      // });
+      // this.el.addEventListener('raycaster-intersected-cleared', evt => {
+      //   this.raycaster = null;
+      //   const canvas = this.el.sceneEl!.canvas;
+      //   if(this.stashedCursorStyle) { 
+      //     canvas.style.cursor = this.stashedCursorStyle;
+      //   }
+      // });
+      this.tick = AFRAME.utils.throttleTick(this.tick!, 10, this);
+    },
+    events: {
+      'raycaster-intersected': function(evt: DetailEvent<{el: Entity}>) {
+        this.raycaster = evt.detail.el;
         const canvas = this.el.sceneEl!.canvas;
         this.stashedCursorStyle = canvas.style.cursor;
         canvas.style.cursor = 'pointer';
-      });
-      this.el.addEventListener('raycaster-intersected-cleared', evt => {
+      },
+      'raycaster-intersected-cleared': function(evt: DetailEvent<any>){
         this.raycaster = null;
         const canvas = this.el.sceneEl!.canvas;
         if(this.stashedCursorStyle) { 
           canvas.style.cursor = this.stashedCursorStyle;
         }
-      });
-      this.tick = AFRAME.utils.throttleTick(this.tick!, 10, this);
+        this.el.emit('raycast-out', evt);
+      },
     },
-
     tick: function (t, dt) {
       if (!this.raycaster) { return; }  // Not intersecting.
 

@@ -11,10 +11,10 @@ generator client {
 //   modelSuffix = "SchemaGenerated"
 // }
 
-generator zod {
-  provider = "zod-prisma-types"
-  // output   = "../generated/zod"
-}
+// generator zod {
+//   provider = "zod-prisma-types"
+//   // output   = "../generated/zod"
+// }
 
 datasource db {
   provider = "postgresql"

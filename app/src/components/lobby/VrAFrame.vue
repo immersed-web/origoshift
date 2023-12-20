@@ -2,7 +2,7 @@
   <a-scene
     cursor="rayOrigin: mouse;  fuse: false;"
     raycaster="objects: .clickable"
-    ref="scene"
+    ref="sceneTag"
   >
     <a-assets v-once>
       <a-asset-item
@@ -166,9 +166,11 @@ const props = defineProps({
   modelScale: {type: Number, default: 1},
 });
 
+type Point = [number, number, number];
+
 // A-frame
-const scene = ref<Scene>();
-useAutoEnterXR(scene);
+const sceneTag = ref<Scene>();
+useAutoEnterXR(sceneTag);
 const modelTag = ref<Entity>();
 const playerTag = ref<Entity>();
 const playerOriginTag = ref<Entity>();
@@ -191,7 +193,7 @@ const clients = computed(() => vrSpaceStore.currentVrSpace?.clients);
 const entrancePosString = computed(() => {
   const posArr = vrSpaceStore.currentVrSpace?.virtualSpace3DModel?.entrancePosition;
   if(!posArr) return undefined;
-  const v = new AFRAME.THREE.Vector3(...posArr as [number, number, number]);
+  const v = new AFRAME.THREE.Vector3(...posArr as Point);
   return AFRAME.utils.coordinates.stringify(v);
 });
 
@@ -231,15 +233,13 @@ onBeforeUnmount(async () => {
 function onModelLoaded(){
   if(modelTag.value && playerOriginTag.value){
     // console.log(obj3D);
-    const startPos = new THREE.Vector3();
-    if(!vrSpaceStore.currentVrSpace?.virtualSpace3DModel?.spawnPosition){
-      console.log('centering player on model bbox');
+    let startPos = getRandomSpawnPosition();
+    if(!startPos){
+      console.log('failed to calculate spawnpoint. centering player on model bbox as fallback');
       const obj3D = modelTag.value.getObject3D('mesh');
       const bbox = new THREE.Box3().setFromObject(obj3D);
+      startPos = new THREE.Vector3();
       bbox.getCenter(startPos);
-    } else {
-      console.log('centering player on spawnposition');
-      startPos.set(...vrSpaceStore.currentVrSpace.virtualSpace3DModel.spawnPosition as [number, number, number]);
     }
     playerOriginTag.value.object3D.position.set(startPos.x, startPos.y, startPos.z);
     const worldPos = playerTag.value!.object3D.getWorldPosition(new THREE.Vector3());
@@ -249,9 +249,45 @@ function onModelLoaded(){
       orientation: worldRot.toArray() as [number, number, number, number],
     };
     vrSpaceStore.updateTransform(trsfm);
+    
+    // placeRandomSpheres();
+    
     // @ts-ignore
     playerTag.value?.addEventListener('move', throttledTransformMutation);
   }
+}
+
+// Test function used to make sure we distribute spawn points nicely in the spawn area
+function placeRandomSpheres() {
+  for(let i = 0; i< 500; i++){
+    const sphereEl = document.createElement('a-sphere');
+    sphereEl.setAttribute('color', 'red');
+    const pos = getRandomSpawnPosition();
+    if(!pos) {
+      console.error('failed to generate random spawn point');
+      return;
+    }
+    const posString = AFRAME.utils.coordinates.stringify(pos);
+    sphereEl.setAttribute('position', posString);
+    sphereEl.setAttribute('scale', '0.05 0.05 0.05');
+    sceneTag.value!.append(sphereEl);
+  }
+}
+
+function getRandomSpawnPosition() {
+  const spawnPosition = vrSpaceStore.currentVrSpace?.virtualSpace3DModel?.spawnPosition as Point | undefined;
+  const spawnRadius = vrSpaceStore.currentVrSpace?.virtualSpace3DModel?.spawnRadius;
+  if(!spawnPosition || !spawnRadius) return;
+  const randomRadianAngle = 2 * Math.PI * Math.random(); // radian angle
+  // Why sqrt? Check here: https://programming.guide/random-point-within-circle.html
+  const randomDistance = Math.sqrt(Math.random()) * spawnRadius;
+  const x = randomDistance * Math.cos(randomRadianAngle);
+  const z = randomDistance * Math.sin(randomRadianAngle);
+  const randomOffsetVector = new THREE.Vector3(x, 0, z);
+  
+  const spawnPointVector = new THREE.Vector3(...spawnPosition);
+  spawnPointVector.add(randomOffsetVector);
+  return spawnPointVector;
 }
 
 function goToStream(){

@@ -42,34 +42,34 @@
             class="flex-1 border"
             :model-url="venueStore.modelUrl"
             :navmesh-url="venueStore.navmeshUrl"
-            :is-cursor-active="currentCursorType !== ''"
+            :cursor-target="currentCursorType"
             @cursor-placed="onCursorPlaced"
           />
           <div class="flex gap-2">
             <input
               type="radio"
-              value=""
+              :value="undefined"
               class="hidden"
               v-model="currentCursorType"
             >
             <input
               type="radio"
-              value="spawnpoint"
+              value="spawnPosition"
               aria-label="Placera startplats"
               class="btn btn-sm"
               v-model="currentCursorType"
             >
             <input
               type="radio"
-              value="entranceposition"
+              value="entrancePosition"
               aria-label="Placera streaming-entré"
               class="btn btn-sm"
               v-model="currentCursorType"
             >
             <button
-              v-if="currentCursorType !== ''"
+              v-if="currentCursorType"
               class="btn btn-sm btn-circle"
-              @click="currentCursorType = ''"
+              @click="currentCursorType = undefined"
             >
               <span class="material-icons">close</span>
             </button>
@@ -151,7 +151,7 @@ onMounted(() => {
 
 });
 
-const currentCursorType = ref<'spawnpoint' | 'entranceposition' | ''>('');
+const currentCursorType = ref<'spawnPosition' | 'entrancePosition' | undefined>();
 const entranceRotation = ref(0);
 watch(entranceRotation, (rot) => {
   if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel) return;
@@ -168,12 +168,12 @@ type Point = [number, number, number];
 
 function onCursorPlaced(point: Point){
   console.log('cursor placed:', point);
-  if(currentCursorType.value === 'entranceposition'){
+  if(currentCursorType.value === 'entrancePosition'){
     setEntrancePosition(point);
-  } else if(currentCursorType.value === 'spawnpoint' ){
-    setSpawnpoint(point);
+  } else if(currentCursorType.value === 'spawnPosition' ){
+    setSpawnPosition(point);
   }
-  currentCursorType.value = '';
+  currentCursorType.value = undefined;
 }
 
 async function setEntrancePosition(point: Point){
@@ -186,7 +186,7 @@ async function setEntrancePosition(point: Point){
     },
   });
 }
-async function setSpawnpoint(point: Point){
+async function setSpawnPosition(point: Point){
   const modelId = venueStore.currentVenue?.vrSpace?.virtualSpace3DModelId;
   if(!modelId) return;
   await connectionStore.client.vr.update3DModel.mutate({

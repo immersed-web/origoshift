@@ -42,7 +42,6 @@ AFRAME.registerComponent('orbit-controls', {
   target: undefined as THREE.Vector3 | undefined,
   cursor: undefined as THREE.Vector3 | undefined,
   controls: undefined as any,
-
   init: function () {
     const el = this.el;
     this.oldPosition = new THREE.Vector3();
@@ -117,8 +116,13 @@ AFRAME.registerComponent('orbit-controls', {
     const data = this.data;
 
     if (!controls) { return; }
-
-    controls.target = this.target?.copy(data.target);
+    // avoid moving to startPosition if not explicitly updated
+    if(!oldData || !AFRAME.utils.deepEqual(data.target, oldData.target)){
+      console.log('target was changed in component update');
+      controls.target = this.target?.copy(data.target);
+    } else {
+      console.log('skipping to set orbit control target');
+    }
     controls.cursor = this.cursor?.copy(data.cursor);
     controls.autoRotate = data.autoRotate;
     controls.autoRotateSpeed = data.autoRotateSpeed;

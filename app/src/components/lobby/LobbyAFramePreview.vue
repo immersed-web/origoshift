@@ -48,7 +48,7 @@
       
     <a-entity
       ref="cursorTag"
-      :visible="props.isCursorActive"
+      :visible="false"
     >
       <a-ring
         position="0 0.01 0"
@@ -81,6 +81,7 @@
 <script setup lang="ts">
 import { type Scene, type Entity, type DetailEvent, THREE } from 'aframe';
 import { ref, watch, computed }  from 'vue';
+import { useTimeoutFn } from '@vueuse/core';
 import StreamEntrance from './StreamEntrance.vue';
 import { useVenueStore } from '@/stores/venueStore';
 
@@ -90,11 +91,11 @@ const venueStore = useVenueStore();
 const props = withDefaults(defineProps<{
   modelUrl?: string,
   navmeshUrl?: string,
-  isCursorActive?: boolean
+  cursorTarget?: 'spawnPosition' | 'entrancePosition' | undefined
 }>(), {
   modelUrl: '',
   navmeshUrl: '',
-  isCursorActive: false,
+  cursorTarget: undefined,
 });
 
 
@@ -109,13 +110,18 @@ const navmeshTag = ref<Entity>();
 const cameraTag = ref<Entity>();
 const cursorTag = ref<Entity>();
 
-watch(() => props.isCursorActive, (cursorActive) => {
-  if(cursorActive) {
+let stopAutoRotateTimeout: ReturnType<typeof useTimeoutFn>['stop'] | undefined = undefined;
+
+watch(() => props.cursorTarget, (cTarget) => {
+  if(cTarget) {
+    if(stopAutoRotateTimeout) stopAutoRotateTimeout();
     navmeshTag.value?.setAttribute('raycaster-listen', true);
-    cameraTag.value?.components['orbit-controls'].pause();
+    cameraTag.value!.setAttribute('orbit-controls', 'autoRotate', false);
   } else {
     navmeshTag.value?.removeAttribute('raycaster-listen');
-    cameraTag.value?.components['orbit-controls'].play();
+    stopAutoRotateTimeout = useTimeoutFn(() => {
+      cameraTag.value!.setAttribute('orbit-controls', 'autoRotate', true);
+    }, 5000).stop;
   }
 });
 const entrancePosString = computed(() => {
@@ -144,20 +150,30 @@ const spawnRadius = computed(() => {
 
 function onIntersection(evt: DetailEvent<any>){
   // console.log('model hovered',evt);
-  if(!cursorTag.value) return;
-  cursorTag.value?.setAttribute('visible', props.isCursorActive); 
   const point: THREE.Vector3 = evt.detail.point;
   if(!point) {
     console.error('no point from intersection event');
     return;
   }
-  cursorTag.value.object3D.position.set(...point.toArray());
+  if(props.cursorTarget === 'spawnPosition'){
+    if(venueStore.currentVenue?.vrSpace?.virtualSpace3DModel){
+      venueStore.currentVenue.vrSpace.virtualSpace3DModel.spawnPosition = point.toArray();
+    }
+  }
+  if(props.cursorTarget === 'entrancePosition'){
+    if(venueStore.currentVenue?.vrSpace?.virtualSpace3DModel){
+      venueStore.currentVenue.vrSpace.virtualSpace3DModel.entrancePosition = point.toArray();
+    }
+  }
+  // if(!cursorTag.value) return;
+  // cursorTag.value?.setAttribute('visible', props.isCursorActive); 
+  // cursorTag.value.object3D.position.set(...point.toArray());
 }
 
 function onNoIntersection(evt: DetailEvent<any>){
   console.log('raycast-out');
-  if(!cursorTag.value) return;
-  cursorTag.value?.setAttribute('visible', false); 
+  // if(!cursorTag.value) return;
+  // cursorTag.value?.setAttribute('visible', false); 
 }
 
 function placeCursor(evt: DetailEvent<{intersection: {point: THREE.Vector3}}>){

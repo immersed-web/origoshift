@@ -25,7 +25,7 @@
       v-if="entrancePosString"
       @click="goToStream"
       :position="entrancePosString"
-      :direction="90"
+      :direction="entranceRotation"
       message="Yoooooooo vad har du i kikaren??"
       class="clickable"
     />
@@ -195,6 +195,10 @@ const entrancePosString = computed(() => {
   return AFRAME.utils.coordinates.stringify(v);
 });
 
+const entranceRotation = computed(() => {
+  if(!vrSpaceStore.currentVrSpace?.virtualSpace3DModel?.entranceRotation) return 0;
+  return vrSpaceStore.currentVrSpace.virtualSpace3DModel.entranceRotation;
+});
 
 onMounted(async () => {
   if(!soupStore.deviceLoaded){

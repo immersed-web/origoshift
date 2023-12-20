@@ -172,6 +172,7 @@ async function onEntranceRotationCommited() {
   if(!modelId) return;
   await connectionStore.client.vr.update3DModel.mutate({
     vr3DModelId: modelId,
+    reason: 'entrance rotation updated',
     data: {
       entranceRotation: entranceRotation.value,
     },

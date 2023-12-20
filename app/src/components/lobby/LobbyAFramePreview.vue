@@ -102,7 +102,7 @@ const entrancePosString = computed(() => {
 
 const entranceRotation = computed(() => {
   if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.entranceRotation) return 0;
-  return venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.entranceRotation;
+  return venueStore.currentVenue.vrSpace.virtualSpace3DModel.entranceRotation;
 });
 
 const emit = defineEmits<{

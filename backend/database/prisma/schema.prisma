@@ -103,15 +103,10 @@ model VirtualSpace3DModel {
   public            Boolean          @default(false)
   scale             Float            @default(1)
   virtualSpaces     VirtualSpace[]
-  // entranceX         Float
-  // entranceY         Float
-  // entranceZ         Float
   entrancePosition  Float[]
   entranceRotation  Float?
-  // SpawnPointX       Float?
-  // SpawnPointY       Float?
-  // SpawnPointZ       Float?
   spawnPosition     Float[]
+  spawnRadius       Float?
 }
 
 enum CameraType {

@@ -25,6 +25,19 @@
       :direction="entranceRotation"
       message="Yoooooooo vad har du i kikaren??"
     />
+    <a-entity
+      v-if="spawnPosString"
+      :position="spawnPosString"
+    >
+      <a-circle
+        color="yellow"
+        transparent="true"
+        opacity="0.5"
+        rotation="-90 0 0"
+        position="0 0.05 0"
+        :radius="spawnRadius"
+      />
+    </a-entity>
 
     <!-- for some super weird reason orbit controls doesnt work with the a-camera primitive  -->
     <a-entity
@@ -84,6 +97,18 @@ const props = withDefaults(defineProps<{
   isCursorActive: false,
 });
 
+
+const emit = defineEmits<{
+  'cursorPlaced': [point: [number, number, number]]
+}>();
+
+// A-frame
+const sceneTag = ref<Scene>();
+const modelTag = ref<Entity>();
+const navmeshTag = ref<Entity>();
+const cameraTag = ref<Entity>();
+const cursorTag = ref<Entity>();
+
 watch(() => props.isCursorActive, (cursorActive) => {
   if(cursorActive) {
     navmeshTag.value?.setAttribute('raycaster-listen', true);
@@ -105,24 +130,17 @@ const entranceRotation = computed(() => {
   return venueStore.currentVenue.vrSpace.virtualSpace3DModel.entranceRotation;
 });
 
-const emit = defineEmits<{
-  'cursorPlaced': [point: [number, number, number]]
-}>();
+const spawnPosString = computed(() => {
+  const posArr = venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.spawnPosition;
+  if(!posArr) return undefined;
+  const v = new AFRAME.THREE.Vector3(...posArr as [number, number, number]);
+  return AFRAME.utils.coordinates.stringify(v);
+});
 
-// A-frame
-const sceneTag = ref<Scene>();
-const modelTag = ref<Entity>();
-const navmeshTag = ref<Entity>();
-const cameraTag = ref<Entity>();
-const cursorTag = ref<Entity>();
-
-// const modelUrl = computed(() => {
-//   return props.modelUrl;
-// });
-
-// const navmeshId = computed(() => {
-//   return props.navmeshUrl !== '' ? 'navmesh' : 'model';
-// });
+const spawnRadius = computed(() => {
+  if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.spawnRadius) return 0;
+  return venueStore.currentVenue.vrSpace.virtualSpace3DModel.spawnRadius;
+});
 
 function onIntersection(evt: DetailEvent<any>){
   // console.log('model hovered',evt);

@@ -87,6 +87,19 @@
               class="range"
             >
           </label>
+          <label class="label gap-2">
+            <span class="label-text font-semibold whitespace-nowrap">
+              Startplats storlek
+            </span>
+            <input
+              type="range"
+              min="1"
+              max="20"
+              v-model.number="spawnRadius"
+              @change="onSpawnRadiusCommited"
+              class="range"
+            >
+          </label>
           <div>
             <h4>3D-modell</h4>
             <AdminUploadModelForm model-type="model" />
@@ -117,20 +130,37 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { useVenueStore } from '@/stores/venueStore';
 import AdminUploadModelForm from './AdminUploadModelForm.vue';
 import VrAFramePreview from '@/components/lobby/LobbyAFramePreview.vue';
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 // import { useAdminStore } from '@/stores/adminStore';
 
 // Use imports
 const router = useRouter();
 const connectionStore = useConnectionStore();
 const venueStore = useVenueStore();
-// const adminStore = useAdminStore();
+
+onMounted(() => {
+  const storeRot = venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.entranceRotation;
+  if(storeRot){
+    entranceRotation.value = storeRot;
+  }
+  const sRadius = venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.spawnRadius;
+  if(sRadius){
+    spawnRadius.value = sRadius;
+  }
+
+});
 
 const currentCursorType = ref<'spawnpoint' | 'entranceposition' | ''>('');
 const entranceRotation = ref(0);
 watch(entranceRotation, (rot) => {
   if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel) return;
   venueStore.currentVenue.vrSpace.virtualSpace3DModel.entranceRotation = rot;
+});
+
+const spawnRadius = ref(0);
+watch(spawnRadius, (radius) => {
+  if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel) return;
+  venueStore.currentVenue.vrSpace.virtualSpace3DModel.spawnRadius = radius;
 });
 
 type Point = [number, number, number];
@@ -175,6 +205,19 @@ async function onEntranceRotationCommited() {
     reason: 'entrance rotation updated',
     data: {
       entranceRotation: entranceRotation.value,
+    },
+  });
+}
+
+async function onSpawnRadiusCommited() {
+  console.log('spawn radius changed', spawnRadius.value);
+  const modelId = venueStore.currentVenue?.vrSpace?.virtualSpace3DModelId;
+  if(!modelId) return;
+  await connectionStore.client.vr.update3DModel.mutate({
+    vr3DModelId: modelId,
+    reason: 'spawn radius updated',
+    data: {
+      spawnRadius: spawnRadius.value,
     },
   });
 }

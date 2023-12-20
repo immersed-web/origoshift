@@ -22,7 +22,7 @@
     <StreamEntrance
       v-if="entrancePosString"
       :position="entrancePosString"
-      :direction="90"
+      :direction="entranceRotation"
       message="Yoooooooo vad har du i kikaren??"
     />
 
@@ -98,6 +98,11 @@ const entrancePosString = computed(() => {
   if(!posArr) return undefined;
   const v = new AFRAME.THREE.Vector3(...posArr as [number, number, number]);
   return AFRAME.utils.coordinates.stringify(v);
+});
+
+const entranceRotation = computed(() => {
+  if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.entranceRotation) return 0;
+  return venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.entranceRotation;
 });
 
 const emit = defineEmits<{

@@ -74,6 +74,19 @@
               <span class="material-icons">close</span>
             </button>
           </div>
+          <label class="label gap-2">
+            <span class="label-text font-semibold whitespace-nowrap">
+              Entré rotation
+            </span>
+            <input
+              type="range"
+              min="0"
+              max="360"
+              v-model.number="entranceRotation"
+              @change="onEntranceRotationCommited"
+              class="range"
+            >
+          </label>
           <div>
             <h4>3D-modell</h4>
             <AdminUploadModelForm model-type="model" />
@@ -104,7 +117,7 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { useVenueStore } from '@/stores/venueStore';
 import AdminUploadModelForm from './AdminUploadModelForm.vue';
 import VrAFramePreview from '@/components/lobby/LobbyAFramePreview.vue';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 // import { useAdminStore } from '@/stores/adminStore';
 
 // Use imports
@@ -114,6 +127,11 @@ const venueStore = useVenueStore();
 // const adminStore = useAdminStore();
 
 const currentCursorType = ref<'spawnpoint' | 'entranceposition' | ''>('');
+const entranceRotation = ref(0);
+watch(entranceRotation, (rot) => {
+  if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel) return;
+  venueStore.currentVenue.vrSpace.virtualSpace3DModel.entranceRotation = rot;
+});
 
 type Point = [number, number, number];
 
@@ -144,6 +162,18 @@ async function setSpawnpoint(point: Point){
     vr3DModelId: modelId,
     data: {
       spawnPosition: point,
+    },
+  });
+}
+
+async function onEntranceRotationCommited() {
+  console.log('rotation changed', entranceRotation.value);
+  const modelId = venueStore.currentVenue?.vrSpace?.virtualSpace3DModelId;
+  if(!modelId) return;
+  await connectionStore.client.vr.update3DModel.mutate({
+    vr3DModelId: modelId,
+    data: {
+      entranceRotation: entranceRotation.value,
     },
   });
 }

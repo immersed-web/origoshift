@@ -95,6 +95,7 @@
               type="range"
               min="1"
               max="20"
+              step="0.1"
               v-model.number="spawnRadius"
               @change="onSpawnRadiusCommited"
               class="range"

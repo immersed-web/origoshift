@@ -164,7 +164,7 @@ const uploadFile = async () => {
           'file-name-suffix': props.modelType,
         },
         signal: ctl.signal,
-        timeout: 60000,
+        timeout: 4 * 60 * 1000,
         onUploadProgress(progressEvent) {
           console.log(progressEvent);
           if(!progressEvent.progress) return;

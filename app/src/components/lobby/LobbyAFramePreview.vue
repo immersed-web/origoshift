@@ -4,20 +4,21 @@
     ref="sceneTag"
     id="ascene"
     xr-mode-ui="enabled: false"
-    cursor__mouse="fuse:false; rayOrigin: mouse; mouseCursorStylesEnabled: true"
+    cursor="fuse:false; rayOrigin: mouse; mouseCursorStylesEnabled: true"
     raycaster="objects: #navmesh"
   >
     <a-assets
-      v-once
+      timeout="20000"
     >
-      <a-asset-item
+      <!-- <a-asset-item
         id="model-asset"
         :src="props.modelUrl"
       />
       <a-asset-item
+        v-if="props.navmeshUrl"
         id="navmesh-asset"
         :src="props.navmeshUrl"
-      />
+      /> -->
     </a-assets>
     <StreamEntrance
       v-if="entrancePosString"
@@ -61,15 +62,17 @@
     <!-- The model -->
     <a-entity>
       <a-gltf-model
+        v-if="props.modelUrl"
         @model-loaded="onModelLoaded"
         id="model"
         ref="modelTag"
-        src="#model-asset"
+        :src="props.modelUrl"
       />
       <a-gltf-model
         id="navmesh"
         ref="navmeshTag"
-        src="#navmesh-asset"
+        visible="false"
+        :src="props.navmeshUrl?props.navmeshUrl:props.modelUrl"
         @raycast-change="onIntersection"
         @raycast-out="onNoIntersection"
         @click="placeCursor"
@@ -93,8 +96,8 @@ const props = withDefaults(defineProps<{
   navmeshUrl?: string,
   cursorTarget?: 'spawnPosition' | 'entrancePosition' | undefined
 }>(), {
-  modelUrl: '',
-  navmeshUrl: '',
+  modelUrl: undefined,
+  navmeshUrl: undefined,
   cursorTarget: undefined,
 });
 
@@ -115,9 +118,15 @@ let stopAutoRotateTimeout: ReturnType<typeof useTimeoutFn>['stop'] | undefined =
 watch(() => props.cursorTarget, (cTarget) => {
   if(cTarget) {
     if(stopAutoRotateTimeout) stopAutoRotateTimeout();
+    if(!navmeshTag.value) console.error('navmeshTag undefined');
+
+    sceneTag.value?.setAttribute('raycaster', 'objects', '#navmesh');
+    sceneTag.value?.setAttribute('cursor', {fuse: false, rayOrigin: 'mouse'});
     navmeshTag.value?.setAttribute('raycaster-listen', true);
     cameraTag.value!.setAttribute('orbit-controls', 'autoRotate', false);
   } else {
+    sceneTag.value?.removeAttribute('cursor');
+    sceneTag.value?.removeAttribute('raycaster');
     navmeshTag.value?.removeAttribute('raycaster-listen');
     stopAutoRotateTimeout = useTimeoutFn(() => {
       cameraTag.value!.setAttribute('orbit-controls', 'autoRotate', true);
@@ -144,12 +153,12 @@ const spawnPosString = computed(() => {
 });
 
 const spawnRadius = computed(() => {
-  if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.spawnRadius) return 0;
+  if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.spawnRadius) return 0.2;
   return venueStore.currentVenue.vrSpace.virtualSpace3DModel.spawnRadius;
 });
 
 function onIntersection(evt: DetailEvent<any>){
-  // console.log('model hovered',evt);
+  console.log('model hovered',evt);
   const point: THREE.Vector3 = evt.detail.point;
   if(!point) {
     console.error('no point from intersection event');

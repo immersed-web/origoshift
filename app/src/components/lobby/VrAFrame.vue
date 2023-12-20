@@ -4,18 +4,21 @@
     raycaster="objects: .clickable"
     ref="sceneTag"
   >
-    <a-assets v-once>
+    <a-assets
+      timeout="20000"
+    >
       <a-asset-item
         id="model-asset"
         :src="modelUrl"
       />
       <a-asset-item
+        v-if="navmeshUrl"
         id="navmesh-asset"
         :src="navmeshUrl"
       />
       <a-asset-item
         id="avatar-asset"
-        src="/models/avatar/AVATAR_V1.gltf"
+        src="/models/avatar/Character_Base_Mesh_5.glb"
         @loaded="avatarModelFileLoaded = true"
       />
     </a-assets>

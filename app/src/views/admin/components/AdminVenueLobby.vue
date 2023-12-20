@@ -36,9 +36,11 @@
         class="mt-4"
       >
         <h3>3D-modell</h3>
-        <div class="grid gap-2">
+        <div
+          v-if="venueStore.modelUrl"
+          class="grid gap-2"
+        >
           <VrAFramePreview
-            v-if="venueStore.modelUrl"
             class="flex-1 border"
             :model-url="venueStore.modelUrl"
             :navmesh-url="venueStore.navmeshUrl"
@@ -101,12 +103,14 @@
               class="range"
             >
           </label>
+        </div>
+        <div>
           <div>
-            <h4>3D-modell</h4>
+            <h4>3D-modell för miljön</h4>
             <AdminUploadModelForm model-type="model" />
           </div>
           <div v-if="venueStore.currentVenue?.vrSpace?.virtualSpace3DModel">
-            <h4>Navmesh</h4>
+            <h4>3D-modell för gåbara ytor (navmesh)</h4>
             <AdminUploadModelForm
               model-type="navmesh"
               name="navmesh"
@@ -224,12 +228,9 @@ async function onSpawnRadiusCommited() {
 }
 
 const openVirtualSpace = async () => {
-  // await connectionStore.client.vr.openVrSpace.mutate();
   await connectionStore.client.vr.enterVrSpace.mutate();
-  router.push({name: 'adminLobby'});
-  // TODO: Open in new tab, without losing superadmin login
-  // const routeData = router.resolve({name: 'adminLobby'});
-  // window.open(routeData.href, '_blank');
+  const routeData = router.resolve({name: 'adminLobby'});
+  window.open(routeData.href, '_blank');
 };
 
 const createVirtualSpace = async () => {

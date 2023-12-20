@@ -120,6 +120,8 @@ watch(() => props.cursorTarget, (cTarget) => {
     if(stopAutoRotateTimeout) stopAutoRotateTimeout();
     if(!navmeshTag.value) console.error('navmeshTag undefined');
 
+    // the  raycaster seem to keep a reference to the intersected object which leads to us missing "new" intersection after reattaching raycaster-listen.
+    // This is a hacky work-around to "reset" the raycasting logic
     sceneTag.value?.setAttribute('raycaster', 'objects', '#navmesh');
     sceneTag.value?.setAttribute('cursor', {fuse: false, rayOrigin: 'mouse'});
     navmeshTag.value?.setAttribute('raycaster-listen', true);

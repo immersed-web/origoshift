@@ -4,8 +4,6 @@
     ref="sceneTag"
     id="ascene"
     xr-mode-ui="enabled: false"
-    cursor="fuse:false; rayOrigin: mouse; mouseCursorStylesEnabled: true"
-    raycaster="objects: #navmesh"
   >
     <a-assets
       timeout="20000"

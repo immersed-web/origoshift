@@ -53,7 +53,7 @@ const router = createRouter({
     {
       path: '/',
       meta: { requiredRole: 'guest', loginNeededRedirect: 'login', requiredConnection: 'client' },
-      component:  () => import('@/layouts/HeaderLayout.vue'),
+      component:  () => import('@/layouts/EmptyLayout.vue'),
       children: [
         {
           path: 'venue/:venueId',
@@ -67,9 +67,17 @@ const router = createRouter({
             },
             {
               path: ':cameraId',
-              name: 'userCamera',
               props: route => route.params,
-              component: () => import('@/views/user/UserCameraView.vue'),
+              component: () => import('@/components/AFrameScene.vue'),
+              children: [
+                {
+                  path: '',
+                  name: 'userCamera',
+                  props: true,
+                  component: () => import('@/components/CameraView.vue'),
+
+                },
+              ],
             },
           ],
         },

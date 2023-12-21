@@ -314,18 +314,18 @@ function getRandomSpawnPosition() {
 }
 
 function goToStream(){
-  router.push({name: 'basicVR'});
+  // router.push({name: 'basicVR'});
   // console.log('sphere clicked');
-  // if(!venueStore.currentVenue) return;
-  // const firstCamera = Object.keys(venueStore.currentVenue.cameras)[0];
-  // if(!firstCamera) return;
-  // router.push({
-  //   name: 'userCamera',
-  //   params: {
-  //     venueId: venueStore.currentVenue.venueId,
-  //     cameraId: firstCamera,
-  //   },
-  // });
+  if(!venueStore.currentVenue) return;
+  const firstCamera = Object.keys(venueStore.currentVenue.cameras)[0];
+  if(!firstCamera) return;
+  router.push({
+    name: 'userCamera',
+    params: {
+      venueId: venueStore.currentVenue.venueId,
+      cameraId: firstCamera,
+    },
+  });
 }
 
 const throttledTransformMutation = throttle(async (transformEvent: CustomEvent<ClientTransform>) => {
@@ -341,7 +341,7 @@ function navmeshClicked(e: THREE.Event) {
 }
 
 function navmeshHovered(e: THREE.Event) {
-  console.log('navmesh rayCasted:', e);
+  // console.log('navmesh rayCasted:', e);
   previewTeleport(e.detail.point);
 }
 

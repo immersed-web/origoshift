@@ -15,11 +15,15 @@
         id="avatar-asset"
         src="/models/avatar/Character_Base_Mesh_5.glb"
       />
+      <a-mixin
+        id="fade-to-from-black"
+        animation__to_black="property: components.material.material.color; type: color; to: #000; dur: 500; startEvents: fadeToBlack; easing: linear;"
+        animation__from_black="property: components.material.material.color; type: color; to: #fff; dur: 500; startEvents: fadeFromBlack; easing: linear;"
+      />
     </a-assets>
     <RouterView v-slot="{Component}">
       <component
         :is="Component"
-
         @vue:before-unmount="onViewUnmounted"
       />
     </RouterView>

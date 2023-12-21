@@ -1,186 +1,184 @@
 <template>
-  <template>
-    <Teleport
-      v-if="domOutlet"
-      :to="domOutlet"
+  <Teleport
+    v-if="domOutlet"
+    :to="domOutlet"
+  >
+    <div
+      class="flex justify-center items-center"
+      v-if="!soup.userHasInteracted"
     >
-      <div
-        class="flex justify-center items-center"
-        v-if="!soup.userHasInteracted"
+      <button
+        class="btn btn-primary btn-lg"
+        @click="loadStuff"
       >
-        <button
-          class="btn btn-primary btn-lg"
-          @click="loadStuff"
-        >
-          Starta
-        </button>
-      </div>
-      <div v-else-if="!camera.currentCamera">
-        Försöker öppna kameran
-      </div>
-    </Teleport>
-    <template
-      v-if="soup.userHasInteracted && camera.currentCamera"
-    >
-      <!-- <a-assets>
+        Starta
+      </button>
+    </div>
+    <div v-else-if="!camera.currentCamera">
+      Försöker öppna kameran
+    </div>
+  </Teleport>
+  <template
+    v-if="soup.userHasInteracted && camera.currentCamera"
+  >
+    <!-- <a-assets>
       <a-mixin
         id="fade-to-from-black"
         animation__to_black="property: components.material.material.color; type: color; to: #000; dur: 500; startEvents: fadeToBlack; easing: linear;"
         animation__from_black="property: components.material.material.color; type: color; to: #fff; dur: 500; startEvents: fadeFromBlack; easing: linear;"
       />
     </a-assets> -->
-      <!-- <a-entity :environment="`preset: tron; dressing: none; active:${!freezeableCameraStore.is360Camera};`" /> -->
+    <a-entity :environment="`preset: tron; dressing: none; active:${!freezeableCameraStore.is360Camera};`" />
+    <a-entity
+      ref="cameraRigTag"
+      id="rig"
+    >
+      <a-camera
+        ref="cameraTag"
+        reverse-mouse-drag="true"
+        :look-controls-enabled="!movedPortalCameraId && !isViewOriginMoved && !cameraIsAnimating"
+      >
+        <a-sky
+          visible="true"
+          ref="curtainTag"
+          radius="0.5"
+          material="transparent: true; color: #505; opacity: 0.0; depthTest: false"
+          animation__to_black="property: material.opacity; from: 0.0; to: 1.0; dur: 500; startEvents: fadeToBlack"
+          animation__from_black="property: material.opacity; from: 1.0; to: 0.0; dur: 500; startEvents: fadeFromBlack"
+        />
+        <a-text
+          :visible="debugMessage !== '' || debugMessage !== undefined"
+          :value="debugMessage"
+          position="0.2 0 -2"
+        />
+      </a-camera>
       <a-entity
-        ref="cameraRigTag"
-        id="rig"
+        laser-controls="hand:left"
+        raycaster="objects: .clickable"
+      />
+      <a-entity
+        laser-controls="hand:right"
+        raycaster="objects: .clickable"
+      />
+    </a-entity>
+    <a-entity       
+      position="0 1.6 0"
+      rotation="0 0 0"
+      material="depthTest: false"
+    >
+      <a-entity
+        v-if="props.editable"
+        :rotation="`${camera.viewOrigin?.angleX} ${camera.viewOrigin?.angleY} 0`"
       >
-        <a-camera
-          ref="cameraTag"
-          reverse-mouse-drag="true"
-          :look-controls-enabled="!movedPortalCameraId && !isViewOriginMoved && !cameraIsAnimating"
-        >
-          <a-sky
-            visible="true"
-            ref="curtainTag"
-            radius="0.5"
-            material="transparent: true; color: #505; opacity: 0.0; depthTest: false"
-            animation__to_black="property: material.opacity; from: 0.0; to: 1.0; dur: 500; startEvents: fadeToBlack"
-            animation__from_black="property: material.opacity; from: 1.0; to: 0.0; dur: 500; startEvents: fadeFromBlack"
-          />
-          <a-text
-            :visible="debugMessage !== '' || debugMessage !== undefined"
-            :value="debugMessage"
-            position="0.2 0 -2"
-          />
-        </a-camera>
-        <a-entity
-          laser-controls="hand:left"
-          raycaster="objects: .clickable"
-        />
-        <a-entity
-          laser-controls="hand:right"
-          raycaster="objects: .clickable"
-        />
-      </a-entity>
-      <a-entity       
-        position="0 1.6 0"
-        rotation="0 0 0"
-        material="depthTest: false"
-      >
-        <a-entity
-          v-if="props.editable"
-          :rotation="`${camera.viewOrigin?.angleX} ${camera.viewOrigin?.angleY} 0`"
+        <a-ring
+          radius-inner="0.1"
+          radius-outer="0.2"
+          position="0 0 -2"
+          color="teal"
+          hover-highlight
+          material="shader: flat; transparent: true; depthTest:false"
         >
           <a-ring
-            radius-inner="0.1"
+            radius-inner="0"
             radius-outer="0.2"
-            position="0 0 -2"
-            color="teal"
-            hover-highlight
-            material="shader: flat; transparent: true; depthTest:false"
-          >
-            <a-ring
-              radius-inner="0"
-              radius-outer="0.2"
-              color="yellow"
-              material="opacity:0; depthTest: false;"
-              class="clickable"
-              @mousedown="isViewOriginMoved = true"
-            />
-            <a-text
-              material="depthTest:false"
-              position="0 -0.3 0"
-              value="startvy"
-              align="center"
-            />
-          </a-ring>
-        </a-entity>
-        <a-entity 
-          :visible="!freezeableCameraStore.is360Camera"
-          rotation="0 180 0"
-        >
-          <a-entity
-            :position="`0 0 ${-cinemaDistance}`"
-          >
-            <a-video
-              ref="aVideoTag"
-              crossorigin="anonymous"
-              :width="fixedWidth"
-              :height="videoHeight"
-              :rotation="`0 0 ${freezeableCameraStore.isRoofMounted?'180': 0}`"
-              material="transparent: false; depthTest: true"
-            />
-            <a-entity
-              v-for="portal in freezeableCameraStore.portals"
-              :key="portal.toCameraId"
-              :position="`${(portal.x-0.5)*fixedWidth} ${(-portal.y+0.5)*videoHeight} 0`"
-            >
-              <a-sphere
-                hover-highlight
-                position="0 0 -0.1"
-                color="yellow"
-                material="depthTest: true; shader: flat;"
-                scale="0.2 0.2 0.2"
-                class="clickable"
-                @mousedown="onPortalMouseDown(portal, $event)"
-              />
-              <a-text
-                value="Teeeext"
-                align="center"
-                position="0 -0.4 0"
-                material="depthTest: true"
-              />
-            </a-entity>
-          </a-entity>
-        </a-entity>
+            color="yellow"
+            material="opacity:0; depthTest: false;"
+            class="clickable"
+            @mousedown="isViewOriginMoved = true"
+          />
+          <a-text
+            material="depthTest:false"
+            position="0 -0.3 0"
+            value="startvy"
+            align="center"
+          />
+        </a-ring>
+      </a-entity>
+      <a-entity 
+        :visible="!freezeableCameraStore.is360Camera"
+        rotation="0 180 0"
+      >
         <a-entity
-          :visible="freezeableCameraStore.is360Camera"
+          :position="`0 0 ${-cinemaDistance}`"
         >
-          <a-videosphere
-            :geometry="`phiLength:${freezeableCameraStore.FOV?.phiLength??360}; phiStart:${freezeableCameraStore.FOV?.phiStart??0}`"
-            ref="vSphereTag"
-            src="#main-video-1"
-            :rotation="`0 90 ${freezeableCameraStore.isRoofMounted? '180': '0'}`"
-            radius="10"
-            color="#fff"
-            material="color: #fff; depthTest:true; fog: false"
+          <a-video
+            ref="aVideoTag"
+            crossorigin="anonymous"
+            :width="fixedWidth"
+            :height="videoHeight"
+            :rotation="`0 0 ${freezeableCameraStore.isRoofMounted?'180': 0}`"
+            material="transparent: false; depthTest: true"
           />
           <a-entity
             v-for="portal in freezeableCameraStore.portals"
             :key="portal.toCameraId"
-            :rotation="`${portal.angleX} ${portal.angleY} 0`"
+            :position="`${(portal.x-0.5)*fixedWidth} ${(-portal.y+0.5)*videoHeight} 0`"
           >
             <a-sphere
-              material="depthTest: true;"
-              :position="`0 0 ${-portal.distance}`"
-              scale="0.2 0.2 0.2"
-              color="#ef2d5e"
-              class="clickable"
               hover-highlight
+              position="0 0 -0.1"
+              color="yellow"
+              material="depthTest: true; shader: flat;"
+              scale="0.2 0.2 0.2"
+              class="clickable"
               @mousedown="onPortalMouseDown(portal, $event)"
+            />
+            <a-text
+              value="Teeeext"
+              align="center"
+              position="0 -0.4 0"
+              material="depthTest: true"
             />
           </a-entity>
         </a-entity>
       </a-entity>
-    </template>
-    <div class="hidden">
-      <div class="">
-        <video
-          autoplay
-          v-for="n in 2"
-          :key="n"
-          ref="videoTags"
-          :id="`main-video-${n}`"
-          :class="{'rotate-180': freezeableCameraStore.isRoofMounted}"
-          crossorigin="anonymous"
+      <a-entity
+        :visible="freezeableCameraStore.is360Camera"
+      >
+        <a-videosphere
+          :geometry="`phiLength:${freezeableCameraStore.FOV?.phiLength??360}; phiStart:${freezeableCameraStore.FOV?.phiStart??0}`"
+          ref="vSphereTag"
+          src="#main-video-1"
+          :rotation="`0 90 ${freezeableCameraStore.isRoofMounted? '180': '0'}`"
+          radius="10"
+          color="#fff"
+          material="color: #fff; depthTest:true; fog: false"
         />
-      </div>
-      <audio
+        <a-entity
+          v-for="portal in freezeableCameraStore.portals"
+          :key="portal.toCameraId"
+          :rotation="`${portal.angleX} ${portal.angleY} 0`"
+        >
+          <a-sphere
+            material="depthTest: true;"
+            :position="`0 0 ${-portal.distance}`"
+            scale="0.2 0.2 0.2"
+            color="#ef2d5e"
+            class="clickable"
+            hover-highlight
+            @mousedown="onPortalMouseDown(portal, $event)"
+          />
+        </a-entity>
+      </a-entity>
+    </a-entity>
+  </template>
+  <div class="hidden">
+    <div class="">
+      <video
         autoplay
-        ref="audioTag"
+        v-for="n in 2"
+        :key="n"
+        ref="videoTags"
+        :id="`main-video-${n}`"
+        :class="{'rotate-180': freezeableCameraStore.isRoofMounted}"
+        crossorigin="anonymous"
       />
     </div>
-  </template>
+    <audio
+      autoplay
+      ref="audioTag"
+    />
+  </div>
 </template>
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
@@ -486,7 +484,6 @@ watch(() => props.cameraId, () => {
 
 onMounted(async () => {
   console.log('mounted');
-  console.log(props);
 
   sceneTag.value?.setAttribute('raycaster', {objects: '.clickable'});
   sceneTag.value?.setAttribute('cursor', {fuse:false, rayOrigin: 'mouse'});

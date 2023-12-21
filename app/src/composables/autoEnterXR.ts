@@ -23,7 +23,7 @@ export function useAutoEnterXR(sceneEl: Ref<Scene | undefined>){
     // timeoutControl.value?.stop();
     // console.log(timeoutId);
     clearTimeout(timeoutId);
-    console.log('navigatedWhileImmersed:', navigatedWhileImmersed.value);
+    // console.log('navigatedWhileImmersed:', navigatedWhileImmersed.value);
     if(navigatedWhileImmersed.value){
       whenever(sceneEl, (el)=> {
         console.log('gonna try to restore immersive VR session');
@@ -36,11 +36,11 @@ export function useAutoEnterXR(sceneEl: Ref<Scene | undefined>){
   });
   onBeforeRouteLeave((to, from)=>{
     navigatedWhileImmersed.value = isImmersed.value;
-    console.log('navigatedWhileImmersed:', navigatedWhileImmersed.value);
+    // console.log('navigatedWhileImmersed:', navigatedWhileImmersed.value);
 
     if(sceneEl.value){
       console.log('Exiting VR!!');
-      sceneEl.value.exitVR();
+      // sceneEl.value.exitVR();
       if(timeoutId) clearTimeout(timeoutId);
       
       // Below (in combination with the clearTimeout above) is a sligtly hacky way to

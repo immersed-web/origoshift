@@ -46,6 +46,11 @@
           animation__to_black="property: material.opacity; from: 0.0; to: 1.0; dur: 500; startEvents: fadeToBlack"
           animation__from_black="property: material.opacity; from: 1.0; to: 0.0; dur: 500; startEvents: fadeFromBlack"
         />
+        <a-text
+          :visible="debugMessage !== '' || debugMessage !== undefined"
+          :value="debugMessage"
+          position="0.2 0 -2"
+        />
       </a-camera>
       <a-entity
         laser-controls="hand:left"
@@ -205,7 +210,7 @@ const videoTags = shallowReactive<HTMLVideoElement[]>([]);
 const audioTag = ref<HTMLAudioElement>();
 
 const sceneTag = ref<Scene>();
-useAutoEnterXR(sceneTag);
+// useAutoEnterXR(sceneTag);
 const vSphereTag = ref<Entity>();
 const aVideoTag = ref<Entity>();
 const curtainTag = ref<Entity>();
@@ -216,6 +221,8 @@ const cameraRigTag = ref<Entity>();
 const soup = useSoupStore();
 const venueStore = useVenueStore();
 const camera = useCameraStore();
+
+const debugMessage = ref<string>();
 
 // we have some tricks so the (derived) camerastore temporarily ignores updates while teleporting. after teleportation we trigger it and starts reacting to updates again.
 const freezeCameraState = ref(false);
@@ -470,16 +477,25 @@ watch(() => props.cameraId, () => {
 
 onMounted(async () => {
   console.log('mounted');
+  // WebXR Immersive navigation handler.
+  if (navigator.xr && navigator.xr.addEventListener) {
+    console.log('listening to sessiongranted');
+    navigator.xr.addEventListener('sessiongranted', function () {
+      debugMessage.value = 'session granted!!!';
+    });
+  }
   await loadStuff();
   document.addEventListener('mouseup', onMouseUp);
   document.addEventListener('pointermove', onMouseMove);
 });
 
 onBeforeUnmount(() => {
-  console.log('Leaving camera');
   document.removeEventListener('mouseup', onMouseUp);
   document.removeEventListener('pointermove', onMouseMove);
-  camera.leaveCurrentCamera();
+  if(camera.currentCamera){
+    console.log('Leaving camera');
+    camera.leaveCurrentCamera();
+  }
 });
 
 
@@ -497,11 +513,11 @@ function onMouseMove(ev: MouseEvent){
     camera.currentCamera.viewOrigin.x = (1.0 + newX) % 1.0;
     camera.currentCamera.viewOrigin.y += ev.movementY * ySpeed;
   } else
-  if(movedPortalCameraId.value) {
-    const newX = camera.currentCamera.portals[movedPortalCameraId.value].x + ev.movementX * xSpeed;
-    camera.currentCamera.portals[movedPortalCameraId.value].x = (1.0 + newX) % 1.0;
-    camera.currentCamera.portals[movedPortalCameraId.value].y += ev.movementY * ySpeed;
-  }
+    if(movedPortalCameraId.value) {
+      const newX = camera.currentCamera.portals[movedPortalCameraId.value].x + ev.movementX * xSpeed;
+      camera.currentCamera.portals[movedPortalCameraId.value].x = (1.0 + newX) % 1.0;
+      camera.currentCamera.portals[movedPortalCameraId.value].y += ev.movementY * ySpeed;
+    }
 }
 
 function onMouseUp(evt: Event){

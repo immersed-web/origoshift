@@ -78,10 +78,31 @@ const router = createRouter({
           name: 'userHome',
           component:  () => import('@/views/user/UserHomeView.vue'),
         },
+        // {
+        //   path: 'lobby',
+        //   name: 'userLobby',
+        //   component:  () => import('@/views/user/UserLobbyView.vue'),
+        // },
         {
-          path: 'lobby',
-          name: 'userLobby',
-          component:  () => import('@/views/user/UserLobbyView.vue'),
+          path: 'vr',
+          component:  () => import('@/components/AFrameScene.vue'),
+          children: [
+            {
+              path: 'lobby',
+              name: 'userLobby',
+              component:  () => import('@/components/lobby/VrAFrame.vue'),
+            },
+            {
+              path: 'basic',
+              name: 'basicVR',
+              component: () => import('@/components/lobby/BasicAFrameScene.vue'),
+            },
+            {
+              path: 'basic-2',
+              name: 'basicVR2',
+              component: () => import('@/components/lobby/BasicAFrameScene2.vue'),
+            },
+          ],
         },
       ],
     },

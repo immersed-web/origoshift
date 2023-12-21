@@ -43,8 +43,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  console.log('Leaving camera');
-  camera.leaveCurrentCamera();
+  // console.log('Leaving camera');
+  // camera.leaveCurrentCamera();
 });
 
 </script>

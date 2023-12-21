@@ -1,10 +1,8 @@
 <template>
-  <a-scene
-    cursor="rayOrigin: mouse;  fuse: false;"
-    raycaster="objects: .clickable"
-    ref="sceneTag"
+  <template
+    v-if="vrSpaceStore.currentVrSpace"
   >
-    <a-assets
+    <!-- <a-assets
       timeout="20000"
     >
       <a-asset-item
@@ -21,7 +19,7 @@
         src="/models/avatar/Character_Base_Mesh_5.glb"
         @loaded="avatarModelFileLoaded = true"
       />
-    </a-assets>
+    </a-assets> -->
 
     <a-sky color="lightskyblue" />
     <StreamEntrance
@@ -29,7 +27,7 @@
       @click="goToStream"
       :position="entrancePosString"
       :direction="entranceRotation"
-      message="Yoooooooo vad har du i kikaren??"
+      :message="entranceMessage"
       class="clickable"
     />
 
@@ -39,12 +37,12 @@
         @model-loaded="onModelLoaded"
         id="model"
         ref="modelTag"
-        src="#model-asset"
+        :src="venueStore.modelUrl"
         :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
       />
       <a-gltf-model
         id="navmesh"
-        src="#navmesh-asset"
+        :src="venueStore.navmeshUrl?venueStore.navmeshUrl: venueStore.modelUrl"
         :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
         class="clickable"
         @click="navmeshClicked"
@@ -122,7 +120,7 @@
       <!-- The camera / own avatar -->
       <!-- The navmesh needs to refer to the actual entity, not only the asset -->
       <!-- The avatars -->
-      <a-entity v-if="avatarModelFileLoaded">
+      <a-entity v-if="true">
         <template
           v-for="(clientInfo, id) in clients"
           :key="id"
@@ -135,24 +133,25 @@
         </template>
       </a-entity>
     </a-entity>
-  </a-scene>
+  </template>
 </template>
 
 <script setup lang="ts">
 import { type Scene, type Entity, utils as aframeUtils } from 'aframe';
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
+import { ref, onMounted, computed, onBeforeUnmount, inject } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import type { ClientTransform } from 'schemas';
 // import type { Unsubscribable } from '@trpc/server/observable';
 import { useClientStore } from '@/stores/clientStore';
 import { useRouter } from 'vue-router';
 import { useVenueStore } from '@/stores/venueStore';
-import { useAutoEnterXR } from '@/composables/autoEnterXR';
+// import { useAutoEnterXR } from '@/composables/autoEnterXR';
 import { throttle } from 'lodash-es';
 // import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { useSoupStore } from '@/stores/soupStore';
 import { useVrSpaceStore } from '@/stores/vrSpaceStore';
 import StreamEntrance from './StreamEntrance.vue';
+import { aFrameSceneProvideKey } from '@/modules/injectionKeys';
 
 const router = useRouter();
 // Stores
@@ -172,8 +171,11 @@ const props = defineProps({
 type Point = [number, number, number];
 
 // A-frame
-const sceneTag = ref<Scene>();
-useAutoEnterXR(sceneTag);
+// const sceneTag = ref<Scene>();
+// useAutoEnterXR(sceneTag);
+const { sceneTag } = inject(aFrameSceneProvideKey)!;
+
+
 const modelTag = ref<Entity>();
 const playerTag = ref<Entity>();
 const playerOriginTag = ref<Entity>();
@@ -205,7 +207,23 @@ const entranceRotation = computed(() => {
   return vrSpaceStore.currentVrSpace.virtualSpace3DModel.entranceRotation;
 });
 
+const entranceMessage = ref('');
+
 onMounted(async () => {
+  sceneTag.value!.setAttribute('raycaster', {objects: '.clickable'});
+  sceneTag.value!.setAttribute('cursor', {rayOrigin: 'mouse', fuse: false});
+
+  // WebXR Immersive navigation handler.
+  // if (navigator.xr && navigator.xr.addEventListener) {
+  //   console.log('listening to sessiongranted');
+  //   navigator.xr.addEventListener('sessiongranted', function () {
+  //     entranceMessage.value = 'session granted!!!';
+  //   });
+  // }
+
+  if(!vrSpaceStore.currentVrSpace) {
+    await vrSpaceStore.enterVrSpace();
+  }
   if(!soupStore.deviceLoaded){
     await soupStore.loadDevice();
   }
@@ -229,6 +247,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(async () => {
+  sceneTag.value!.removeAttribute('raycaster');
+  sceneTag.value!.removeAttribute('cursor');
   await soupStore.closeAudioProducer();
   await vrSpaceStore.leaveVrSpace();
 });
@@ -294,17 +314,18 @@ function getRandomSpawnPosition() {
 }
 
 function goToStream(){
-  console.log('sphere clicked');
-  if(!venueStore.currentVenue) return;
-  const firstCamera = Object.keys(venueStore.currentVenue.cameras)[0];
-  if(!firstCamera) return;
-  router.push({
-    name: 'userCamera',
-    params: {
-      venueId: venueStore.currentVenue.venueId,
-      cameraId: firstCamera,
-    },
-  });
+  router.push({name: 'basicVR'});
+  // console.log('sphere clicked');
+  // if(!venueStore.currentVenue) return;
+  // const firstCamera = Object.keys(venueStore.currentVenue.cameras)[0];
+  // if(!firstCamera) return;
+  // router.push({
+  //   name: 'userCamera',
+  //   params: {
+  //     venueId: venueStore.currentVenue.venueId,
+  //     cameraId: firstCamera,
+  //   },
+  // });
 }
 
 const throttledTransformMutation = throttle(async (transformEvent: CustomEvent<ClientTransform>) => {
@@ -323,12 +344,6 @@ function navmeshHovered(e: THREE.Event) {
   console.log('navmesh rayCasted:', e);
   previewTeleport(e.detail.point);
 }
-
-// function onIntersected(e: DetailEvent<any>){
-//   const isInXR = aframeUtils.device.checkHeadsetConnected();
-//   console.log('isHeadsetConnected:', isInXR);
-//   console.log('intersected:', e.detail);
-// }
 
 function teleportTo (point: THREE.Vector3){
   console.log(point);

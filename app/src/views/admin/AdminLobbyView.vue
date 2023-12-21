@@ -66,7 +66,7 @@ import VrAFrame from '../../components/lobby/VrAFrame.vue';
 import { useClientStore } from '@/stores/clientStore';
 import { useVenueStore } from '@/stores/venueStore';
 import { useVrSpaceStore } from '@/stores/vrSpaceStore';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 
 const vrSpaceStore = useVrSpaceStore();
 const venueStore = useVenueStore();

@@ -8,8 +8,14 @@ import hoverHighlight from './hover-highlight';
 import mediastreamAudioSource from './mediastream-audio-source';
 import modelOpacity from './model-opacity';
 
+let componentsAreRegistered = false;
+
 const registerComponents = () => {
-  console.log('Register a-frame components');
+  if(componentsAreRegistered) {
+    console.info('aframe components are already registered. skipping');
+    return;
+  }
+  console.log('Registering a-frame components');
   emitMove();
   remoteAvatar();
   navmesh();
@@ -31,6 +37,7 @@ const registerComponents = () => {
   // import('aframe-orbit-controls');
   // We had to tweak the orbit controls to avoid grab cursor leaking outside canvas element. Pull request is submitted to superframe.
   import('./orbit-controls/orbit-controls');
+  componentsAreRegistered = true;
 };
 
 export default {

@@ -228,6 +228,7 @@ async function onSpawnRadiusCommited() {
 }
 
 const openVirtualSpace = async () => {
+
   await connectionStore.client.vr.enterVrSpace.mutate();
   const routeData = router.resolve({name: 'adminLobby'});
   window.open(routeData.href, '_blank');

@@ -1,6 +1,5 @@
 <template>
   <a-entity
-    scale="0.7 0.7 0.7"
     ref="remoteAvatar"
     remote-avatar="interpolationTime: 350;"
     mediastream-audio-source

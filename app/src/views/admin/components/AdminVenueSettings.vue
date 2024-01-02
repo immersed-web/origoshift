@@ -18,23 +18,50 @@
           class="w-full max-w-xs input input-bordered"
         >
       </div>
-      <div class="w-full max-w-xs mb-2 form-control bg-base-200 p-2 text-sm border">
+      <div class="w-full max-w-xs mb-2 form-control bg-neutral-100 p-2 text-sm border">
         <div class="flex justify-between mb-2">
           <span class="label-text text-base">Synlighet</span>
           <span class="material-icons">visibility</span>
         </div>
-        <div class="btn-group w-full">
+        <div class="join w-full">
           <button
             v-for="vo in venueStore.visibilityOptions"
             :key="vo.visibility"
             type="button"
-            class="btn btn-sm"
-            :class="{'btn-primary': vo.visibility === values.visibility}"
+            class="btn btn-sm join-item"
+            :class="{
+              'btn-primary': vo.visibility === values.visibility,
+              'btn-neutral': vo.visibility !== values.visibility
+            }"
             @click="values.visibility = vo.visibility"
           >
             <span class="mr-2 material-icons">{{ vo.icon }}</span>
             {{ vo.name }}
           </button>
+        </div>
+        <div
+          class="join mt-4 w-full"
+          v-if="values.visibility !== 'private'"
+        >
+          <p
+            style="overflow-wrap: break-word; word-break: break-all;"
+            class="inline-block bg-neutral-50 p-2 border join-item text-xs select-all"
+          >
+            {{ eventUrl }}
+          </p>
+          <div
+            class="tooltip"
+            :data-tip="linkCopyTooltip"
+          >
+            <button
+              @click.prevent="copyEventUrlToClipboard"
+              class="btn btn-outline join-item"
+            >
+              <span
+                class="material-icons"
+              >content_copy</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -143,12 +170,30 @@
 <script setup lang="ts">
 import { useVenueStore } from '@/stores/venueStore';
 import { useConnectionStore } from '@/stores/connectionStore';
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import type { VenueUpdate } from 'schemas/esm';
+import {useRouter} from 'vue-router';
+import { autoResetRef } from '@vueuse/core';
 
 // Use imports
 const venueStore = useVenueStore();
 const connection = useConnectionStore();
+const router = useRouter();
+
+
+const linkCopyTooltip = autoResetRef('Klicka för att kopiera adressen', 3000);
+const eventUrl = computed(() => {
+  const venueId = venueStore.currentVenue?.venueId;
+  if(!venueId) return undefined;
+
+  const url = new URL(router.resolve({name: 'userVenue', params: {venueId}}).href, window.location.origin).href;
+  return url;
+});
+function copyEventUrlToClipboard() {
+  if(!eventUrl.value) return;
+  navigator.clipboard.writeText(eventUrl.value);
+  linkCopyTooltip.value = 'Adress kopierad!';
+}
 
 const updateVenue = async () => {
   if(venueStore.currentVenue){

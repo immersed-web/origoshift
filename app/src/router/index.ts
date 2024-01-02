@@ -181,6 +181,7 @@ const router = createRouter({
     //   name: 'testClient',
     //   component: () => import('@/views/TestBackend.vue'),
     // },
+    { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/components/NotFound.vue') },
   ],
 });
 

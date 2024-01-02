@@ -7,6 +7,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useVenueStore } from '@/stores/venueStore';
 import { useAdminStore } from '@/stores/adminStore';
 import { useSenderStore } from '@/stores/senderStore';
+import { useTitle } from '@vueuse/core';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -58,6 +59,7 @@ const router = createRouter({
         {
           path: 'venue/:venueId',
           props: true,
+          meta: { mustBeInVenue: true},
           children: [
             {
               path: '',
@@ -188,6 +190,8 @@ const router = createRouter({
 router.beforeEach(async (to, from) => {
   // console.log('beforeEach: ', to, from);
   const authStore = useAuthStore();
+  const windowTitle = useTitle();
+  windowTitle.value = 'Origoshift';
 
   // if(to.path === '/' && authStore.role){
   //   return { name: hasAtLeastSecurityLevel(authStore.role, 'admin') ? 'adminHome' : 'userHome'};
@@ -265,6 +269,11 @@ router.beforeEach(async (to, from) => {
         // await venueStore.joinVenue(venueStore.savedVenueId);
         await venueStore.loadAndJoinVenue(venueStore.savedVenueId);
       }
+    }
+    const venueName = venueStore.currentVenue?.name;
+    if(venueName){
+      console.log('Setting new title');
+      windowTitle.value = `${venueName} - Origoshift`;
     }
   }
 });

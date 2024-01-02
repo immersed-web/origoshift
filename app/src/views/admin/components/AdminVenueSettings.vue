@@ -40,27 +40,33 @@
           </button>
         </div>
         <div
-          class="join mt-4 w-full"
+        
+          class="mt-4 w-full"
           v-if="values.visibility !== 'private'"
         >
-          <p
-            style="overflow-wrap: break-word; word-break: break-all;"
-            class="inline-block bg-neutral-50 p-2 border join-item text-xs select-all"
-          >
-            {{ eventUrl }}
-          </p>
-          <div
-            class="tooltip"
-            :data-tip="linkCopyTooltip"
-          >
-            <button
-              @click.prevent="copyEventUrlToClipboard"
-              class="btn btn-outline join-item"
+          <div class="label">
+            <span class="label-text-alt">Länk till eventet:</span>
+          </div>
+          <div class="join ">
+            <p
+              style="overflow-wrap: break-word; word-break: break-all;"
+              class="inline-block bg-neutral-50 p-2 border join-item text-xs select-all"
             >
-              <span
-                class="material-icons"
-              >content_copy</span>
-            </button>
+              {{ eventUrl }}
+            </p>
+            <div
+              class="tooltip"
+              :data-tip="linkCopyTooltip"
+            >
+              <button
+                @click.prevent="copyEventUrlToClipboard"
+                class="btn btn-outline join-item"
+              >
+                <span
+                  class="material-icons"
+                >content_copy</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

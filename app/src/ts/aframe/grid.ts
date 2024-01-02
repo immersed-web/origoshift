@@ -14,7 +14,7 @@ export default () => {
       },
       rotation: {x: -90, y: 0, z: 0},
       material: {
-        src: '/grid.png',
+        src: '/grid-white.png',
         repeat: '75 75',
         transparent: true,
         opacity: 0.6,

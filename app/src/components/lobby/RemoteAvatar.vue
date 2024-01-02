@@ -1,35 +1,49 @@
 <template>
-  <a-entity
-    ref="remoteAvatar"
-    remote-avatar="interpolationTime: 350;"
-    mediastream-audio-source
-    @loaded="onAvatarEntityLoaded"
-    @near-range-entered="onNearRangeEntered"
-    @near-range-exited="onNearRangeExited"
-  >
-    <a-text
-      class="distance-debug"
-      value="unset"
-      position="1 1 0"
-      side="double"
-    />
-    <a-circle
-      side="double"
-      class="audio-level"
-      position="0 3 0"
-      :color="distanceColor"
-    />
+  <a-entity ref="avatarRootTag">
     <a-entity
-      gltf-model="#avatar-asset"
-      position="0 -1.5 0"
-      rotation="0 180 0"
-    />
-    <audio
-      ref="dummyAudioTag"
-      muted
-      autoplay
-      playsinline
-    />
+      ref="remoteAvatar"
+      remote-avatar="interpolationTime: 350;"
+      mediastream-audio-source
+      @loaded="onAvatarEntityLoaded"
+      @near-range-entered="onNearRangeEntered"
+      @near-range-exited="onNearRangeExited"
+    >
+      <a-text
+        class="distance-debug"
+        value="unset"
+        position="1 1 0"
+        side="double"
+      />
+      <a-circle
+        side="double"
+        class="audio-level"
+        position="0 3 0"
+        :color="distanceColor"
+      />
+      <a-entity
+        gltf-model="#avatar-asset"
+        position="0 -1.5 0"
+        rotation="0 180 0"
+      />
+      <audio
+        ref="dummyAudioTag"
+        muted
+        autoplay
+        playsinline
+      />
+    </a-entity>
+    <a-entity
+      remote-avatar="interpolationTime: 350;"
+      ref="leftHandTag"
+    >
+      <a-box scale="0.1 0.1 0.1" />
+    </a-entity>
+    <a-entity
+      remote-avatar="interpolationTime: 350;"
+      ref="rightHandTag"
+    >
+      <a-box scale="0.1 0.1 0.1" />
+    </a-entity>
   </a-entity>
 </template>
 
@@ -37,7 +51,7 @@
 
 import type { Entity, DetailEvent } from 'aframe';
 import type { ConnectionId } from 'schemas';
-import { ref, computed, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, shallowRef, toRaw } from 'vue';
 import type { useVrSpaceStore } from '@/stores/vrSpaceStore';
 import type { ProducerId } from 'schemas/mediasoup';
 import { useSoupStore } from '@/stores/soupStore';
@@ -76,8 +90,8 @@ onMounted(async () => {
   // TODO: Risky thing here. We rely on this code executuing before the remote-avatar component initializes.
   // The remote-avatar component will read and set the entitie's interpolationbuffer in the init function. 
   if(props.clientInfo.transform){
-    remoteAvatar.value.object3D.position.set(...props.clientInfo.transform.position);
-    remoteAvatar.value.object3D.quaternion.set(...props.clientInfo.transform.orientation);
+    remoteAvatar.value.object3D.position.set(...props.clientInfo.transform.head.position);
+    remoteAvatar.value.object3D.quaternion.set(...props.clientInfo.transform.head.orientation);
   }
 });
 onBeforeUnmount(async () => {
@@ -90,9 +104,12 @@ onBeforeUnmount(async () => {
 });
 
 const remoteAvatar = ref<Entity>();
+const avatarRootTag = ref<Entity>();
+const leftHandTag = ref<Entity>();
+const rightHandTag = ref<Entity>();
 const dummyAudioTag = ref<HTMLAudioElement>();
 watch(() => props.clientInfo, (n, o) => console.log('remoteAvatar prop updated. new:', n, ' old:', o));
-watch(() => props.clientInfo.transform, (newTransform) => {
+watch(() => props.clientInfo.transform?.head, (newTransform) => {
   // console.log('remote avatar transform updated!');
   if(!remoteAvatar.value) {
     console.error('could update avatar transform cause entityRef was undefined');
@@ -105,6 +122,21 @@ watch(() => props.clientInfo.transform, (newTransform) => {
   console.log('emitting received transform to avatar entity');
   remoteAvatar.value.emit('moveTo', {position: newTransform.position});
   remoteAvatar.value.emit('rotateTo', {orientation: newTransform.orientation});
+});
+
+watch(() => props.clientInfo.transform?.leftHand, (newTrsfm) => {
+  console.log('leftHand updated: ', newTrsfm);
+  if(!newTrsfm) return;
+  leftHandTag.value?.object3D.position.set(...newTrsfm.position);
+  leftHandTag.value?.object3D.rotation.setFromQuaternion(new AFRAME.THREE.Quaternion(...newTrsfm.orientation));
+});
+watch(() => props.clientInfo.transform?.rightHand, (newTrsfm) => {
+  console.log('rightHand updated: ', newTrsfm);
+  if(!newTrsfm) return;
+  // rightHandTag.value.emit('moveTo', {position: newTrsfm?.position});
+  // rightHandTag.value.emit('rotateTo', {orientation: newTrsfm?.orientation});
+  rightHandTag.value?.object3D.position.set(...newTrsfm.position);
+  rightHandTag.value?.object3D.rotation.setFromQuaternion(new AFRAME.THREE.Quaternion(...newTrsfm.orientation));
 });
 
 let stream = shallowRef<MediaStream>();

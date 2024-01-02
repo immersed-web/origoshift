@@ -85,7 +85,7 @@
         id="camera"
         ref="playerTag"
         look-controls="reverseMouseDrag: true; reverseTouchDrag: true;"
-        wasd-controls="acceleration:75;"
+        wasd-controls="acceleration:65;"
         emit-move="interval: 20"
         position="0 1.65 0"
         :simple-navmesh-constraint="'navmesh:#'+navmeshId+'; fall:0.5; height:1.65;'"
@@ -103,14 +103,18 @@
         />
       </a-camera>
       <a-entity
+        ref="leftHandTag"
         id="left-hand"
         laser-controls="hand:left"
         raycaster="objects: .clickable"
+        emit-move="interval: 20"
       />
       <a-entity
+        ref="rightHandTag"
         id="right-hand"
         oculus-touch-controls="hand:right"
         blink-controls="cameraRig: #camera-rig; teleportOrigin: #camera; collisionEntities: #navmesh;"
+        emit-move="interval: 20"
       />
     </a-entity>
 
@@ -126,7 +130,7 @@
           :key="id"
         >
           <RemoteAvatar
-            v-if="clientInfo.connectionId !== clientStore.clientState?.connectionId"
+            v-if="clientInfo.connectionId !== clientStore.clientState?.connectionId && clientInfo.transform"
             :id="'avatar-'+id"
             :client-info="clientInfo"
           />
@@ -137,7 +141,7 @@
 </template>
 
 <script setup lang="ts">
-import { type Scene, type Entity, utils as aframeUtils } from 'aframe';
+import { type Scene, type Entity, type EntityEventMap, type DetailEvent, utils as aframeUtils } from 'aframe';
 import { ref, onMounted, computed, onBeforeUnmount, inject } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import type { ClientTransform } from 'schemas';
@@ -179,6 +183,8 @@ const { sceneTag } = inject(aFrameSceneProvideKey)!;
 const modelTag = ref<Entity>();
 const playerTag = ref<Entity>();
 const playerOriginTag = ref<Entity>();
+const leftHandTag = ref<Entity>();
+const rightHandTag = ref<Entity>();
 
 const avatarModelFileLoaded = ref(false);
 
@@ -253,7 +259,7 @@ onBeforeUnmount(async () => {
   await vrSpaceStore.leaveVrSpace();
 });
 
-function onModelLoaded(){
+async function onModelLoaded(){
   if(modelTag.value && playerOriginTag.value){
     // console.log(obj3D);
     let startPos = getRandomSpawnPosition();
@@ -268,15 +274,23 @@ function onModelLoaded(){
     const worldPos = playerTag.value!.object3D.getWorldPosition(new THREE.Vector3());
     const worldRot = playerTag.value!.object3D.getWorldQuaternion(new THREE.Quaternion());
     const trsfm: ClientTransform = {
-      position: worldPos.toArray(),
-      orientation: worldRot.toArray() as [number, number, number, number],
+      head: {
+        position: worldPos.toArray(),
+        orientation: worldRot.toArray() as [number, number, number, number],
+      },
     };
-    vrSpaceStore.updateTransform(trsfm);
+    currentTransform.head = trsfm.head;
+    await new Promise((res) => setTimeout(res, 200));
     
+    vrSpaceStore.updateTransform(trsfm);
     // placeRandomSpheres();
     
     // @ts-ignore
-    playerTag.value?.addEventListener('move', throttledTransformMutation);
+    playerTag.value?.addEventListener('move', onHeadMove);
+    // @ts-ignore
+    leftHandTag.value?.addEventListener('move', onLeftHandMove);
+    // @ts-ignore
+    rightHandTag.value?.addEventListener('move', onRightHandMove);
   }
 }
 
@@ -327,9 +341,34 @@ function goToStream(){
     },
   });
 }
+              
+const currentTransform: ClientTransform = {
+  head: {
+    position: [0,0,0],
+    orientation: [0,0,0,0],
+  },
+};
+function onHeadMove(e: DetailEvent<ClientTransform['head']>) {
+  // console.log('head moved');
+  currentTransform.head = e.detail;
+  throttledTransformMutation();
+}
+function onLeftHandMove(e: DetailEvent<ClientTransform['leftHand']>) {
+  // console.log('left hand moved');
+  currentTransform.leftHand = e.detail;
+  throttledTransformMutation();
+}
+function onRightHandMove(e: DetailEvent<ClientTransform['rightHand']>) {
+  // console.log('right hand moved');
+  currentTransform.rightHand = e.detail;
+  throttledTransformMutation();
+}
 
-const throttledTransformMutation = throttle(async (transformEvent: CustomEvent<ClientTransform>) => {
-  await vrSpaceStore.updateTransform(transformEvent.detail);
+const throttledTransformMutation = throttle(async () => {
+  await vrSpaceStore.updateTransform(currentTransform);
+  // Unset hands after theyre sent
+  delete currentTransform.leftHand;
+  delete currentTransform.rightHand;
 }, 100, {trailing: true});
 
 // Display message

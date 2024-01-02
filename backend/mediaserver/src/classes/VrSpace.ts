@@ -98,7 +98,7 @@ export class VrSpace {
     this.clients.forEach(c => {
       log.info(`notifying vrSpaceState (${reason}) to client ${c.username} (${c.connectionId})`);
       for(const [id, c] of Object.entries(data.clients)){
-        log.info(`${id} pos: ${c.transform?.position}`);
+        log.info(`${id} pos: ${c.transform?.head.position}`);
       }
       c.notify.vrSpaceStateUpdated?.({data, reason});
     });

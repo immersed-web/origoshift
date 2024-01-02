@@ -2,6 +2,7 @@ import type { DetailEvent, Entity } from 'aframe';
 import InterpolationBuffer from 'buffered-interpolation';
 import type { ClientTransform } from 'schemas';
 
+type Transform = ClientTransform['head']
 export default () => {
 
   AFRAME.registerComponent('remote-avatar', {
@@ -61,14 +62,14 @@ export default () => {
       //   interpolationBuffer.setQuaternion(new AFRAME.THREE.Quaternion(...trsfm.orientation));
       //   interpolationBuffer.updateOriginFrameToBufferTail();
       // },
-      moveTo: function (e: DetailEvent<Pick<ClientTransform, 'position'>>) {
+      moveTo: function (e: DetailEvent<Pick<Transform, 'position'>>) {
         // // Interpolate with buffered-interpolation
         // console.log('Move to',e);
         const pos = e.detail.position;
         this.interpolationBuffer!.setPosition(new AFRAME.THREE.Vector3(pos[0], pos[1], pos[2]));
       },
 
-      rotateTo: function (e: DetailEvent<Pick<ClientTransform, 'orientation'>>) {
+      rotateTo: function (e: DetailEvent<Pick<Transform, 'orientation'>>) {
         // // Interpolate with buffered-interpolation
         // console.log('Rotate to',e);
         const rot = e.detail.orientation;

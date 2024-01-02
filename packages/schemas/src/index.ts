@@ -278,9 +278,15 @@ export type JwtUserData = z.TypeOf<typeof JwtUserDataSchema>;
 export const JwtPayloadSchema = jwtDefaultPayload.merge(JwtUserDataSchema)
 export type JwtPayload = z.TypeOf<typeof JwtPayloadSchema>;
 
+const TransformSchema = z.object({
+    position: z.tuple([z.number(), z.number(), z.number()]),
+    orientation: z.tuple([z.number(), z.number(), z.number(), z.number()])
+  });
+
 export const ClientTransformSchema = z.object({
-  position: z.tuple([z.number(), z.number(), z.number()]),
-  orientation: z.tuple([z.number(), z.number(), z.number(), z.number()])
+  head: TransformSchema,
+  leftHand: TransformSchema.optional(),
+  rightHand: TransformSchema.optional(),
 })
 
 export type ClientTransform = z.TypeOf<typeof ClientTransformSchema>;

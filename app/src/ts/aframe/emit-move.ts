@@ -15,6 +15,10 @@ export default () => {
     },
     update: function(){
       this.interval = this.data.interval;
+      const worldPos = this.el.object3D.getWorldPosition(new AFRAME.THREE.Vector3());
+      this.position = AFRAME.utils.coordinates.stringify(worldPos);
+      const worldRot = this.el.object3D.getWorldQuaternion(new AFRAME.THREE.Quaternion());
+      this.orientation = AFRAME.utils.coordinates.stringify(worldRot);
       // @ts-ignore
       this.throttledEmitMovement = AFRAME.utils.throttleLeadingAndTrailing(this.emitMovement, this.interval, this);
     },
@@ -28,6 +32,7 @@ export default () => {
       const rotated = newOrientation !== this.orientation;
 
       if(moved || rotated) {
+        // console.log('emit-move component: transform updated', newPosition, newOrientation);
         const position = worldPos.toArray();
         const orientation = worldRot.toArray() as [number, number, number, number];
         const transform = {position, orientation};

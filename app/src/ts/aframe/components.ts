@@ -7,6 +7,7 @@ import raycasterListen from './raycaster-listen';
 import hoverHighlight from './hover-highlight';
 import mediastreamAudioSource from './mediastream-audio-source';
 import modelOpacity from './model-opacity';
+import grid from './grid';
 
 let componentsAreRegistered = false;
 
@@ -24,10 +25,13 @@ const registerComponents = () => {
   hoverHighlight();
   mediastreamAudioSource();
   modelOpacity();
+  grid();
 
   // @ts-ignore
   import('aframe-environment-component');
   
+  // @ts-ignore
+  // import('aframe-extras');
   
   // TODO: Find out why rig and camera seems to be a few decimeter of in horizontal position. Only in real VR though. Not in browser as it seems at least.
   // @ts-ignore

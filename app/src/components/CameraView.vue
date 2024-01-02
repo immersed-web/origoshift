@@ -28,7 +28,12 @@
         animation__from_black="property: components.material.material.color; type: color; to: #fff; dur: 500; startEvents: fadeFromBlack; easing: linear;"
       />
     </a-assets> -->
-    <a-entity :environment="`preset: tron; dressing: none; active:${!freezeableCameraStore.is360Camera};`" />
+    <!-- <a-entity
+      ref="environmentEntityTag"
+      :environment="`preset: tron; dressing: none; active:${!freezeableCameraStore.is360Camera};`"
+    /> -->
+    <a-sky color="midnightblue" />
+    <a-grid />
     <a-entity
       ref="cameraRigTag"
       id="rig"
@@ -221,6 +226,7 @@ const audioTag = ref<HTMLAudioElement>();
 const vSphereTag = ref<Entity>();
 const aVideoTag = ref<Entity>();
 const curtainTag = ref<Entity>();
+const environmentEntityTag = ref<Entity>();
 
 const cameraTag = ref<Entity>();
 const cameraRigTag = ref<Entity>();
@@ -508,6 +514,8 @@ onBeforeUnmount(() => {
     console.log('Leaving camera');
     camera.leaveCurrentCamera();
   }
+  environmentEntityTag.value?.setAttribute('environment', 'active', false);
+  
 });
 
 

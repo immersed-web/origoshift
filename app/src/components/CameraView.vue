@@ -33,7 +33,7 @@
       :environment="`preset: tron; dressing: none; active:${!freezeableCameraStore.is360Camera};`"
     /> -->
     <a-sky color="midnightblue" />
-    <a-grid />
+    <a-grid :visible="!freezeableCameraStore.is360Camera" />
     <a-entity
       ref="cameraRigTag"
       id="rig"

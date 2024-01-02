@@ -1,4 +1,5 @@
 <template>
+  <div ref="domOutlet" />
   <div class="w-full aspect-video relative">
     <div class="rounded-br-xl bg-neutral/60 absolute p-2 top-0 left-0 z-10">
       <form
@@ -52,12 +53,18 @@
         </label>
       </div>
     </div>
-    <CameraView
-      :camera-id="(props.cameraId as CameraId)"
-      :venue-id="(adminStore.adminOnlyVenueState?.venueId as VenueId)"
-      editable
-      ref="CameraViewRef"
-    />
+    <a-scene
+      embedded
+      class="w-full"
+      ref="sceneTag"
+    >
+      <CameraView
+        :camera-id="(props.cameraId as CameraId)"
+        :venue-id="(adminStore.adminOnlyVenueState?.venueId as VenueId)"
+        editable
+        ref="CameraViewRef"
+      />
+    </a-scene>
     <div class="bottom-0 absolute w-full bg-neutral/50 flex flex-row gap-4 justify-center p-4">
       <template
         v-for="listedCamera in camerasWithPortalInfo"
@@ -106,10 +113,17 @@
 
 <script setup lang="ts">
 import { useCameraStore } from '@/stores/cameraStore';
-import { computed, ref } from 'vue';
+import { computed, ref, provide } from 'vue';
 import type { CameraId, VenueId } from 'schemas';
 import { useAdminStore } from '@/stores/adminStore';
 import CameraView from '@/components/CameraView.vue';
+import { aFrameSceneProvideKey } from '@/modules/injectionKeys';
+import type { Scene } from 'aframe';
+
+
+const sceneTag = ref<Scene>();
+const domOutlet = ref<HTMLDivElement>();
+provide(aFrameSceneProvideKey, {sceneTag, domOutlet});
 
 
 const CameraViewRef = ref<InstanceType<typeof CameraView>>();

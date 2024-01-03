@@ -1,10 +1,12 @@
 <template>
-  <a-entity ref="avatarRootTag">
+  <a-entity
+    @loaded="onAvatarEntityLoaded"
+    ref="avatarRootTag"
+  >
     <a-entity
       ref="remoteAvatar"
       remote-avatar="interpolationTime: 350;"
       mediastream-audio-source
-      @loaded="onAvatarEntityLoaded"
       @near-range-entered="onNearRangeEntered"
       @near-range-exited="onNearRangeExited"
     >
@@ -33,11 +35,15 @@
       />
     </a-entity>
     <a-entity
+      visible="false"
+      remote-avatar="interpolationTime: 350;"
       ref="leftHandTag"
     >
       <a-box scale="0.1 0.1 0.1" />
     </a-entity>
     <a-entity
+      visible="false"
+      remote-avatar="interpolationTime: 350;"
       ref="rightHandTag"
     >
       <a-box scale="0.1 0.1 0.1" />
@@ -48,7 +54,7 @@
 <script setup lang="ts">
 
 import type { Entity, DetailEvent } from 'aframe';
-import type { ConnectionId } from 'schemas';
+import type { ConnectionId, Transform } from 'schemas';
 import { ref, computed, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue';
 import type { useVrSpaceStore } from '@/stores/vrSpaceStore';
 import type { ProducerId } from 'schemas/mediasoup';
@@ -114,22 +120,35 @@ watch(() => props.clientInfo.transform?.head, (newTransform) => {
   console.log('emitting received transform to avatar entity');
   remoteAvatar.value.emit('moveTo', {position: newTransform.position});
   remoteAvatar.value.emit('rotateTo', {orientation: newTransform.orientation});
-  // remoteAvatar.value.emit('setTransform', newTransform);
 });
 
-watch(() => props.clientInfo.transform?.leftHand, (newTrsfm) => {
+function handleReceivedHandTransform(newTransform: Transform | undefined, oldTransform: Transform | undefined, handEntity: Entity) {
+  // Hide hand if no transform is received
+  if(!newTransform){
+    handEntity.setAttribute('visible', false);
+    return;
+  }
+  // show hand and set transform directly if went from undefined to tansformdata
+  if(!oldTransform) { 
+    handEntity.setAttribute('visible', true);
+    handEntity.emit('setTransform', newTransform);
+    return;
+  }
+  // tansform was updated. Lets move the hand
+  handEntity.emit('moveTo', {position: newTransform.position});
+  handEntity.emit('rotateTo', {orientation: newTransform.orientation});
+}
+
+watch(() => props.clientInfo.transform?.leftHand, (newTrsfm, oldT) => {
   console.log('leftHand updated: ', newTrsfm);
-  if(!newTrsfm) return;
-  leftHandTag.value?.object3D.position.set(...newTrsfm.position);
-  leftHandTag.value?.object3D.rotation.setFromQuaternion(new AFRAME.THREE.Quaternion(...newTrsfm.orientation));
+  if(!leftHandTag.value) return;
+  handleReceivedHandTransform(newTrsfm, oldT, leftHandTag.value);
 });
-watch(() => props.clientInfo.transform?.rightHand, (newTrsfm) => {
+
+watch(() => props.clientInfo.transform?.rightHand, (newTrsfm, oldT) => {
   console.log('rightHand updated: ', newTrsfm);
-  if(!newTrsfm) return;
-  // rightHandTag.value.emit('moveTo', {position: newTrsfm?.position});
-  // rightHandTag.value.emit('rotateTo', {orientation: newTrsfm?.orientation});
-  rightHandTag.value?.object3D.position.set(...newTrsfm.position);
-  rightHandTag.value?.object3D.rotation.setFromQuaternion(new AFRAME.THREE.Quaternion(...newTrsfm.orientation));
+  if(!rightHandTag.value) return;
+  handleReceivedHandTransform(newTrsfm, oldT, rightHandTag.value);
 });
 
 let stream = shallowRef<MediaStream>();

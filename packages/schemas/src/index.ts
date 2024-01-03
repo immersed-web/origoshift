@@ -282,6 +282,7 @@ const TransformSchema = z.object({
     position: z.tuple([z.number(), z.number(), z.number()]),
     orientation: z.tuple([z.number(), z.number(), z.number(), z.number()])
   });
+export type Transform = z.TypeOf<typeof TransformSchema>;
 
 export const ClientTransformSchema = z.object({
   head: TransformSchema,

@@ -365,10 +365,12 @@ function onRightHandMove(e: DetailEvent<ClientTransform['rightHand']>) {
 }
 
 const throttledTransformMutation = throttle(async () => {
+  if(!sceneTag.value?.is('vr-mode')) {
+    delete currentTransform.leftHand;
+    delete currentTransform.rightHand;
+  }
   await vrSpaceStore.updateTransform(currentTransform);
   // Unset hands after theyre sent
-  delete currentTransform.leftHand;
-  delete currentTransform.rightHand;
 }, 100, {trailing: true});
 
 // Display message

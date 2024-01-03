@@ -23,25 +23,15 @@ declare module 'vue-router' {
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    // {
-    //   path: '/',
-    //   redirect: {name: 'publicVenueList'},
-    // },
     {
       path: '/login',
       name: 'login',
       component:  () => import('@/views/LoginView.vue'),
     },
-    // public routes
     {
       path: '/',
       component: () => import('@/layouts/SimpleLayout.vue'),
       children: [
-        // {
-        //   name: 'startPage',
-        //   path: '',
-        //   component: () => import('@/views/StartPage.vue'),
-        // },
         {
           name: 'venueList',
           path: '',
@@ -53,8 +43,8 @@ const router = createRouter({
     // guest/user routes
     {
       path: '/',
-      meta: { requiredRole: 'guest', loginNeededRedirect: 'login', requiredConnection: 'client' },
-      component:  () => import('@/layouts/HeaderLayout.vue'),
+      meta: { requiredRole: 'guest',  requiredConnection: 'client' },
+      component:  () => import('@/layouts/EmptyLayout.vue'),
       children: [
         {
           path: 'venue/:venueId',
@@ -68,15 +58,20 @@ const router = createRouter({
               props: true,
             },
             {
-              path: ':cameraId',
+              path: '',
               component: () => import('@/components/AFrameScene.vue'),
               children: [
                 {
-                  path: '',
+                  path: ':cameraId',
                   name: 'userCamera',
                   props: route => route.params,
                   component: () => import('@/components/CameraView.vue'),
 
+                },
+                {
+                  path: 'lobby',
+                  name: 'userLobby',
+                  component:  () => import('@/components/lobby/VrAFrame.vue'),
                 },
               ],
             },
@@ -87,20 +82,10 @@ const router = createRouter({
           name: 'userHome',
           component:  () => import('@/views/user/UserHomeView.vue'),
         },
-        // {
-        //   path: 'lobby',
-        //   name: 'userLobby',
-        //   component:  () => import('@/views/user/UserLobbyView.vue'),
-        // },
         {
           path: 'vr',
           component:  () => import('@/components/AFrameScene.vue'),
           children: [
-            {
-              path: 'lobby',
-              name: 'userLobby',
-              component:  () => import('@/components/lobby/VrAFrame.vue'),
-            },
             {
               path: 'basic',
               name: 'basicVR',
@@ -272,7 +257,7 @@ router.beforeEach(async (to, from) => {
     }
     const venueName = venueStore.currentVenue?.name;
     if(venueName){
-      console.log('Setting new title');
+      // console.log('Setting new title');
       windowTitle.value = `${venueName} - Origoshift`;
     }
   }

@@ -38,12 +38,11 @@
         id="model"
         ref="modelTag"
         :src="venueStore.modelUrl"
-        :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
       />
       <a-gltf-model
+        v-if="venueStore.navmeshUrl"
         id="navmesh"
-        :src="venueStore.navmeshUrl?venueStore.navmeshUrl: venueStore.modelUrl"
-        :scale="modelScale + ' ' + modelScale + ' ' + modelScale"
+        :src="venueStore.navmeshUrl"
         class="clickable"
         @click="navmeshClicked"
         raycaster-listen
@@ -166,10 +165,10 @@ const soupStore = useSoupStore();
 
 // Props & emits
 const props = defineProps({
-  modelUrl: {type: String, required: true},
-  navmeshUrl: {type: String, default: ''},
+  // modelUrl: {type: String, required: true},
+  // navmeshUrl: {type: String, default: ''},
   showNavMesh: {type: Boolean, default: false},
-  modelScale: {type: Number, default: 1},
+  // modelScale: {type: Number, default: 1},
 });
 
 type Point = [number, number, number];
@@ -186,14 +185,14 @@ const playerOriginTag = ref<Entity>();
 const leftHandTag = ref<Entity>();
 const rightHandTag = ref<Entity>();
 
-const avatarModelFileLoaded = ref(false);
+// const avatarModelFileLoaded = ref(false);
 
-const modelUrl = computed(() => {
-  return props.modelUrl;
-});
+// const modelUrl = computed(() => {
+//   return props.modelUrl;
+// });
 
 const navmeshId = computed(() => {
-  return props.navmeshUrl !== '' ? 'navmesh' : 'model';
+  return venueStore.navmeshUrl !== '' ? 'navmesh' : 'model';
 });
 
 const clients = computed(() => vrSpaceStore.currentVrSpace?.clients);

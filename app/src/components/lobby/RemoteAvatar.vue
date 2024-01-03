@@ -33,13 +33,11 @@
       />
     </a-entity>
     <a-entity
-      remote-avatar="interpolationTime: 350;"
       ref="leftHandTag"
     >
       <a-box scale="0.1 0.1 0.1" />
     </a-entity>
     <a-entity
-      remote-avatar="interpolationTime: 350;"
       ref="rightHandTag"
     >
       <a-box scale="0.1 0.1 0.1" />
@@ -51,7 +49,7 @@
 
 import type { Entity, DetailEvent } from 'aframe';
 import type { ConnectionId } from 'schemas';
-import { ref, computed, watch, onMounted, onBeforeUnmount, shallowRef, toRaw } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue';
 import type { useVrSpaceStore } from '@/stores/vrSpaceStore';
 import type { ProducerId } from 'schemas/mediasoup';
 import { useSoupStore } from '@/stores/soupStore';
@@ -87,12 +85,6 @@ onMounted(async () => {
     console.error('remoteAvatar entity ref undefined');
     return;
   }
-  // TODO: Risky thing here. We rely on this code executuing before the remote-avatar component initializes.
-  // The remote-avatar component will read and set the entitie's interpolationbuffer in the init function. 
-  if(props.clientInfo.transform){
-    remoteAvatar.value.object3D.position.set(...props.clientInfo.transform.head.position);
-    remoteAvatar.value.object3D.quaternion.set(...props.clientInfo.transform.head.orientation);
-  }
 });
 onBeforeUnmount(async () => {
   console.log('remoteAvatar will unmount');
@@ -122,6 +114,7 @@ watch(() => props.clientInfo.transform?.head, (newTransform) => {
   console.log('emitting received transform to avatar entity');
   remoteAvatar.value.emit('moveTo', {position: newTransform.position});
   remoteAvatar.value.emit('rotateTo', {orientation: newTransform.orientation});
+  // remoteAvatar.value.emit('setTransform', newTransform);
 });
 
 watch(() => props.clientInfo.transform?.leftHand, (newTrsfm) => {
@@ -174,12 +167,13 @@ async function onAvatarEntityLoaded(e: DetailEvent<any>){
   // NOTE: For some reason the event isnt received by the entity if we dont put it on the event queue.
   // I guess there is something that makes the entity trigger the loaded event before it is _actually_ fully ready.
   await new Promise(res => setTimeout(res, 0));
-  if(!stream.value){
-    console.log('stream is undefined. Will not emit');
-    return;
-  }
   if(!remoteAvatar.value){
     console.error('remoteAvatar was undefined');
+    return;
+  }
+  remoteAvatar.value.emit('setTransform', props.clientInfo.transform?.head);
+  if(!stream.value){
+    console.log('stream is undefined. Will not emit');
     return;
   }
   console.log('emitting mediastream to entity after avatar entity loaded', stream.value);

@@ -41,12 +41,12 @@ export default () => {
     tick: function (time, timeDelta) {
 
       if(this.interpolationBuffer){
+        // update buffer position
+        this.interpolationBuffer.update(timeDelta);
         // Interpolate with buffered-interpolation - no workie yet.
         this.el.object3D.position.copy(this.interpolationBuffer.getPosition());
         this.el.object3D.quaternion.copy(this.interpolationBuffer.getQuaternion());
 
-        // update buffer position
-        this.interpolationBuffer.update(timeDelta);
       }
       this.distanceToCamera();
       if(this.distanceDebugEntity){
@@ -54,14 +54,15 @@ export default () => {
       }
     },
     events: {
-      // setTransform: function(e: DetailEvent<ClientTransform>) {
-      //   console.log('remote-avatar event: setTransform', e);
-      //   const trsfm = e.detail;
-      //   const interpolationBuffer = this.interpolationBuffer!;
-      //   interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(...trsfm.position));
-      //   interpolationBuffer.setQuaternion(new AFRAME.THREE.Quaternion(...trsfm.orientation));
-      //   interpolationBuffer.updateOriginFrameToBufferTail();
-      // },
+      setTransform: function(e: DetailEvent<Transform>) {
+        console.log('remote-avatar event: setTransform', e);
+        const trsfm = e.detail;
+        const interpolationBuffer = this.interpolationBuffer!;
+        interpolationBuffer.setPosition(new AFRAME.THREE.Vector3(...trsfm.position));
+        interpolationBuffer.setQuaternion(new AFRAME.THREE.Quaternion(...trsfm.orientation));
+        interpolationBuffer.jumpToMostRecentFrame();
+        // console.log(interpolationBuffer.buffer);
+      },
       moveTo: function (e: DetailEvent<Pick<Transform, 'position'>>) {
         // // Interpolate with buffered-interpolation
         // console.log('Move to',e);
@@ -82,9 +83,6 @@ export default () => {
       this.interpolationBuffer = new InterpolationBuffer(undefined, this.data.interpolationTime / 1000);
     },
     distanceToCamera: function () {
-      // const distanceOld = this.distance;
-      // Note: calculating distance between LOCAL position vectors, not taking into account the world position.
-      // This should be fine as long as the camera and the avatars share the same origin position.
       const camera = this.el.sceneEl?.camera;
       if(!camera) return;
       const camWorldPos = camera.getWorldPosition(new THREE.Vector3());

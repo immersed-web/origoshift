@@ -1,13 +1,27 @@
 <template>
-  <a-scene
-    embedded
-    ref="sceneTag"
-    id="ascene"
-    xr-mode-ui="enabled: false"
-  >
-    <a-assets
-      timeout="20000"
+  <div class="relative">
+    <div
+      v-if="props.navmeshUrl"
+      class="absolute right-0 z-10 rounded-bl-lg bg-neutral-50/70 py-1 px-2"
     >
+      <label class="flex items-center cursor-pointer select-none">
+        <span class="label-text mr-1 font-bold">visa navmesh</span>        
+        <input
+          type="checkbox"
+          class="toggle toggle-xs"
+          v-model="showNavMesh"
+        >
+      </label>
+    </div>
+    <a-scene
+      embedded
+      ref="sceneTag"
+      id="ascene"
+      xr-mode-ui="enabled: false"
+    >
+      <a-assets
+        timeout="20000"
+      >
       <!-- <a-asset-item
         id="model-asset"
         :src="props.modelUrl"
@@ -17,66 +31,56 @@
         id="navmesh-asset"
         :src="props.navmeshUrl"
       /> -->
-    </a-assets>
-    <StreamEntrance
-      v-if="entrancePosString"
-      :position="entrancePosString"
-      :direction="entranceRotation"
-      message="Yoooooooo vad har du i kikaren??"
-    />
-    <a-entity
-      v-if="spawnPosString"
-      :position="spawnPosString"
-    >
-      <a-circle
-        color="yellow"
-        transparent="true"
-        opacity="0.5"
-        rotation="-90 0 0"
-        position="0 0.05 0"
-        :radius="spawnRadius"
+      </a-assets>
+      <StreamEntrance
+        v-if="entrancePosString"
+        :position="entrancePosString"
+        :direction="entranceRotation"
+        message="Yoooooooo vad har du i kikaren??"
       />
-    </a-entity>
+      <a-entity
+        v-if="spawnPosString"
+        :position="spawnPosString"
+      >
+        <a-circle
+          color="yellow"
+          transparent="true"
+          opacity="0.5"
+          rotation="-90 0 0"
+          position="0 0.05 0"
+          :radius="spawnRadius"
+        />
+      </a-entity>
 
-    <!-- for some super weird reason orbit controls doesnt work with the a-camera primitive  -->
-    <a-entity
-      camera
-      ref="cameraTag"
-    />
-    <a-sky color="lightskyblue" />
-      
-    <a-entity
-      ref="cursorTag"
-      :visible="false"
-    >
-      <a-ring
-        position="0 0.01 0"
-        rotation="-90  0 0"
-        radius-inner="0.1"
-        radius-outer="0.2"
+      <!-- for some super weird reason orbit controls doesnt work with the a-camera primitive  -->
+      <a-entity
+        camera
+        ref="cameraTag"
       />
-    </a-entity>
+      <a-sky color="lightskyblue" />
 
-    <!-- The model -->
-    <a-entity>
-      <a-gltf-model
-        v-if="props.modelUrl"
-        @model-loaded="onModelLoaded"
-        id="model"
-        ref="modelTag"
-        :src="props.modelUrl"
-      />
-      <a-gltf-model
-        id="navmesh"
-        ref="navmeshTag"
-        visible="false"
-        :src="props.navmeshUrl?props.navmeshUrl:props.modelUrl"
-        @raycast-change="onIntersection"
-        @raycast-out="onNoIntersection"
-        @click="placeCursor"
-      />
-    </a-entity>
-  </a-scene>
+      <!-- The model -->
+      <a-entity>
+        <a-gltf-model
+          v-if="props.modelUrl"
+          @model-loaded="onModelLoaded"
+          id="model"
+          ref="modelTag"
+          :src="props.modelUrl"
+        />
+        <a-gltf-model
+          id="navmesh"
+          ref="navmeshTag"
+          @model-loaded="onNavMeshLoaded"
+          :model-opacity="`opacity: ${navMeshOpacity}`"
+          :src="props.navmeshUrl?props.navmeshUrl:props.modelUrl"
+          @raycast-change="onIntersection"
+          @raycast-out="onNoIntersection"
+          @click="placeCursor"
+        />
+      </a-entity>
+    </a-scene>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -109,7 +113,11 @@ const sceneTag = ref<Scene>();
 const modelTag = ref<Entity>();
 const navmeshTag = ref<Entity>();
 const cameraTag = ref<Entity>();
-const cursorTag = ref<Entity>();
+
+const showNavMesh = ref(false);
+const navMeshOpacity = computed(() => {
+  return showNavMesh.value?0.7:0.0;
+});
 
 let stopAutoRotateTimeout: ReturnType<typeof useTimeoutFn>['stop'] | undefined = undefined;
 
@@ -217,6 +225,11 @@ function onModelLoaded(){
   //   // @ts-ignore
   //   screenshotComponent.saveCapture();
   // }
+}
+
+function onNavMeshLoaded() {
+  // Hack to trigger update of model opacity when its loaded. The aframe component doesnt initialize properly for some reason.
+  navmeshTag.value?.setAttribute('model-opacity', 'opacity', navMeshOpacity.value);
 }
 
 </script>

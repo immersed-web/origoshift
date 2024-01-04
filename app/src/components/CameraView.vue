@@ -71,34 +71,6 @@
       rotation="0 0 0"
       material="depthTest: false"
     >
-      <a-entity
-        v-if="props.editable && camera.is360Camera"
-        :rotation="`${camera.viewOrigin?.angleX} ${camera.viewOrigin?.angleY} 0`"
-      >
-        <a-ring
-          radius-inner="0.1"
-          radius-outer="0.2"
-          position="0 0 -2"
-          color="teal"
-          hover-highlight
-          material="shader: flat; transparent: true; depthTest:false"
-        >
-          <a-ring
-            radius-inner="0"
-            radius-outer="0.2"
-            color="yellow"
-            material="opacity:0; depthTest: false;"
-            class="clickable"
-            @mousedown="isViewOriginMoved = true"
-          />
-          <a-text
-            material="depthTest:false"
-            position="0 -0.3 0"
-            value="startvy"
-            align="center"
-          />
-        </a-ring>
-      </a-entity>
       <a-entity 
         :visible="!freezeableCameraStore.is360Camera"
         rotation="0 0 0"
@@ -140,6 +112,34 @@
       <a-entity
         :visible="freezeableCameraStore.is360Camera"
       >
+        <a-entity
+          v-if="props.editable"
+          :rotation="`${camera.viewOrigin?.angleX} ${camera.viewOrigin?.angleY} 0`"
+        >
+          <a-ring
+            radius-inner="0.1"
+            radius-outer="0.2"
+            position="0 0 -2"
+            color="teal"
+            hover-highlight
+            material="shader: flat; transparent: true; depthTest:false"
+          >
+            <a-ring
+              radius-inner="0"
+              radius-outer="0.2"
+              color="yellow"
+              material="opacity:0; depthTest: false;"
+              class="clickable"
+              @mousedown="isViewOriginMoved = true"
+            />
+            <a-text
+              material="depthTest:false"
+              position="0 -0.3 0"
+              value="startvy"
+              align="center"
+            />
+          </a-ring>
+        </a-entity>
         <a-videosphere
           :geometry="`phiLength:${freezeableCameraStore.FOV?.phiLength??360}; phiStart:${freezeableCameraStore.FOV?.phiStart??0}`"
           ref="vSphereTag"

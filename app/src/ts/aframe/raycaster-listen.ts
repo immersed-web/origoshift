@@ -28,8 +28,12 @@ export default () => {
       'raycaster-intersected': function(evt: DetailEvent<{el: Entity}>) {
         this.raycaster = evt.detail.el;
         const canvas = this.el.sceneEl!.canvas;
-        this.stashedCursorStyle = canvas.style.cursor;
-        canvas.style.cursor = 'pointer';
+        const canvasCursor = canvas.style.cursor;
+        if(canvasCursor !== '') {
+          console.log('stashing canvasCursor:', canvasCursor);
+          this.stashedCursorStyle = canvasCursor;
+          canvas.style.cursor = 'pointer';
+        }
       },
       'raycaster-intersected-cleared': function(evt: DetailEvent<any>){
         this.raycaster = null;
@@ -45,7 +49,7 @@ export default () => {
 
       // @ts-ignore
       const intersection = this.raycaster.components.raycaster.getIntersection(this.el);
-      if (!intersection) { return; }
+      if (!intersection.point) { return; }
       if(AFRAME.utils.coordinates.stringify(intersection.point) !== AFRAME.utils.coordinates.stringify(this.prev)){
         // console.log(intersection.point);
         this.el.emit('raycast-change', intersection);

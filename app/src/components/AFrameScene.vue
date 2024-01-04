@@ -1,7 +1,10 @@
 <template>
   <div class="w-screen h-screen pointer-events-none *:pointer-events-auto z-10 absolute">
     <div class="rounded-br-lg bg-base-200/50 max-w-fit p-4">
-      <button class="btn btn-primary btn-circle">
+      <button
+        @click="$router.back()"
+        class="btn btn-primary btn-circle"
+      >
         <span class="material-icons">arrow_back</span>
       </button>
     </div>

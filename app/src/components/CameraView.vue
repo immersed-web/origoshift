@@ -18,9 +18,7 @@
       Försöker öppna kameran
     </div>
   </Teleport>
-  <template
-    v-if="soup.userHasInteracted && camera.currentCamera"
-  >
+  <template v-if="soup.userHasInteracted && camera.currentCamera">
     <!-- <a-assets>
       <a-mixin
         id="fade-to-from-black"
@@ -32,13 +30,14 @@
       ref="environmentEntityTag"
       :environment="`preset: tron; dressing: none; active:${!freezeableCameraStore.is360Camera};`"
     /> -->
-    <a-sky color="midnightblue" />
+    <a-sky color="#090F14" />
     <a-grid :visible="!freezeableCameraStore.is360Camera" />
     <a-entity
       ref="cameraRigTag"
       id="rig"
     >
       <a-camera
+        wasd-controls-enabled="true"
         ref="cameraTag"
         reverse-mouse-drag="true"
         :look-controls-enabled="!movedPortalCameraId && !isViewOriginMoved && !cameraIsAnimating"
@@ -46,8 +45,9 @@
         <a-sky
           visible="true"
           ref="curtainTag"
-          radius="0.5"
-          material="transparent: true; color: #505; opacity: 0.0; depthTest: false"
+          radius="0.1"
+          @loaded="onCurtainLoaded" 
+          material="transparent: true; color: black; opacity: 0.0;"
           animation__to_black="property: material.opacity; from: 0.0; to: 1.0; dur: 500; startEvents: fadeToBlack"
           animation__from_black="property: material.opacity; from: 1.0; to: 0.0; dur: 500; startEvents: fadeFromBlack"
         />
@@ -66,49 +66,46 @@
         raycaster="objects: .clickable"
       />
     </a-entity>
+    <a-entity 
+      :visible="!freezeableCameraStore.is360Camera"
+      rotation="0 0 0"
+    >
+      <a-entity
+        :position="`0 ${videoHeight/2} ${-cinemaDistance}`"
+      >
+        <a-video
+          ref="aVideoTag"
+          crossorigin="anonymous"
+          :width="fixedWidth"
+          :height="videoHeight"
+          :rotation="`0 0 ${freezeableCameraStore.isRoofMounted?'180': 0}`"
+          material="transparent: false"
+        />
+        <a-entity
+          v-for="portal in freezeableCameraStore.portals"
+          :key="portal.toCameraId"
+          :position="`${(portal.x-0.5)*fixedWidth} ${(-portal.y+0.5)*videoHeight} 0`"
+        >
+          <a-sphere
+            hover-highlight
+            position="0 0 -0.1"
+            color="yellow"
+            scale="0.2 0.2 0.2"
+            class="clickable"
+            @mousedown="onPortalMouseDown(portal, $event)"
+          />
+          <a-text
+            value="Teeeext"
+            align="center"
+            position="0 -0.4 0"
+          />
+        </a-entity>
+      </a-entity>
+    </a-entity>
     <a-entity       
       position="0 1.6 0"
       rotation="0 0 0"
-      material="depthTest: false"
     >
-      <a-entity 
-        :visible="!freezeableCameraStore.is360Camera"
-        rotation="0 0 0"
-      >
-        <a-entity
-          :position="`0 0 ${-cinemaDistance}`"
-        >
-          <a-video
-            ref="aVideoTag"
-            crossorigin="anonymous"
-            :width="fixedWidth"
-            :height="videoHeight"
-            :rotation="`0 0 ${freezeableCameraStore.isRoofMounted?'180': 0}`"
-            material="transparent: false; depthTest: true"
-          />
-          <a-entity
-            v-for="portal in freezeableCameraStore.portals"
-            :key="portal.toCameraId"
-            :position="`${(portal.x-0.5)*fixedWidth} ${(-portal.y+0.5)*videoHeight} 0`"
-          >
-            <a-sphere
-              hover-highlight
-              position="0 0 -0.1"
-              color="yellow"
-              material="depthTest: true; shader: flat;"
-              scale="0.2 0.2 0.2"
-              class="clickable"
-              @mousedown="onPortalMouseDown(portal, $event)"
-            />
-            <a-text
-              value="Teeeext"
-              align="center"
-              position="0 -0.4 0"
-              material="depthTest: true"
-            />
-          </a-entity>
-        </a-entity>
-      </a-entity>
       <a-entity
         :visible="freezeableCameraStore.is360Camera"
       >
@@ -122,7 +119,7 @@
             position="0 0 -2"
             color="teal"
             hover-highlight
-            material="shader: flat; transparent: true; depthTest:false"
+            material="shader: flat; transparent: true;"
           >
             <a-ring
               radius-inner="0"
@@ -133,7 +130,6 @@
               @mousedown="isViewOriginMoved = true"
             />
             <a-text
-              material="depthTest:false"
               position="0 -0.3 0"
               value="startvy"
               align="center"
@@ -146,8 +142,7 @@
           src="#main-video-1"
           :rotation="`0 90 ${freezeableCameraStore.isRoofMounted? '180': '0'}`"
           radius="10"
-          color="#fff"
-          material="color: #fff; depthTest:true; fog: false"
+          material="color: #fff;fog: false"
         />
         <a-entity
           v-for="portal in freezeableCameraStore.portals"
@@ -155,7 +150,6 @@
           :rotation="`${portal.angleX} ${portal.angleY} 0`"
         >
           <a-sphere
-            material="depthTest: true;"
             :position="`0 0 ${-portal.distance}`"
             scale="0.2 0.2 0.2"
             color="#ef2d5e"
@@ -289,7 +283,6 @@ async function consumeAndHandleResult() {
   if(rcvdTracks?.audioTrack && audioTag.value){
     audioTag.value.srcObject = new MediaStream([rcvdTracks.audioTrack]);
   }
-  
 }
 
 let fallbackTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
@@ -401,6 +394,7 @@ function teleportToCamera(cameraId: CameraId, event: Event) {
   cameraTag.value?.object3D.getWorldPosition(cameraPos);
   const dir = new THREE.Vector3();
   dir.subVectors(portalPos, cameraPos);//.setLength(vSphereRadius-0.2);
+  dir.multiplyScalar(0.8);
   const animationString = `property: position; to: ${dir.x} ${dir.y} ${dir.z}; dur: 500; easing:easeInQuad;`;
   isZoomingInOnPortal = true;
   cameraRigTag.value?.setAttribute('animation', animationString);
@@ -511,7 +505,24 @@ onMounted(async () => {
   await loadStuff();
   document.addEventListener('mouseup', onMouseUp);
   document.addEventListener('pointermove', onMouseMove);
+
 });
+
+function onCurtainLoaded() {
+  console.log('curtain loaded');
+  return;
+  // const mesh = curtainTag.value?.getObject3D('mesh') as THREE.Mesh;
+  // console.log(mesh);
+  // if(mesh && mesh.isMesh){
+  //   if(Array.isArray(mesh.material)){
+  //     console.log('setting depth function for array of materials');
+  //     mesh.material.forEach(m => m.depthFunc = THREE.AlwaysDepth);
+  //   } else {
+  //     console.log('setting depth function for material');
+  //     mesh.material.depthFunc = THREE.AlwaysDepth;
+  //   }
+  // }
+}
 
 onBeforeUnmount(() => {
   document.removeEventListener('mouseup', onMouseUp);
@@ -521,7 +532,6 @@ onBeforeUnmount(() => {
     camera.leaveCurrentCamera();
   }
   environmentEntityTag.value?.setAttribute('environment', 'active', false);
-  
 });
 
 

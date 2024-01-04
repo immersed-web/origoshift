@@ -63,7 +63,7 @@ AFRAME.registerComponent('orbit-controls', {
       canvasEl.style.cursor = 'grab';
       rotateTimer = setTimeout(() => this.controls.autoRotate = this.data.autoRotate, 5000);
     });
-
+    
     this.target = new THREE.Vector3();
     this.cursor = new THREE.Vector3();
     el.getObject3D('camera').position.copy(this.data.initialPosition);
@@ -153,7 +153,14 @@ AFRAME.registerComponent('orbit-controls', {
   tick: function (_, deltaTime) {
     const controls = this.controls;
     const data = this.data;
-    if (!data.enabled) { return; }
+    if (!data.enabled) {
+      return; 
+    }
+    if(deltaTime > 600) {
+      console.log('orbit controls is skipping tick because big deltaTime occured (ms):', deltaTime);
+      console.log('this is to avoid the autorotate spinning like crazy. The reason for big deltaTime is probably changing browser tabs.');
+      return;
+    }
     if (controls.enabled && (controls.enableDamping || controls.autoRotate)) {
       const deltaTimeS = deltaTime * 0.001;
       this.controls.update(deltaTimeS);

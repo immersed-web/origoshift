@@ -72,7 +72,7 @@
       material="depthTest: false"
     >
       <a-entity
-        v-if="props.editable"
+        v-if="props.editable && camera.is360Camera"
         :rotation="`${camera.viewOrigin?.angleX} ${camera.viewOrigin?.angleY} 0`"
       >
         <a-ring
@@ -101,7 +101,7 @@
       </a-entity>
       <a-entity 
         :visible="!freezeableCameraStore.is360Camera"
-        rotation="0 180 0"
+        rotation="0 0 0"
       >
         <a-entity
           :position="`0 0 ${-cinemaDistance}`"
@@ -313,15 +313,21 @@ function onCurtainStateChanged() {
 function prepareSceneAndFadeFromBlack(){
   console.log('preparing environment after portal jump');
 
-  // manuallyThrottledCameraStore.trigger();
-  // resumeCameraWatcher();
   freezeCameraState.value = false;
   // console.log('offsetting vieworigin:', camera.viewOrigin);
   if(props.editable){
     cameraRigTag.value?.setAttribute('rotation', '0 0 0');
-    setCameraRotation(camera.viewOrigin!.angleX, camera.viewOrigin!.angleY);
+    if(camera.is360Camera){
+      setCameraRotation(camera.viewOrigin!.angleX, camera.viewOrigin!.angleY);
+    } else {
+      setCameraRotation(0,0);
+    }
   } else {
-    cameraRigTag.value?.setAttribute('rotation', `0 ${camera.viewOrigin?.angleY??0} 0`);
+    if(camera.is360Camera){
+      cameraRigTag.value?.setAttribute('rotation', `0 ${camera.viewOrigin?.angleY??0} 0`);
+    } else {
+      cameraRigTag.value?.setAttribute('rotation', '0 0 0');
+    }
     setCameraRotation(0,0);
   }
 

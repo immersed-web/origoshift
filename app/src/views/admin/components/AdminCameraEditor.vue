@@ -119,7 +119,8 @@ import { useAdminStore } from '@/stores/adminStore';
 import CameraView from '@/components/CameraView.vue';
 import { aFrameSceneProvideKey } from '@/modules/injectionKeys';
 import type { Scene } from 'aframe';
-
+import c from '@/ts/aframe/components';
+c.registerAframeComponents();
 
 const sceneTag = ref<Scene>();
 const domOutlet = ref<HTMLDivElement>();

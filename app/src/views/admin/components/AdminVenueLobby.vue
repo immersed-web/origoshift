@@ -35,7 +35,20 @@
         v-if="venueStore.currentVenue?.vrSpace"
         class="mt-4"
       >
-        <h3>3D-modell</h3>
+        <div class="flex items-center justify-start gap-2">
+          <h3>
+            3D-modell 
+          </h3>
+          <div
+            class="tooltip cursor-help select-none before:text-left before:whitespace-pre-line flex flex-col max-h-fit justify-center"
+            data-tip="Använd musen för att interagera med modellen.
+                      Klicka och dra: Rotera bilden
+                      Högermus och dra: Panorera längs golvytan
+                      Scrolla: Zooma"
+          >
+            <span class="material-icons">help</span>
+          </div>
+        </div>
         <div
           v-if="venueStore.modelUrl"
           class="grid gap-2"
@@ -58,14 +71,14 @@
               type="radio"
               value="spawnPosition"
               aria-label="Placera startplats"
-              class="btn btn-sm"
+              class="btn btn-sm btn-primary"
               v-model="currentCursorType"
             >
             <input
               type="radio"
               value="entrancePosition"
               aria-label="Placera streaming-entré"
-              class="btn btn-sm"
+              class="btn btn-sm btn-primary"
               v-model="currentCursorType"
             >
             <button

@@ -89,6 +89,8 @@ import { ref, watch, computed }  from 'vue';
 import { useTimeoutFn } from '@vueuse/core';
 import StreamEntrance from './StreamEntrance.vue';
 import { useVenueStore } from '@/stores/venueStore';
+import c from '@/ts/aframe/components';
+c.registerAframeComponents();
 
 
 const venueStore = useVenueStore();

@@ -131,7 +131,8 @@
             />
             <a-text
               position="0 -0.3 0"
-              value="startvyasdfasdf"
+              value="startriktning"
+              width="2"
               align="center"
             />
           </a-ring>
@@ -156,7 +157,14 @@
             class="clickable"
             hover-highlight
             @mousedown="onPortalMouseDown(portal, $event)"
-          />
+          >
+            <a-text
+              position="0 -1.5 0"
+              width="15"
+              :value="portal.cameraName"
+              align="center"
+            />
+          </a-sphere>
         </a-entity>
       </a-entity>
     </a-entity>

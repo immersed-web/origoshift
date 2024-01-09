@@ -1,7 +1,7 @@
 <template>
   <div class="flex gap-4">
     <div class="flex-initial">
-      <ul class="menu bg-base-200 rounded-box">
+      <ul class="menu bg-base-200 rounded-box gap-2">
         <li class="menu-title mx-4 my-2">
           Kameraprofiler:
         </li>

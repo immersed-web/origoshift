@@ -43,7 +43,7 @@
         :look-controls-enabled="!movedPortalCameraId && !isViewOriginMoved && !cameraIsAnimating"
       >
         <a-sky
-          visible="true"
+          :visible="!props.editable"
           ref="curtainTag"
           radius="0.1"
           @loaded="onCurtainLoaded" 
@@ -119,19 +119,19 @@
             position="0 0 -2"
             color="teal"
             hover-highlight
-            material="shader: flat; transparent: true;"
+            material="shader: flat;"
           >
             <a-ring
               radius-inner="0"
               radius-outer="0.2"
               color="yellow"
-              material="opacity:0; depthTest: false;"
+              material="opacity:0;"
               class="clickable"
               @mousedown="isViewOriginMoved = true"
             />
             <a-text
               position="0 -0.3 0"
-              value="startvy"
+              value="startvyasdfasdf"
               align="center"
             />
           </a-ring>

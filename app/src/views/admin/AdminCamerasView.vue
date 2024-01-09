@@ -11,15 +11,36 @@
         >
           <a
             @click="editedCameraId = camera.cameraId; editedSenderId = undefined"
-            :class="{active: editedCameraId === camera.cameraId}"
+            :class="{'active': editedCameraId === camera.cameraId}"
             class="justify-between"
           >
             <div
               class="flex flex-nowrap gap-2"
-            ><span
-              class="material-icons"
-              :class="{'text-success': camera.isStreaming, 'text-error': !camera.isStreaming}"
-            >{{ camera.isStreaming? 'videocam': 'videocam_off' }}</span>{{ camera.name }}</div>
+            >
+            
+              <div
+                class="tooltip" 
+                :data-tip="mainCameraId === camera.cameraId?'Denna kamera är vald som startvinkel när besökaren landar':'välj denna kamera som startvinkel för sändingen'"
+              >
+                <input
+                  v-model="mainCameraId"
+                  v-if="mainCameraId !== camera.cameraId"
+                  :value="camera.cameraId"
+                  type="radio"
+                  name="mainCamera"
+                  class="radio"
+                  :class="{'bg-neutral-300': editedCameraId === camera.cameraId}"
+                  @click.stop
+                  @input.stop="setMainCamera(camera.cameraId)"
+                ><span
+                  v-else
+                  class="material-icons"
+                >start</span>
+              </div>
+              <span
+                class="material-icons"
+                :class="{'text-success': camera.isStreaming, 'text-error': !camera.isStreaming}"
+              >{{ camera.isStreaming? 'videocam': 'videocam_off' }}</span>{{ camera.name }}</div>
             <button
               @click.stop="deleteCamera(camera.cameraId)"
               class="btn btn-error btn-square btn-sm"
@@ -190,6 +211,11 @@ const hasDetachedSenders = computed(() => {
 });
 const soupStore = useSoupStore();
 const cameraStore = useCameraStore();
+
+const mainCameraId = ref<CameraId>();
+function setMainCamera(cameraId: CameraId) {
+  console.log(cameraId);
+}
 
 const portalPosition: Partial<CameraPortalUpdate['portal']> & {absoluteX?: number, absoluteY?: number} = reactive({
   x: undefined,

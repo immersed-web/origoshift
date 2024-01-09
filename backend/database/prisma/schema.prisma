@@ -78,8 +78,9 @@ model Venue {
   whitelistedUsers      User[]        @relation("usersAllowedInVenues")
   blackListedUsers      User[]        @relation("usersBannedFromVenues")
   cameras               Camera[]
-
-  // @@unique([ownerId, venueId])
+  // I chose to not make this a relation as it arguebly would mean unnecassary complexity.
+  // We now just need to make sure to delete/update the mainCameraId if that camera is deleted.
+  mainCameraId          String?       @db.Uuid
 }
 
 model VirtualSpace {

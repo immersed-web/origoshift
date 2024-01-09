@@ -30,6 +30,12 @@
       ref="environmentEntityTag"
       :environment="`preset: tron; dressing: none; active:${!freezeableCameraStore.is360Camera};`"
     /> -->
+    <!-- <a-sphere
+      v-for="portal in freezeableCameraStore.portals"
+      :key="portal.toCameraId"
+      :position="`${-fixedWidth/2 + portal.x * fixedWidth} ${videoHeight + - portal.y*videoHeight} ${-cinemaDistance}`" 
+      color="red"
+    /> -->
     <a-sky color="#090F14" />
     <a-grid :visible="!freezeableCameraStore.is360Camera" />
     <a-entity
@@ -432,15 +438,29 @@ async function createOrCenterOnPortal(cameraId:CameraId){
     rot.y = THREE.MathUtils.euclideanModulo(rot.y, twoPI);
 
     const toDegrees = THREE.MathUtils.radToDeg;
+    let angleX = foundPortal.angleX;
+    let angleY = foundPortal.angleY;
+    if(!camera.is360Camera){
+      const tlCornerPos = new THREE.Vector3(-fixedWidth/2, videoHeight.value, -cinemaDistance.value);
+      const portalPos = tlCornerPos.add(new THREE.Vector3(foundPortal.x * fixedWidth, -foundPortal.y*videoHeight.value, 0));
+
+      // Compensate for cameraHeight
+      const cameraYPos = cTag.object3D.position.y;
+      portalPos.y -= cameraYPos;
+      
+      console.log(portalPos);
+      angleY = toDegrees(Math.atan2(-portalPos.x, -portalPos.z));
+      angleX = toDegrees(Math.atan2(portalPos.y, -portalPos.z));
+    }
     // hack to make sure rotation animation takes shortest path. aframe doesnt handle this for us so we must make sure ourselves.
-    const angleDelta = foundPortal.angleY - toDegrees(rot.y);
+    const angleDelta = angleY - toDegrees(rot.y);
     // console.log('angleDelta:', angleDelta);
     if(Math.abs(angleDelta) > 180){
       // console.log('from rotation  was tweaked');
       rot.y += twoPI * Math.sign(angleDelta);
     }
-    const rotationString = `property: rotation; from: ${toDegrees(rot.x)} ${toDegrees(rot.y)} 0; to: ${foundPortal.angleX} ${foundPortal.angleY} 0;`;
-    // console.log('rotationString:', rotationString);
+    const rotationString = `property: rotation; from: ${toDegrees(rot.x)} ${toDegrees(rot.y)} 0; to: ${angleX} ${angleY} 0;`;
+    console.log('rotationString:', rotationString);
     cTag.setAttribute('animation', rotationString);
 
     (cTag as HTMLElement).addEventListener('animationcomplete', () => {

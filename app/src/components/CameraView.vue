@@ -30,12 +30,6 @@
       ref="environmentEntityTag"
       :environment="`preset: tron; dressing: none; active:${!freezeableCameraStore.is360Camera};`"
     /> -->
-    <!-- <a-sphere
-      v-for="portal in freezeableCameraStore.portals"
-      :key="portal.toCameraId"
-      :position="`${-fixedWidth/2 + portal.x * fixedWidth} ${videoHeight + - portal.y*videoHeight} ${-cinemaDistance}`" 
-      color="red"
-    /> -->
     <a-sky color="#090F14" />
     <a-grid :visible="!freezeableCameraStore.is360Camera" />
     <a-entity
@@ -147,7 +141,7 @@
           ref="vSphereTag"
           src="#main-video-1"
           :rotation="`0 90 ${freezeableCameraStore.isRoofMounted? '180': '0'}`"
-          radius="10"
+          radius="20"
           material="color: #fff;fog: false"
         />
         <a-entity
@@ -332,6 +326,8 @@ function prepareSceneAndFadeFromBlack(){
 
   // console.log('Switching v-sphere source');
   vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTagIndex+1}`);
+  // vSphereTag.value?.removeAttribute('animation');
+  // vSphereTag.value?.setAttribute('radius', 10);
   // console.log('switching a-video source');
   aVideoTag.value?.setAttribute('src', `#main-video-${activeVideoTagIndex+1}`);
 
@@ -409,8 +405,8 @@ function teleportToCamera(cameraId: CameraId, event: Event) {
     isZoomingInOnPortal = false;
     onCurtainStateChanged();
   }, {once: true});
-  const sphereShrinkAnimationString = `property: geometry.radius; to: ${dir.length()}; dur: 500; easing: easeInQuad;`;
-  vSphereTag.value?.setAttribute('animation', sphereShrinkAnimationString);
+  // const sphereShrinkAnimationString = `property: geometry.radius; to: ${dir.length()}; dur: 500; easing: easeInQuad;`;
+  // vSphereTag.value?.setAttribute('animation', sphereShrinkAnimationString);
 
   
   console.log('go to new camera:', cameraId);
@@ -515,13 +511,6 @@ onMounted(async () => {
   sceneTag.value?.setAttribute('cursor', {fuse:false, rayOrigin: 'mouse'});
   sceneTag.value?.setAttribute('xr-mode-ui', {enabled: !props.editable});
 
-  // WebXR Immersive navigation handler.
-  if (navigator.xr && navigator.xr.addEventListener) {
-    console.log('listening to sessiongranted');
-    navigator.xr.addEventListener('sessiongranted', function () {
-      debugMessage.value = 'session granted!!!';
-    });
-  }
   await loadStuff();
   document.addEventListener('mouseup', onMouseUp);
   document.addEventListener('pointermove', onMouseMove);

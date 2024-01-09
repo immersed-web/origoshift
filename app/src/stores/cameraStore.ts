@@ -12,7 +12,7 @@ type _ReceivedPublicCameraState = RouterOutputs['camera']['joinCamera'];
 export const useCameraStore = defineStore('camera', () => {
   const connection = useConnectionStore();
   const soup = useSoupStore();
-  // const currentCamera: _ReceivedPublicCameraState | Record<string, never> = reactive({});
+  const venueStore = useVenueStore();
   const currentCamera = ref<_ReceivedPublicCameraState>();
 
 
@@ -60,13 +60,14 @@ export const useCameraStore = defineStore('camera', () => {
 
   const portals = computed(() => {
     if(!currentCamera.value) return undefined;
-    const newObj: Record<CameraId, {angleX:number; angleY: number} & (typeof currentCamera.value.portals)[CameraId]> = {};
+    const newObj: Record<CameraId, {angleX:number; angleY: number, cameraName: string} & (typeof currentCamera.value.portals)[CameraId]> = {};
     // NOTE: We need to make sure the portals keep its order. Thats why there is a random call to sort below.
     // otherwise aframe gets angry and fails to render all the portals
     for(const [k , p ] of Object.entries(currentCamera.value.portals).sort()){
       // const angleY = 270 - 360 * p.x; 
       // const angleX = 90 - (180 * p.y);
       newObj[p.toCameraId as CameraId] = {
+        cameraName: venueStore.currentVenue!.cameras[p.toCameraId].name,
         // style: {
 
         //   left: Math.trunc(width.value * p.x) + 'px',
@@ -149,7 +150,6 @@ export const useCameraStore = defineStore('camera', () => {
       const {track} = await soup.consume(currentCamera.value.producers.videoProducer.producerId);
       receivedTracks.videoTrack = track;
     }
-    const venueStore = useVenueStore();
     const mainAudio = venueStore.currentVenue?.mainAudioProducerId;
     if(mainAudio){
       console.log('CONSUMING MAIN AUDIO!');

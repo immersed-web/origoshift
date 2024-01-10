@@ -20,7 +20,7 @@ export function attachMediasoupObservers () {
     transports: 0,
 
     producers: 0,
-    Dataproducers: 0,
+    dataProducers: 0,
 
     consumers: 0,
     dataConsumers: 0,
@@ -99,12 +99,12 @@ export function attachMediasoupObservers () {
           observerLog.info(
             'new data producer created [worker.pid:%d, router.id:%s, transport.id:%s, dataProducer.id:%s]',
             worker.pid, router.id, transport.id, dataProducer.id);
-          totalNrOf.Dataproducers++;
+          totalNrOf.dataProducers++;
 
           dataProducer.observer.on('close', () =>
           {
             observerLog.info('data producer closed [dataProducer.id:%s]', dataProducer.id);
-            totalNrOf.Dataproducers--;
+            totalNrOf.dataProducers--;
           });
         });
 

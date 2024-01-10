@@ -7,7 +7,7 @@ import mediasoupConfig from '../mediasoupConfig';
 import { getMediasoupWorker } from '../modules/mediasoupWorkers';
 
 import {types as soupTypes} from 'mediasoup';
-import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate, SenderId, hasAtLeastSecurityLevel, VirtualSpace3DModelUpdate  } from 'schemas';
+import { ConnectionId, UserId, VenueId, CameraId, VenueUpdate, SenderId, hasAtLeastSecurityLevel } from 'schemas';
 
 import { Prisma } from 'database';
 import prisma, { cameraIncludeStuff } from '../modules/prismaClient';
@@ -29,7 +29,6 @@ const venueIncludeStuff  = {
   whitelistedUsers: basicUserSelect,
   blackListedUsers: basicUserSelect,
   owners: basicUserSelect,
-  // virtualSpace: {select: {vrId: true}},
   virtualSpace: { include: { virtualSpace3DModel: true }},
   cameras: {
     include: cameraIncludeStuff
@@ -107,6 +106,7 @@ export class Venue {
   vrSpace?: VrSpace;
 
   cameras = shallowReactive<Map<CameraId, Camera>>(new Map());
+  get mainCameraId() {return this.prismaData.mainCameraId as CameraId | null; }
   mainAudioCameraId = ref<CameraId>();
   mainAudioProducer = computed(() => {
     if(!this.mainAudioCameraId.value) return undefined;
@@ -147,7 +147,7 @@ export class Venue {
     return this.clients.size === 0 && this.senderClients.size === 0;
   }
   getPublicState() {
-    const {venueId, name, visibility, doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, doorsAreOpen, streamStartTime, streamAutoStart, streamManuallyStarted, /*streamIsStarted*/ streamIsActive} = this;
+    const {venueId, name, visibility, doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, doorsAreOpen, streamStartTime, streamAutoStart, streamManuallyStarted, /*streamIsStarted*/ streamIsActive, mainCameraId } = this;
     // log.info('Detached senders:', this.detachedSenders.value);
     // const cameraIds = Array.from(this.cameras.keys());
     const cameras: Record<CameraId, {
@@ -167,6 +167,7 @@ export class Venue {
       streamStartTime, streamAutoStart, streamManuallyStarted, /*streamIsStarted*/ streamIsActive,
       vrSpace: this.vrSpace?.getPublicState(),
       cameras,
+      mainCameraId,
       mainAudioProducerId,
     };
   }
@@ -473,6 +474,11 @@ export class Venue {
     });
     const idx = this.prismaData.cameras.indexOf(prismaCamera);
     this.prismaData.cameras.splice(idx, 1);
+    if(cameraId === this.prismaData.mainCameraId){
+      await this.update({
+        mainCameraId: null,
+      });
+    }
 
     this._notifyStateUpdated('camera removed');
     this._notifyAdminOnlyState('camera removed');

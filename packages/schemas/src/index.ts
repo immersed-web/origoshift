@@ -148,6 +148,9 @@ export type UserId = z.TypeOf<typeof UserIdSchema>;
 export const VenueIdSchema = UuidSchema.brand<'VenueId'>();
 export type VenueId = z.TypeOf<typeof VenueIdSchema>;
 
+export const CameraIdSchema = UuidSchema.brand<'CameraId'>();
+export type CameraId = z.TypeOf<typeof CameraIdSchema>;
+
 export const VrSpaceIdSchema = UuidSchema.brand<'VrSpaceId'>();
 // export type VrSpaceId = z.TypeOf<typeof VrSpaceIdSchema>;
 export type VrSpaceId = z.TypeOf<typeof VrSpaceIdSchema>;
@@ -174,6 +177,7 @@ export const VenueUpdateSchema = z.object({
   streamAutoStart: z.boolean().optional(),
   streamManuallyStarted: z.boolean().optional(),
   streamManuallyEnded: z.boolean().optional(),
+  mainCameraId: CameraIdSchema.nullable().optional(),
 }) satisfies z.ZodType<Partial<Venue>>
 export type VenueUpdate = z.TypeOf<typeof VenueUpdateSchema>;
 
@@ -215,8 +219,6 @@ export const VirtualSpace3DModelUpdateSchema = z.object({
 })
 export type VirtualSpace3DModelUpdate = z.TypeOf<typeof VirtualSpace3DModelUpdateSchema>
 
-export const CameraIdSchema = UuidSchema.brand<'CameraId'>();
-export type CameraId = z.TypeOf<typeof CameraIdSchema>;
 
 export const CameraPortalUpdateSchema = z.object({
       cameraId: CameraIdSchema,

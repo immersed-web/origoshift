@@ -20,7 +20,7 @@
             
               <div
                 class="tooltip" 
-                :data-tip="mainCameraId === camera.cameraId?'Denna kamera är vald som startvinkel när besökaren landar':'välj denna kamera som startvinkel för sändingen'"
+                :data-tip="mainCameraId === camera.cameraId?'Denna kamera är vald som startvinkel när besökaren ansluter till sändningen':'Klicka för att välja denna kamera som startvinkel för sändingen'"
               >
                 <input
                   v-model="mainCameraId"
@@ -195,13 +195,16 @@
 // import {useVenueStore} from '@/stores/venueStore';
 import { useAdminStore } from '@/stores/adminStore';
 import { useSoupStore } from '@/stores/soupStore';
-import { computed, onBeforeMount, reactive, ref } from 'vue';
+import { computed, onBeforeMount, reactive, ref, watch } from 'vue';
 import type { CameraId, CameraPortalUpdate, ConnectionId, SenderId } from 'schemas';
 import { useCameraStore } from '@/stores/cameraStore';
 import AdminCameraEditor from './components/AdminCameraEditor.vue';
 import AdminSenderEditor from './components/AdminSenderEditor.vue';
+import { useConnectionStore } from '@/stores/connectionStore';
+import { useVenueStore } from '@/stores/venueStore';
 
-// const venueStore = useVenueStore();
+const venueStore = useVenueStore();
+const connection = useConnectionStore();
 const adminStore = useAdminStore();
 const hasDetachedSenders = computed(() => {
   for (const key in adminStore.adminOnlyVenueState?.detachedSenders) {
@@ -213,9 +216,22 @@ const soupStore = useSoupStore();
 const cameraStore = useCameraStore();
 
 const mainCameraId = ref<CameraId>();
-function setMainCamera(cameraId: CameraId) {
-  console.log(cameraId);
+watch(() => venueStore.currentVenue?.mainCameraId, (newMainCameraId) => {
+  console.log('in watcher:', newMainCameraId);
+  if(newMainCameraId === null) newMainCameraId = undefined;
+  mainCameraId.value = newMainCameraId;
+}, {immediate: true});
+async function setMainCamera(cameraId: CameraId) {
+  await connection.client.admin.updateVenue.mutate({
+    mainCameraId: cameraId,
+  });
 }
+
+// async function unsetMainCamera(){
+//   await connection.client.admin.updateVenue.mutate({
+//     mainCameraId: null,
+//   });
+// }
 
 const portalPosition: Partial<CameraPortalUpdate['portal']> & {absoluteX?: number, absoluteY?: number} = reactive({
   x: undefined,

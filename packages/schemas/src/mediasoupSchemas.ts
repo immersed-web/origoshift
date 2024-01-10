@@ -1,6 +1,11 @@
 import { z } from "zod";
-import type {types as soupTypes } from 'mediasoup'
+import {types as soupTypes, getSupportedRtpCapabilities} from 'mediasoup'
 const UuidSchema = z.string().uuid();
+
+// These are all the possible capabilities supported by mediasoup. Not the ones configured in the mediasoup server
+// const capabilities = getSupportedRtpCapabilities();
+// const extensions = capabilities.headerExtensions!
+// const uriSchemaArray = extensions.map(ext => z.literal(ext.uri)) as unknown as readonly [soupTypes.RtpHeaderExtensionUri, soupTypes.RtpHeaderExtensionUri, soupTypes.RtpHeaderExtensionUri ];
 
 export const ProducerIdSchema = UuidSchema.brand('ProducerId')
 export type ProducerId = z.TypeOf<typeof ProducerIdSchema>
@@ -15,9 +20,11 @@ export type TransportId = z.TypeOf<typeof TransportIdSchema>
 export const RtpCapabilitiesSchema = z.object({}).passthrough() satisfies z.ZodType<soupTypes.RtpCapabilities>
 export type RtpCapabilities = z.TypeOf<typeof RtpCapabilitiesSchema>
 
+// const RtpHeaderExtensionUriSchema = z.union(uriSchemaArray) satisfies z.ZodType<soupTypes.RtpHeaderExtensionUri>
+
 const DtlsFingerprintSchema = z.object({
   value: z.string(),
-  algorithm: z.string()
+  algorithm: z.string() as z.ZodType<soupTypes.FingerprintAlgorithm>
 }) satisfies z.ZodType<soupTypes.DtlsFingerprint>
 
 const DtlsParametersSchema = z.object({
@@ -42,8 +49,10 @@ const RtpEncodingParameters = z.object({
   //There are more optionals in here but we just let them pass through for now
 }).catchall(z.unknown()) satisfies z.ZodType<soupTypes.RtpEncodingParameters>
 
+
 const RtpHeaderExtensionParametersSchema = z.object({
-  uri: z.string(),
+  // Ugly hack to accept any string as extensionurl
+  uri: z.string() as z.ZodType<soupTypes.RtpHeaderExtensionUri>,
   id: z.number(),
   //There are more optionals in here but we just let them pass through for now
 }).catchall(z.unknown()) satisfies z.ZodType<soupTypes.RtpHeaderExtensionParameters>;

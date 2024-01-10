@@ -273,13 +273,13 @@ async function startVideo(videoDevice: MediaDeviceInfo){
   const [vTrack] = await stream.getVideoTracks();
   sourceVideoTrack.value = vTrack;
   
-  // eslint-disable-next-line no-undef
-  const streamProcessor = new MediaStreamTrackProcessor({track: vTrack});
-  const { readable } = streamProcessor;
+  // // eslint-disable-next-line no-undef
+  // const streamProcessor = new MediaStreamTrackProcessor({track: vTrack});
+  // const { readable } = streamProcessor;
   
-  // eslint-disable-next-line no-undef
-  const videoTrackGenerator = new MediaStreamTrackGenerator({kind: 'video'});
-  const { writable } = videoTrackGenerator;
+  // // eslint-disable-next-line no-undef
+  // const videoTrackGenerator = new MediaStreamTrackGenerator({kind: 'video'});
+  // const { writable } = videoTrackGenerator;
   
   let mostRecentUsableCrop: {x:number, width: number} = {x:0, width:100};
   // eslint-disable-next-line no-undef
@@ -334,15 +334,15 @@ async function startVideo(videoDevice: MediaDeviceInfo){
       }
     }
   }
-  readable.pipeThrough(new TransformStream({transform})).pipeTo(writable);
+  // readable.pipeThrough(new TransformStream({transform})).pipeTo(writable);
   
-  const transformedStream = new MediaStream([videoTrackGenerator]);
+  // const transformedStream = new MediaStream([videoTrackGenerator]);
   
   // sourceVideoTrack.value = videoTrackGenerator;
-  transformedVideoTrack = videoTrackGenerator;
-  videoTag.value!.srcObject = transformedStream;
+  // transformedVideoTrack = videoTrackGenerator;
+  // videoTag.value!.srcObject = transformedStream;
 
-  // videoTag.value!.srcObject = stream;
+  videoTag.value!.srcObject = stream;
   videoTag.value!.play();
 
   const producerInfo: ProducerInfo = {
@@ -350,12 +350,14 @@ async function startVideo(videoDevice: MediaDeviceInfo){
     isPaused: false,
   };
   if(soup.videoProducer.producer){
-    await soup.replaceVideoProducerTrack(transformedVideoTrack);
+    // await soup.replaceVideoProducerTrack(transformedVideoTrack);
+    await soup.replaceVideoProducerTrack(sourceVideoTrack.value);
   }else{
     // const restoredProducerId = senderStore.savedProducers.get(deviceId)?.producerId;
     await soup.produce({
       // producerId: restoredProducerId,
-      track: transformedVideoTrack,
+      // track: transformedVideoTrack,
+      track: sourceVideoTrack.value,
       producerInfo,
     });
     // senderStore.savedProducers.set(deviceId, {deviceId, producerId, type: 'video'});

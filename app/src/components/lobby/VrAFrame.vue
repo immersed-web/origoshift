@@ -330,13 +330,16 @@ function goToStream(){
   // router.push({name: 'basicVR'});
   // console.log('sphere clicked');
   if(!venueStore.currentVenue) return;
-  const firstCamera = Object.keys(venueStore.currentVenue.cameras)[0];
-  if(!firstCamera) return;
+  let mainCameraId = venueStore.currentVenue.mainCameraId;
+  if(!mainCameraId){
+    console.warn('No maincamera set. Falling back to using any camera');
+    mainCameraId = Object.values(venueStore.currentVenue.cameras)[0].cameraId;
+  }
   router.push({
     name: 'userCamera',
     params: {
       venueId: venueStore.currentVenue.venueId,
-      cameraId: firstCamera,
+      cameraId: mainCameraId,
     },
   });
 }

@@ -217,7 +217,6 @@ const cameraStore = useCameraStore();
 
 const mainCameraId = ref<CameraId>();
 watch(() => venueStore.currentVenue?.mainCameraId, (newMainCameraId) => {
-  console.log('in watcher:', newMainCameraId);
   if(newMainCameraId === null) newMainCameraId = undefined;
   mainCameraId.value = newMainCameraId;
 }, {immediate: true});

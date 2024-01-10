@@ -258,7 +258,8 @@ export class Venue {
       }
       this.clients.set(client.connectionId, client);
       client._setVenue(this.venueId);
-      this._notifyStateUpdated('Client added to Venue');
+      // this._notifyStateUpdated('Client added to Venue');
+      this._notifyAdminOnlyState('client added to Venue');
     }
     log.info(`Client (${client.clientType}) ${client.username} added to the venue ${this.prismaData.name}`);
 
@@ -283,7 +284,8 @@ export class Venue {
       }
       this.clients.delete(client.connectionId);
       // this.emitToAllClients('clientAddedOrRemoved', {client: client.getPublicState(), added: false}, client.connectionId);
-      this._notifyStateUpdated('client removed from venue');
+      // this._notifyStateUpdated('client removed from venue');
+      this._notifyAdminOnlyState('client removed from venue');
     } else {
 
       // TODO: Make sure this is not race condition where it throws because it cant find the camera instance

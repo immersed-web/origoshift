@@ -23,6 +23,14 @@ export const soupRouter = router({
     return caps;
     // return 'Not implemented yet' as const;
   }),
+  restartICEforSendTransport: clientInVenueP.query(async ({ctx}) => {
+    if(!ctx.client.sendTransport) throw new TRPCError({code: 'BAD_REQUEST', message: 'There is no sendtransport. Cant restart ICE'});
+    return await ctx.client.sendTransport.restartIce();
+  }),
+  restartICEforReceiveTransport: clientInVenueP.query(async ({ctx}) => {
+    if(!ctx.client.receiveTransport) throw new TRPCError({code: 'BAD_REQUEST', message: 'There is no receiveTransport. Cant restart ICE'});
+    return await ctx.client.receiveTransport.restartIce();
+  }),
   setRTPCapabilities: clientInVenueP.input(z.object({rtpCapabilities: RtpCapabilitiesSchema})).mutation(({input, ctx}) => {
     ctx.client.rtpCapabilities = input.rtpCapabilities;
     log.debug(`clint ${ctx.username} (${ctx.connectionId}) changed rtpCapabilities to: `, input.rtpCapabilities);

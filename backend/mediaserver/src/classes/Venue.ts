@@ -58,7 +58,7 @@ export class Venue {
     
     effect(() => {
       this.mainAudioProducer;
-      this._notifyStateUpdated('mainAdudioUpdated');
+      this._notifyStateUpdated('mainAudioUpdated');
     });
   }
 

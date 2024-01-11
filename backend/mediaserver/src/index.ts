@@ -82,8 +82,26 @@ app.ws<WSUserData>('/*', {
   /* There are many common helper features */
   idleTimeout: 64,
   maxBackpressure: 1024,
+  maxLifetime: 0,
+  sendPingsAutomatically: true,
   // maxPayloadLength: 512,
   compression: DEDICATED_COMPRESSOR_3KB,
+  ping(ws, message) {
+    const connection = clientConnections.get(ws);
+    if(!connection){
+      console.warn('ping received from ws that wasnt in connection map:', message);
+      return;
+    }
+    console.log(`ping received from ${connection.username} (${connection.connectionId})`,Buffer.from(message).toString());
+  },
+  pong(ws, message) {
+    const connection = clientConnections.get(ws);
+    if(!connection){
+      console.warn('pong received from ws that wasnt in connection map:', Buffer.from(message).toString());
+      return;
+    }
+    console.log(`pong received from ${connection.username} (${connection.connectionId})`, Buffer.from(message).toString());
+  },
 
   message: (ws, message) => {
     const asString = Buffer.from(message).toString();

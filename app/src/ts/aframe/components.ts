@@ -8,6 +8,7 @@ import hoverHighlight from './hover-highlight';
 import mediastreamAudioSource from './mediastream-audio-source';
 import modelOpacity from './model-opacity';
 import grid from './grid';
+import followPosition from './follow-position';
 
 let componentsAreRegistered = false;
 
@@ -26,9 +27,10 @@ const registerComponents = () => {
   mediastreamAudioSource();
   modelOpacity();
   grid();
+  followPosition();
 
   // @ts-ignore
-  import('aframe-environment-component');
+  // import('aframe-environment-component');
   
   // @ts-ignore
   // import('aframe-extras');

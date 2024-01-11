@@ -30,7 +30,7 @@
       ref="environmentEntityTag"
       :environment="`preset: tron; dressing: none; active:${!freezeableCameraStore.is360Camera};`"
     /> -->
-    <a-sky color="#090F14" />
+    <!-- <a-sky color="#090F14" /> -->
     <a-grid :visible="!freezeableCameraStore.is360Camera" />
     <a-entity
       ref="cameraRigTag"
@@ -39,6 +39,7 @@
       <a-camera
         wasd-controls-enabled="true"
         ref="cameraTag"
+        id="camera"
         reverse-mouse-drag="true"
         :look-controls-enabled="!movedPortalCameraId && !isViewOriginMoved && !cameraIsAnimating"
       >
@@ -103,8 +104,8 @@
       </a-entity>
     </a-entity>
     <a-entity       
-      position="0 1.6 0"
       rotation="0 0 0"
+      follow-position="#camera"
     >
       <a-entity
         :visible="freezeableCameraStore.is360Camera"
@@ -518,6 +519,7 @@ onMounted(async () => {
   sceneTag.value?.setAttribute('raycaster', {objects: '.clickable'});
   sceneTag.value?.setAttribute('cursor', {fuse:false, rayOrigin: 'mouse'});
   sceneTag.value?.setAttribute('xr-mode-ui', {enabled: !props.editable});
+  sceneTag.value?.setAttribute('background', {color: '#090F14' });
 
   await loadStuff();
   document.addEventListener('mouseup', onMouseUp);

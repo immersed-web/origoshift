@@ -76,14 +76,15 @@
       >
         <pre>{{ cropRange }}</pre>
         <div class="my-6  w-full">
+          <!-- NOTE: Be sure to keep the slider at step size 5. Otherwise you might end up with a weird chrome? bug in the worker were "x is not sample aligned in plane 1" -->
           <tc-range-slider
             ref="FOVSlider"
-            step="1"
             round="0"
             slider-width="100%"
             slider-height="1rem"
             value1="0"
             value2="100"
+            step="5"
             mousewheel-disabled="true"
           />
           <!-- <OButton class="bg-emerald-500">
@@ -153,7 +154,9 @@ import type { ProducerInfo } from 'schemas/mediasoup';
 import { useVenueStore } from '@/stores/venueStore';
 import { useSenderStore } from '@/stores/senderStore';
 import { useSoupStore } from '@/stores/soupStore';
-import { useIntervalFn, useDebounceFn } from '@vueuse/core';
+import { useIntervalFn, useDebounceFn, useWebWorker } from '@vueuse/core';
+import VideoFrameWorker from '@/ts/videoFrameWorker?worker';
+import type { VideoFrameWorkerMessageData } from '@/ts/videoFrameWorker';
 import 'toolcool-range-slider';
 
 const senderStore = useSenderStore();
@@ -161,6 +164,9 @@ const venueStore = useVenueStore();
 
 const router = useRouter();
 const soup = useSoupStore();
+
+const wrkr = new VideoFrameWorker({name: 'crop that shit!'});
+// const { terminate, post } = useWebWorker(new VideoFrameWorker({name: 'crop video'}));
 
 const { pause } = useIntervalFn(async () => {
   try {
@@ -180,6 +186,7 @@ const { pause } = useIntervalFn(async () => {
 
 onBeforeUnmount(() => {
   venueStore.leaveVenue();
+  wrkr.terminate();
 });
 
 const videoTag = ref<HTMLVideoElement>();
@@ -234,15 +241,22 @@ async function startAudio(audioDevice: MediaDeviceInfo){
 }
 
 const cropRange = reactive([0, 100]);
+
 function setCropRange(evt: CustomEvent) {
-  console.log(evt.detail.values);
+  // console.log(evt.detail.values);
   cropRange[0] = (evt.detail.values[0]);
   cropRange[1] = (evt.detail.values[1]);
+  const message: VideoFrameWorkerMessageData = {
+    crop: {
+      xStart: cropRange[0] * 0.01,
+      xEnd: cropRange[1] * 0.01,
+    },
+  };
+  wrkr.postMessage(message);
 
   debouncedFOVUpdate();
 }
 const sourceVideoTrack = shallowRef<MediaStreamTrack>();
-// eslint-disable-next-line no-undef
 let transformedVideoTrack: MediaStreamVideoTrack;
 
 const videoInfo = computed(() => {
@@ -273,76 +287,25 @@ async function startVideo(videoDevice: MediaDeviceInfo){
   const [vTrack] = await stream.getVideoTracks();
   sourceVideoTrack.value = vTrack;
   
-  // // eslint-disable-next-line no-undef
-  // const streamProcessor = new MediaStreamTrackProcessor({track: vTrack});
-  // const { readable } = streamProcessor;
+  const streamProcessor = new MediaStreamTrackProcessor({track: vTrack});
+  const { readable } = streamProcessor;
   
-  // // eslint-disable-next-line no-undef
-  // const videoTrackGenerator = new MediaStreamTrackGenerator({kind: 'video'});
-  // const { writable } = videoTrackGenerator;
+  const videoTrackGenerator = new MediaStreamTrackGenerator({kind: 'video'});
+  const { writable } = videoTrackGenerator;
   
-  let mostRecentUsableCrop: {x:number, width: number} = {x:0, width:100};
-  // eslint-disable-next-line no-undef
-  function transform(frame: VideoFrame, controller: TransformStreamDefaultController) {
-    const dimensions = videoInfo.value;
-    if(!dimensions?.width || !dimensions?.height) {
-      console.log('no videodimensions available. passing frames through');
-      controller.enqueue(frame);
-      // frame.close();
-      return;
-    }
-    const x = Math.trunc(dimensions.width * cropRange[0]*0.01);
-    const width = Math.trunc(dimensions.width * (cropRange[1]-cropRange[0])*0.01);
-    // console.log('croprange:', cropRange);
-    // console.log('transform parameters', {x, width});
-    // Cropping from an existing video frame is supported by the API in Chrome 94+.
-    // eslint-disable-next-line no-undef
-    try{
-      // @ts-ignore
-      // eslint-disable-next-line no-undef
-      const newFrame = new VideoFrame(frame, {
-        visibleRect: {
-          x,
-          width,
-          y: 0,
-          height: dimensions.height,
-        },
-      });
-      controller.enqueue(newFrame);
-      mostRecentUsableCrop = {x, width};
-      frame.close();
-    } catch(e) {
-      console.error(x, mostRecentUsableCrop, e);
-      // controller.enqueue(frame);
-      try {
+  const message: VideoFrameWorkerMessageData = {
+    streams: {
+      readable,
+      writable,
+    },
+  };
+  wrkr.postMessage(message, [readable, writable]);
+  
+  const transformedStream = new MediaStream([videoTrackGenerator]);
+  
+  transformedVideoTrack = videoTrackGenerator;
+  videoTag.value!.srcObject = transformedStream;
 
-        // @ts-ignore
-        // eslint-disable-next-line no-undef
-        const newFrame = new VideoFrame(frame, {
-          visibleRect: {
-            x: mostRecentUsableCrop.x,
-            width: Math.min(width, dimensions.width-mostRecentUsableCrop.x),
-            y: 0,
-            height: dimensions.height,
-          },
-        });
-        controller.enqueue(newFrame);
-        frame.close();
-      }catch(e) {
-        console.error('recovery transform failed also', e, mostRecentUsableCrop);
-        controller.enqueue(frame);
-      }
-    }
-  }
-  // readable.pipeThrough(new TransformStream({transform})).pipeTo(writable);
-  
-  // const transformedStream = new MediaStream([videoTrackGenerator]);
-  
-  // sourceVideoTrack.value = videoTrackGenerator;
-  // transformedVideoTrack = videoTrackGenerator;
-  // videoTag.value!.srcObject = transformedStream;
-
-  videoTag.value!.srcObject = stream;
   videoTag.value!.play();
 
   const producerInfo: ProducerInfo = {
@@ -350,14 +313,11 @@ async function startVideo(videoDevice: MediaDeviceInfo){
     isPaused: false,
   };
   if(soup.videoProducer.producer){
-    // await soup.replaceVideoProducerTrack(transformedVideoTrack);
-    await soup.replaceVideoProducerTrack(sourceVideoTrack.value);
+    await soup.replaceVideoProducerTrack(transformedVideoTrack);
   }else{
-    // const restoredProducerId = senderStore.savedProducers.get(deviceId)?.producerId;
     await soup.produce({
       // producerId: restoredProducerId,
-      // track: transformedVideoTrack,
-      track: sourceVideoTrack.value,
+      track: transformedVideoTrack,
       producerInfo,
     });
     // senderStore.savedProducers.set(deviceId, {deviceId, producerId, type: 'video'});
@@ -386,6 +346,7 @@ onMounted(async () => {
   });
 
   FOVSlider.value?.addEventListener('change', (evt) => setCropRange(evt as CustomEvent));
+  FOVSlider.value!.step = 5;
 });
 
 async function requestPermission() {

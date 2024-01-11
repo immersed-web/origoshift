@@ -295,6 +295,12 @@ export class BaseClient {
       //   objectId: transport.id,
       // }));
     });
+    transport.addListener('iceselectedtuplechange', (iceSelectedTuple) => {
+      log.info('transport event: iceselectedchange', iceSelectedTuple);
+    });
+    transport.addListener('icestatechange', (iceState) => {
+      log.info('transport event: icestatechange', iceState);
+    });
     if(direction == 'receive'){
       if(this.receiveTransport){
         throw Error('receiveTransport already exists! No bueno');

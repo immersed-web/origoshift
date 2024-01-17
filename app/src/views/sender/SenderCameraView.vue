@@ -162,7 +162,6 @@ import 'toolcool-range-slider';
 const senderStore = useSenderStore();
 const venueStore = useVenueStore();
 
-const router = useRouter();
 const soup = useSoupStore();
 
 const wrkr = new VideoFrameWorker({name: 'crop that shit!'});
@@ -252,12 +251,18 @@ function setCropRange(evt: CustomEvent) {
       xEnd: cropRange[1] * 0.01,
     },
   };
+  if(cropRange[0] === 0 && cropRange[1] === 100){
+    //skip frame transformation
+    console.log('TODO. change so we skip frame transformation');
+    // soup.replaceVideoProducerTrack(sourceVideoTrack.value);
+    // wrkr.terminate();
+  }
   wrkr.postMessage(message);
 
   debouncedFOVUpdate();
 }
-const sourceVideoTrack = shallowRef<MediaStreamTrack>();
-let transformedVideoTrack: MediaStreamVideoTrack;
+const sourceVideoTrack = shallowRef<MediaStreamVideoTrack>();
+let sendingVideoTrack: MediaStreamVideoTrack;
 
 const videoInfo = computed(() => {
   if(!sourceVideoTrack.value) return undefined;
@@ -287,6 +292,7 @@ async function startVideo(videoDevice: MediaDeviceInfo){
   const [vTrack] = await stream.getVideoTracks();
   sourceVideoTrack.value = vTrack;
   
+  // Transformation (crop) part
   const streamProcessor = new MediaStreamTrackProcessor({track: vTrack});
   const { readable } = streamProcessor;
   
@@ -303,8 +309,12 @@ async function startVideo(videoDevice: MediaDeviceInfo){
   
   const transformedStream = new MediaStream([videoTrackGenerator]);
   
-  transformedVideoTrack = videoTrackGenerator;
+  sendingVideoTrack = videoTrackGenerator;
   videoTag.value!.srcObject = transformedStream;
+  
+  // // Dont use transformation (crop):
+  // sendingVideoTrack = sourceVideoTrack.value;
+  // videoTag.value!.srcObject = stream;
 
   videoTag.value!.play();
 
@@ -313,11 +323,11 @@ async function startVideo(videoDevice: MediaDeviceInfo){
     isPaused: false,
   };
   if(soup.videoProducer.producer){
-    await soup.replaceVideoProducerTrack(transformedVideoTrack);
+    await soup.replaceVideoProducerTrack(sendingVideoTrack);
   }else{
     await soup.produce({
       // producerId: restoredProducerId,
-      track: transformedVideoTrack,
+      track: sendingVideoTrack,
       producerInfo,
     });
     // senderStore.savedProducers.set(deviceId, {deviceId, producerId, type: 'video'});

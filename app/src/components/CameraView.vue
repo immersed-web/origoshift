@@ -48,7 +48,7 @@
           ref="curtainTag"
           radius="0.1"
           @loaded="onCurtainLoaded" 
-          material="transparent: true; color: black; opacity: 0.0;"
+          material="transparent: true; color: black; opacity: 1.0;"
           animation__to_black="property: material.opacity; from: 0.0; to: 1.0; dur: 500; startEvents: fadeToBlack"
           animation__from_black="property: material.opacity; from: 1.0; to: 0.0; dur: 500; startEvents: fadeFromBlack"
         />
@@ -75,6 +75,7 @@
         :position="`0 ${videoHeight/2} ${-cinemaDistance}`"
       >
         <a-video
+          :visible="activeVideoTag"
           ref="aVideoTag"
           crossorigin="anonymous"
           :width="fixedWidth"
@@ -528,7 +529,9 @@ onMounted(async () => {
   sceneTag.value?.setAttribute('xr-mode-ui', {enabled: !props.editable});
   sceneTag.value?.setAttribute('background', {color: '#090F14' });
 
-  await loadStuff();
+  if(soup.userHasInteracted){
+    await loadStuff();
+  }
   document.addEventListener('mouseup', onMouseUp);
   document.addEventListener('pointermove', onMouseMove);
 
@@ -575,11 +578,11 @@ function onMouseMove(ev: MouseEvent){
     camera.currentCamera.viewOrigin.x = (1.0 + newX) % 1.0;
     camera.currentCamera.viewOrigin.y += ev.movementY * ySpeed;
   } else
-  if(movedPortalCameraId.value) {
-    const newX = camera.currentCamera.portals[movedPortalCameraId.value].x + ev.movementX * xSpeed;
-    camera.currentCamera.portals[movedPortalCameraId.value].x = (1.0 + newX) % 1.0;
-    camera.currentCamera.portals[movedPortalCameraId.value].y += ev.movementY * ySpeed;
-  }
+    if(movedPortalCameraId.value) {
+      const newX = camera.currentCamera.portals[movedPortalCameraId.value].x + ev.movementX * xSpeed;
+      camera.currentCamera.portals[movedPortalCameraId.value].x = (1.0 + newX) % 1.0;
+      camera.currentCamera.portals[movedPortalCameraId.value].y += ev.movementY * ySpeed;
+    }
 }
 
 function onMouseUp(evt: Event){

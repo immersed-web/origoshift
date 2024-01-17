@@ -195,7 +195,7 @@
 import { useRouter } from 'vue-router';
 import { useSoupStore } from '@/stores/soupStore';
 import type { CameraId, VenueId } from 'schemas';
-import { onBeforeUnmount, onMounted, ref, shallowReactive, shallowRef, watch, inject } from 'vue';
+import { onBeforeUnmount, onMounted, ref, shallowRef, watch, inject } from 'vue';
 import { computedWithControl } from '@vueuse/core';
 import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
@@ -519,6 +519,8 @@ function setCameraRotation(angleX: number, angleY: number){
 watch(() => props.cameraId, () => {
   console.log('cameraId updated');
   loadStuff();
+}, {
+  immediate: true,
 });
 
 onMounted(async () => {
@@ -529,9 +531,6 @@ onMounted(async () => {
   sceneTag.value?.setAttribute('xr-mode-ui', {enabled: !props.editable});
   sceneTag.value?.setAttribute('background', {color: '#090F14' });
 
-  if(soup.userHasInteracted){
-    await loadStuff();
-  }
   document.addEventListener('mouseup', onMouseUp);
   document.addEventListener('pointermove', onMouseMove);
 

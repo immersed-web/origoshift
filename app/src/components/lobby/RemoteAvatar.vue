@@ -22,6 +22,9 @@
         position="0 3 0"
         :color="distanceColor"
       />
+      <!-- <a-entity>
+        <a-entity gltf-model="/models/avatar/Body1.glb)" />
+      </a-entity> -->
       <a-entity
         gltf-model="#avatar-asset"
         position="0 -1.5 0"

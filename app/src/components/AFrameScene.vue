@@ -23,7 +23,7 @@
     >
       <a-asset-item
         id="avatar-asset"
-        src="/models/avatar/Character_Base_Mesh_5.glb"
+        src="/models/avatar/body/Body1.glb"
       />
       <a-mixin
         id="fade-to-from-black"

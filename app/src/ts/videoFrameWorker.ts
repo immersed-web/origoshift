@@ -8,6 +8,10 @@ let mostRecentUsableCrop: {x:number, width: number} = {x:0, width:100};
 function transform(frame: VideoFrame, controller: TransformStreamDefaultController) {
   const x = Math.trunc(frame.displayWidth * crop.xStart);
   const width = Math.trunc(frame.displayWidth * (crop.xEnd - crop.xStart));
+  if(crop.xStart === 0 && crop.xEnd === 1.0) {
+    controller.enqueue(frame);
+    return;
+  }
   // Cropping from an existing video frame is supported by the API in Chrome 94+.
   try{
     const newFrame = new VideoFrame(frame, {

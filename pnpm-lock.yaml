@@ -225,6 +225,7 @@ importers:
       date-fns: ^2.29.3
       debug-level: 3.0.0-1
       eslint: ^8.0.1
+      h264-profile-level-id: ^2.0.0
       ip: ^1.1.8
       lodash: ^4.17.21
       node-dev: ^7.4.3
@@ -240,6 +241,7 @@ importers:
       database: link:../database
       date-fns: 2.29.3
       debug-level: 3.0.0-1
+      h264-profile-level-id: 2.0.0
       ip: 1.1.8
       lodash: 4.17.21
       schemas: link:../../packages/schemas
@@ -5813,6 +5815,16 @@ packages:
   /growly/1.3.0:
     resolution: {integrity: sha512-+xGQY0YyAWCnqy7Cd++hc2JqMYzlm0dG30Jd0beaA64sROr8C4nt8Yc9V5Ro3avlSUDTN0ulqP/VBKi1/lLygw==}
     dev: true
+
+  /h264-profile-level-id/2.0.0:
+    resolution: {integrity: sha512-X4CLryVbVA0CtjTExS4G5U1gb2Z4wa32AF8ukVmFuLdw2JRq2aHisor7SY5SYTUUrUSqq0KdPIO18sql6IWIQw==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@types/debug': 4.1.12
+      debug: 4.3.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
 
   /h264-profile-level-id/2.0.0_supports-color@9.4.0:
     resolution: {integrity: sha512-X4CLryVbVA0CtjTExS4G5U1gb2Z4wa32AF8ukVmFuLdw2JRq2aHisor7SY5SYTUUrUSqq0KdPIO18sql6IWIQw==}

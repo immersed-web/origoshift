@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build-and-check": "run-p type-check \"build {@}\" --",
-    "preview": "vite preview",
+    "preview": "vite preview --port 5173",
     "test:e2e": "start-server-and-test preview :4173 'cypress run --e2e'",
     "build": "vite build",
     "type-check": "vue-tsc --build --force",

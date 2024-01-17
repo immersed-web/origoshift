@@ -180,6 +180,8 @@
         :id="`main-video-${n}`"
         :class="{'rotate-180': freezeableCameraStore.isRoofMounted}"
         crossorigin="anonymous"
+        playsinline
+        webkit-playsinline
       />
     </div>
     <audio
@@ -221,7 +223,7 @@ const { domOutlet, sceneTag } = inject(aFrameSceneProvideKey)!;
 
 const router = useRouter();
 
-const videoTags = shallowReactive<HTMLVideoElement[]>([]);
+const videoTags = ref<Array<HTMLVideoElement>>([]);
 const audioTag = ref<HTMLAudioElement>();
 
 // const sceneTag = ref<Scene>();
@@ -260,11 +262,15 @@ const activeVideoTag = shallowRef<HTMLVideoElement>();
 async function consumeAndHandleResult() {
   activeVideoTag.value?.pause();
   const rcvdTracks = await camera.consumeCurrentCamera();
+  // console.log(videoTags.value);
   ++activeVideoTagIndex;
   activeVideoTagIndex %= 2;
-  activeVideoTag.value = videoTags[activeVideoTagIndex];
-  const vtag = activeVideoTag.value;
-  if(!vtag) return;
+  const vtag: HTMLVideoElement | undefined = videoTags.value[activeVideoTagIndex] as HTMLVideoElement | undefined;
+  if(!vtag) {
+    console.error('no vtag found in consumeAndHandleResult! Returning');
+    return;
+  }
+  activeVideoTag.value = vtag;
 
   if(!rcvdTracks?.videoTrack && !import.meta.env.DEV ){
     console.error('no videotrack from camera');
@@ -284,6 +290,7 @@ async function consumeAndHandleResult() {
     vtag.loop = false;
     vtag.srcObject = new MediaStream([rcvdTracks.videoTrack]);
   }
+  // console.log('vTag', vtag);
   vtag.play();
   vtag.addEventListener('playing', () => {
     // console.log('playing event triggered.');
@@ -296,7 +303,7 @@ async function consumeAndHandleResult() {
 
 let fallbackTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 function onCurtainStateChanged() {
-  if(videoTags[activeVideoTagIndex].paused
+  if(videoTags.value[activeVideoTagIndex].paused
     || isFadingToBlack 
     || isZoomingInOnPortal 
   ){
@@ -568,11 +575,11 @@ function onMouseMove(ev: MouseEvent){
     camera.currentCamera.viewOrigin.x = (1.0 + newX) % 1.0;
     camera.currentCamera.viewOrigin.y += ev.movementY * ySpeed;
   } else
-    if(movedPortalCameraId.value) {
-      const newX = camera.currentCamera.portals[movedPortalCameraId.value].x + ev.movementX * xSpeed;
-      camera.currentCamera.portals[movedPortalCameraId.value].x = (1.0 + newX) % 1.0;
-      camera.currentCamera.portals[movedPortalCameraId.value].y += ev.movementY * ySpeed;
-    }
+  if(movedPortalCameraId.value) {
+    const newX = camera.currentCamera.portals[movedPortalCameraId.value].x + ev.movementX * xSpeed;
+    camera.currentCamera.portals[movedPortalCameraId.value].x = (1.0 + newX) % 1.0;
+    camera.currentCamera.portals[movedPortalCameraId.value].y += ev.movementY * ySpeed;
+  }
 }
 
 function onMouseUp(evt: Event){

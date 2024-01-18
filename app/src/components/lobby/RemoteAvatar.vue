@@ -22,14 +22,25 @@
         position="0 3 0"
         :color="distanceColor"
       />
-      <!-- <a-entity>
-        <a-entity gltf-model="/models/avatar/Body1.glb)" />
-      </a-entity> -->
       <a-entity
+        rotation="0 180 0"
+      >
+        <a-entity position="0 0 0">
+          <a-entity gltf-model="url(/models/avatar/head/Head1.glb)" />
+          <!-- <a-entity :gltf-model="`url(/models/avatar/eyes/Eyes${Math.trunc(Math.random()+1.5)}.glb)`" /> -->
+          <a-entity gltf-model="url(/models/avatar/eyes/Eyes1.glb)" />
+          <a-entity gltf-model="url(/models/avatar/mouth/Mouth1.glb)" />
+        </a-entity>
+        <a-entity lock-rotation-axis>
+          <a-entity gltf-model="url(/models/avatar/body/Body1.glb)" />
+          <a-entity gltf-model="url(/models/avatar/vehicle/Car1.glb)" />
+        </a-entity>
+      </a-entity>
+      <!-- <a-entity
         gltf-model="#avatar-asset"
         position="0 -1.5 0"
         rotation="0 180 0"
-      />
+      /> -->
       <audio
         ref="dummyAudioTag"
         muted

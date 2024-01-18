@@ -9,6 +9,7 @@ import mediastreamAudioSource from './mediastream-audio-source';
 import modelOpacity from './model-opacity';
 import grid from './grid';
 import followPosition from './follow-position';
+import lockRotationAxis from './lock-rotation-axis';
 
 let componentsAreRegistered = false;
 
@@ -28,6 +29,7 @@ const registerComponents = () => {
   modelOpacity();
   grid();
   followPosition();
+  lockRotationAxis();
 
   // @ts-ignore
   // import('aframe-environment-component');

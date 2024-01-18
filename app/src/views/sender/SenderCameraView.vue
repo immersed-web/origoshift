@@ -1,22 +1,24 @@
 <template>
-  <pre>
+  <!-- <pre>
     {{ senderStore.senderId }}
-  </pre>
-  <button
-    @click="$router.replace({name: 'senderPickVenue'})"
-    class="btn"
-  >
-    Byt evenemang
-  </button>
+  </pre> -->
+  <div class="flex gap-3 items-center">
+    <div
+      class="my-6 text-2xl"
+    >
+      <span class="">Sänder till: </span><span class="font-bold">{{ venueStore.currentVenue.name }}</span>
+    </div>
+    <button
+      @click="$router.replace({name: 'senderPickVenue'})"
+      class="btn btn-sm btn-primary"
+    >
+      Byt evenemang
+    </button>
+  </div>
   <div v-if="!venueStore.currentVenue">
-    Waiting for venue {{ venueStore.savedVenueId }} to get loaded...
+    Väntar på att evenemanget ska laddas...
   </div>
   <template v-else>
-    <div
-      class="m-6 text-6xl"
-    >
-      {{ venueStore.currentVenue.name }}
-    </div>
     <button
       v-if="permissionState !== 'granted'"
       @click="requestPermission"
@@ -25,11 +27,11 @@
       Request camera access
     </button>
     <div v-else>
-      <pre>
+      <!-- <pre>
         Permission state: {{ permissionState }}
         Video info: {{ videoInfo }}
         Mediasoup device loaded: {{ soup.deviceLoaded }}
-      </pre>
+      </pre> -->
       <div class="form-control w-fit">
         <label class="label cursor-pointer">
           <input
@@ -37,7 +39,7 @@
             type="checkbox"
             class="toggle"
           >
-          <span class="label-text ">Stereoljud<span
+          <span class="label-text flex items-center ml-2">Stereoljud<span
             class="tooltip"
             data-tip="Tänk på att stereo kräver mer bandbredd så använd bara om nödvändigt"
           >
@@ -74,10 +76,11 @@
         id="video-crop-container"
         class="w-full"
       >
-        <pre>{{ cropRange }}</pre>
+        <!-- <pre>{{ cropRange }}</pre> -->
         <div class="my-6  w-full">
           <!-- NOTE: Be sure to keep the slider at step size 5. Otherwise you might end up with a weird chrome? bug in the worker were "x is not sample aligned in plane 1" -->
           <tc-range-slider
+            v-show="sourceVideoTrack"
             ref="FOVSlider"
             round="0"
             slider-width="100%"

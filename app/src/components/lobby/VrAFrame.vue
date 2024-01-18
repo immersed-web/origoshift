@@ -47,6 +47,7 @@
         @click="navmeshClicked"
         raycaster-listen
         @raycast-change="navmeshHovered"
+        @raycast-out="navmeshNotHovered"
         model-opacity="0.7"
         :visible="showNavMesh"
       />
@@ -58,7 +59,10 @@
       radius="0.25"
     /> -->
 
-    <a-entity id="teleportPreview">
+    <a-entity
+      visible="false"
+      id="teleportPreview"
+    >
       <a-ring
         color="teal"
         radius-inner="1"
@@ -388,6 +392,11 @@ function navmeshHovered(e: THREE.Event) {
   previewTeleport(e.detail.point);
 }
 
+function navmeshNotHovered() {
+  const teleportRing = document.querySelector('#teleportPreview');
+  teleportRing.setAttribute('visible', false);
+}
+
 function teleportTo (point: THREE.Vector3){
   console.log(point);
   playerOriginTag.value?.setAttribute('position', aframeUtils.coordinates.stringify(point));
@@ -398,6 +407,7 @@ function teleportTo (point: THREE.Vector3){
 function previewTeleport (point: THREE.Vector3){
   const teleportRing = document.querySelector('#teleportPreview');
   teleportRing.setAttribute('position', point);
+  teleportRing.setAttribute('visible', true);
 }
 
 </script>

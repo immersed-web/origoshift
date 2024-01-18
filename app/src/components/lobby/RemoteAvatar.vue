@@ -16,12 +16,12 @@
         position="1 1 0"
         side="double"
       />
-      <a-circle
+      <!-- <a-circle
         side="double"
         class="audio-level"
         position="0 3 0"
         :color="distanceColor"
-      />
+      /> -->
       <a-entity
         rotation="0 180 0"
       >
@@ -29,7 +29,10 @@
           <a-entity gltf-model="url(/models/avatar/head/Head1.glb)" />
           <!-- <a-entity :gltf-model="`url(/models/avatar/eyes/Eyes${Math.trunc(Math.random()+1.5)}.glb)`" /> -->
           <a-entity gltf-model="url(/models/avatar/eyes/Eyes1.glb)" />
-          <a-entity gltf-model="url(/models/avatar/mouth/Mouth1.glb)" />
+          <a-entity
+            class="audio-level"
+            gltf-model="url(/models/avatar/mouth/Mouth1.glb)"
+          />
         </a-entity>
         <a-entity lock-rotation-axis>
           <a-entity gltf-model="url(/models/avatar/body/Body1.glb)" />

@@ -39,6 +39,8 @@ export default () => {
     init: function () {
       const el = this.el;
       const sceneEl: Scene & {audioListener?: THREE.AudioListener} = el.sceneEl!;
+      
+      this.tick = AFRAME.utils.throttleTick(this.tick, 20, this);
 
       //this makes sure we ever only have one audioListener
       if (!sceneEl.audioListener) {
@@ -61,7 +63,7 @@ export default () => {
       this.setPannerProperties();
       console.log('mediastream-audio-source initialized');
     },
-    tick(){
+    tick(time, timeDelta) {
       if(!this.analyzer){
         console.error('no analyzer!');
         return;
@@ -69,8 +71,16 @@ export default () => {
       const data = this.analyzer.getFrequencyData();
       let sum = 0;
       data.forEach(n => sum+= n);
-      this.audioLevel = sum * 0.005;
-      this.levelEntity?.object3D.scale.setScalar(1 + this.audioLevel);
+      this.audioLevel = sum * 0.0005;
+      // const scale = Math.min(1 + this.audioLevel, 1.5);
+      // this.levelEntity?.object3D.scale.set(scale, scale, 1);
+      // console.log(this.audioLevel);
+      if(this.audioLevel > 0.25){
+        const scale = Math.random() * 0.5 + 1;
+        this.levelEntity?.object3D.scale.set(scale, scale, 1);
+      } else {
+        this.levelEntity?.object3D.scale.set(1, 1, 1);
+      }
     },
     update() {
       this.setPannerProperties();

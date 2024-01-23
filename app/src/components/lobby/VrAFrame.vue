@@ -145,7 +145,7 @@
 
 <script setup lang="ts">
 import { type Scene, type Entity, type EntityEventMap, type DetailEvent, utils as aframeUtils } from 'aframe';
-import { ref, onMounted, computed, onBeforeUnmount, inject } from 'vue';
+import { ref, onMounted, onBeforeMount, computed, onBeforeUnmount, inject } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import type { ClientTransform } from 'schemas';
 // import type { Unsubscribable } from '@trpc/server/observable';
@@ -218,26 +218,12 @@ const entranceRotation = computed(() => {
 
 const entranceMessage = ref('');
 
-onMounted(async () => {
-  sceneTag.value!.setAttribute('raycaster', {objects: '.clickable'});
-  sceneTag.value!.setAttribute('cursor', {rayOrigin: 'mouse', fuse: false});
-
-  // WebXR Immersive navigation handler.
-  // if (navigator.xr && navigator.xr.addEventListener) {
-  //   console.log('listening to sessiongranted');
-  //   navigator.xr.addEventListener('sessiongranted', function () {
-  //     entranceMessage.value = 'session granted!!!';
-  //   });
-  // }
-
-  if(!vrSpaceStore.currentVrSpace) {
-    await vrSpaceStore.enterVrSpace();
-  }
+onBeforeMount(async () => {
+  // console.log('onBeforeMount');
   if(!soupStore.deviceLoaded){
     await soupStore.loadDevice();
   }
   await soupStore.createReceiveTransport();
-  
   try{
     await soupStore.createSendTransport();
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -253,6 +239,18 @@ onMounted(async () => {
   } catch(e){
     console.error('failed to setup the mediasoup stuff');
   }
+  if(!vrSpaceStore.currentVrSpace) {
+    await vrSpaceStore.enterVrSpace();
+  }
+  // console.log('onBeforeMount completed');
+});
+
+onMounted(async () => {
+  // console.log('onMounted');
+  sceneTag.value!.setAttribute('raycaster', {objects: '.clickable'});
+  sceneTag.value!.setAttribute('cursor', {rayOrigin: 'mouse', fuse: false});
+
+  // console.log('onMounted completed');
 });
 
 onBeforeUnmount(async () => {

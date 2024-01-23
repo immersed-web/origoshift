@@ -323,6 +323,7 @@ export const useSoupStore = defineStore('soup', () =>{
   }
 
   async function consume (producerId: ProducerId) {
+    // console.log('consume called!');
     if (!producerId) {
       throw Error('consume called without producerId! Please provide one!');
     }
@@ -331,6 +332,8 @@ export const useSoupStore = defineStore('soup', () =>{
       console.log('re-using already existing consumer');
       return { track: foundConsumer.consumer.track, consumerId: foundConsumer.consumer.id as ConsumerId};
     }
+    // console.log(`gonna request to consume producer:${producerId}`);
+
     const consumerOptions = await connectionStore.client.soup.createConsumer.mutate({producerId});
 
     return await _handleReceivedConsumerOptions(consumerOptions);
@@ -352,8 +355,8 @@ export const useSoupStore = defineStore('soup', () =>{
       }
       console.error('consumer existed in backend but not in frontend. Not good!');
     }
-    const consumer = await receiveTransport.value.consume(consumerOptions);
     console.assert(!consumers.has(consumerOptions.producerId), 'a new consumer was created in backend but one for that producer already existed in frontend. This is REEEEAAAAL BAAAD. What have you done Gunhaxxor?');
+    const consumer = await receiveTransport.value.consume(consumerOptions);
     const consumerData: ConsumerData = {
       consumer: markRaw(consumer),
     };

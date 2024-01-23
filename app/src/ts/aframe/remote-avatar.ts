@@ -97,12 +97,12 @@ export default () => {
       if(!this.isNearRange && this.distance <= threshold){
         this.isNearRange = true;
         // console.log('I am close', this.el);
-        this.el.emit('near-range-entered', this.distance);
+        this.el.emit('near-range-entered', this.distance, false);
       }
       else if(this.isNearRange && this.distance > threshold + hysteresis){
         this.isNearRange = false;
         // console.log('No longer close', this.el);
-        this.el.emit('near-range-exited', this.distance);
+        this.el.emit('near-range-exited', this.distance, false);
       }
     },
   });

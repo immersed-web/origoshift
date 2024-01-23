@@ -97,10 +97,10 @@ const soupStore = useSoupStore();
 // Distance to client camera callbacks
 const distanceColor = ref('white');
 async function onNearRangeEntered (e: CustomEvent<number>){
+  // console.log('onNearRangeEntered called', e.detail);
   distanceColor.value = 'green';
   if(stream.value) return;
   stream.value = await getStreamFromProducerId(producerId.value);
-  console.log('Came close', e.detail);
 }
 
 function onNearRangeExited (e: CustomEvent<number>){
@@ -134,7 +134,7 @@ const rightHandTag = ref<Entity>();
 const dummyAudioTag = ref<HTMLAudioElement>();
 watch(() => props.clientInfo, (n, o) => console.log('remoteAvatar prop updated. new:', n, ' old:', o));
 watch(() => props.clientInfo.transform?.head, (newTransform) => {
-  console.log('head updated: ', newTransform?.position);
+  // console.log('head updated: ', newTransform?.position);
   // console.log('remote avatar transform updated!');
   if(!remoteAvatar.value) {
     console.error('could update avatar transform cause entityRef was undefined');
@@ -145,8 +145,8 @@ watch(() => props.clientInfo.transform?.head, (newTransform) => {
     return;
   }
   // console.log('emitting received transform to avatar entity');
-  remoteAvatar.value.emit('moveTo', {position: newTransform.position});
-  remoteAvatar.value.emit('rotateTo', {orientation: newTransform.orientation});
+  remoteAvatar.value.emit('moveTo', {position: newTransform.position}, false);
+  remoteAvatar.value.emit('rotateTo', {orientation: newTransform.orientation}, false);
 });
 
 function handleReceivedHandTransform(newTransform: Transform | undefined, oldTransform: Transform | undefined, handEntity: Entity) {
@@ -162,18 +162,18 @@ function handleReceivedHandTransform(newTransform: Transform | undefined, oldTra
     return;
   }
   // tansform was updated. Lets move the hand
-  handEntity.emit('moveTo', {position: newTransform.position});
-  handEntity.emit('rotateTo', {orientation: newTransform.orientation});
+  handEntity.emit('moveTo', {position: newTransform.position}, false);
+  handEntity.emit('rotateTo', {orientation: newTransform.orientation}, false);
 }
 
 watch(() => props.clientInfo.transform?.leftHand, (newTrsfm, oldT) => {
-  console.log('leftHand updated: ', newTrsfm);
+  // console.log('leftHand updated: ', newTrsfm);
   if(!leftHandTag.value) return;
   handleReceivedHandTransform(newTrsfm, oldT, leftHandTag.value);
 });
 
 watch(() => props.clientInfo.transform?.rightHand, (newTrsfm, oldT) => {
-  console.log('rightHand updated: ', newTrsfm);
+  // console.log('rightHand updated: ', newTrsfm);
   if(!rightHandTag.value) return;
   handleReceivedHandTransform(newTrsfm, oldT, rightHandTag.value);
 });
@@ -199,14 +199,14 @@ watch(stream, () => {
 
 const producerId = computed(() => props.clientInfo.producers.audioProducer?.producerId);
 
-watch(producerId, async (newAudioProducerId, oldAudioProducerId) => {
-  console.log('audioProducer was updated. new:', newAudioProducerId, ' old:', oldAudioProducerId);
-  if(!newAudioProducerId){
-    console.log('newProducer was undefined');
-    return;
-  }
-  stream.value = await getStreamFromProducerId(newAudioProducerId);
-}, {immediate: false});
+// watch(producerId, async (newAudioProducerId, oldAudioProducerId) => {
+//   console.log('audioProducer was updated. new:', newAudioProducerId, ' old:', oldAudioProducerId);
+//   if(!newAudioProducerId){
+//     console.log('newProducer was undefined');
+//     return;
+//   }
+//   stream.value = await getStreamFromProducerId(newAudioProducerId);
+// }, {immediate: false});
 
 async function onAvatarEntityLoaded(e: DetailEvent<any>){
   console.log('avatar a-entity loaded!');
@@ -226,8 +226,8 @@ async function onAvatarEntityLoaded(e: DetailEvent<any>){
   remoteAvatar.value.emit('setMediaStream', {stream: stream.value});
 }
 
-// TODO: dynamically consume/unconsume depending on near-range state.
 async function getStreamFromProducerId(producerId?: ProducerId){
+  // console.log('getStreamFromProducerId called');
   if(!producerId) return undefined;
   let consumerData = soupStore.consumers.get(producerId);
   if(!consumerData){

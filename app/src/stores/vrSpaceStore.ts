@@ -24,7 +24,7 @@ export const useVrSpaceStore = defineStore('vrSpace', () => {
   connection.client.vr.transform.subClientTransforms.subscribe(undefined, {
     onData(subscribeValue) {
       if(!currentVrSpace.value) return;
-      console.log('clientTransforms update received:', subscribeValue.data);
+      // console.log('clientTransforms update received:', subscribeValue.data);
       for(const [cId, tsfm] of Object.entries(subscribeValue.data)) {
         const cIdTyped = cId as ConnectionId;
         // if(cId === clientStore.clientState?.connectionId){

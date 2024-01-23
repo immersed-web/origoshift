@@ -4,24 +4,54 @@
     ref="avatarRootTag"
   >
     <a-entity
+      :id="`head-${props.clientInfo.connectionId}`"
       ref="remoteAvatar"
       remote-avatar="interpolationTime: 350;"
       mediastream-audio-source
       @near-range-entered="onNearRangeEntered"
       @near-range-exited="onNearRangeExited"
     >
+      <a-entity scale="2 2 2">
+        <a-entity
+          :id="`left-hand-${props.clientInfo.connectionId}`"
+          visible="false"
+          remote-avatar="interpolationTime: 350;"
+          ref="leftHandTag"
+        >
+          <a-entity
+            scale="0.05 0.05 0.05"
+            rotation="-20 90 -140"
+            gltf-model="url(/models/avatar/hands/low_poly_gloved_hand.glb)"
+          />
+          <a-entity
+            gltf-model="url(/models/controllers/oculus-touch-controller-left.gltf)"
+          />
+        </a-entity>
+      </a-entity>
+      <a-entity scale="2 2 2">
+        <a-entity
+          :id="`right-hand-${props.clientInfo.connectionId}`"
+          visible="false"
+          remote-avatar="interpolationTime: 350;"
+          ref="rightHandTag"
+        >
+          <a-entity
+            scale="0.05 0.05 -0.05"
+            rotation="20 90 -140"
+            gltf-model="url(/models/avatar/hands/low_poly_gloved_hand.glb)"
+          />
+          <a-entity
+            gltf-model="url(/models/controllers/oculus-touch-controller-right.gltf)"
+          />
+        </a-entity>
+      </a-entity>
+      
       <a-text
         class="distance-debug"
         value="unset"
         position="1 1 0"
         side="double"
       />
-      <!-- <a-circle
-        side="double"
-        class="audio-level"
-        position="0 3 0"
-        :color="distanceColor"
-      /> -->
       <a-entity
         rotation="0 180 0"
       >
@@ -39,31 +69,12 @@
           <a-entity gltf-model="url(/models/avatar/vehicle/Car1.glb)" />
         </a-entity>
       </a-entity>
-      <!-- <a-entity
-        gltf-model="#avatar-asset"
-        position="0 -1.5 0"
-        rotation="0 180 0"
-      /> -->
       <audio
         ref="dummyAudioTag"
         muted
         autoplay
         playsinline
       />
-    </a-entity>
-    <a-entity
-      visible="false"
-      remote-avatar="interpolationTime: 350;"
-      ref="leftHandTag"
-    >
-      <a-box scale="0.1 0.1 0.1" />
-    </a-entity>
-    <a-entity
-      visible="false"
-      remote-avatar="interpolationTime: 350;"
-      ref="rightHandTag"
-    >
-      <a-box scale="0.1 0.1 0.1" />
     </a-entity>
   </a-entity>
 </template>
@@ -82,8 +93,6 @@ const props = defineProps<{
   clientInfo:  NonNullable<ReturnType<typeof useVrSpaceStore>['currentVrSpace']>['clients'][ConnectionId]
 }>();
 const soupStore = useSoupStore();
-// Remote avatar
-// const scale = ref([Math.random(), Math.random(), Math.random()]);
 
 // Distance to client camera callbacks
 const distanceColor = ref('white');
@@ -125,6 +134,7 @@ const rightHandTag = ref<Entity>();
 const dummyAudioTag = ref<HTMLAudioElement>();
 watch(() => props.clientInfo, (n, o) => console.log('remoteAvatar prop updated. new:', n, ' old:', o));
 watch(() => props.clientInfo.transform?.head, (newTransform) => {
+  console.log('head updated: ', newTransform?.position);
   // console.log('remote avatar transform updated!');
   if(!remoteAvatar.value) {
     console.error('could update avatar transform cause entityRef was undefined');
@@ -134,7 +144,7 @@ watch(() => props.clientInfo.transform?.head, (newTransform) => {
     console.warn('clientInfo transform was undefined');
     return;
   }
-  console.log('emitting received transform to avatar entity');
+  // console.log('emitting received transform to avatar entity');
   remoteAvatar.value.emit('moveTo', {position: newTransform.position});
   remoteAvatar.value.emit('rotateTo', {orientation: newTransform.orientation});
 });

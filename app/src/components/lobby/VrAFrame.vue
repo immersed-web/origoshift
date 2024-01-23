@@ -110,14 +110,14 @@
         id="left-hand"
         laser-controls="hand:left"
         raycaster="objects: .clickable"
-        emit-move="interval: 20"
+        emit-move="interval: 20; relativeToCamera: true"
       />
       <a-entity
         ref="rightHandTag"
         id="right-hand"
         oculus-touch-controls="hand:right"
         blink-controls="cameraRig: #camera-rig; teleportOrigin: #camera; collisionEntities: #navmesh;"
-        emit-move="interval: 20"
+        emit-move="interval: 20; relativeToCamera: true"
       />
     </a-entity>
 
@@ -356,6 +356,7 @@ const currentTransform: ClientTransform = {
 };
 function onHeadMove(e: DetailEvent<ClientTransform['head']>) {
   // console.log('head moved');
+  // console.log(e.detail.position);
   currentTransform.head = e.detail;
   throttledTransformMutation();
 }
@@ -366,6 +367,8 @@ function onLeftHandMove(e: DetailEvent<ClientTransform['leftHand']>) {
 }
 function onRightHandMove(e: DetailEvent<ClientTransform['rightHand']>) {
   // console.log('right hand moved');
+  // console.log(e.detail?.orientation);
+  // console.log(e.detail?.position);
   currentTransform.rightHand = e.detail;
   throttledTransformMutation();
 }

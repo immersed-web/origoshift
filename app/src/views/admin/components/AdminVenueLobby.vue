@@ -8,29 +8,25 @@
         VR-lobby
       </h2>
       <button
-        v-if="venueStore.currentVenue?.vrSpace"
+        v-if="!venueStore.currentVenue?.vrSpace"
+        class="btn btn-primary"
+        @click="createVirtualSpace"
+      >
+        Lägg till VR-lobby
+      </button>
+      <!-- <button
+        v-else
         class="btn btn-primary"
         @click="openVirtualSpace"
         :disabled="!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel"
       >
         Gå in i VR-lobby
         <span class="ml-2 material-icons">open_in_new</span>
-      </button>
-      <button
-        v-else
-        class="btn btn-primary"
-        @click="createVirtualSpace"
-      >
-        Lägg till VR-lobby
-      </button>
+      </button> -->
     </div>
     <div
       v-auto-animate
     >
-      <p>
-        Inställningar för VR-lobby...
-      </p>
-      <!-- <pre> {{ venueStore.currentVenue?.vrSpace }}</pre> -->
       <div
         v-if="venueStore.currentVenue?.vrSpace"
         class="mt-4"

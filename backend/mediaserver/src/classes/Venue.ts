@@ -81,6 +81,7 @@ export class Venue {
   get doorsOpeningTime() { return this.prismaData.doorsOpeningTime; }
   get doorsAutoOpen() { return this.prismaData.doorsAutoOpen; }
   get doorsManuallyOpened() { return this.prismaData.doorsManuallyOpened; }
+  // Dont expose this as public state. Instead we'll use a reactive computed client-side to react when passing opening time.
   get doorsAreOpen() {
     if(this.prismaData.doorsAutoOpen){
       return this.prismaData.doorsOpeningTime && isPast(this.prismaData.doorsOpeningTime);
@@ -147,7 +148,7 @@ export class Venue {
     return this.clients.size === 0 && this.senderClients.size === 0;
   }
   getPublicState() {
-    const {venueId, name, visibility, doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, doorsAreOpen, streamStartTime, streamAutoStart, streamManuallyStarted, /*streamIsStarted*/ streamIsActive, mainCameraId } = this;
+    const {venueId, name, visibility, doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, /* doorsAreOpen, */ streamStartTime, streamAutoStart, streamManuallyStarted, /*streamIsStarted*/ streamIsActive, mainCameraId } = this;
     // log.info('Detached senders:', this.detachedSenders.value);
     // const cameraIds = Array.from(this.cameras.keys());
     const cameras: Record<CameraId, {
@@ -163,7 +164,7 @@ export class Venue {
     const mainAudioProducerId = this.mainAudioProducer.value?.producerId;
     return {
       venueId, name, visibility,
-      doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, doorsAreOpen,
+      doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, /* doorsAreOpen, */
       streamStartTime, streamAutoStart, streamManuallyStarted, /*streamIsStarted*/ streamIsActive,
       vrSpace: this.vrSpace?.getPublicState(),
       cameras,

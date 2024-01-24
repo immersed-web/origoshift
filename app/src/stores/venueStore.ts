@@ -4,6 +4,7 @@ import { ref, computed, type Ref } from 'vue';
 import type { Visibility } from 'database';
 import type { VenueId } from 'schemas';
 import { useConnectionStore } from '@/stores/connectionStore';
+import { useNow } from '@vueuse/core';
 
 type _ReceivedPublicVenueState = RouterOutputs['venue']['joinVenue'];
 
@@ -16,6 +17,7 @@ export type VisibilityDetails = {
 
 export const useVenueStore = defineStore('venue', () => {
   // console.log('VENUESTORE USE FUNCTION TRIGGERED');
+  const now = useNow();
   const connection = useConnectionStore();
   // const authStore = useAuthStore();
 
@@ -105,8 +107,19 @@ export const useVenueStore = defineStore('venue', () => {
   const currentVisibilityDetails = computed(() => {
     return visibilityOptions.value.find(o => o.visibility === currentVenue.value?.visibility);
   });
+  
+  const doorsAreOpen = computed(() => {
+    if(!currentVenue.value) return false;
+    if(currentVenue.value.doorsAutoOpen && currentVenue.value.doorsOpeningTime){
+      const isPast = currentVenue.value.doorsOpeningTime.getTime() < now.value.getTime();
+      return isPast;
+      // return currentVenue.value.doorsOpeningTime && isPast(currentVenue.value.doorsOpeningTime);
+    }
+    else return currentVenue.value.doorsManuallyOpened;
+  });
 
   return {
+    doorsAreOpen,
     savedVenueId,
     currentVenue,
     loadAndJoinVenue,

@@ -37,11 +37,11 @@
 
             <span
               class="material-icons text-sm"
-              :class="venueStore.currentVenue?.doorsAreOpen ? 'text-green-500' : 'text-red-500'"
+              :class="venueStore.doorsAreOpen ? 'text-green-500' : 'text-red-500'"
             >circle</span>
-            <strong>Lobbyn är {{ venueStore.currentVenue?.doorsAreOpen ? 'öppen' : 'stängd' }}</strong>
+            <strong>Lobbyn är {{ venueStore.doorsAreOpen ? 'öppen' : 'stängd' }}</strong>
 
-            <div v-if="venueStore.currentVenue.doorsAreOpen">
+            <div v-if="venueStore.doorsAreOpen">
               <p>Gå in i eventets VR-lobby och träffa andra besökare till detta event. Du kan använda ett VR-headset eller mus och tangentbord.</p>
               <button
                 class="btn btn-primary"

@@ -1,12 +1,12 @@
 <template>
   <div class="max-w-screen-lg mx-auto">
     <h1 class="text-5xl font-bold my-2">
-      {{ venueInfo?.name }}
+      {{ venueStore.currentVenue?.name??$props.venueId }}
     </h1>
-    <pre>{{ venueStore.secondsUntilDoorsOpen }}</pre>
 
     <div v-if="!venueStore.currentVenue">
-      <div>
+      <h2>Försöker ansluta till evented</h2>
+      <!-- <div>
         <div
           role="alert"
           class="alert alert-warning mb-4"
@@ -27,7 +27,7 @@
         <p v-if="venueInfo?.doorsOpeningTime && !isPast(venueInfo.doorsOpeningTime)">
           Behåll denna sida öppen för att automatiskt slussas in i eventet när det startar.
         </p>
-      </div>
+      </div> -->
     </div>
     <div
       v-else
@@ -86,20 +86,19 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { useConnectionStore } from '@/stores/connectionStore';
-import type { VenueId, VenueListInfo } from 'schemas';
-import { computed, onMounted, shallowRef, watch } from 'vue';
+// import { useConnectionStore } from '@/stores/connectionStore';
+import type { VenueId } from 'schemas';
+import { onMounted, watch } from 'vue';
 import { useVenueStore } from '@/stores/venueStore';
-import { useIntervalFn, useNow } from '@vueuse/core';
-import { isPast } from 'date-fns';
-const connection = useConnectionStore();
+import { useIntervalFn } from '@vueuse/core';
+// const connection = useConnectionStore();
 const venueStore = useVenueStore();
 
 const props = defineProps<{
   venueId: VenueId
 }>();
 
-const venueInfo = shallowRef<VenueListInfo>();
+// const venueInfo = shallowRef<VenueListInfo>();
 
 if(venueStore.currentVenue?.venueId !== props.venueId){
   const { pause } = useIntervalFn(async () => {
@@ -117,7 +116,7 @@ if(venueStore.currentVenue?.venueId !== props.venueId){
 }
 
 onMounted(async () =>{
-  venueInfo.value = await connection.client.venue.getVenueListInfo.query({venueId: props.venueId});
+  // venueInfo.value = await connection.client.venue.getVenueListInfo.query({venueId: props.venueId});
 });
 
 watch(() => venueStore.secondsUntilDoorsOpen, (secondsLeft) => {

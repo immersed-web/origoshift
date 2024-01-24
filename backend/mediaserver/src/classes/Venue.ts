@@ -147,6 +147,7 @@ export class Venue {
     return new Map(sendersWithoutCameraArray);
   });
   publicDetachedSenders = computed(() => {
+    if(this.detachedSenders.value.size === 0) return undefined;
     const publicDetachedSenders: Record<ConnectionId, {senderId: SenderId, connectionId: ConnectionId, username: string, producers: PublicProducers }> = {};
     this.detachedSenders.value.forEach(s => publicDetachedSenders[s.connectionId] = {senderId: s.senderId, connectionId: s.connectionId, username: s.username, producers: s.publicProducers.value});
     

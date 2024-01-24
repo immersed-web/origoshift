@@ -17,7 +17,7 @@ export type VisibilityDetails = {
 
 export const useVenueStore = defineStore('venue', () => {
   // console.log('VENUESTORE USE FUNCTION TRIGGERED');
-  const now = useNow();
+  const now = useNow({interval: 1000});
   const connection = useConnectionStore();
   // const authStore = useAuthStore();
 
@@ -108,12 +108,22 @@ export const useVenueStore = defineStore('venue', () => {
     return visibilityOptions.value.find(o => o.visibility === currentVenue.value?.visibility);
   });
   
+  // TODO: We can potentially get a bit weird behaviour were the timeOffset jumps on reload.
+  // This would for example mean that the countdown reaches 0, the user enters VR. But then going back and reloading could give countdown.
+  // For now we mitigate it somewhat by setting the offset when loading this store, persisting it as long as user dosnt refresh browser.
+  const timeSpread = 30;
+  let timeOffset = 0;
+  timeOffset = Math.random() * timeSpread;
+  const secondsUntilDoorsOpen = computed(() => {
+    if(!currentVenue.value?.vrSpace || !currentVenue.value?.doorsAutoOpen || !currentVenue.value.doorsOpeningTime) return undefined;
+    const millis = currentVenue.value.doorsOpeningTime.getTime() - now.value.getTime();
+    return Math.trunc(Math.max(0, millis*0.001 + timeOffset));
+  });
+  
   const doorsAreOpen = computed(() => {
     if(!currentVenue.value) return false;
-    if(currentVenue.value.doorsAutoOpen && currentVenue.value.doorsOpeningTime){
-      const isPast = currentVenue.value.doorsOpeningTime.getTime() < now.value.getTime();
-      return isPast;
-      // return currentVenue.value.doorsOpeningTime && isPast(currentVenue.value.doorsOpeningTime);
+    if(secondsUntilDoorsOpen.value !== undefined){
+      return secondsUntilDoorsOpen.value === 0;
     }
     else return currentVenue.value.doorsManuallyOpened;
   });
@@ -131,6 +141,7 @@ export const useVenueStore = defineStore('venue', () => {
 
   return {
     doorsAreOpen,
+    secondsUntilDoorsOpen,
     streamIsActive,
     savedVenueId,
     currentVenue,

@@ -1,18 +1,20 @@
 <template>
-  <div>
+  <div class="max-w-screen-lg mx-auto">
     <h1 class="text-5xl font-bold my-2">
       {{ venueInfo?.name }}
     </h1>
+    <pre>{{ venueStore.secondsUntilDoorsOpen }}</pre>
 
     <div v-if="!venueStore.currentVenue">
       <div>
-        <div class="alert alert-warning">
-          <div>
-            <span class="material-icons">
-              warning
-            </span>
-            Eventet är inte igång.
-          </div>
+        <div
+          role="alert"
+          class="alert alert-warning mb-4"
+        >
+          <span class="material-icons">
+            warning
+          </span>
+          Eventet är inte igång.
         </div>
         <h2>Eventets hålltider</h2>
         <p v-if="venueInfo?.doorsOpeningTime">
@@ -41,7 +43,7 @@
             >circle</span>
             <strong>Lobbyn är {{ venueStore.doorsAreOpen ? 'öppen' : 'stängd' }}</strong>
 
-            <div v-if="venueStore.doorsAreOpen">
+            <div v-if="venueStore.secondsUntilDoorsOpen == 0">
               <p>Gå in i eventets VR-lobby och träffa andra besökare till detta event. Du kan använda ett VR-headset eller mus och tangentbord.</p>
               <button
                 class="btn btn-primary"
@@ -86,9 +88,9 @@
 import { useRouter } from 'vue-router';
 import { useConnectionStore } from '@/stores/connectionStore';
 import type { VenueId, VenueListInfo } from 'schemas';
-import { onMounted, shallowRef } from 'vue';
+import { computed, onMounted, shallowRef, watch } from 'vue';
 import { useVenueStore } from '@/stores/venueStore';
-import { useIntervalFn } from '@vueuse/core';
+import { useIntervalFn, useNow } from '@vueuse/core';
 import { isPast } from 'date-fns';
 const connection = useConnectionStore();
 const venueStore = useVenueStore();
@@ -113,17 +115,20 @@ if(venueStore.currentVenue?.venueId !== props.venueId){
 
   }, 5000, { immediateCallback: true});
 }
+
 onMounted(async () =>{
   venueInfo.value = await connection.client.venue.getVenueListInfo.query({venueId: props.venueId});
 });
-// Router
+
+watch(() => venueStore.secondsUntilDoorsOpen, (secondsLeft) => {
+  console.log('doorsAreOpen changed', secondsLeft);
+  if(secondsLeft !== undefined && secondsLeft <= 0) {
+    openLobby();
+  }
+});
+
 const router = useRouter();
-
-// Stores
-// const clientStore = useClientStore();
-
 const openLobby = async () => {
-  // TODO: should we perhaps do this on entering vr instead?
   router.push({name: 'userLobby'});
 };
 

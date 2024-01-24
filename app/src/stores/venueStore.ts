@@ -115,6 +115,7 @@ export const useVenueStore = defineStore('venue', () => {
   let timeOffset = 0;
   timeOffset = Math.random() * timeSpread;
   const secondsUntilDoorsOpen = computed(() => {
+    if(currentVenue.value?.doorsManuallyOpened) return 0;
     if(!currentVenue.value?.vrSpace || !currentVenue.value?.doorsAutoOpen || !currentVenue.value.doorsOpeningTime) return undefined;
     const millis = currentVenue.value.doorsOpeningTime.getTime() - now.value.getTime();
     return Math.trunc(Math.max(0, millis*0.001 + timeOffset));

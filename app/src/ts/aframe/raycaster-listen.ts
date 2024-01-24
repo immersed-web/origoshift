@@ -52,7 +52,7 @@ export default () => {
       if (!intersection.point) { return; }
       if(AFRAME.utils.coordinates.stringify(intersection.point) !== AFRAME.utils.coordinates.stringify(this.prev)){
         // console.log(intersection.point);
-        this.el.emit('raycast-change', intersection);
+        this.el.emit('raycast-change', {intersection});
       }
       this.prev = intersection.point;
     },

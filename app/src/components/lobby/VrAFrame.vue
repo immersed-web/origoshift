@@ -145,7 +145,7 @@
 </template>
 
 <script setup lang="ts">
-import { type Scene, type Entity, type EntityEventMap, type DetailEvent, utils as aframeUtils } from 'aframe';
+import { type Entity, type DetailEvent, utils as aframeUtils } from 'aframe';
 import { ref, onMounted, onBeforeMount, computed, onBeforeUnmount, inject } from 'vue';
 import RemoteAvatar from './RemoteAvatar.vue';
 import type { ClientTransform } from 'schemas';
@@ -386,14 +386,15 @@ const throttledTransformMutation = throttle(async () => {
 // Display message
 const displayMessage = ref('');
 
-function navmeshClicked(e: THREE.Event) {
+function navmeshClicked(e: DetailEvent<{intersection?: THREE.Intersection}>) {
+  if(!e.detail.intersection?.point) return;
   console.log(e.detail.intersection.point);
   teleportTo(e.detail.intersection.point);
 }
-
-function navmeshHovered(e: THREE.Event) {
+function navmeshHovered(e: DetailEvent<{intersection?: THREE.Intersection}>) {
   // console.log('navmesh rayCasted:', e);
-  previewTeleport(e.detail.point);
+  if(!e.detail.intersection?.point) return;
+  previewTeleport(e.detail.intersection.point);
 }
 
 function navmeshNotHovered() {

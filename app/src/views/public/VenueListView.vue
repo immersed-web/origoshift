@@ -90,16 +90,13 @@ onBeforeMount(async () =>{
   venuesLoaded.value = await connection.client.venue.listLoadedVenuesPublicState.query();
 });
 
-// const venuesNotLoaded = computed(() => {
-//   return venuesAllowed.value.filter(v => venuesLoaded.value && v.venueId in venuesLoaded.value);
-// });
-
 const venuesOngoing = computed(() => {
-  return venuesAllowed.value.filter(v => {
-    if(!venuesLoaded.value || !(v.venueId in venuesLoaded.value)) { return false;}
-    const vLoaded = venuesLoaded.value[v.venueId as VenueId];
-    return vLoaded.state.doorsAreOpen || vLoaded.state.streamIsActive;
-  });
+  return venuesAllowed.value.filter(v => venuesLoaded.value && v.venueId in venuesLoaded.value);
+  // return venuesAllowed.value.filter(v => {
+  //   if(!venuesLoaded.value || !(v.venueId in venuesLoaded.value)) { return false;}
+  //   const vLoaded = venuesLoaded.value[v.venueId as VenueId];
+  //   return vLoaded.state.doorsAreOpen || vLoaded.state.streamIsActive;
+  // });
 });
 
 const venuesNotOngoing = computed(() => {

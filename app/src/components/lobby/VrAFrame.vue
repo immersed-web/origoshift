@@ -216,7 +216,9 @@ const entranceRotation = computed(() => {
   return vrSpaceStore.currentVrSpace.virtualSpace3DModel.entranceRotation;
 });
 
-const entranceMessage = ref('');
+const entranceMessage = computed(() => {
+  return venueStore.currentVenue?.name??'Klicka för att hoppa in i sändningen';
+});
 
 onBeforeMount(async () => {
   // console.log('onBeforeMount');

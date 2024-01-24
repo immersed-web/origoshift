@@ -5,22 +5,15 @@
   >
     <a-entity
       :rotation="`0 ${props.direction} 0`"
-      position="0 1.4 0"
+      position="0 1.3 0"
     >
       <a-plane
         :class="$attrs['class']"
-        color="fuchsia"
+        color="black"
         side="double"
         width="1.6"
         height="2"
       />
-      <!-- <a-entity
-        :class="$attrs['class']"
-        geometry="primitive: plane; width: 1; height: 2;"
-        material="color: yellow"
-        rotation="0 0 0"
-        :text="`align: center; value: ${props.message};`"
-      /> -->
       <a-text
         align="center"
         rotation="0 180 0"

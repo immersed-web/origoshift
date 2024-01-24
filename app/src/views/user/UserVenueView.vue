@@ -58,11 +58,11 @@
         <div class="flex-1">
           <span
             class="material-icons text-sm"
-            :class="venueStore.currentVenue?.streamIsActive ? 'text-green-500' : 'text-red-500'"
+            :class="venueStore.streamIsActive ? 'text-green-500' : 'text-red-500'"
           >circle</span>
-          <strong>Sändningen är {{ venueStore.currentVenue?.streamIsActive ? 'igång' : 'ej igång' }}</strong>
+          <strong>Sändningen är {{ venueStore.streamIsActive ? 'igång' : 'ej igång' }}</strong>
 
-          <div v-if="venueStore.currentVenue.streamIsActive">
+          <div v-if="venueStore.streamIsActive">
             <p>360-sändning blahi blaha</p>
             <button
               v-for="camera in venueStore.currentVenue.cameras"

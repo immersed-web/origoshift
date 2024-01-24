@@ -82,9 +82,9 @@
         <template #title>
           <span
             class="material-icons text-sm"
-            :class="venueStore.currentVenue?.streamIsActive ? 'text-green-500' : 'text-red-500'"
+            :class="venueStore.streamIsActive ? 'text-green-500' : 'text-red-500'"
           >circle</span>
-          Sändningen är {{ venueStore.currentVenue?.streamIsActive ? 'igång' : 'ej igång' }}
+          Sändningen är {{ venueStore.streamIsActive ? 'igång' : 'ej igång' }}
         </template>
         <div v-auto-animate>
           <div v-if="venueStore.currentVenue?.streamStartTime">
@@ -101,7 +101,7 @@
               <button
                 class="btn btn-primary btn-sm"
                 @click="startStream"
-                :disabled="!!venueStore.currentVenue?.streamIsActive"
+                :disabled="!!venueStore.streamIsActive"
               >
                 Starta sändning
               </button>
@@ -133,7 +133,7 @@
           <button
             class="btn btn-error btn-sm"
             @click="endStream"
-            :disabled="!venueStore.currentVenue?.streamIsActive"
+            :disabled="!venueStore.streamIsActive"
           >
             Avsluta sändning
           </button>

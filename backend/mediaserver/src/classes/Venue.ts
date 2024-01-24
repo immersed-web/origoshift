@@ -93,14 +93,23 @@ export class Venue {
   get streamAutoStart() { return this.prismaData.streamAutoStart; }
   get streamManuallyStarted() { return this.prismaData.streamManuallyStarted; }
   get streamManuallyEnded() { return this.prismaData.streamManuallyEnded; }
-  get streamIsStarted() {
-    if(this.prismaData.streamAutoStart){
-      return this.prismaData.streamStartTime && isPast(this.prismaData.streamStartTime);
-    }
-    else return this.streamManuallyStarted;
-  }
+  // get streamIsStarted() {
+  //   if(this.prismaData.streamAutoStart){
+  //     return this.prismaData.streamStartTime && isPast(this.prismaData.streamStartTime);
+  //   }
+  //   else return this.streamManuallyStarted;
+  // }
+
+  // Dont expose this as public state. Instead we'll use a reactive computed client-side to track the state.
   get streamIsActive() {
-    return this.streamIsStarted && !this.streamManuallyEnded;
+    let streamIsStarted = false;
+    if(this.prismaData.streamAutoStart && this.prismaData.streamStartTime){
+      streamIsStarted = isPast(this.prismaData.streamStartTime);
+    }
+    else {
+      streamIsStarted = this.streamManuallyStarted;
+    }
+    return streamIsStarted && !this.streamManuallyEnded;
   }
 
   router: soupTypes.Router;
@@ -148,7 +157,7 @@ export class Venue {
     return this.clients.size === 0 && this.senderClients.size === 0;
   }
   getPublicState() {
-    const {venueId, name, visibility, doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, /* doorsAreOpen, */ streamStartTime, streamAutoStart, streamManuallyStarted, /*streamIsStarted*/ streamIsActive, mainCameraId } = this;
+    const {venueId, name, visibility, doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, /* doorsAreOpen, */ streamStartTime, streamAutoStart, streamManuallyStarted, streamManuallyEnded, /*streamIsStarted*/ /* streamIsActive, */ mainCameraId } = this;
     // log.info('Detached senders:', this.detachedSenders.value);
     // const cameraIds = Array.from(this.cameras.keys());
     const cameras: Record<CameraId, {
@@ -165,7 +174,7 @@ export class Venue {
     return {
       venueId, name, visibility,
       doorsOpeningTime, doorsAutoOpen, doorsManuallyOpened, /* doorsAreOpen, */
-      streamStartTime, streamAutoStart, streamManuallyStarted, /*streamIsStarted*/ streamIsActive,
+      streamStartTime, streamAutoStart, streamManuallyStarted, streamManuallyEnded, /*streamIsStarted*/ /* streamIsActive, */
       vrSpace: this.vrSpace?.getPublicState(),
       cameras,
       mainCameraId,

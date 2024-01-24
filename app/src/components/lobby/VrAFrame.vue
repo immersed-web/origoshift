@@ -23,7 +23,7 @@
 
     <a-sky color="lightskyblue" />
     <StreamEntrance
-      :visible="venueStore.currentVenue?.streamIsActive"
+      :visible="venueStore.streamIsActive"
       v-if="entrancePosString"
       @click="goToStream"
       :position="entrancePosString"

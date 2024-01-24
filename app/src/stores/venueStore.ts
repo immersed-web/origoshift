@@ -117,9 +117,21 @@ export const useVenueStore = defineStore('venue', () => {
     }
     else return currentVenue.value.doorsManuallyOpened;
   });
+  
+  const streamIsActive = computed(() => {
+    if(!currentVenue.value || currentVenue.value.streamManuallyEnded) return false;
+    if(currentVenue.value.streamAutoStart && currentVenue.value.streamStartTime){
+      const isPast = currentVenue.value.streamStartTime.getTime() < now.value.getTime();
+      return isPast;
+    }
+    else {
+      return currentVenue.value.streamManuallyStarted;
+    }
+  });
 
   return {
     doorsAreOpen,
+    streamIsActive,
     savedVenueId,
     currentVenue,
     loadAndJoinVenue,

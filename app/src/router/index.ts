@@ -80,7 +80,8 @@ const router = createRouter({
         {
           path: '',
           name: 'userHome',
-          component:  () => import('@/views/user/UserHomeView.vue'),
+          redirect: { name: 'venueList'},
+          // component:  () => import('@/views/user/UserHomeView.vue'),
         },
         {
           path: 'vr',

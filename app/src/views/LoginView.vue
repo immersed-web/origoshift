@@ -149,8 +149,8 @@ onMounted(() => {
   connection.close();
 });
 // View / components functionality
-const username = ref('superadmin');
-const password = ref('bajskorv');
+const username = ref('');
+const password = ref('');
 const error = ref('');
 
 const login = async () => {

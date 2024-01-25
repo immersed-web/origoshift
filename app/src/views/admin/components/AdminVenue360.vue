@@ -3,7 +3,7 @@
     <div class="flex mb-4">
       <h2 class="flex-1">
         <!-- <span class="material-icons">videocam</span> -->
-        360-kameror
+        Kameror
       </h2>
       <RouterLink :to="{name: 'adminCameras'}">
         <button

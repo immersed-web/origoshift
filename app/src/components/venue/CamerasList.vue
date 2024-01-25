@@ -5,7 +5,7 @@
         <th
           colspan="10"
         >
-          Kameror
+          Anslutna Kameror
         </th>
       </tr>
     </thead>
@@ -16,15 +16,16 @@
         :class="{'': !camera.isStreaming}"
       >
         <td>
-          <!-- <div
+          <div
+
+            v-if="venueStore.currentVenue?.mainCameraId === camera.cameraId"
             class="tooltip z-40" 
             data-tip="Denna kamera är vald som startvinkel när besökaren ansluter till sändningen"
-          > -->
-          <span
-            v-if="venueStore.currentVenue?.mainCameraId === camera.cameraId"
-            class="material-icons cursor-help"
-          >start</span>
-          <!-- </div> -->
+          >
+            <span
+              class="material-icons cursor-help"
+            >start</span>
+          </div>
         </td>
         <td class="">
           <div
@@ -34,7 +35,12 @@
             <span class="material-icons cursor-help">{{ camera.cameraType === 'panoramic360'?'panorama_photosphere_select':'panorama' }}</span>
           </div>
         </td>
-        <td>{{ camera.name }} ({{ camera.cameraId.substring(0, 5) }}...)</td>
+        <td v-if="camera.name !== ''">
+          {{ camera.name }}
+        </td>
+        <td v-else>
+          {{ camera.cameraId.substring(0, 8) }}...
+        </td>
         <td>
           <div
             class="tooltip"
@@ -46,25 +52,44 @@
             >{{ camera.orientation === 180?'cameraswitch':'cameraswitch' }}</span>
           </div>
         </td>
-        <td v-if="!camera.senderAttached">
+        <td
+          colspan="2"
+          v-if="!camera.senderAttached"
+          class="text-center"
+        >
           <div
             class="tooltip tooltip-error"
             data-tip="Ingen sändarstation ansluten till denna kameraprofil! Dubbelkolla dina sändarstationer"
           >
-            <span class="material-icons text-error">desktop_access_disabled</span>
+            <span class="material-icons text-error cursor-help">desktop_access_disabled</span>
           </div>
         </td>
-        <td v-else>
-          <div
-            class="tooltip tooltip-error"
-            data-tip="Sändarstationen skickar ingen video! Dubbelkolla sändarstationen!"
-          >
-            <span
-              class="material-icons"
-              :class="{'text-error': !camera.isStreaming, 'text-success': camera.isStreaming}"
-            >{{ camera.isStreaming?'videocam':'videocam_off' }}</span>
-          </div>
-        </td>
+        <template v-else>
+          <td>
+            <div
+              class="tooltip"
+              :class="{'tooltip-error': !camera.producers.audioProducer}"
+              :data-tip="camera.producers.audioProducer?'Kameran skickar ljud':'Kameran skickar inget ljud'"
+            >
+              <span
+                class="material-icons cursor-help"
+                :class="[!camera.producers.audioProducer? 'text-error':'text-success']"
+              >{{ camera.producers.audioProducer?'volume_up':'volume_off' }}</span>
+            </div>
+          </td>
+          <td>
+            <div
+              class="tooltip"
+              :class="{'tooltip-error': !camera.producers.videoProducer}"
+              :data-tip="camera.producers.videoProducer?'Kameran skickar video':'Kameran skickar ingen video! Dubbelkolla sändarstationen!'"
+            >
+              <span
+                class="material-icons cursor-help"
+                :class="[!camera.producers.videoProducer? 'text-error':'text-success']"
+              >{{ camera.producers.videoProducer?'videocam':'videocam_off' }}</span>
+            </div>
+          </td>
+        </template>
       </tr>
     </tbody>
   </table>

@@ -1,7 +1,7 @@
 <template>
-  <div class="grid lg:place-items-center h-screen">
-    <div class="card bg-base-200 p-6">
-      <h1 class="text-5xl font-bold mb-8">
+  <div class="grid md:place-items-center h-screen">
+    <div class="card bg-base-200 p-6 md:m-6">
+      <h1 class="text-xl md:text-5xl font-bold mb-8 break-all">
         {{ venueStore.currentVenue?.name??$props.venueId }}
       </h1>
 
@@ -33,8 +33,8 @@
       <div
         v-else
       >
-        <div class="flex gap-2 lg:gap-12">
-          <div class="flex-1">
+        <div class="flex flex-wrap gap-6 md:gap-12">
+          <div class="flex-1 min-w-56">
             <div v-if="venueStore.currentVenue.vrSpace">
               <h2 class="mb-2">
                 VR-lobby
@@ -49,7 +49,9 @@
               </p>
 
               <div v-if="venueStore.secondsUntilDoorsOpen == 0">
-                <p>Gå in i eventets VR-lobby och träffa andra besökare till detta event. Du kan använda ett VR-headset eller mus och tangentbord.</p>
+                <p class="mb-4">
+                  Gå in i eventets VR-lobby och träffa andra besökare till detta event. Du kan använda ett VR-headset eller mus och tangentbord.
+                </p>
                 <button
                   class="btn btn-primary"
                   @click="openLobby"
@@ -68,7 +70,7 @@
               </div>
             </div>
           </div>
-          <div class="flex-1">
+          <div class="flex-1 min-w-56">
             <h2 class="mb-2">
               360-ström
             </h2>

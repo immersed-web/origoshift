@@ -155,19 +155,6 @@ const router = createRouter({
         },
       ],
     },
-    {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('@/views/AboutView.vue'),
-    },
-    // {
-    //   path: '/test-client',
-    //   name: 'testClient',
-    //   component: () => import('@/views/TestBackend.vue'),
-    // },
     { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/components/NotFound.vue') },
   ],
 });
@@ -190,7 +177,8 @@ router.beforeEach(async (to, from) => {
     }
     if(!authStore.isAuthenticated && to.meta.requiredRole === 'guest'){
       console.log('creating guest because not logged in and route requires at least guest');
-      await authStore.autoGuest();
+
+      await authStore.autoGuest(authStore.persistedUsername);
     }
 
     if(!authStore.role || !hasAtLeastSecurityLevel(authStore.role, to.meta.requiredRole)){

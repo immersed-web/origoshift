@@ -17,6 +17,7 @@ export const useAuthStore = defineStore('auth', () => {
   const _reset = () => {
     token.value = undefined;
     hasCookie.value = browserHasCookie();
+    persistedUsername.value = undefined;
   };
 
   const token = ref<string>();
@@ -35,6 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
         throw new Error('token is undefined');
       }
       const decodedToken = jwtDecode<JwtPayload>(token.value);
+      persistedUsername.value = decodedToken.username;
       // console.log(decodedToken);
       return decodedToken;
       // return JSON.parse(window.atob(state.jwt.split('.')[1])) as UserData;
@@ -45,6 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isGuest = computed(() => userData.value?.role === 'guest');
   const userId = computed(() => userData.value?.userId);
   const username = computed(() => userData.value?.username);
+  const persistedUsername = ref<string>();
   const role = computed(() => userData.value?.role);
   /**
    * Has a user id. Can be any role, including guest.
@@ -55,9 +58,11 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const isLoggedIn = computed(() => isAuthenticated.value && hasAtLeastSecurityLevel(role.value, 'user'));
   const routePrefix = computed(() => role.value && hasAtLeastSecurityLevel(role.value, 'admin') ? 'admin' : 'user');
-  async function autoGuest() {
+  async function autoGuest(username?: string) {
     await logout();
-    await guestAutoToken((t) => token.value = t);
+    await guestAutoToken((t) => {
+      token.value = t;
+    }, username);
   }
   async function restoreFromSession(){
     if(!hasCookie.value){
@@ -90,10 +95,15 @@ export const useAuthStore = defineStore('auth', () => {
     userId,
     role,
     username,
+    persistedUsername,
     autoGuest,
     restoreFromSession,
     logout,
     login,
     routePrefix,
   };
+}, {
+  persist: {
+    paths: ['persistedUsername'],
+  },
 });

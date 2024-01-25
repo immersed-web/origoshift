@@ -84,9 +84,10 @@ const autoFetchJwt = async (assignFn: (receivedToken: string) => void, fetchFn: 
   }
 };
 
-export const guestAutoToken =  async (assignFn?: (receivedToken: string) => void) => {
+export const guestAutoToken =  async (assignFn?: (receivedToken: string) => void, username?: string) => {
   latestJwtToken = undefined;
   const combinedAssigner = (t: string) => {
+    username = undefined;
     if(assignFn){
       assignFn(t);
     }
@@ -94,7 +95,7 @@ export const guestAutoToken =  async (assignFn?: (receivedToken: string) => void
   };
   return await autoFetchJwt(
     combinedAssigner,
-    async () => await guestJwt({previousToken: latestJwtToken}),
+    async () => await guestJwt({previousToken: latestJwtToken, requestedUsername: username}),
     async () => await guestJwt(),
   );
 

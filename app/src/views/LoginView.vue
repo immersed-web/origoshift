@@ -9,16 +9,40 @@
           <p class="py-6">
             Logga in för att delta i kulturevenemang i VR/360.
           </p>
-          <div>
+          <p class="mb-4">
+            Alternativt kan du fortsätta som <span class="font-bold">gäst</span>:
+          </p>
+          <div class="flex items-center gap-4">
+            <div class="join border border-base-300">
+              <input
+                v-model="guestUsername"
+                class="input join-item"
+              >
+              <div
+                class="tooltip"
+                data-tip="autogenerera namn"
+              >
+                <button
+                  class="btn btn-circle btn-ghost join-item"
+                  @click="generateUsername"
+                >
+                  <span class="material-icons">replay</span>
+                </button>
+              </div>
+            </div>
             <button
               @click="guestContinue()"
-              class="btn btn-outline"
+              class="btn btn-outline btn-primary"
             >
-              Fortsätt som Gäst
+              Gå in
             </button>
           </div>
-          <div>
-            <h2>Login för fuskare</h2>
+          <div
+            class="mt-4"
+            v-once
+            v-if="showDevLoginButtons"
+          >
+            <h2>Devmode quick login</h2>
             <div class="space-x-2">
               <button
                 @click="loginDetails('user1','123')"
@@ -48,7 +72,7 @@
           >
             <div class="form-control">
               <label class="label">
-                <span class="label-text">E-post</span>
+                <span class="label-text">Användarnamn</span>
               </label>
               <input
                 v-model="username"
@@ -98,6 +122,11 @@ import { onMounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import { hasAtLeastSecurityLevel, type UserRole } from 'schemas/esm';
 import { useConnectionStore } from '@/stores/connectionStore';
+
+const showDevLoginButtons = import.meta.env.DEV;
+// const showDevLoginButtons = import.meta.env.PROD;
+
+const guestUsername = ref<string>();
 
 // const props = defineProps<{
 //   redirectAfterLogin?: string
@@ -155,8 +184,14 @@ const login = async () => {
   }
 };
 
-const guestContinue = async () => {
+async function generateUsername() {
+  await authStore.logout();
   await authStore.autoGuest();
+  guestUsername.value = authStore.username;
+}
+
+const guestContinue = async () => {
+  await authStore.autoGuest(guestUsername.value);
   // const connectionStore = useConnectionStore();
   // connectionStore.createUserClient();
   router.push({name: 'venueList'});

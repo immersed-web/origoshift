@@ -1,53 +1,54 @@
 <template>
-  <h1>Pågående event</h1>
-  <VenueList
-    v-if="venuesOngoing.length"
-    :venues="venuesOngoing"
-    @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
-  />
-  <div v-else>
-    <p>
-      Inga pågående event
-    </p>
+  <div class="flex flex-col gap-4">
+    <h1>Pågående event</h1>
+    <VenueList
+      v-if="venuesOngoing.length"
+      :venues="venuesOngoing"
+      @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
+    />
+    <div v-else>
+      <p>
+        Inga pågående event
+      </p>
+    </div>
+
+    <h1>Kommande event</h1>
+    <VenueList
+      v-if="venuesUpcoming.length"
+      :venues="venuesUpcoming"
+      @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
+    />
+    <div v-else>
+      <p>
+        Inga kommande event
+      </p>
+    </div>
+
+    <h1>Tidigare event</h1>
+    <VenueList
+      v-if="venuesPast.length"
+      :venues="venuesPast"
+      @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
+    />
+    <div v-else>
+      <p>
+        Inga tidigare event
+      </p>
+    </div>
+
+
+    <h1>Event utan datum</h1>
+    <VenueList
+      v-if="venuesUnscheduled.length"
+      :venues="venuesUnscheduled"
+      @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
+    />
+    <div v-else>
+      <p>
+        Inga event utan datum
+      </p>
+    </div>
   </div>
-
-  <h1>Kommande event</h1>
-  <VenueList
-    v-if="venuesUpcoming.length"
-    :venues="venuesUpcoming"
-    @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
-  />
-  <div v-else>
-    <p>
-      Inga kommande event
-    </p>
-  </div>
-
-  <h1>Tidigare event</h1>
-  <VenueList
-    v-if="venuesPast.length"
-    :venues="venuesPast"
-    @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
-  />
-  <div v-else>
-    <p>
-      Inga tidigare event
-    </p>
-  </div>
-
-
-  <h1>Event utan datum</h1>
-  <VenueList
-    v-if="venuesUnscheduled.length"
-    :venues="venuesUnscheduled"
-    @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
-  />
-  <div v-else>
-    <p>
-      Inga event utan datum
-    </p>
-  </div>
-
 
   <!-- <pre>
     ALLOWED:

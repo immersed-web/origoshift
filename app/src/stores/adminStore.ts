@@ -126,8 +126,7 @@ export const useAdminStore = defineStore('admin', () => {
    * We have slightly different implementations in admin and venuestore. Use this one for admins only. Normal users should have the "spreaded" version
   */
   const realSecondsUntilDoorsOpen = computed(() => {
-    if(venueStore.currentVenue?.doorsManuallyOpened) return 0;
-    if(!venueStore.currentVenue?.vrSpace || !venueStore.currentVenue?.doorsAutoOpen || !venueStore.currentVenue.doorsOpeningTime) return undefined;
+    if(!venueStore.currentVenue?.vrSpace || !venueStore.currentVenue?.doorsAutoOpen || !venueStore.currentVenue.doorsOpeningTime || venueStore.currentVenue.doorsManuallyOpened) return undefined;
     const millis = venueStore.currentVenue.doorsOpeningTime.getTime() - now.value.getTime();
     return Math.trunc(Math.max(0, millis*0.001));
   });

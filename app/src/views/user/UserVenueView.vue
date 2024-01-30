@@ -48,7 +48,7 @@
                 <strong>Lobbyn är {{ venueStore.doorsAreOpen ? 'öppen' : 'stängd' }}</strong>
               </p>
 
-              <div v-if="venueStore.secondsUntilDoorsOpen == 0">
+              <div v-if="venueStore.secondsUntilDoorsOpen === undefined && venueStore.doorsAreOpen">
                 <p class="mb-4">
                   Gå in i eventets VR-lobby och träffa andra besökare till detta event. Du kan använda ett VR-headset eller mus och tangentbord.
                 </p>
@@ -143,7 +143,6 @@ const timeLeftString = computed(() => {
 });
 
 watch(() => venueStore.secondsUntilDoorsOpen, (secondsLeft) => {
-  console.log('doorsAreOpen changed', secondsLeft);
   if(secondsLeft !== undefined && secondsLeft <= 0) {
     openLobby();
   }

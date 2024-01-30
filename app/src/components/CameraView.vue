@@ -505,6 +505,11 @@ async function createOrCenterOnPortal(cameraId:CameraId){
   }
 }
 
+const testVideos = [
+  'https://video.360cities.net/fotonio/01939793_Barcelona_360VR_Time_Lapse_Playa-1920x960.mp4',
+  'https://video.360cities.net/aeropicture/01944711_VIDEO_0520_1_H264-1920x960.mp4',
+];
+
 function setCameraRotation(angleX: number, angleY: number){
   if(!cameraTag.value) return;
   const cTag = cameraTag.value;

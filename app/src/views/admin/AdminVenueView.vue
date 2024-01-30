@@ -44,9 +44,9 @@
         <template #title>
           <span
             class="material-icons text-sm"
-            :class="venueStore.doorsAreOpen ? 'text-green-500' : 'text-red-500'"
+            :class="adminStore.realDoorsAreOpen ? 'text-green-500' : 'text-red-500'"
           >circle</span>
-          Lobbyn är {{ venueStore.doorsAreOpen ? 'öppen' : 'stängd' }}
+          Lobbyn är {{ adminStore.realDoorsAreOpen ? 'öppen' : 'stängd' }}
         </template>
         <div v-auto-animate>
           <div v-if="venueStore.currentVenue?.doorsOpeningTime">

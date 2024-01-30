@@ -1,15 +1,17 @@
 import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { defineStore } from 'pinia';
 import type { CameraId, SenderId, VenueId, CameraPortalUpdate, CameraUpdate, ConnectionId } from 'schemas/esm';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useConnectionStore } from './connectionStore';
 import { useVenueStore } from './venueStore';
 import { useSoupStore } from './soupStore';
+import { useNow } from '@vueuse/core';
 
 type _ReceivedAdminVenueState = SubscriptionValue<RouterOutputs['admin']['subVenueStateUpdated']>['data'];
 export const useAdminStore = defineStore('admin', () => {
   const venueStore = useVenueStore();
   const connection = useConnectionStore();
+  const now = useNow({interval: 1000});
 
   const adminOnlyVenueState = ref<_ReceivedAdminVenueState>();
 
@@ -107,6 +109,10 @@ export const useAdminStore = defineStore('admin', () => {
   }
   
   async function consumeDetachedSenderVideo(connectionId: ConnectionId) {
+    if(!adminOnlyVenueState.value?.detachedSenders) {
+      console.warn('detachedSenders undefined!');
+      return;
+    }
     const p = adminOnlyVenueState.value?.detachedSenders[connectionId].producers;
     if(p === undefined) return;
     if(!p.videoProducer) return;
@@ -115,10 +121,30 @@ export const useAdminStore = defineStore('admin', () => {
     return soup.consume(p.videoProducer.producerId);
     // const response = await connection.client.soup.createConsumer.mutate({ producerId:p.videoProducer?.producerId});
   }
+  
+  /** 
+   * We have slightly different implementations in admin and venuestore. Use this one for admins only. Normal users should have the "spreaded" version
+  */
+  const realSecondsUntilDoorsOpen = computed(() => {
+    if(venueStore.currentVenue?.doorsManuallyOpened) return 0;
+    if(!venueStore.currentVenue?.vrSpace || !venueStore.currentVenue?.doorsAutoOpen || !venueStore.currentVenue.doorsOpeningTime) return undefined;
+    const millis = venueStore.currentVenue.doorsOpeningTime.getTime() - now.value.getTime();
+    return Math.trunc(Math.max(0, millis*0.001));
+  });
+
+  const realDoorsAreOpen = computed(() => {
+    if(!venueStore.currentVenue) return false;
+    if(realSecondsUntilDoorsOpen.value !== undefined){
+      return realSecondsUntilDoorsOpen.value === 0;
+    }
+    else return venueStore.currentVenue.doorsManuallyOpened;
+  });
 
 
   return {
     adminOnlyVenueState,
+    realSecondsUntilDoorsOpen,
+    realDoorsAreOpen,
     createVenue,
     loadAndJoinVenueAsAdmin,
     deleteCurrentVenue,

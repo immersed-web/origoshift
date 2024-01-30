@@ -4,7 +4,7 @@ import { ref, computed, type Ref } from 'vue';
 import type { Visibility } from 'database';
 import type { VenueId } from 'schemas';
 import { useConnectionStore } from '@/stores/connectionStore';
-import { useNow } from '@vueuse/core';
+import { useNow, useStorage } from '@vueuse/core';
 
 type _ReceivedPublicVenueState = RouterOutputs['venue']['joinVenue'];
 
@@ -23,6 +23,7 @@ export const useVenueStore = defineStore('venue', () => {
 
   const currentVenue = ref<_ReceivedPublicVenueState>();
   const savedVenueId = ref<VenueId>();
+
 
 
   connection.client.venue.subVenueUnloaded.subscribe(undefined, {
@@ -108,17 +109,13 @@ export const useVenueStore = defineStore('venue', () => {
     return visibilityOptions.value.find(o => o.visibility === currentVenue.value?.visibility);
   });
   
-  // TODO: We can potentially get a bit weird behaviour were the timeOffset jumps on reload.
-  // This would for example mean that the countdown reaches 0, the user enters VR. But then going back and reloading could give countdown.
-  // For now we mitigate it somewhat by setting the offset when loading this store, persisting it as long as user dosnt refresh browser.
   const timeSpread = 30;
-  let timeOffset = 0;
-  timeOffset = Math.random() * timeSpread;
+  const timeOffset = useStorage('doorTimeOffset', Math.random() * timeSpread);
   const secondsUntilDoorsOpen = computed(() => {
     if(currentVenue.value?.doorsManuallyOpened) return 0;
     if(!currentVenue.value?.vrSpace || !currentVenue.value?.doorsAutoOpen || !currentVenue.value.doorsOpeningTime) return undefined;
     const millis = currentVenue.value.doorsOpeningTime.getTime() - now.value.getTime();
-    return Math.trunc(Math.max(0, millis*0.001 + timeOffset));
+    return Math.trunc(Math.max(0, millis*0.001 + timeOffset.value));
   });
   
   const doorsAreOpen = computed(() => {

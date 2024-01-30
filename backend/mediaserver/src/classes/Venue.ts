@@ -255,18 +255,18 @@ export class Venue {
       this._notifyAdminOnlyState('sender added to venue');
     }
     else {
-      log.info('client wants to join');
-      log.info('doors:', this.doorsManuallyOpened);
-      if(!hasAtLeastSecurityLevel(client.role, 'moderator')){
-        log.info('requsting client is below moderator');
-        let doorsAreOpen = this.doorsManuallyOpened;
-        if(this.doorsOpeningTime && isPast(this.doorsOpeningTime) ){
-          doorsAreOpen = true;
-        }
-        if(!doorsAreOpen){
-          throw Error('doors are not open');
-        }
-      }
+      // log.info('client wants to join');
+      // log.info('doors:', this.doorsManuallyOpened);
+      // if(!hasAtLeastSecurityLevel(client.role, 'moderator')){
+      //   log.info('requsting client is below moderator');
+      //   let doorsAreOpen = this.doorsManuallyOpened;
+      //   if(this.doorsOpeningTime && isPast(this.doorsOpeningTime) ){
+      //     doorsAreOpen = true;
+      //   }
+      //   if(!doorsAreOpen){
+      //     throw Error('doors are not open');
+      //   }
+      // }
       this.clients.set(client.connectionId, client);
       client._setVenue(this.venueId);
       // this._notifyStateUpdated('Client added to Venue');

@@ -2,7 +2,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useClientStore } from '@/stores/clientStore';
 // import { useSenderStore } from '@/stores/senderStore';
-import { hasAtLeastSecurityLevel, type UserRole, type ClientType } from 'schemas/esm';
+import { hasAtLeastSecurityLevel, type UserRole, type ClientType, type VenueId } from 'schemas/esm';
 import { createRouter, createWebHistory } from 'vue-router';
 import { useVenueStore } from '@/stores/venueStore';
 import { useAdminStore } from '@/stores/adminStore';
@@ -220,7 +220,8 @@ router.beforeEach(async (to, from) => {
 
     if(!venueStore.currentVenue || venueStore.currentVenue.venueId !== venueStore.savedVenueId){
       // await connectionStore.firstConnectionEstablished;
-      if(!venueStore.savedVenueId){
+      const venueId = venueStore.savedVenueId?? to.params.venueId as VenueId | undefined;
+      if(!venueId){
         if(to.meta.pickVenueRouteName) return { name: to.meta.pickVenueRouteName};
         const routeName = `${authStore.routePrefix}Home`;
         return { name: routeName};
@@ -230,7 +231,7 @@ router.beforeEach(async (to, from) => {
         const adminStore = useAdminStore();
         try{
           console.log('Trying to loadAndJoinVenueAsAdmin');
-          await adminStore.loadAndJoinVenueAsAdmin(venueStore.savedVenueId);
+          await adminStore.loadAndJoinVenueAsAdmin(venueId);
         } catch (e) {
           console.log(e);
           if(to.meta.pickVenueRouteName) return { name: to.meta.pickVenueRouteName};
@@ -241,7 +242,7 @@ router.beforeEach(async (to, from) => {
       }else{
         console.log('Trying to loadAndJoinVenue');
         // await venueStore.joinVenue(venueStore.savedVenueId);
-        await venueStore.loadAndJoinVenue(venueStore.savedVenueId);
+        await venueStore.loadAndJoinVenue(venueId);
       }
     }
     const venueName = venueStore.currentVenue?.name;

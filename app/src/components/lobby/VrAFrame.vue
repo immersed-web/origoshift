@@ -86,6 +86,7 @@
         material="transparent: true; opacity: 0.4"
       />
       <a-camera
+        @loaded="onCameraLoaded"
         id="camera"
         ref="playerTag"
         look-controls="reverseMouseDrag: true; reverseTouchDrag: true;"
@@ -250,11 +251,14 @@ onBeforeMount(async () => {
 
 onMounted(async () => {
   // console.log('onMounted');
-  sceneTag.value!.setAttribute('raycaster', {objects: '.clickable'});
-  sceneTag.value!.setAttribute('cursor', {rayOrigin: 'mouse', fuse: false});
-
   // console.log('onMounted completed');
 });
+
+function onCameraLoaded() {
+  console.log('camera loaded. attaching scene attributes');
+  sceneTag.value!.setAttribute('cursor', {rayOrigin: 'mouse', fuse: false});
+  sceneTag.value!.setAttribute('raycaster', {objects: '.clickable'});
+}
 
 onBeforeUnmount(async () => {
   sceneTag.value!.removeAttribute('raycaster');

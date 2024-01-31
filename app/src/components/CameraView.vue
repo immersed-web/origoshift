@@ -197,7 +197,7 @@
 import { useRouter } from 'vue-router';
 import { useSoupStore } from '@/stores/soupStore';
 import type { CameraId, VenueId } from 'schemas';
-import { onBeforeUnmount, onMounted, ref, shallowRef, watch, inject, computed, nextTick } from 'vue';
+import { onBeforeUnmount, onMounted, ref, shallowRef, watch, inject, computed, nextTick, onBeforeMount } from 'vue';
 import { computedWithControl } from '@vueuse/core';
 import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
@@ -372,8 +372,10 @@ function setVideoDimensionsFromTag(vTag: HTMLVideoElement){
   videoHeight.value = fixedWidth/ratio;
 }
 
+const templateIsReady = ref(false);
 function onTemplateReady() {
   console.log('cameraView template ready');
+  templateIsReady.value = true;
   createVideoMaterials();
 }
 
@@ -527,10 +529,12 @@ function setCameraRotation(angleX: number, angleY: number){
 
 watch(() => props.cameraId, () => {
   console.log('cameraId updated');
-  if(!soup.userHasInteracted) {    
-    watch(() => soup.userHasInteracted, (interacted, previous) => {
-      if(interacted && !previous){
+  if(!templateIsReady.value) {    
+    const stop = watch(templateIsReady, (templateReady) => {
+      if(templateReady){
         onCameraSwitch();
+
+        stop();
       }
     });
     return;
@@ -540,9 +544,7 @@ watch(() => props.cameraId, () => {
   immediate: true,
 });
 
-
-onMounted(async () => {
-  console.log('mounted');
+onBeforeMount(async () => {
   if(!venueStore.currentVenue){
     await venueStore.loadAndJoinVenue(props.venueId);
   }
@@ -550,6 +552,10 @@ onMounted(async () => {
     await soup.loadDevice();
   }
   await soup.createReceiveTransport();
+});
+
+onMounted(async () => {
+  console.log('mounted');
 
   sceneTag.value?.setAttribute('raycaster', {objects: '.clickable'});
   sceneTag.value?.setAttribute('cursor', {fuse:false, rayOrigin: 'mouse'});

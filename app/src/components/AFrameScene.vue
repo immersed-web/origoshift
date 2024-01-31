@@ -1,6 +1,6 @@
 <template>
-  <div class="w-screen h-screen pointer-events-none *:pointer-events-auto z-10 absolute">
-    <div class="rounded-br-lg bg-base-200/50 max-w-fit p-4">
+  <div class="w-screen h-screen pointer-events-none z-10 absolute">
+    <div class="rounded-br-lg bg-base-200/50 max-w-fit p-4 *:pointer-events-auto">
       <button
         @click="$router.back()"
         class="btn btn-primary btn-circle"
@@ -9,7 +9,7 @@
       </button>
     </div>
     <div
-      class=""
+      class="pointer-events-none *:pointer-events-auto"
       ref="domOutlet"
       id="aframe-dom-outlet"
     />
@@ -54,8 +54,8 @@ const domOutlet = ref<HTMLDivElement>();
 provide(aFrameSceneProvideKey, {sceneTag, domOutlet});
 
 function onViewUnmounted(input: unknown) {
-  sceneTag.value?.removeAttribute('cursor');
-  sceneTag.value?.removeAttribute('raycaster');
+  // sceneTag.value?.removeAttribute('cursor');
+  // sceneTag.value?.removeAttribute('raycaster');
   // console.log('view unmounteed');
   // console.log(input);
 }

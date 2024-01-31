@@ -9,7 +9,6 @@
     >
       <button
         class="btn btn-primary btn-lg"
-        @click="loadStuff"
       >
         Starta
       </button>
@@ -17,22 +16,46 @@
     <div v-else-if="!camera.currentCamera">
       Försöker öppna kameran
     </div>
+    <div class="max-w-64 pointer-events-none bg-base-200/35">
+      <div class="relative">
+        <video
+          autoplay
+          ref="videoTag1"
+          :id="`main-video-1`"
+          :class="{'rotate-180': freezeableCameraStore.isRoofMounted}"
+          crossorigin="anonymous"
+          playsinline
+          webkit-playsinline
+        />
+        <p class="absolute z-50 top-0">
+          main-video-1
+        </p>
+      </div>
+      
+      <div class="relative">
+        <video
+          autoplay
+          ref="videoTag2"
+          :id="`main-video-2`"
+          :class="{'rotate-180': freezeableCameraStore.isRoofMounted}"
+          crossorigin="anonymous"
+          playsinline
+          webkit-playsinline
+        />
+        <p class="absolute z-50 top-0">
+          main-video-2
+        </p>
+      </div>
+      <audio
+        autoplay
+        ref="audioTag"
+      />
+    </div>
   </Teleport>
   <template v-if="soup.userHasInteracted && camera.currentCamera">
-    <!-- <a-assets>
-      <a-mixin
-        id="fade-to-from-black"
-        animation__to_black="property: components.material.material.color; type: color; to: #000; dur: 500; startEvents: fadeToBlack; easing: linear;"
-        animation__from_black="property: components.material.material.color; type: color; to: #fff; dur: 500; startEvents: fadeFromBlack; easing: linear;"
-      />
-    </a-assets> -->
-    <!-- <a-entity
-      ref="environmentEntityTag"
-      :environment="`preset: tron; dressing: none; active:${!freezeableCameraStore.is360Camera};`"
-    /> -->
-    <!-- <a-sky color="#090F14" /> -->
     <a-grid :visible="!freezeableCameraStore.is360Camera" />
     <a-entity
+      @loaded="onTemplateReady"
       ref="cameraRigTag"
       id="rig"
     >
@@ -74,14 +97,12 @@
       <a-entity
         :position="`0 ${videoHeight/2} ${-cinemaDistance}`"
       >
-        <a-video
-          :visible="activeVideoTag"
+        <a-plane 
           ref="aVideoTag"
-          crossorigin="anonymous"
           :width="fixedWidth"
           :height="videoHeight"
           :rotation="`0 0 ${freezeableCameraStore.isRoofMounted?'180': 0}`"
-          material="transparent: false"
+          scale="1 1 -1"
         />
         <a-entity
           v-for="portal in freezeableCameraStore.portals"
@@ -139,13 +160,13 @@
             />
           </a-ring>
         </a-entity>
-        <a-videosphere
-          :geometry="`phiLength:${freezeableCameraStore.FOV?.phiLength??360}; phiStart:${freezeableCameraStore.FOV?.phiStart??0}`"
+        <a-sphere
           ref="vSphereTag"
-          src="#main-video-1"
           :rotation="`0 90 ${freezeableCameraStore.isRoofMounted? '180': '0'}`"
+          :phi-start="freezeableCameraStore.FOV?.phiStart??0"
+          :phi-length="freezeableCameraStore.FOV?.phiLength??360"
           radius="20"
-          material="color: #fff;fog: false"
+          scale="-1 1 1"
         />
         <a-entity
           v-for="portal in freezeableCameraStore.portals"
@@ -171,31 +192,12 @@
       </a-entity>
     </a-entity>
   </template>
-  <div class="hidden">
-    <div class="">
-      <video
-        autoplay
-        v-for="n in 2"
-        :key="n"
-        ref="videoTags"
-        :id="`main-video-${n}`"
-        :class="{'rotate-180': freezeableCameraStore.isRoofMounted}"
-        crossorigin="anonymous"
-        playsinline
-        webkit-playsinline
-      />
-    </div>
-    <audio
-      autoplay
-      ref="audioTag"
-    />
-  </div>
 </template>
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useSoupStore } from '@/stores/soupStore';
 import type { CameraId, VenueId } from 'schemas';
-import { onBeforeUnmount, onMounted, ref, shallowRef, watch, inject } from 'vue';
+import { onBeforeUnmount, onMounted, ref, shallowRef, watch, inject, computed, nextTick } from 'vue';
 import { computedWithControl } from '@vueuse/core';
 import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
@@ -224,7 +226,11 @@ const { domOutlet, sceneTag } = inject(aFrameSceneProvideKey)!;
 
 const router = useRouter();
 
-const videoTags = ref<Array<HTMLVideoElement>>([]);
+const videoTag1 = ref<HTMLVideoElement>();
+const videoTag2 = ref<HTMLVideoElement>();
+const videoTags = computed(() => {
+  return [videoTag1.value, videoTag2.value] as const;
+});
 const audioTag = ref<HTMLAudioElement>();
 
 // const sceneTag = ref<Scene>();
@@ -232,7 +238,6 @@ const audioTag = ref<HTMLAudioElement>();
 const vSphereTag = ref<Entity>();
 const aVideoTag = ref<Entity>();
 const curtainTag = ref<Entity>();
-const environmentEntityTag = ref<Entity>();
 
 const cameraTag = ref<Entity>();
 const cameraRigTag = ref<Entity>();
@@ -266,7 +271,7 @@ async function consumeAndHandleResult() {
   // console.log(videoTags.value);
   ++activeVideoTagIndex;
   activeVideoTagIndex %= 2;
-  const vtag: HTMLVideoElement | undefined = videoTags.value[activeVideoTagIndex] as HTMLVideoElement | undefined;
+  const vtag = videoTags.value[activeVideoTagIndex];
   if(!vtag) {
     console.error('no vtag found in consumeAndHandleResult! Returning');
     return;
@@ -285,18 +290,24 @@ async function consumeAndHandleResult() {
     vtag.setAttribute('crossorigin', 'anonymous');
     // videoTag.src = 'https://cdn.bitmovin.com/content/assets/playhouse-vr/progressive.mp4';
     // videoTag.src = 'https://bitmovin.com/player-content/playhouse-vr/progressive.mp4';
-    vtag.src = 'https://video.360cities.net/aeropicture/01944711_VIDEO_0520_1_H264-1920x960.mp4';
+    // vtag.src = 'https://video.360cities.net/aeropicture/01944711_VIDEO_0520_1_H264-1920x960.mp4';
+    vtag.src = testVideos[activeVideoTagIndex];
   }else{
     vtag.muted = false;
     vtag.loop = false;
     vtag.srcObject = new MediaStream([rcvdTracks.videoTrack]);
   }
   // console.log('vTag', vtag);
-  vtag.play();
-  vtag.addEventListener('playing', () => {
-    // console.log('playing event triggered.');
+  try {
+    await vtag.play();
     onCurtainStateChanged();
-  }, {once: true});
+    // vtag.addEventListener('playing', () => {
+    // // console.log('playing event triggered.');
+    //   onCurtainStateChanged();
+    // }, {once: true});
+  } catch(e:unknown) {
+    console.warn('failed to call play on videoelelement');
+  }
   if(rcvdTracks?.audioTrack && audioTag.value){
     audioTag.value.srcObject = new MediaStream([rcvdTracks.audioTrack]);
   }
@@ -304,7 +315,7 @@ async function consumeAndHandleResult() {
 
 let fallbackTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 function onCurtainStateChanged() {
-  if(videoTags.value[activeVideoTagIndex].paused
+  if(videoTags.value[activeVideoTagIndex]?.paused
     || isFadingToBlack 
     || isZoomingInOnPortal 
   ){
@@ -340,13 +351,8 @@ function prepareSceneAndFadeFromBlack(){
     }
     setCameraRotation(0,0);
   }
-
-  // console.log('Switching v-sphere source');
-  vSphereTag.value?.setAttribute('src', `#main-video-${activeVideoTagIndex+1}`);
-  // vSphereTag.value?.removeAttribute('animation');
-  // vSphereTag.value?.setAttribute('radius', 10);
-  // console.log('switching a-video source');
-  aVideoTag.value?.setAttribute('src', `#main-video-${activeVideoTagIndex+1}`);
+  // createVideoMaterials();
+  attachVideoMaterial();
 
   setVideoDimensionsFromTag(activeVideoTag.value!);
   
@@ -366,15 +372,13 @@ function setVideoDimensionsFromTag(vTag: HTMLVideoElement){
   videoHeight.value = fixedWidth/ratio;
 }
 
-async function loadStuff(){
-  if(!venueStore.currentVenue){
-    await venueStore.loadAndJoinVenue(props.venueId);
-  }
-  if(!soup.deviceLoaded){
-    await soup.loadDevice();
-  }
-  await soup.createReceiveTransport();
+function onTemplateReady() {
+  console.log('cameraView template ready');
+  createVideoMaterials();
+}
 
+async function onCameraSwitch(){
+  console.log('camera switched');
   await camera.joinCamera(props.cameraId);
   console.log('joined camera');
   consumeAndHandleResult();
@@ -523,13 +527,29 @@ function setCameraRotation(angleX: number, angleY: number){
 
 watch(() => props.cameraId, () => {
   console.log('cameraId updated');
-  loadStuff();
+  if(!soup.userHasInteracted) {    
+    watch(() => soup.userHasInteracted, (interacted, previous) => {
+      if(interacted && !previous){
+        onCameraSwitch();
+      }
+    });
+    return;
+  }
+  onCameraSwitch();
 }, {
   immediate: true,
 });
 
+
 onMounted(async () => {
   console.log('mounted');
+  if(!venueStore.currentVenue){
+    await venueStore.loadAndJoinVenue(props.venueId);
+  }
+  if(!soup.deviceLoaded){
+    await soup.loadDevice();
+  }
+  await soup.createReceiveTransport();
 
   sceneTag.value?.setAttribute('raycaster', {objects: '.clickable'});
   sceneTag.value?.setAttribute('cursor', {fuse:false, rayOrigin: 'mouse'});
@@ -538,8 +558,68 @@ onMounted(async () => {
 
   document.addEventListener('mouseup', onMouseUp);
   document.addEventListener('pointermove', onMouseMove);
-
 });
+
+let videoTextures: [THREE.VideoTexture | undefined, THREE.VideoTexture | undefined] = [undefined, undefined];
+let videoMaterials: [THREE.MeshBasicMaterial | undefined, THREE.MeshBasicMaterial | undefined] = [undefined, undefined];
+function createVideoMaterials() {
+  console.log('creating videoMaterials!!!!!!');
+  videoTags.value.forEach((vTag, i) => {
+    if(!vTag){
+      console.error('videotag was undefined');
+      return;
+    }
+
+    videoTextures[i] = new THREE.VideoTexture(vTag);
+    // @ts-ignore
+    videoTextures[i].colorSpace = THREE.SRGBColorSpace;
+    videoMaterials[i] = new THREE.MeshBasicMaterial({
+      side: THREE.BackSide,
+      map: videoTextures[i],
+    });
+  });
+}
+function attachVideoMaterial() {
+  const material = videoMaterials[activeVideoTagIndex];
+  if(!material) {
+    console.error('no material for activeVideoTagIndex!');
+    return;
+  }
+  const videoSphereMesh = vSphereTag.value?.getObject3D('mesh') as THREE.Mesh | undefined;
+  if(videoSphereMesh && videoSphereMesh.isMesh){
+    videoSphereMesh.material = material;
+  } else {
+    console.error('no mesh found in the vSphere');
+  }
+  
+  const videoPlaneMesh = aVideoTag.value?.getObject3D('mesh') as THREE.Mesh | undefined;
+  if(videoPlaneMesh && videoPlaneMesh.isMesh) {
+    videoPlaneMesh.material = material;
+  } else {
+    console.error('no mesh found in the videoplane');
+  }
+}
+
+function disposeVideoMaterials() {
+  videoMaterials.forEach((material, i) => {
+
+    if(!material) {
+      console.error('material undefined when trying to dispose');
+      return;
+    }
+    material.map = null;
+    material?.dispose();
+    material = undefined;
+  });
+  videoTextures.forEach((texture, i) => { 
+    if(!texture) {
+      console.error('texture undefined when trying to dispose');
+      return;
+    }
+    texture?.dispose();
+    texture = undefined;
+  });
+}
 
 function onCurtainLoaded() {
   console.log('curtain loaded');
@@ -556,17 +636,47 @@ function onCurtainLoaded() {
   //   }
   // }
 }
+// async function cleanUp() {
+
+//   if(!vSphereTag.value) {
+//     console.warn('no videospheretag');
+//     return;
+//   }
+//   // @ts-ignore
+//   const material: THREE.MeshBasicMaterial = vSphereTag.value.components.material.material;
+//   // @ts-ignore
+//   const geometry: THREE.SphereGeometry = vSphereTag.value.components.geometry.geometry;
+//   geometry.dispose();
+//   // console.log(geometry);
+//   const texture = material.map;
+//   material.map = null;
+//   material.dispose();
+//   texture?.dispose();
+  
+//   vSphereTag.value.components.material.remove();
+//   vSphereTag.value.components.geometry.remove();
+//   vSphereTag.value.object3D.clear();
+//   vSphereTag.value.object3D.parent?.remove(vSphereTag.value.object3D);
+
+//   vSphereTag.value.parentNode?.removeChild(vSphereTag.value);
+// }
 
 onBeforeUnmount(() => {
   document.removeEventListener('mouseup', onMouseUp);
   document.removeEventListener('pointermove', onMouseMove);
+  sceneTag.value?.removeAttribute('raycaster');
+  sceneTag.value?.removeAttribute('cursor');
+  sceneTag.value?.removeAttribute('xr-mode-ui');
+  sceneTag.value?.removeAttribute('background');
+  disposeVideoMaterials();
+
+  console.log('gonna unmount cameraView');
+  videoTags.value.forEach(vtag => vtag?.pause());
   if(camera.currentCamera){
     console.log('Leaving camera');
     camera.leaveCurrentCamera();
   }
-  environmentEntityTag.value?.setAttribute('environment', 'active', false);
 });
-
 
 const movedPortalCameraId = ref<CameraId>();
 let isViewOriginMoved = ref(false);

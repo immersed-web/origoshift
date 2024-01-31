@@ -5,7 +5,7 @@
         <th
           colspan="10"
         >
-          Anslutna Kameror
+          Status för kameror
         </th>
       </tr>
     </thead>

@@ -266,7 +266,6 @@ let activeVideoTagIndex = 1; // Since we switch _before_ retrieving video stream
 const activeVideoTag = shallowRef<HTMLVideoElement>();
 
 async function consumeAndHandleResult() {
-  activeVideoTag.value?.pause();
   ++activeVideoTagIndex;
   activeVideoTagIndex %= 2;
   const vtag = videoTags.value[activeVideoTagIndex];
@@ -406,8 +405,8 @@ function onPortalMouseDown(portal: ComputedPortal, evt: MouseEvent){
 let isFadingToBlack = false;
 let isZoomingInOnPortal = false;
 function teleportToCamera(cameraId: CameraId, event: Event) {
-  // pauseCamerawatcher();
   freezeCameraState.value = true;
+  activeVideoTag.value?.pause();
   isFadingToBlack = true;
   curtainTag.value?.emit('fadeToBlack');
   (curtainTag.value as HTMLElement).addEventListener('animationcomplete__to_black', () => {

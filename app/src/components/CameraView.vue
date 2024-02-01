@@ -52,7 +52,7 @@
       />
     </div>
   </Teleport>
-  <template v-if="soup.userHasInteracted && camera.currentCamera">
+  <template v-if="soup.userHasInteracted">
     <a-grid :visible="!freezeableCameraStore.is360Camera" />
     <a-entity
       @loaded="onTemplateReady"
@@ -198,7 +198,7 @@ import { useRouter } from 'vue-router';
 import { useSoupStore } from '@/stores/soupStore';
 import type { CameraId, VenueId } from 'schemas';
 import { onBeforeUnmount, onMounted, ref, shallowRef, watch, inject, computed, nextTick, onBeforeMount } from 'vue';
-import { computedWithControl } from '@vueuse/core';
+import { computedWithControl, until } from '@vueuse/core';
 import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
 import { THREE, type Entity, type Scene } from 'aframe';
@@ -299,12 +299,12 @@ async function consumeAndHandleResult() {
   }
   // console.log('vTag', vtag);
   try {
-    await vtag.play();
-    onCurtainStateChanged();
-    // vtag.addEventListener('playing', () => {
-    // // console.log('playing event triggered.');
-    //   onCurtainStateChanged();
-    // }, {once: true});
+    vtag.play();
+    // onCurtainStateChanged();
+    vtag.addEventListener('playing', () => {
+    // console.log('playing event triggered.');
+      onCurtainStateChanged();
+    }, {once: true});
   } catch(e:unknown) {
     console.warn('failed to call play on videoelelement');
   }
@@ -315,7 +315,7 @@ async function consumeAndHandleResult() {
 
 let fallbackTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 function onCurtainStateChanged() {
-  if(videoTags.value[activeVideoTagIndex]?.paused
+  if(activeVideoTag.value?.paused
     || isFadingToBlack 
     || isZoomingInOnPortal 
   ){
@@ -376,7 +376,6 @@ const templateIsReady = ref(false);
 function onTemplateReady() {
   console.log('cameraView template ready');
   templateIsReady.value = true;
-  createVideoMaterials();
 }
 
 async function onCameraSwitch(){
@@ -529,22 +528,23 @@ function setCameraRotation(angleX: number, angleY: number){
 
 watch(() => props.cameraId, () => {
   console.log('cameraId updated');
-  if(!templateIsReady.value) {    
-    const stop = watch(templateIsReady, (templateReady) => {
-      if(templateReady){
-        onCameraSwitch();
+  // if(!templateIsReady.value) {    
+  //   const stop = watch(templateIsReady, (templateReady) => {
+  //     if(templateReady){
+  //       onCameraSwitch();
 
-        stop();
-      }
-    });
-    return;
-  }
+  //       stop();
+  //     }
+  //   });
+  //   return;
+  // }
   onCameraSwitch();
 }, {
-  immediate: true,
+  immediate: false,
 });
 
 onBeforeMount(async () => {
+  console.log('onBeforeMount');
   if(!venueStore.currentVenue){
     await venueStore.loadAndJoinVenue(props.venueId);
   }
@@ -552,6 +552,11 @@ onBeforeMount(async () => {
     await soup.loadDevice();
   }
   await soup.createReceiveTransport();
+  // await camera.joinCamera(props.cameraId);
+  await until(templateIsReady).toBeTruthy();
+  console.log('beforemount waited and got template ready');
+  createVideoMaterials();
+  onCameraSwitch();
 });
 
 onMounted(async () => {
@@ -569,7 +574,7 @@ onMounted(async () => {
 let videoTextures: [THREE.VideoTexture | undefined, THREE.VideoTexture | undefined] = [undefined, undefined];
 let videoMaterials: [THREE.MeshBasicMaterial | undefined, THREE.MeshBasicMaterial | undefined] = [undefined, undefined];
 function createVideoMaterials() {
-  console.log('creating videoMaterials!!!!!!');
+  console.log('creating videoMaterials!');
   videoTags.value.forEach((vTag, i) => {
     if(!vTag){
       console.error('videotag was undefined');
@@ -630,42 +635,7 @@ function disposeVideoMaterials() {
 function onCurtainLoaded() {
   console.log('curtain loaded');
   return;
-  // const mesh = curtainTag.value?.getObject3D('mesh') as THREE.Mesh;
-  // console.log(mesh);
-  // if(mesh && mesh.isMesh){
-  //   if(Array.isArray(mesh.material)){
-  //     console.log('setting depth function for array of materials');
-  //     mesh.material.forEach(m => m.depthFunc = THREE.AlwaysDepth);
-  //   } else {
-  //     console.log('setting depth function for material');
-  //     mesh.material.depthFunc = THREE.AlwaysDepth;
-  //   }
-  // }
 }
-// async function cleanUp() {
-
-//   if(!vSphereTag.value) {
-//     console.warn('no videospheretag');
-//     return;
-//   }
-//   // @ts-ignore
-//   const material: THREE.MeshBasicMaterial = vSphereTag.value.components.material.material;
-//   // @ts-ignore
-//   const geometry: THREE.SphereGeometry = vSphereTag.value.components.geometry.geometry;
-//   geometry.dispose();
-//   // console.log(geometry);
-//   const texture = material.map;
-//   material.map = null;
-//   material.dispose();
-//   texture?.dispose();
-  
-//   vSphereTag.value.components.material.remove();
-//   vSphereTag.value.components.geometry.remove();
-//   vSphereTag.value.object3D.clear();
-//   vSphereTag.value.object3D.parent?.remove(vSphereTag.value.object3D);
-
-//   vSphereTag.value.parentNode?.removeChild(vSphereTag.value);
-// }
 
 onBeforeUnmount(() => {
   document.removeEventListener('mouseup', onMouseUp);

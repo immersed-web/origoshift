@@ -16,7 +16,7 @@
     <div v-else-if="!camera.currentCamera">
       Försöker öppna kameran
     </div>
-    <div class="max-w-64 pointer-events-none bg-base-200/35">
+    <div class="hidden max-w-64 pointer-events-none bg-base-200/35">
       <div class="relative">
         <video
           autoplay

@@ -169,7 +169,7 @@ const spawnRadius = computed(() => {
 
 function onIntersection(evt: DetailEvent<any>){
   console.log('model hovered',evt);
-  const point: THREE.Vector3 = evt.detail.point;
+  const point: THREE.Vector3 = evt.detail.intersection.point;
   if(!point) {
     console.error('no point from intersection event');
     return;

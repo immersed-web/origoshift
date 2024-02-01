@@ -267,16 +267,16 @@ const activeVideoTag = shallowRef<HTMLVideoElement>();
 
 async function consumeAndHandleResult() {
   activeVideoTag.value?.pause();
-  const rcvdTracks = await camera.consumeCurrentCamera();
-  // console.log(videoTags.value);
   ++activeVideoTagIndex;
   activeVideoTagIndex %= 2;
   const vtag = videoTags.value[activeVideoTagIndex];
+  activeVideoTag.value = vtag;
+  const rcvdTracks = await camera.consumeCurrentCamera();
+  // console.log(videoTags.value);
   if(!vtag) {
     console.error('no vtag found in consumeAndHandleResult! Returning');
     return;
   }
-  activeVideoTag.value = vtag;
 
   if(!rcvdTracks?.videoTrack && !import.meta.env.DEV ){
     console.error('no videotrack from camera');
@@ -299,12 +299,13 @@ async function consumeAndHandleResult() {
   }
   // console.log('vTag', vtag);
   try {
-    vtag.play();
-    // onCurtainStateChanged();
-    vtag.addEventListener('playing', () => {
-    // console.log('playing event triggered.');
-      onCurtainStateChanged();
-    }, {once: true});
+    await vtag.play();
+    console.log('play promise resolved');
+    onCurtainStateChanged();
+    // vtag.addEventListener('playing', () => {
+    //   console.log('playing event triggered.');
+    //   onCurtainStateChanged();
+    // }, {once: true});
   } catch(e:unknown) {
     console.warn('failed to call play on videoelelement');
   }
@@ -315,7 +316,12 @@ async function consumeAndHandleResult() {
 
 let fallbackTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 function onCurtainStateChanged() {
-  if(activeVideoTag.value?.paused
+  console.log(activeVideoTag.value?.paused);
+  console.log(activeVideoTag.value?.id);
+  if(!activeVideoTag.value || activeVideoTag.value.paused){
+    console.log('video not playing yet!');
+  }
+  if(!activeVideoTag.value || activeVideoTag.value.paused
     || isFadingToBlack 
     || isZoomingInOnPortal 
   ){
@@ -405,7 +411,7 @@ function teleportToCamera(cameraId: CameraId, event: Event) {
   isFadingToBlack = true;
   curtainTag.value?.emit('fadeToBlack');
   (curtainTag.value as HTMLElement).addEventListener('animationcomplete__to_black', () => {
-    // console.log('fade to black animation complete');
+    console.log('fade to black animation complete');
     isFadingToBlack = false;
     onCurtainStateChanged();
   }, {once: true});
@@ -423,7 +429,7 @@ function teleportToCamera(cameraId: CameraId, event: Event) {
   isZoomingInOnPortal = true;
   cameraRigTag.value?.setAttribute('animation', animationString);
   (cameraRigTag.value as HTMLElement)?.addEventListener('animationcomplete', () => {
-    // console.log('zoom animation complete');
+    console.log('zoom animation complete');
     isZoomingInOnPortal = false;
     onCurtainStateChanged();
   }, {once: true});

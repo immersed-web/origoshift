@@ -261,8 +261,8 @@ function onCameraLoaded() {
 }
 
 onBeforeUnmount(async () => {
-  sceneTag.value!.removeAttribute('raycaster');
-  sceneTag.value!.removeAttribute('cursor');
+  sceneTag.value?.removeAttribute('raycaster');
+  sceneTag.value?.removeAttribute('cursor');
   await soupStore.closeAudioProducer();
   await vrSpaceStore.leaveVrSpace();
 });

@@ -14,7 +14,19 @@
       id="aframe-dom-outlet"
     />
   </div>
+  <div
+    v-if="!bundlesLoaded"
+    class="grid place-items-center h-screen w-screen"
+  >
+    <div class="flex flex-col items-center animate-pulse">
+      <h2 class="">
+        LADDAR COOLA 3D-GREJER
+      </h2>
+      <span class="loading loading-lg loading-infinity text-primary" />
+    </div>
+  </div>
   <a-scene
+    v-else
     class="pointer-events-auto w-screen h-screen"
     ref="sceneTag"
   >
@@ -40,18 +52,23 @@
   </a-scene>
 </template>
 <script setup lang="ts">
-import { provide, ref } from 'vue';
-import type { Ref } from 'vue';
+import { onBeforeMount, provide, ref } from 'vue';
 // this makes sure aframe is loaded before mounting the scene
-import 'aframe';
 import type { Scene } from 'aframe';
 import { aFrameSceneProvideKey } from '@/modules/injectionKeys';
-import c from '@/ts/aframe/components';
-c.registerAframeComponents();
+
+const bundlesLoaded = ref(false);
 
 const sceneTag = ref<Scene>();
 const domOutlet = ref<HTMLDivElement>();
 provide(aFrameSceneProvideKey, {sceneTag, domOutlet});
+onBeforeMount( async () => {
+  console.log('onbeforeMount in AFRAME SCENE');
+  await import('aframe');
+  const {default: c} = await import('@/ts/aframe/components');
+  c.registerAframeComponents();
+  bundlesLoaded.value = true;
+});
 
 function onViewUnmounted(input: unknown) {
   // sceneTag.value?.removeAttribute('cursor');

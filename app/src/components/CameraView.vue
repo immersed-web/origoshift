@@ -201,7 +201,7 @@ import { onBeforeUnmount, onMounted, ref, shallowRef, watch, inject, computed, n
 import { computedWithControl, until } from '@vueuse/core';
 import { useVenueStore } from '@/stores/venueStore';
 import { useCameraStore } from '@/stores/cameraStore';
-import { THREE, type Entity, type Scene } from 'aframe';
+import type { Entity, Scene } from 'aframe';
 import { useAdminStore } from '@/stores/adminStore';
 // import { useAutoEnterXR } from '@/composables/autoEnterXR';
 import { aFrameSceneProvideKey } from '@/modules/injectionKeys';

@@ -1,5 +1,3 @@
-// import { THREE, type DetailEvent, type EntityEventMap, type ThreeLib } from 'aframe';
-
 export default () => {
 
   AFRAME.registerComponent<{startScale: THREE.Vector3, isResized: boolean}>('hover-highlight', {

@@ -1,4 +1,4 @@
-import { THREE, type Entity } from 'aframe';
+import type { Entity } from 'aframe';
 
 export default () => {
 

@@ -1,4 +1,5 @@
 import 'aframe';
+
 import emitMove from './emit-move';
 import rotationControl from './rotation-control';
 import remoteAvatar from './remote-avatar';

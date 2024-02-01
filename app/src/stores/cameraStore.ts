@@ -4,7 +4,6 @@ import type { CameraId } from 'schemas';
 import type { RouterOutputs } from '@/modules/trpcClient';
 import { computed, ref } from 'vue';
 import { useSoupStore } from './soupStore';
-import { THREE } from 'aframe';
 import { useVenueStore } from './venueStore';
 
 type _ReceivedPublicCameraState = RouterOutputs['camera']['joinCamera'];

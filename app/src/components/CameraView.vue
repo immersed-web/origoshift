@@ -322,7 +322,7 @@ function onCurtainStateChanged() {
   }
   if(!activeVideoTag.value || activeVideoTag.value.paused
     || isFadingToBlack 
-    || isZoomingInOnPortal 
+    // || isZoomingInOnPortal 
   ){
     // console.log('not yet ready to reveal after portal jump. returning');
     clearTimeout(fallbackTimeout);
@@ -403,7 +403,7 @@ function onPortalMouseDown(portal: ComputedPortal, evt: MouseEvent){
 }
 // These will hold the play state of the animations.
 let isFadingToBlack = false;
-let isZoomingInOnPortal = false;
+// let isZoomingInOnPortal = false;
 function teleportToCamera(cameraId: CameraId, event: Event) {
   freezeCameraState.value = true;
   activeVideoTag.value?.pause();
@@ -424,14 +424,16 @@ function teleportToCamera(cameraId: CameraId, event: Event) {
   const dir = new THREE.Vector3();
   dir.subVectors(portalPos, cameraPos);//.setLength(vSphereRadius-0.2);
   dir.multiplyScalar(0.8);
-  const animationString = `property: position; to: ${dir.x} ${dir.y} ${dir.z}; dur: 500; easing:easeInQuad;`;
-  isZoomingInOnPortal = true;
-  cameraRigTag.value?.setAttribute('animation', animationString);
-  (cameraRigTag.value as HTMLElement)?.addEventListener('animationcomplete', () => {
-    console.log('zoom animation complete');
-    isZoomingInOnPortal = false;
-    onCurtainStateChanged();
-  }, {once: true});
+  //ZOOM ANIMATION
+  // const animationString = `property: position; to: ${dir.x} ${dir.y} ${dir.z}; dur: 500; easing:easeInQuad;`;
+  // isZoomingInOnPortal = true;
+  // cameraRigTag.value?.setAttribute('animation', animationString);
+  // (cameraRigTag.value as HTMLElement)?.addEventListener('animationcomplete', () => {
+  //   console.log('zoom animation complete');
+  //   isZoomingInOnPortal = false;
+  //   onCurtainStateChanged();
+  // }, {once: true});
+  // //ZOOM ANIMATION END
   // const sphereShrinkAnimationString = `property: geometry.radius; to: ${dir.length()}; dur: 500; easing: easeInQuad;`;
   // vSphereTag.value?.setAttribute('animation', sphereShrinkAnimationString);
 

@@ -161,7 +161,9 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from) => {
-  // console.log('beforeEach: ', to, from);
+  // console.log('------- New Route -------');
+  // console.log('to:', to);
+  // console.log('from:', from);
   const authStore = useAuthStore();
   const windowTitle = useTitle();
   windowTitle.value = 'Origoshift';

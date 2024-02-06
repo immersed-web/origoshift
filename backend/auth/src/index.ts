@@ -29,7 +29,9 @@ const app = express();
 // We need to trust first proxy. Foremost to get secure cookie to function  properly
 app.set('trust proxy', 1);
 
-let cookieHttpOnly = true;
+// TODO: We should not allow reading cookie from javascript.
+// Find a way to make our auth flow work without this set to false
+let cookieHttpOnly = false;
 let cookieSecure = true;
 if (devMode) {
   // NOTE: I couldnt come up with a way to allow all origins so we have hardcoded the devservers url here

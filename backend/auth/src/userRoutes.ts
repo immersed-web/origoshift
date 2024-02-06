@@ -297,6 +297,7 @@ const loginUser: RequestHandler = async (req, res) => {
 };
 
 const logoutUser: RequestHandler = async (req, res) => {
+  console.log('received logout request');
   if (req.user) {
     req.user = undefined;
   }
@@ -314,6 +315,7 @@ const logoutUser: RequestHandler = async (req, res) => {
   if(projectName){
     res.clearCookie(projectName);
   }
+  console.log('user was logged out');
   res.status(200).send();
 };
 

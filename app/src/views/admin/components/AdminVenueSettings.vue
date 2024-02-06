@@ -1,15 +1,15 @@
 <template>
   <div>
-    <h2>
+    <h2 class="mb-4">
       Grundinställningar
     </h2>
     <form
       v-if="venueStore.currentVenue"
       @submit.prevent="updateVenue"
     >
-      <div class="w-full max-w-xs mb-2 form-control">
+      <div class="w-full max-w-xs mb-2 bg-neutral-100 p-2 border form-control">
         <label class="label">
-          <span class="label-text">Eventets namn</span>
+          <span class="label-text text-base">Eventets namn</span>
         </label>
         <input
           v-model="values.name"

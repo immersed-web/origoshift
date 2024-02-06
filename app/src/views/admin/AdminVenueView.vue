@@ -149,7 +149,7 @@
     </StepsContainer>
 
     <div class="divider" />
-    <div class="flex items-stretch">
+    <div class="flex items-stretch pb-6">
       <div class="flex-1">
         <AdminVenueSettings />
       </div>

@@ -56,23 +56,23 @@
         rotation="0 180 0"
       >
         <a-entity position="0 0 0">
-          <a-entity gltf-model="url(/models/avatar/head/Hat1.glb)" />
+          <a-entity gltf-model="url(/models/avatar/hat/Hat4.glb)" />
           <a-entity gltf-model="url(/models/avatar/head/Head1.glb)" />
           <!-- <a-entity :gltf-model="`url(/models/avatar/eyes/Eyes${Math.trunc(Math.random()+1.5)}.glb)`" /> -->
-          <a-entity gltf-model="url(/models/avatar/eyes/Eyes1.glb)" />
+          <a-entity gltf-model="url(/models/avatar/eyes/Eyes5.glb)" />
           <a-entity
             position="0 -0.05 0"
             class="audio-level"
           >
             <a-entity
-              position="0 0.05 0.01"
-              gltf-model="url(/models/avatar/mouth/Mouth2.glb)"
+              position="0 0.05 0.002"
+              gltf-model="url(/models/avatar/mouth/Mouth6.glb)"
             />
           </a-entity>
         </a-entity>
         <a-entity lock-rotation-axis>
           <a-entity gltf-model="url(/models/avatar/body/Body1.glb)" />
-          <a-entity gltf-model="url(/models/avatar/vehicle/Car1.glb)" />
+          <!-- <a-entity gltf-model="url(/models/avatar/vehicle/Vehicle1.glb)" /> -->
         </a-entity>
       </a-entity>
       <audio

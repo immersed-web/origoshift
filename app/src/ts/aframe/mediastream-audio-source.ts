@@ -76,8 +76,8 @@ export default () => {
       // this.levelEntity?.object3D.scale.set(scale, scale, 1);
       // console.log(this.audioLevel);
       if(this.audioLevel > 0.25){
-        const scale = Math.random() * 0.5 + 1;
-        this.levelEntity?.object3D.scale.set(scale, scale, 1);
+        const scaleChange = Math.random() * 0.5 - 0.25;
+        this.levelEntity?.object3D.scale.set(1 + 0.2 * scaleChange , 1 + scaleChange, 1);
       } else {
         this.levelEntity?.object3D.scale.set(1, 1, 1);
       }

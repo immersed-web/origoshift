@@ -11,7 +11,7 @@
       @near-range-entered="onNearRangeEntered"
       @near-range-exited="onNearRangeExited"
     >
-      <a-entity scale="2 2 2">
+      <a-entity scale="1 1 1">
         <a-entity
           :id="`left-hand-${props.clientInfo.connectionId}`"
           visible="false"
@@ -28,7 +28,7 @@
           />
         </a-entity>
       </a-entity>
-      <a-entity scale="2 2 2">
+      <a-entity scale="1 1 1">
         <a-entity
           :id="`right-hand-${props.clientInfo.connectionId}`"
           visible="false"
@@ -61,10 +61,10 @@
           <a-entity gltf-model="url(/models/avatar/eyes/Eyes1.glb)" />
           <a-entity
             class="audio-level"
-            gltf-model="url(/models/avatar/mouth/Mouth1.glb)"
+            gltf-model="url(/models/avatar/mouth/Mouth2.glb)"
           />
         </a-entity>
-        <a-entity lock-rotation-axis>
+        <a-entity>
           <a-entity gltf-model="url(/models/avatar/body/Body1.glb)" />
           <a-entity gltf-model="url(/models/avatar/vehicle/Car1.glb)" />
         </a-entity>

@@ -1,3 +1,4 @@
+
 let crop: NonNullable<VideoFrameWorkerMessageData['crop']> = {
   xStart: 0,
   xEnd: 1,
@@ -42,6 +43,7 @@ function transform(frame: VideoFrame, controller: TransformStreamDefaultControll
     }catch(e) {
       console.error('recovery transform failed also', e, mostRecentUsableCrop);
       controller.enqueue(frame);
+      frame.close();
     }
   }
 }
@@ -54,16 +56,34 @@ export type VideoFrameWorkerMessageData = {
     xStart: number,
     xEnd: number,
   }
+  // pause?: boolean
 }
+// let streams: VideoFrameWorkerMessageData['streams'];
+// const abortController = new AbortController();
 self.onmessage = async (event: MessageEvent<VideoFrameWorkerMessageData>) => {
+
+  console.log('worker received msg:', event.data);
   if(event.data.streams){
-    const {readable, writable} = event.data.streams;
+    const streams = event.data.streams;
+    const {readable, writable} = streams;
+    const transformer = new TransformStream({transform});
     readable
-      .pipeThrough(new TransformStream({transform}))
+      .pipeThrough(transformer)
       .pipeTo(writable);
   }
+
   if(event.data.crop) {
     crop = event.data.crop;
   }
+  // if(event.data.pause !== undefined){
+  //   const pause = event.data.pause;
+  //   if(pause){
+  //     // abortController.abort('no more cropping, please');
+  //     // streams?.readable.cancel();
+  //     // streams?.writable.close();
+  //   }
+  // }
 
 };
+
+console.log('worker created');

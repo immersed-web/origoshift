@@ -6,7 +6,7 @@
     <div
       class="my-6 text-2xl"
     >
-      <span class="">Sänder till: </span><span class="font-bold">{{ venueStore.currentVenue.name }}</span>
+      <span class="">Sänder till: </span><span class="font-bold">{{ venueStore.currentVenue?.name }}</span>
     </div>
     <button
       @click="$router.replace({name: 'senderPickVenue'})"
@@ -32,15 +32,15 @@
         Video info: {{ videoInfo }}
         Mediasoup device loaded: {{ soup.deviceLoaded }}
       </pre> -->
-      <div class="form-control w-fit">
+      <div class="form-control w-fit mb-6">
         <label class="label cursor-pointer">
           <input
             v-model="senderStore.stereoAudio"
             type="checkbox"
-            class="toggle"
+            class="toggle toggle-primary"
           >
           <span class="label-text flex items-center ml-2">Stereoljud<span
-            class="tooltip"
+            class="tooltip cursor-help flex items-center"
             data-tip="Tänk på att stereo kräver mer bandbredd så använd bara om nödvändigt"
           >
             <span class="material-icons">info</span>
@@ -48,39 +48,74 @@
           </span>
         </label>
       </div>
-      <select
-        v-model="pickedVideoInput"
-        class="select select-primary"
-      >
-        <option
-          v-for="(device, key) in videoDevices"
-          :key="key"
-          :value="device"
-        >
-          {{ device.label }}
-        </option>
-      </select>
-      <select
-        v-model="pickedAudioInput"
-        class="select select-primary"
-      >
-        <option
-          v-for="(device, key) in audioDevices"
-          :key="key"
-          :value="device"
-        >
-          {{ device.label }}
-        </option>
-      </select>
+      <div class="flex gap-6">
+        <div>
+          <label>
+            Videokälla:
+          </label>
+          <select
+            v-model="pickedVideoInput"
+            class="select select-bordered"
+          >
+            <option
+              v-for="(device, key) in videoDevices"
+              :key="key"
+              :value="device"
+            >
+              {{ device.label }}
+            </option>
+          </select>
+        </div>
+        <div>
+          <label>
+            Ljudkälla:
+          </label>
+          <select
+            v-model="pickedAudioInput"
+            class="select select-bordered"
+          >
+            <option
+              v-for="(device, key) in audioDevices"
+              :key="key"
+              :value="device"
+            >
+              {{ device.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="w-fit mt-6">
+        <div>
+          <video
+            autoplay
+            class="w-56 bg-emerald-300"
+            ref="sourceVideoTag"
+          />
+        </div>
+        <label class="label cursor-pointer">
+          <input
+            v-model="cropIsActive"
+            type="checkbox"
+            class="toggle"
+          >
+              
+          <span class="label-text ml-2">Avgränsa sändarvinkel</span>
+          <div
+            class="tooltip cursor-help flex items-center"
+            data-tip="Kräver mer prestanda här på på sändarsidan eftersom datorn måste beskära varje videoframe i realtid"
+          >
+            <span class="material-icons">info</span>
+          </div>
+        </label>
+      </div>
       <div
         id="video-crop-container"
         class="w-full"
       >
-        <!-- <pre>{{ cropRange }}</pre> -->
-        <div class="my-6  w-full">
+        <div class="">
           <!-- NOTE: Be sure to keep the slider at step size 5. Otherwise you might end up with a weird chrome? bug in the worker were "x is not sample aligned in plane 1" -->
           <tc-range-slider
-            v-show="sourceVideoTrack"
+            v-show="cropIsActive"
             ref="FOVSlider"
             round="0"
             slider-width="100%"
@@ -90,40 +125,9 @@
             step="5"
             mousewheel-disabled="true"
           />
-          <!-- <OButton class="bg-emerald-500">
-            TEST
-          </OButton>
-          <OSlider
-            v-model="cropRange[0]"
-            size=""
-          /> -->
-          <!-- <Slider
-            v-model="cropRange"
-            :lazy="false"
-            :step="0.01"
-            :min="0.0"
-            :max="1.0"
-            :tooltips="false"
-          /> -->
-          <!-- <input
-            class="w-full"
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            v-model="cropRange[0]"
-          >
-          <input
-            class="w-full"
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            v-model="cropRange[1]"
-          > -->
         </div>
         <video
-          :style="{width: `${(cropRange[1]-cropRange[0])}%`, position:'relative', left: `${cropRange[0]}%`}"
+          :style="videoStyle"
           autoplay
           ref="videoTag"
         />
@@ -150,25 +154,25 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
-import { useRouter } from 'vue-router';
 // import Slider from '@vueform/slider';
 import { isTRPCClientError } from '@/modules/trpcClient';
 import type { ProducerInfo } from 'schemas/mediasoup';
 import { useVenueStore } from '@/stores/venueStore';
 import { useSenderStore } from '@/stores/senderStore';
 import { useSoupStore } from '@/stores/soupStore';
-import { useIntervalFn, useDebounceFn, useWebWorker } from '@vueuse/core';
+import { useIntervalFn, useDebounceFn } from '@vueuse/core';
 import VideoFrameWorker from '@/ts/videoFrameWorker?worker';
 import type { VideoFrameWorkerMessageData } from '@/ts/videoFrameWorker';
 import 'toolcool-range-slider';
+import type { RangeSlider } from 'toolcool-range-slider';
 
 const senderStore = useSenderStore();
 const venueStore = useVenueStore();
 
 const soup = useSoupStore();
 
-const wrkr = new VideoFrameWorker({name: 'crop that shit!'});
-// const { terminate, post } = useWebWorker(new VideoFrameWorker({name: 'crop video'}));
+// let wrkr: Worker | undefined = new VideoFrameWorker({name: 'crop that shit!'});
+let wrkr: Worker | undefined = undefined;
 
 const { pause } = useIntervalFn(async () => {
   try {
@@ -188,11 +192,44 @@ const { pause } = useIntervalFn(async () => {
 
 onBeforeUnmount(() => {
   venueStore.leaveVenue();
-  wrkr.terminate();
+  wrkr?.terminate();
 });
 
+const sourceVideoTag = ref<HTMLVideoElement>();
 const videoTag = ref<HTMLVideoElement>();
-const FOVSlider = ref<HTMLElement>();
+const FOVSlider = ref<RangeSlider>();
+
+const cropIsActive = ref(false);
+watch(cropIsActive, (cropIsActive) => {
+  if(!FOVSlider.value) {
+    console.warn('FOVSlider undefined. Exiting');
+    return;
+  }
+  FOVSlider.value?.addEventListener('change', (evt) => setCropRange(evt as CustomEvent));
+  FOVSlider.value!.step = 5;
+  
+  if(pickedVideoInput.value){
+    onDevicePicked(pickedVideoInput.value);
+    // sendVideo();
+  }
+  if(cropIsActive) {
+    // pipeThroughCropper();
+    debouncedFOVUpdate();
+  } else {
+    // pipeDirectlyOut();
+    // const msg: VideoFrameWorkerMessageData = {
+    //   pause: true,
+    // };
+    // wrkr?.postMessage(msg);
+  }
+});
+
+const videoStyle = computed(() => {
+  if(cropIsActive.value) {
+    return {width: `${(cropRange[1]-cropRange[0])}%`, position:'relative', left: `${cropRange[0]}%`};
+  }
+  return {};
+});
 
 const mediaDevices = ref<MediaDeviceInfo[]>();
 const videoDevices = computed(() => {
@@ -206,7 +243,7 @@ const pickedAudioInput = shallowRef<MediaDeviceInfo>();
 watch(pickedAudioInput, (pickedDevice) => startAudio(pickedDevice!));
 
 const pickedVideoInput = shallowRef<MediaDeviceInfo>();
-watch(pickedVideoInput, (pickedDevice) => startVideo(pickedDevice!));
+watch(pickedVideoInput, (pickedDevice) => onDevicePicked(pickedDevice!));
 
 watch(() => senderStore.stereoAudio, () => startAudio(pickedAudioInput.value!));
 
@@ -260,24 +297,122 @@ function setCropRange(evt: CustomEvent) {
     // soup.replaceVideoProducerTrack(sourceVideoTrack.value);
     // wrkr.terminate();
   }
-  wrkr.postMessage(message);
-
+  if(wrkr) {
+    console.log('sending crop message to worker!');
+    wrkr.postMessage(message);
+  }
   debouncedFOVUpdate();
 }
-const sourceVideoTrack = shallowRef<MediaStreamVideoTrack>();
-let sendingVideoTrack: MediaStreamVideoTrack;
+// const sourceVideoTrack = shallowRef<MediaStreamVideoTrack>();
+// let sendingVideoStream: MediaStream;
+// let sendingVideoTrack: MediaStreamVideoTrack;
 
-const videoInfo = computed(() => {
-  if(!sourceVideoTrack.value) return undefined;
-  const {width, height, frameRate} = sourceVideoTrack.value.getSettings();
-  return {
-    width, height, frameRate,
+// const videoInfo = computed(() => {
+//   if(!sourceVideoTrack.value) return undefined;
+//   const {width, height, frameRate} = sourceVideoTrack.value.getSettings();
+//   return {
+//     width, height, frameRate,
+//   };
+// });
+
+function pipeThroughCropper(sourceVideoTrack: MediaStreamVideoTrack) {
+  // if(!sourceVideoTrack.value) {
+  //   console.warn('source videotrack was undefined. Returning');
+  //   return;
+  // }
+
+  const streamProcessor = new MediaStreamTrackProcessor({track: sourceVideoTrack});
+  const { readable } = streamProcessor;
+  
+  const videoTrackGenerator = new MediaStreamTrackGenerator({kind: 'video'});
+  const { writable } = videoTrackGenerator;
+  
+  const message: VideoFrameWorkerMessageData = {
+    streams: {
+      readable,
+      writable,
+    },
   };
-});
-async function startVideo(videoDevice: MediaDeviceInfo){
+  wrkr?.terminate();
+  wrkr = undefined;
+  console.log('creating (new) worker');
+  wrkr = new VideoFrameWorker({name: 'crop that shit!'});
+  wrkr.postMessage(message, [readable, writable]);
+  
+  return videoTrackGenerator;
+  // sendingVideoTrack = videoTrackGenerator;
+  // return {videoTrack: videoTrackGenerator, stream: new MediaStream([videoTrackGenerator])};
+  // sendingVideoStream = new MediaStream([videoTrackGenerator]);
+  // if(soup.videoProducer.producer){
+  //   soup.replaceVideoProducerTrack(sendingVideoTrack);
+  // }
+}
+// function pipeDirectlyOut() {
+
+//   // if(!sourceVideoTrack.value) {
+//   //   console.warn('source videotrack was undefined. Returning');
+//   //   return;
+//   // }
+//   // sendingVideoStream = new MediaStream([sourceVideoTrack.value]);
+//   // sendingVideoTrack = sourceVideoTrack.value;
+//   wrkr?.terminate();
+
+//   // if(soup.videoProducer.producer){
+//   //   soup.replaceVideoProducerTrack(sendingVideoTrack);
+//   // }
+
+// }
+
+async function sendVideo() {
+  if(!sourceStream) {
+    console.error('sourceStream is undefined');
+    return;
+  }
+  const [vTrack] = await sourceStream.getVideoTracks();
+  // sourceVideoTrack.value = vTrack;
+  if(sourceVideoTag.value) {
+    console.log('sourceVideoTag:', sourceVideoTag.value);
+    
+    // sourceVideoTag.value.srcObject = new MediaStream([sourceVideoTrack.value]);
+    sourceVideoTag.value.srcObject = sourceStream;
+  }
+  
+  let sendingTrack: MediaStreamVideoTrack;
+  let stream: MediaStream;
+  if(cropIsActive.value){
+    console.log('piping through cropper!!');
+    sendingTrack = pipeThroughCropper(vTrack);
+    stream = new MediaStream([sendingTrack]);
+  }else {
+    console.log('not piping through cropper');
+    sendingTrack = vTrack;
+    stream = sourceStream;
+    wrkr?.terminate();
+    wrkr = undefined;
+    // pipeDirectlyOut();
+  }
+  
+  videoTag.value!.srcObject = stream;
+
+  const producerInfo: ProducerInfo = {
+    // deviceId: pickedVideoInput.value?.deviceId,
+    isPaused: false,
+  };
+  if(soup.videoProducer.producer){
+    await soup.replaceVideoProducerTrack(sendingTrack);
+  }else{
+    await soup.produce({
+      track: sendingTrack,
+      producerInfo,
+    });
+  }
+}
+
+let sourceStream: MediaStream;
+async function onDevicePicked(videoDevice: MediaDeviceInfo){
   console.log('starting video!!');
   const deviceId = videoDevice.deviceId;
-  const stream = await navigator.mediaDevices.getUserMedia({
+  sourceStream = await navigator.mediaDevices.getUserMedia({
     video: {
       deviceId: {
         exact: deviceId,
@@ -290,51 +425,9 @@ async function startVideo(videoDevice: MediaDeviceInfo){
       },
     },
   });
-  console.log(stream);
+  console.log(sourceStream);
 
-  const [vTrack] = await stream.getVideoTracks();
-  sourceVideoTrack.value = vTrack;
-  
-  // Transformation (crop) part
-  const streamProcessor = new MediaStreamTrackProcessor({track: vTrack});
-  const { readable } = streamProcessor;
-  
-  const videoTrackGenerator = new MediaStreamTrackGenerator({kind: 'video'});
-  const { writable } = videoTrackGenerator;
-  
-  const message: VideoFrameWorkerMessageData = {
-    streams: {
-      readable,
-      writable,
-    },
-  };
-  wrkr.postMessage(message, [readable, writable]);
-  
-  const transformedStream = new MediaStream([videoTrackGenerator]);
-  
-  sendingVideoTrack = videoTrackGenerator;
-  videoTag.value!.srcObject = transformedStream;
-  
-  // // Dont use transformation (crop):
-  // sendingVideoTrack = sourceVideoTrack.value;
-  // videoTag.value!.srcObject = stream;
-
-  videoTag.value!.play();
-
-  const producerInfo: ProducerInfo = {
-    // deviceId: pickedVideoInput.value?.deviceId,
-    isPaused: false,
-  };
-  if(soup.videoProducer.producer){
-    await soup.replaceVideoProducerTrack(sendingVideoTrack);
-  }else{
-    await soup.produce({
-      // producerId: restoredProducerId,
-      track: sendingVideoTrack,
-      producerInfo,
-    });
-    // senderStore.savedProducers.set(deviceId, {deviceId, producerId, type: 'video'});
-  }
+  sendVideo();
 }
 
 const debouncedFOVUpdate = useDebounceFn(() => {
@@ -358,8 +451,6 @@ onMounted(async () => {
     mediaDevices.value = await navigator.mediaDevices.enumerateDevices();
   });
 
-  FOVSlider.value?.addEventListener('change', (evt) => setCropRange(evt as CustomEvent));
-  FOVSlider.value!.step = 5;
 });
 
 async function requestPermission() {

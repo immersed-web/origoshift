@@ -61,13 +61,15 @@ const router: mediasoupTypes.RouterOptions = {
       clockRate: 48000,
       channels: 2,
     },
+    // NOTE: Make sure to try the chosen codecs with different headsets.
+    // ALSO! Check so the sender side cropping wont crash with the codec config you pick!
     {
       kind: 'video',
       mimeType: 'video/h264',
       clockRate: 90000,
       parameters: {
         'packetization-mode': 1,
-        'profile-level-id': h264_Main_Max_Level, // At least Quest 3 supports this. Should check quest 2 and 1 too.
+        'profile-level-id': h264_ConstrainedBaseline_Max_Level, // At least Quest 3 supports this. Should check quest 2 and 1 too.
         'level-assymetry-allowed': 1
 
       }

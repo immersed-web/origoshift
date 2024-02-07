@@ -85,13 +85,6 @@
         </div>
       </div>
       <div class="w-fit mt-6">
-        <!-- <div>
-          <video
-            autoplay
-            class="w-56 bg-emerald-300"
-            ref="sourceVideoTag"
-          />
-        </div> -->
         <label class="label cursor-pointer">
           <input
             v-model="cropIsActive"
@@ -162,7 +155,7 @@ import { useSenderStore } from '@/stores/senderStore';
 import { useSoupStore } from '@/stores/soupStore';
 import { useIntervalFn, useDebounceFn } from '@vueuse/core';
 import VideoFrameWorker from '@/ts/videoFrameWorker?worker';
-import { transform, setCrop } from '@/ts/videoFrameWorker';
+// import { transform, setCrop } from '@/ts/videoFrameWorker';
 import type { VideoFrameWorkerMessageData } from '@/ts/videoFrameWorker';
 import 'toolcool-range-slider';
 import type { RangeSlider } from 'toolcool-range-slider';
@@ -173,7 +166,7 @@ const venueStore = useVenueStore();
 const soup = useSoupStore();
 
 // let wrkr: Worker | undefined = new VideoFrameWorker({name: 'crop that shit!'});
-// let wrkr: Worker | undefined = undefined;
+let wrkr: Worker | undefined = undefined;
 
 const { pause } = useIntervalFn(async () => {
   try {
@@ -196,7 +189,6 @@ onBeforeUnmount(() => {
   // wrkr?.terminate();
 });
 
-const sourceVideoTag = ref<HTMLVideoElement>();
 const videoTag = ref<HTMLVideoElement>();
 const FOVSlider = ref<RangeSlider>();
 
@@ -210,18 +202,10 @@ watch(cropIsActive, (cropIsActive) => {
   FOVSlider.value!.step = 5;
   
   if(pickedVideoInput.value){
-    onDevicePicked(pickedVideoInput.value);
-    // sendVideo();
+    getVideoAndSendIt(pickedVideoInput.value);
   }
   if(cropIsActive) {
-    // pipeThroughCropper();
     debouncedFOVUpdate();
-  } else {
-    // pipeDirectlyOut();
-    // const msg: VideoFrameWorkerMessageData = {
-    //   pause: true,
-    // };
-    // wrkr?.postMessage(msg);
   }
 });
 
@@ -244,7 +228,7 @@ const pickedAudioInput = shallowRef<MediaDeviceInfo>();
 watch(pickedAudioInput, (pickedDevice) => startAudio(pickedDevice!));
 
 const pickedVideoInput = shallowRef<MediaDeviceInfo>();
-watch(pickedVideoInput, (pickedDevice) => onDevicePicked(pickedDevice!));
+watch(pickedVideoInput, (pickedDevice) => getVideoAndSendIt(pickedDevice!));
 
 watch(() => senderStore.stereoAudio, () => startAudio(pickedAudioInput.value!));
 
@@ -283,7 +267,6 @@ async function startAudio(audioDevice: MediaDeviceInfo){
 const cropRange = reactive([0, 100]);
 
 function setCropRange(evt: CustomEvent) {
-  // console.log(evt.detail.values);
   cropRange[0] = (evt.detail.values[0]);
   cropRange[1] = (evt.detail.values[1]);
   const message: VideoFrameWorkerMessageData = {
@@ -292,22 +275,15 @@ function setCropRange(evt: CustomEvent) {
       xEnd: cropRange[1] * 0.01,
     },
   };
-  if(cropRange[0] === 0 && cropRange[1] === 100){
-    //skip frame transformation
-    console.log('TODO. change so we skip frame transformation');
-    // soup.replaceVideoProducerTrack(sourceVideoTrack.value);
-    // wrkr.terminate();
-  }
-  // if(wrkr) {
-  //   console.log('sending crop message to worker!');
-  //   wrkr.postMessage(message);
+  // if(cropRange[0] === 0 && cropRange[1] === 100){
+
   // }
-  setCrop(message.crop!);
+  if(wrkr) {
+    console.log('sending crop message to worker!');
+    wrkr.postMessage(message);
+  }
   debouncedFOVUpdate();
 }
-// const sourceVideoTrack = shallowRef<MediaStreamVideoTrack>();
-// let sendingVideoStream: MediaStream;
-// let sendingVideoTrack: MediaStreamVideoTrack;
 
 // const videoInfo = computed(() => {
 //   if(!sourceVideoTrack.value) return undefined;
@@ -318,95 +294,48 @@ function setCropRange(evt: CustomEvent) {
 // });
 
 function pipeThroughCropper(sourceVideoTrack: MediaStreamVideoTrack) {
-  // if(!sourceVideoTrack.value) {
-  //   console.warn('source videotrack was undefined. Returning');
-  //   return;
-  // }
 
   const streamProcessor = new MediaStreamTrackProcessor({track: sourceVideoTrack});
   const { readable } = streamProcessor;
   
   const videoTrackGenerator = new MediaStreamTrackGenerator({kind: 'video'});
   const { writable } = videoTrackGenerator;
-  
-  
-  
-  // const message: VideoFrameWorkerMessageData = {
-  //   streams: {
-  //     readable,
-  //     writable,
-  //   },
-  // };
-  // if(wrkr){
-  //   wrkr?.terminate();
-  //   wrkr = undefined;
-  //   console.log('creating (new) worker');
-  //   wrkr = new VideoFrameWorker({name: 'crop that shit!'});
-  // }
-  // wrkr?.postMessage(message, [readable, writable]);
-  
-  const transformer = new TransformStream({transform});
-  readable
-    .pipeThrough(transformer)
-    .pipeTo(writable);
 
+  const message: VideoFrameWorkerMessageData = {
+    streams: {
+      readable,
+      writable,
+    },
+  };
+  if(wrkr){
+    wrkr?.terminate();
+    wrkr = undefined;
+  }
+  // console.log('creating (new) worker');
+  wrkr = new VideoFrameWorker({name: 'crop that shit!'});
+  wrkr.postMessage(message, [readable, writable]);
+  
   return videoTrackGenerator;
-  // sendingVideoTrack = videoTrackGenerator;
-  // return {videoTrack: videoTrackGenerator, stream: new MediaStream([videoTrackGenerator])};
-  // sendingVideoStream = new MediaStream([videoTrackGenerator]);
-  // if(soup.videoProducer.producer){
-  //   soup.replaceVideoProducerTrack(sendingVideoTrack);
-  // }
 }
-// function pipeDirectlyOut() {
-
-//   // if(!sourceVideoTrack.value) {
-//   //   console.warn('source videotrack was undefined. Returning');
-//   //   return;
-//   // }
-//   // sendingVideoStream = new MediaStream([sourceVideoTrack.value]);
-//   // sendingVideoTrack = sourceVideoTrack.value;
-//   wrkr?.terminate();
-
-//   // if(soup.videoProducer.producer){
-//   //   soup.replaceVideoProducerTrack(sendingVideoTrack);
-//   // }
-
-// }
 
 async function sendVideo(sourceStream: MediaStream) {
-  // if(!sourceStream) {
-  //   console.error('sourceStream is undefined');
-  //   return;
-  // }
   const [vTrack] = await sourceStream.getVideoTracks();
-  // sourceVideoTrack.value = vTrack;
-  // if(sourceVideoTag.value) {
-  //   console.log('sourceVideoTag:', sourceVideoTag.value);
-    
-  //   // sourceVideoTag.value.srcObject = new MediaStream([sourceVideoTrack.value]);
-  //   sourceVideoTag.value.srcObject = sourceStream;
-  // }
   
   let sendingTrack: MediaStreamVideoTrack;
   let stream: MediaStream;
   if(cropIsActive.value){
-    console.log('piping through cropper!!');
     sendingTrack = pipeThroughCropper(vTrack);
     stream = new MediaStream([sendingTrack]);
   }else {
-    console.log('not piping through cropper');
     sendingTrack = vTrack;
     stream = sourceStream;
-    // wrkr?.terminate();
-    // wrkr = undefined;
-    // pipeDirectlyOut();
+    wrkr?.terminate();
+    wrkr = undefined;
   }
   
   videoTag.value!.srcObject = stream;
 
   const producerInfo: ProducerInfo = {
-    // deviceId: pickedVideoInput.value?.deviceId,
     isPaused: false,
   };
   if(soup.videoProducer.producer){
@@ -419,8 +348,7 @@ async function sendVideo(sourceStream: MediaStream) {
   }
 }
 
-// let sourceStream: MediaStream;
-async function onDevicePicked(videoDevice: MediaDeviceInfo){
+async function getVideoAndSendIt(videoDevice: MediaDeviceInfo){
   console.log('starting video!!');
   const deviceId = videoDevice.deviceId;
   const sourceStream = await navigator.mediaDevices.getUserMedia({
@@ -436,7 +364,6 @@ async function onDevicePicked(videoDevice: MediaDeviceInfo){
       },
     },
   });
-  console.log(sourceStream);
 
   sendVideo(sourceStream);
 }

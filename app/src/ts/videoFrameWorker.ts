@@ -1,12 +1,15 @@
-
 let crop: NonNullable<VideoFrameWorkerMessageData['crop']> = {
   xStart: 0,
   xEnd: 1,
 };
 
-let mostRecentUsableCrop: {x:number, width: number} = {x:0, width:100};
+// let mostRecentUsableCrop: {x:number, width: number} = {x:0, width:100};
 
-function transform(frame: VideoFrame, controller: TransformStreamDefaultController) {
+export function setCrop(newCrop: NonNullable<VideoFrameWorkerMessageData['crop']>){
+  crop = newCrop;
+}
+
+export function transform(frame: VideoFrame, controller: TransformStreamDefaultController) {
   const x = Math.trunc(frame.displayWidth * crop.xStart);
   const width = Math.trunc(frame.displayWidth * (crop.xEnd - crop.xStart));
   if(crop.xStart === 0 && crop.xEnd === 1.0) {
@@ -24,27 +27,28 @@ function transform(frame: VideoFrame, controller: TransformStreamDefaultControll
       },
     });
     controller.enqueue(newFrame);
-    mostRecentUsableCrop = {x, width};
+    // mostRecentUsableCrop = {x, width};
     frame.close();
   } catch(e) {
-    console.error(x, mostRecentUsableCrop, e);
-    try {
+    console.error(e);
+    // console.error(x, mostRecentUsableCrop, e);
+    // try {
 
-      const newFrame = new VideoFrame(frame, {
-        visibleRect: {
-          x: mostRecentUsableCrop.x,
-          width: Math.min(width, frame.displayWidth-mostRecentUsableCrop.x),
-          y: 0,
-          height: frame.displayHeight,
-        },
-      });
-      controller.enqueue(newFrame);
-      frame.close();
-    }catch(e) {
-      console.error('recovery transform failed also', e, mostRecentUsableCrop);
-      controller.enqueue(frame);
-      frame.close();
-    }
+    //   const newFrame = new VideoFrame(frame, {
+    //     visibleRect: {
+    //       x: mostRecentUsableCrop.x,
+    //       width: Math.min(width, frame.displayWidth-mostRecentUsableCrop.x),
+    //       y: 0,
+    //       height: frame.displayHeight,
+    //     },
+    //   });
+    //   controller.enqueue(newFrame);
+    //   frame.close();
+    // }catch(e) {
+    //   console.error('recovery transform failed also', e, mostRecentUsableCrop);
+    //   controller.enqueue(frame);
+    //   frame.close();
+    // }
   }
 }
 export type VideoFrameWorkerMessageData = {
@@ -62,14 +66,14 @@ export type VideoFrameWorkerMessageData = {
 // const abortController = new AbortController();
 self.onmessage = async (event: MessageEvent<VideoFrameWorkerMessageData>) => {
 
-  console.log('worker received msg:', event.data);
+  // console.log('worker received msg:', event.data);
   if(event.data.streams){
-    const streams = event.data.streams;
-    const {readable, writable} = streams;
+    // const streams = event.data.streams;
+    // const {readable, writable} = streams;
     const transformer = new TransformStream({transform});
-    readable
+    event.data.streams.readable
       .pipeThrough(transformer)
-      .pipeTo(writable);
+      .pipeTo(event.data.streams.writable);
   }
 
   if(event.data.crop) {

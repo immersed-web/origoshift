@@ -85,13 +85,13 @@
         </div>
       </div>
       <div class="w-fit mt-6">
-        <div>
+        <!-- <div>
           <video
             autoplay
             class="w-56 bg-emerald-300"
             ref="sourceVideoTag"
           />
-        </div>
+        </div> -->
         <label class="label cursor-pointer">
           <input
             v-model="cropIsActive"
@@ -162,6 +162,7 @@ import { useSenderStore } from '@/stores/senderStore';
 import { useSoupStore } from '@/stores/soupStore';
 import { useIntervalFn, useDebounceFn } from '@vueuse/core';
 import VideoFrameWorker from '@/ts/videoFrameWorker?worker';
+import { transform, setCrop } from '@/ts/videoFrameWorker';
 import type { VideoFrameWorkerMessageData } from '@/ts/videoFrameWorker';
 import 'toolcool-range-slider';
 import type { RangeSlider } from 'toolcool-range-slider';
@@ -172,7 +173,7 @@ const venueStore = useVenueStore();
 const soup = useSoupStore();
 
 // let wrkr: Worker | undefined = new VideoFrameWorker({name: 'crop that shit!'});
-let wrkr: Worker | undefined = undefined;
+// let wrkr: Worker | undefined = undefined;
 
 const { pause } = useIntervalFn(async () => {
   try {
@@ -192,7 +193,7 @@ const { pause } = useIntervalFn(async () => {
 
 onBeforeUnmount(() => {
   venueStore.leaveVenue();
-  wrkr?.terminate();
+  // wrkr?.terminate();
 });
 
 const sourceVideoTag = ref<HTMLVideoElement>();
@@ -297,10 +298,11 @@ function setCropRange(evt: CustomEvent) {
     // soup.replaceVideoProducerTrack(sourceVideoTrack.value);
     // wrkr.terminate();
   }
-  if(wrkr) {
-    console.log('sending crop message to worker!');
-    wrkr.postMessage(message);
-  }
+  // if(wrkr) {
+  //   console.log('sending crop message to worker!');
+  //   wrkr.postMessage(message);
+  // }
+  setCrop(message.crop!);
   debouncedFOVUpdate();
 }
 // const sourceVideoTrack = shallowRef<MediaStreamVideoTrack>();
@@ -327,18 +329,27 @@ function pipeThroughCropper(sourceVideoTrack: MediaStreamVideoTrack) {
   const videoTrackGenerator = new MediaStreamTrackGenerator({kind: 'video'});
   const { writable } = videoTrackGenerator;
   
-  const message: VideoFrameWorkerMessageData = {
-    streams: {
-      readable,
-      writable,
-    },
-  };
-  wrkr?.terminate();
-  wrkr = undefined;
-  console.log('creating (new) worker');
-  wrkr = new VideoFrameWorker({name: 'crop that shit!'});
-  wrkr.postMessage(message, [readable, writable]);
   
+  
+  // const message: VideoFrameWorkerMessageData = {
+  //   streams: {
+  //     readable,
+  //     writable,
+  //   },
+  // };
+  // if(wrkr){
+  //   wrkr?.terminate();
+  //   wrkr = undefined;
+  //   console.log('creating (new) worker');
+  //   wrkr = new VideoFrameWorker({name: 'crop that shit!'});
+  // }
+  // wrkr?.postMessage(message, [readable, writable]);
+  
+  const transformer = new TransformStream({transform});
+  readable
+    .pipeThrough(transformer)
+    .pipeTo(writable);
+
   return videoTrackGenerator;
   // sendingVideoTrack = videoTrackGenerator;
   // return {videoTrack: videoTrackGenerator, stream: new MediaStream([videoTrackGenerator])};
@@ -363,19 +374,19 @@ function pipeThroughCropper(sourceVideoTrack: MediaStreamVideoTrack) {
 
 // }
 
-async function sendVideo() {
-  if(!sourceStream) {
-    console.error('sourceStream is undefined');
-    return;
-  }
+async function sendVideo(sourceStream: MediaStream) {
+  // if(!sourceStream) {
+  //   console.error('sourceStream is undefined');
+  //   return;
+  // }
   const [vTrack] = await sourceStream.getVideoTracks();
   // sourceVideoTrack.value = vTrack;
-  if(sourceVideoTag.value) {
-    console.log('sourceVideoTag:', sourceVideoTag.value);
+  // if(sourceVideoTag.value) {
+  //   console.log('sourceVideoTag:', sourceVideoTag.value);
     
-    // sourceVideoTag.value.srcObject = new MediaStream([sourceVideoTrack.value]);
-    sourceVideoTag.value.srcObject = sourceStream;
-  }
+  //   // sourceVideoTag.value.srcObject = new MediaStream([sourceVideoTrack.value]);
+  //   sourceVideoTag.value.srcObject = sourceStream;
+  // }
   
   let sendingTrack: MediaStreamVideoTrack;
   let stream: MediaStream;
@@ -387,8 +398,8 @@ async function sendVideo() {
     console.log('not piping through cropper');
     sendingTrack = vTrack;
     stream = sourceStream;
-    wrkr?.terminate();
-    wrkr = undefined;
+    // wrkr?.terminate();
+    // wrkr = undefined;
     // pipeDirectlyOut();
   }
   
@@ -408,11 +419,11 @@ async function sendVideo() {
   }
 }
 
-let sourceStream: MediaStream;
+// let sourceStream: MediaStream;
 async function onDevicePicked(videoDevice: MediaDeviceInfo){
   console.log('starting video!!');
   const deviceId = videoDevice.deviceId;
-  sourceStream = await navigator.mediaDevices.getUserMedia({
+  const sourceStream = await navigator.mediaDevices.getUserMedia({
     video: {
       deviceId: {
         exact: deviceId,
@@ -427,7 +438,7 @@ async function onDevicePicked(videoDevice: MediaDeviceInfo){
   });
   console.log(sourceStream);
 
-  sendVideo();
+  sendVideo(sourceStream);
 }
 
 const debouncedFOVUpdate = useDebounceFn(() => {

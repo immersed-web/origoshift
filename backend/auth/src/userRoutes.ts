@@ -6,7 +6,7 @@ import { extractMessageFromCatch } from 'shared-modules/utilFns';
 import { isLoggedIn } from './utils';
 import 'shared-types/augmentedRequest';
 import 'shared-types/augmentedSession';
-import { UserRole, roleHierarchy } from 'schemas';
+import { UserRole, hasAtLeastSecurityLevel, roleHierarchy, throwIfUnauthorized } from 'schemas';
 
 const index: RequestHandler = (req, res) => {
   res.send({ message: 'this is the auth user route. Whats cookin good lookin?' });
@@ -22,6 +22,7 @@ interface CreateUserRequest extends ExpressReq {
 
 const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
   const userData = req.session.user;
+  console.log('create user request from:', userData);
   const payload = req.body;
   const username = payload.username;
   const password = payload.password;
@@ -48,22 +49,26 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
     // Who is making this request!!! Thats stored in userData
     const clientSecurityLevel = roleHierarchy.indexOf(userData.role);
     const createdUserSecurityLevel = roleHierarchy.indexOf(role);
-    if (clientSecurityLevel < createdUserSecurityLevel) {
-      throw new Error('cant create user with higher security level than yourself!! STUPID!!');
+    if(clientSecurityLevel < 0 || createdUserSecurityLevel < 0) {
+      throw new Error('Invalid role provided');
     }
-    switch (userData.role) {
-      case 'guest':
-      case 'user':
-        res.status(403).send('You may not create other users! You are not cool enough!');
-        return;
-      case 'moderator':
-        break;
-      case 'admin': {
-        break;
-      }
-      default:
-        throw new Error('no role set! We wont allow any such thing from you sir!');
+    if ( createdUserSecurityLevel <= clientSecurityLevel) {
+      throw new Error('cant create user with higher or same security level as yourself!!');
     }
+    throwIfUnauthorized(userData.role, 'moderator')
+    // switch (userData.role) {
+    //   case 'guest':
+    //   case 'user':
+    //     res.status(403).send('You may not create other users! You are not cool enough!');
+    //     return;
+    //   case 'moderator':
+    //     break;
+    //   case 'admin': {
+    //     break;
+    //   }
+    //   default:
+    //     throw new Error('no role set! We wont allow any such thing from you sir!');
+    // }
   } catch (e) {
     const msg = extractMessageFromCatch(e, 'failed to create user!');
     res.status(403).send(msg);
@@ -113,39 +118,28 @@ interface UpdateUserRequest extends ExpressReq {
 const updateUser: RequestHandler = async (req: UpdateUserRequest, res) => {
   const userData = req.session.user;
   const payload = req.body;
+  console.log(payload);
   try {
     if (!userData || !userData.role) {
       throw new Error('no userdata/session present. You are not authorized / logged in!');
     }
+    if(!payload.userId) throw Error('no userId provided in payload. Invalid request!');
   } catch (e) {
     const msg = extractMessageFromCatch(e, 'provided data is no good!');
     res.status(400).send(msg);
     return;
   }
   try {
-    // Who is making this request!!! Thats stored in userData
     if (payload.role) {
       const clientSecurityLevel = roleHierarchy.indexOf(userData.role);
-      const createdUserSecurityLevel = roleHierarchy.indexOf(payload.role);
-      if (clientSecurityLevel < createdUserSecurityLevel) {
-        throw new Error('cant assign a higher security level than yourself!! STUPID!!');
+      const updatedUserSecurityLevel = roleHierarchy.indexOf(payload.role);
+      if (clientSecurityLevel > updatedUserSecurityLevel) {
+        throw new Error('cant update a user with higher or same security level as yourself!!');
       }
     }
-    switch (userData.role) {
-      case 'guest':
-      case 'user':
-        res.status(403).send('You may not edit users! You are not cool enough!');
-        return;
-      case 'moderator':
-        break;
-      case 'admin': {
-        break;
-      }
-      default:
-        throw new Error('no role set for requesting client! We wont allow any such thing from you sir!');
-    }
+    throwIfUnauthorized(userData.role, 'moderator');
   } catch (e) {
-    const msg = extractMessageFromCatch(e, 'failed to create user!');
+    const msg = extractMessageFromCatch(e, 'failed to update user!');
     res.status(403).send(msg);
     return;
   }
@@ -209,10 +203,13 @@ const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
     if (!userToDelete) {
       throw new Error('no user found');
     }
-    const clientSecurityLevel = roleHierarchy.indexOf(userData.role);
-    if (clientSecurityLevel > roleHierarchy.indexOf('moderator')) {
-      throw Error('not allowed to remove users');
-    }
+      const clientSecurityLevel = roleHierarchy.indexOf(userData.role);
+      const updatedUserSecurityLevel = roleHierarchy.indexOf(userToDelete.role);
+      if (clientSecurityLevel >= updatedUserSecurityLevel) {
+        throw new Error('cant delete a user with higher or same security level as yourself!');
+      }
+
+    throwIfUnauthorized(userData.role, 'moderator');
     const deletedUser = await users.delete({
       where: {
         userId: payload.userId
@@ -221,7 +218,7 @@ const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
 
     res.send(exclude(deletedUser, 'password'));
   } catch (e) {
-    const msg = extractMessageFromCatch(e, 'fuck off!');
+    const msg = extractMessageFromCatch(e, 'not allowed!');
     res.status(401).send(msg);
   }
 };
@@ -233,41 +230,42 @@ const deleteUser: RequestHandler = async (req: DeleteUserRequest, res) => {
 //   }
 // }
 
-// const getUsers: RequestHandler = async (req: GetUsersRequest, res) => {
-//   const userData = req.session.user;
-//   const payload = req.body;
+const getAdmins: RequestHandler = async (req, res) => {
+  const userData = req.session.user;
 
-//   try {
-//     if (!userData) {
-//       throw new Error('no client userdata. unauthorized!');
-//     }
-//     if (!userData.role) {
-//       throw new Error('you have no role! Thus you are not authorized!');
-//     }
-//   } catch (e) {
-//     const msg = extractMessageFromCatch(e, 'You give bad data!!!!');
-//     res.status(400).send(msg);
-//     return;
-//   }
-//   const clientSecurityLevel = roleHierarchy.indexOf(userData.role);
+  try {
+    if (!userData) {
+      throw new Error('no client userdata. unauthorized!');
+    }
+    if (!userData.role) {
+      throw new Error('you have no role! Thus you are not authorized!');
+    }
+  } catch (e) {
+    const msg = extractMessageFromCatch(e, 'You give bad data!!!!');
+    res.status(400).send(msg);
+    return;
+  }
+  const clientSecurityLevel = roleHierarchy.indexOf(userData.role);
 
-//   try {
-//     if (clientSecurityLevel > roleHierarchy.indexOf('moderator')) {
-//       throw new Error('Too low security clearance! You loooser!');
-//     }
-//   } catch (e) {
-//     const msg = extractMessageFromCatch(e, 'Go away. Not authorized');
-//     res.status(401).send(msg);
-//   }
+  try {
+    if (!hasAtLeastSecurityLevel(userData.role, 'superadmin')) {
+      throw new Error('Too low security clearance! You loooser!');
+    }
+  } catch (e) {
+    const msg = extractMessageFromCatch(e, 'Go away. Not authorized');
+    res.status(401).send(msg);
+  }
 
-//   const userSelect: Prisma.UserFindManyArgs & { where: Prisma.UserWhereInput } = {
-//     where: {},
-//   };
+  const userSelect: Prisma.UserFindManyArgs & { where: Prisma.UserWhereInput } = {
+    where: {
+      role: 'admin'
+    },
+  };
 
-//   const response = await users.findMany(userSelect);
-//   const withoutPasswords = response.map(user => exclude(user, 'password'));
-//   res.send(withoutPasswords);
-// };
+  const response = await users.findMany(userSelect);
+  const withoutPasswords = response.map(user => exclude(user, 'password'));
+  res.send(withoutPasswords);
+};
 
 const loginUser: RequestHandler = async (req, res) => {
   // console.log('login req received');
@@ -347,8 +345,8 @@ export default function createUserRouter() {
 
   userRouter.post('/create', isLoggedIn, createUser);
   userRouter.post('/update', isLoggedIn, updateUser);
-  userRouter.post('/delete-user', isLoggedIn, deleteUser);
-  // userRouter.post('/get-users', validateUserSession, getUsers);
+  userRouter.post('/delete', isLoggedIn, deleteUser);
+  userRouter.get('/get-admins', isLoggedIn, getAdmins);
 
   userRouter.get('/me', isLoggedIn, getSelf);
 

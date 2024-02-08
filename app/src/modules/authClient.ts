@@ -1,11 +1,34 @@
 import axios, { type AxiosResponse } from 'axios';
 
 import type {JwtPayload, JwtUserData } from 'schemas';
+import type { User } from 'database';
 import decodeJwt from 'jwt-decode';
 
 const completeAuthUrl = `https://${import.meta.env.EXPOSED_SERVER_URL}${import.meta.env.EXPOSED_AUTH_PATH}`;
 console.log('authUrl: ', completeAuthUrl);
 const authEndpoint = axios.create({ baseURL: completeAuthUrl, withCredentials: true });
+
+export function createAdmin(username: string, password: string) {
+  return handleResponse(() => authEndpoint.post('/user/create', {
+    role: 'admin',
+    username,
+    password,
+  }));
+}
+
+export function updateUser(userData: {userId: string, username?: string, password?: string}) {
+  return handleResponse(() => authEndpoint.post('/user/update', userData));
+}
+
+export function deleteUser(userId: string) {
+  return handleResponse(() => authEndpoint.post('/user/delete', {userId}));
+}
+
+type FetchedUsers = Omit<User, 'password'>[]
+export function getAdmins() {
+  return handleResponse<FetchedUsers>(() => authEndpoint.get('/user/get-admins'));
+}
+
 
 const handleResponse = async <ReturnType>(apiCall: () => Promise<AxiosResponse<ReturnType>>) => {
   try {

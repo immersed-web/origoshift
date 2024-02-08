@@ -48,28 +48,27 @@ type ClientClientEvents = FilteredEvents<{
 
 export type AllClientEvents = ClientSoupEvents & ClientVenueEvents & ClientClientEvents
 
+const venueSelect: Record<keyof VenueListInfo, true> = { 
+  venueId: true,
+  name: true,
+  doorsOpeningTime: true,
+  doorsAutoOpen: true,
+  doorsManuallyOpened: true,
+  streamStartTime: true,
+  streamAutoStart: true,
+  streamManuallyEnded: true,
+  streamManuallyStarted: true,
+  visibility: true,
+};
 const userQuery = {
   select: {
     ...userSelectAll,
     ...userDeselectPassword,
     ownedVenues: {
-      select: {
-        venueId: true,
-        name: true,
-        doorsOpeningTime: true,
-        streamStartTime: true,
-        visibility: true,
-      } satisfies Record<keyof VenueListInfo, true>,
+      select: venueSelect
     },
     allowedVenues: {
-      select: {
-        venueId: true,
-        name: true,
-        doorsOpeningTime: true,
-        streamStartTime: true,
-        visibility: true,
-      } satisfies Record<keyof VenueListInfo, true>,
-    
+      select: venueSelect
     }
   }
 } satisfies Prisma.UserArgs;

@@ -26,8 +26,13 @@ export const venueRouter = router({
       select: {
         name: true,
         venueId: true,
+        doorsAutoOpen: true,
         doorsOpeningTime: true,
+        doorsManuallyOpened: true,
+        streamAutoStart: true,
         streamStartTime: true,
+        streamManuallyEnded: true,
+        streamManuallyStarted: true,
         visibility: true,
       } satisfies Record<keyof VenueListInfo, true>
     }) as VenueListInfo[];
@@ -44,10 +49,15 @@ export const venueRouter = router({
           venueId: input.venueId
         },
         select: {
-          venueId: true,
           name: true,
+          venueId: true,
+          doorsAutoOpen: true,
           doorsOpeningTime: true,
+          doorsManuallyOpened: true,
+          streamAutoStart: true,
           streamStartTime: true,
+          streamManuallyEnded: true,
+          streamManuallyStarted: true,
           visibility: true,
         } satisfies Record<keyof VenueListInfo, true>
       });
@@ -57,15 +67,15 @@ export const venueRouter = router({
       throw new TRPCError({ code: 'NOT_FOUND', message: 'didn\'t find that Venue'});
     }
   }),
-  subClientAddedOrRemoved: p.use(isUserClientM).subscription(({ctx}) => {
-    return attachToFilteredEvent(ctx.client.clientEvent, 'clientAddedOrRemoved', ctx.connectionId);
-  }),
-  listLoadedVenues: p.query(({ctx}) => {
-    return Venue.getLoadedVenues();
-  }),
-  listLoadedVenuesPublicState: p.query(({ctx}) => {
-    return Venue.getLoadedVenuesPublicState();
-  }),
+  // subClientAddedOrRemoved: p.use(isUserClientM).subscription(({ctx}) => {
+  //   return attachToFilteredEvent(ctx.client.clientEvent, 'clientAddedOrRemoved', ctx.connectionId);
+  // }),
+  // listLoadedVenues: p.query(({ctx}) => {
+  //   return Venue.getLoadedVenues();
+  // }),
+  // listLoadedVenuesPublicState: p.query(({ctx}) => {
+  //   return Venue.getLoadedVenuesPublicState();
+  // }),
   loadAndJoinVenue: p.input(z.object({venueId: VenueIdSchema})).mutation(async ({input, ctx}) => {
     await Venue.loadVenue(input.venueId, ctx.userId);
     const vState = await ctx.client.joinVenue(input.venueId);
@@ -93,14 +103,14 @@ export const venueRouter = router({
   subVenueUnloaded: p.subscription(({ctx}) => {
     return attachToEvent(ctx.client.clientEvent, 'venueWasUnloaded');
   }),
-  subSomeClientStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
-    log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to clientState`);
-    return attachToFilteredEvent(ctx.client.clientEvent, 'someClientStateUpdated', (data) => {
-      if(data.clientState.connectionId === ctx.connectionId) return false;
-      if(data.clientState.clientType === 'sender') return false;
-      return true;
-    }, ({clientState, reason}) => ({clientState: clientState as ReturnType<UserClient['getPublicState']>, reason}));
-  }),
+  // subSomeClientStateUpdated: atLeastModeratorP.subscription(({ctx}) => {
+  //   log.info(`${ctx.username} (${ctx.connectionId}) started subscribing to clientState`);
+  //   return attachToFilteredEvent(ctx.client.clientEvent, 'someClientStateUpdated', (data) => {
+  //     if(data.clientState.connectionId === ctx.connectionId) return false;
+  //     if(data.clientState.clientType === 'sender') return false;
+  //     return true;
+  //   }, ({clientState, reason}) => ({clientState: clientState as ReturnType<UserClient['getPublicState']>, reason}));
+  // }),
   leaveCurrentVenue: p.use(isInVenueM).mutation(({ctx}) => {
     if(!ctx.client.leaveCurrentVenue()){
       throw new TRPCError({code: 'PRECONDITION_FAILED', message: 'cant leave if not in a venue.. Duh!'});

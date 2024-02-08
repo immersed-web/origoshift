@@ -2,74 +2,36 @@
   <div>
     <div class="min-h-screen hero bg-base-200">
       <div class="flex-col gap-10 hero-content lg:flex-row-reverse">
-        <div class="text-center lg:text-left">
-          <h1 class="text-5xl font-bold">
-            Välkommen till OrigoShift
-          </h1>
-          <p class="py-6">
-            Logga in för att delta i kulturevenemang i VR/360.
-          </p>
-          <p class="mb-4">
-            Alternativt kan du fortsätta som <span class="font-bold">gäst</span>:
-          </p>
-          <div class="flex items-center gap-4">
-            <div class="join border border-base-300">
-              <input
-                v-model="guestUsername"
-                class="input join-item"
-              >
-              <div
-                class="tooltip"
-                data-tip="autogenerera namn"
-              >
-                <button
-                  class="btn btn-circle btn-ghost join-item"
-                  @click="generateUsername"
-                >
-                  <span class="material-icons">replay</span>
-                </button>
-              </div>
-            </div>
+        <div
+          class="mt-4"
+          v-once
+          v-if="showDevLoginButtons"
+        >
+          <h2>Devmode quick login</h2>
+          <div class="space-x-2 mt-4 text-right">
             <button
-              @click="guestContinue()"
-              class="btn btn-outline btn-primary"
+              @click="loginDetails('sender','123')"
+              class="btn btn-primary btn-outline"
             >
-              Gå in
+              Sender
+            </button>
+            <button
+              @click="loginDetails('superadmin','bajskorv')"
+              class="btn btn-primary btn-outline"
+            >
+              Superadmin
             </button>
           </div>
-          <div
-            class="mt-4"
-            v-once
-            v-if="showDevLoginButtons"
-          >
-            <h2>Devmode quick login</h2>
-            <div class="space-x-2">
-              <button
-                @click="loginDetails('user1','123')"
-                class="btn btn-primary btn-outline"
-              >
-                User
-              </button>
-              <button
-                @click="loginDetails('sender','123')"
-                class="btn btn-primary btn-outline"
-              >
-                Sender
-              </button>
-              <button
-                @click="loginDetails('superadmin','bajskorv')"
-                class="btn btn-primary btn-outline"
-              >
-                Superadmin
-              </button>
-            </div>
-          </div>
         </div>
-        <div class="flex-shrink-0 w-full max-w-sm shadow-2xl card bg-base-100">
+        <!-- <VenueListView /> -->
+        <div
+          class="flex-shrink-0 max-w-sm shadow-2xl card bg-base-100"
+        >
           <form
             class="card-body"
             @submit.prevent="login"
           >
+            <h2>Logga in</h2>
             <div class="form-control">
               <label class="label">
                 <span class="label-text">Användarnamn</span>
@@ -122,15 +84,9 @@ import { onMounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import { hasAtLeastSecurityLevel, type UserRole } from 'schemas/esm';
 import { useConnectionStore } from '@/stores/connectionStore';
+import VenueListView from './public/VenueListView.vue';
 
 const showDevLoginButtons = import.meta.env.DEV;
-// const showDevLoginButtons = import.meta.env.PROD;
-
-const guestUsername = ref<string>();
-
-// const props = defineProps<{
-//   redirectAfterLogin?: string
-// }>();
 
 // Router
 const router = useRouter();
@@ -148,6 +104,7 @@ onMounted(() => {
   const connection = useConnectionStore();
   connection.close();
 });
+
 // View / components functionality
 const username = ref('');
 const password = ref('');
@@ -184,18 +141,6 @@ const login = async () => {
   }
 };
 
-async function generateUsername() {
-  await authStore.logout();
-  await authStore.autoGuest();
-  guestUsername.value = authStore.username;
-}
-
-const guestContinue = async () => {
-  await authStore.autoGuest(guestUsername.value);
-  // const connectionStore = useConnectionStore();
-  // connectionStore.createUserClient();
-  router.push({name: 'venueList'});
-};
 
 const loginDetails = (un: string, pwd: string) => {
   username.value = un;

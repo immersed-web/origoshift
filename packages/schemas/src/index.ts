@@ -161,7 +161,20 @@ export type Vr3DModelId = z.TypeOf<typeof Vr3DModelIdSchema>;
 export const SenderIdSchema = UuidSchema.brand<'SenderId'>();
 export type SenderId = z.TypeOf<typeof SenderIdSchema>;
 
-export type VenueListInfo = Prettify<{venueId: VenueId } & Pick<Venue, 'name' | 'doorsOpeningTime' | 'streamStartTime' | 'visibility'>>
+export type VenueListInfo = Prettify<{venueId: VenueId } & Pick<Venue, 
+  'name' 
+
+  | 'doorsAutoOpen' 
+  | 'doorsManuallyOpened' 
+  | 'doorsOpeningTime' 
+
+  | 'streamAutoStart' 
+  | 'streamManuallyStarted' 
+  | 'streamManuallyEnded' 
+  | 'streamStartTime' 
+
+  | 'visibility'
+  >>
 
 export const visibilityOptions = ['private', 'unlisted', 'public'] as const satisfies Readonly<Visibility[]>
 const VisibilitySchema = z.enum(visibilityOptions);

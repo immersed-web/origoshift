@@ -29,6 +29,11 @@ const router = createRouter({
       component:  () => import('@/views/LoginView.vue'),
     },
     {
+      path: '/enter',
+      name: 'enter',
+      component: () => import('@/views/StartPage.vue'),
+    },
+    {
       path: '/',
       component: () => import('@/layouts/SimpleLayout.vue'),
       children: [

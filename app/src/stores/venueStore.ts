@@ -15,6 +15,23 @@ export type VisibilityDetails = {
   description: string
 }
 
+export function venueConsideredActive(venueState: Pick<_ReceivedPublicVenueState, 'doorsAutoOpen' | 'doorsManuallyOpened' | 'doorsOpeningTime' |'streamAutoStart' | 'streamManuallyStarted' | 'streamStartTime' | 'streamManuallyEnded'>) {
+  const now = Date.now();
+  let doorsAreOpen = false;
+  if(venueState.doorsManuallyOpened) doorsAreOpen = true;
+  if(venueState.doorsAutoOpen && venueState.doorsOpeningTime) {
+    doorsAreOpen = venueState.doorsOpeningTime.getTime() < now;
+  }
+
+  let streamActive = false;
+  if(venueState.streamManuallyStarted) streamActive = true;
+  if(venueState.streamAutoStart && venueState.streamStartTime && venueState.streamManuallyEnded) {
+    streamActive = venueState.streamStartTime.getTime() < now;
+  }
+  
+  return doorsAreOpen || streamActive;
+}
+
 export const useVenueStore = defineStore('venue', () => {
   // console.log('VENUESTORE USE FUNCTION TRIGGERED');
   const now = useNow({interval: 1000});

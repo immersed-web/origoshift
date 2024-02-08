@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 mb-12">
     <h1>Pågående event</h1>
     <VenueList
       v-if="venuesOngoing.length"
@@ -24,7 +24,7 @@
       </p>
     </div>
 
-    <h1>Tidigare event</h1>
+    <!-- <h1>Tidigare event</h1>
     <VenueList
       v-if="venuesPast.length"
       :venues="venuesPast"
@@ -34,7 +34,7 @@
       <p>
         Inga tidigare event
       </p>
-    </div>
+    </div> -->
 
 
     <h1>Event utan datum</h1>
@@ -80,24 +80,23 @@ import VenueList from '@/components/venue/VenueList.vue';
 import type { VenueId } from 'schemas';
 import { useRouter } from 'vue-router';
 import { isPast } from 'date-fns';
+import { venueConsideredActive } from '@/stores/venueStore';
 
 const router = useRouter();
 const venuesAllowed = ref<RouterOutputs['venue']['listAllowedVenues']>([]);
-const venuesLoaded = ref<RouterOutputs['venue']['listLoadedVenuesPublicState']>();
+// const venuesLoaded = ref<RouterOutputs['venue']['listLoadedVenuesPublicState']>();
 
 const connection = useConnectionStore();
 onBeforeMount(async () =>{
   venuesAllowed.value = await connection.client.venue.listAllowedVenues.query();
-  venuesLoaded.value = await connection.client.venue.listLoadedVenuesPublicState.query();
+  // venuesLoaded.value = await connection.client.venue.listLoadedVenuesPublicState.query();
 });
 
 const venuesOngoing = computed(() => {
-  return venuesAllowed.value.filter(v => venuesLoaded.value && v.venueId in venuesLoaded.value);
-  // return venuesAllowed.value.filter(v => {
-  //   if(!venuesLoaded.value || !(v.venueId in venuesLoaded.value)) { return false;}
-  //   const vLoaded = venuesLoaded.value[v.venueId as VenueId];
-  //   return vLoaded.state.doorsAreOpen || vLoaded.state.streamIsActive;
-  // });
+  // return venuesAllowed.value.filter(v => venuesLoaded.value && v.venueId in venuesLoaded.value);
+  return venuesAllowed.value.filter(v => {
+    return venueConsideredActive(v);
+  });
 });
 
 const venuesNotOngoing = computed(() => {

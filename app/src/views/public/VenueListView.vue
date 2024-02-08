@@ -1,29 +1,29 @@
 <template>
   <div class="flex flex-col gap-4 mb-12">
-    <h1>Pågående event</h1>
-    <VenueList
+    <div
       v-if="venuesOngoing.length"
-      :venues="venuesOngoing"
-      @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
-    />
-    <div v-else>
-      <p>
-        Inga pågående event
-      </p>
+      class="space-y-2"
+    >
+      <h3 class="text-base-content/90">
+        Pågående event
+      </h3>
+      <VenueList
+        :venues="venuesOngoing"
+        @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
+      />
     </div>
 
-    <h1>Kommande event</h1>
-    <VenueList
+    <div
       v-if="venuesUpcoming.length"
-      :venues="venuesUpcoming"
-      @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
-    />
-    <div v-else>
-      <p>
-        Inga kommande event
-      </p>
+    >
+      <h3 class="text-base-content/90">
+        Kommande event
+      </h3>
+      <VenueList
+        :venues="venuesUpcoming"
+        @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
+      />
     </div>
-
     <!-- <h1>Tidigare event</h1>
     <VenueList
       v-if="venuesPast.length"
@@ -37,16 +37,16 @@
     </div> -->
 
 
-    <h1>Event utan datum</h1>
-    <VenueList
+    <div
       v-if="venuesUnscheduled.length"
-      :venues="venuesUnscheduled"
-      @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
-    />
-    <div v-else>
-      <p>
-        Inga event utan datum
-      </p>
+    >
+      <h3 class="text-base-content/90">
+        Event utan datum
+      </h3>
+      <VenueList
+        :venues="venuesUnscheduled"
+        @venue-picked="(venue) => goToVenue(venue.venueId as VenueId)"
+      />
     </div>
   </div>
 

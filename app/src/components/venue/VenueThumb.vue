@@ -1,8 +1,8 @@
 <template>
   <div class="w-128 transition-all border-2 shadow-xl card bg-base-200 hover:cursor-pointer hover:-translate-y-1">
     <!-- TODO: Show an optional picture here related to the event -->
-    <figure class="bg-gradient-to-br from-emerald-600 to-primary h-36">
-      <h1 class="text-white card-title">
+    <figure class="bg-gradient-to-br from-primary/35 to-primary h-24">
+      <h1 class="text-primary-content card-title drop-shadow-sm">
         {{ props.venue.name }}
       </h1>
     </figure>

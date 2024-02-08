@@ -1,34 +1,27 @@
 <template>
   <div class="grid md:place-items-center h-screen">
-    <div class="card bg-base-200 p-6 md:m-6">
-      <h1 class="text-xl md:text-5xl font-bold mb-8 break-all">
+    <div class="fixed top-0 left-0 z-50">
+      <div class="p-4">
+        <RouterLink
+          class="flex gap-2 items-center"
+          :to="{name: 'venueList'}"
+        >
+          <button class="btn btn-primary btn-outline btn-circle btn-sm">
+            <span class="material-icons">arrow_back</span>
+          </button>
+          <span class="text-primary">
+            Tillbaka till evenemangslistan
+          </span>
+        </RouterLink>
+      </div>
+    </div>
+    <div class="card bg-base-200 p-6 md:m-6 rounded-none md:rounded-2xl">
+      <h1 class="text-xl md:text-5xl font-bold md:mt-0 mt-12 mb-8 break-all">
         {{ venueStore.currentVenue?.name??$props.venueId }}
       </h1>
 
       <div v-if="!venueStore.currentVenue">
         <h2>Försöker ansluta till evented</h2>
-      <!-- <div>
-        <div
-          role="alert"
-          class="alert alert-warning mb-4"
-        >
-          <span class="material-icons">
-            warning
-          </span>
-          Eventet är inte igång.
-        </div>
-        <h2>Eventets hålltider</h2>
-        <p v-if="venueInfo?.doorsOpeningTime">
-          <strong>Lobbyn öppnar:</strong> {{ venueInfo.doorsOpeningTime.toLocaleString() }}
-        </p>
-        <p v-if="venueInfo?.streamStartTime">
-          <strong>Sändningen startar:</strong> {{ venueInfo.streamStartTime.toLocaleString() }}
-        </p>
-
-        <p v-if="venueInfo?.doorsOpeningTime && !isPast(venueInfo.doorsOpeningTime)">
-          Behåll denna sida öppen för att automatiskt slussas in i eventet när det startar.
-        </p>
-      </div> -->
       </div>
       <div
         v-else

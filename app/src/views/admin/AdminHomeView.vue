@@ -75,6 +75,7 @@
                       v-model="editedUsername"
                       class="input input-bordered"
                       placeholder="Användarnamn"
+                      @keyup.enter="updateAdmin({userId: editedUserId, username: editedUsername, password: editedPassword === ''?undefined: editedPassword})"
                     >
                   </td>
                   <td>
@@ -86,13 +87,14 @@
                         v-model="editedPassword"
                         class="input input-bordered"
                         placeholder="Lösenord"
+                        @keyup.enter="updateAdmin({userId: editedUserId, username: editedUsername, password: editedPassword === ''?undefined: editedPassword})"
                       >
                       <!-- <span class="material-icons">help</span> -->
                     </div>
                   </td>
                   <td class="flex gap-2 justify-end">
                     <button
-                      @click="updateAdmin({userId: editedUserId, username: editedUsername, password: editedPassword === ''?undefined: editedPassword})"
+                      @submit.prevent="updateAdmin({userId: editedUserId, username: editedUsername, password: editedPassword === ''?undefined: editedPassword})"
                       class="btn btn-primary"
                     >
                       <span class="material-icons">save</span>

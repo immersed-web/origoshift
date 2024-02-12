@@ -84,7 +84,7 @@
                   </td>
                   <td class="flex gap-2 justify-end">
                     <button
-                      @click="updateAdmin({userId: admin.userId, username: editedUsername, password: editedPassword === ''?undefined: editedPassword})"
+                      @click="updateAdmin({userId: editedUserId, username: editedUsername, password: editedPassword === ''?undefined: editedPassword})"
                       class="btn btn-primary"
                     >
                       <span class="material-icons">save</span>
@@ -161,18 +161,28 @@ const venuesAsArray = computed(() => {
 });
 
 async function updateAdmin(userData: any) {
+  // console.log(userData);
   const response = await updateUser(userData);
   console.log(response);
   if(!admins.value) {
     console.error('admins undefined!');
   }
-  const idx = admins.value.findIndex(a => {a.userId == userData.userId;});
+  console.log(admins.value);
+  const idx = admins.value.findIndex(a => {
+    // console.log(a.userId);
+    // console.log(userData.userId);
+    return a.userId === userData.userId;
+  });
   console.log('index:', idx);
-  admins.value[idx] = response;
+  if(idx >= 0) {
+    admins.value[idx] = response;
+  }
+  editedUserId.value = undefined;
 }
 
 onBeforeMount(async () => {
   admins.value = await getAdmins();
+  console.log(admins.value);
 });
 
 async function makeCallThenResetList(fetchReq: (...p: any) => Promise<any>) {

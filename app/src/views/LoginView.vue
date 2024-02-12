@@ -39,7 +39,7 @@
               <input
                 v-model="username"
                 type="text"
-                placeholder="E-post"
+                placeholder="Användarnamn"
                 class="input input-bordered"
               >
             </div>
@@ -50,7 +50,7 @@
               <input
                 v-model="password"
                 type="password"
-                placeholder="Löesnord"
+                placeholder="Lösenord"
                 class="input input-bordered"
               >
             </div>

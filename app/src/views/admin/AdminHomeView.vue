@@ -74,13 +74,21 @@
                     <input
                       v-model="editedUsername"
                       class="input input-bordered"
+                      placeholder="Användarnamn"
                     >
                   </td>
                   <td>
-                    <input
-                      v-model="editedPassword"
-                      class="input input-bordered"
+                    <div
+                      class="tooltip cursor-help"
+                      data-tip="Lämna blankt för att inte ändra"
                     >
+                      <input
+                        v-model="editedPassword"
+                        class="input input-bordered"
+                        placeholder="Lösenord"
+                      >
+                      <!-- <span class="material-icons">help</span> -->
+                    </div>
                   </td>
                   <td class="flex gap-2 justify-end">
                     <button

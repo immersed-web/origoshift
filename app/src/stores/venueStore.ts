@@ -102,15 +102,15 @@ export const useVenueStore = defineStore('venue', () => {
 
 
   const visibilityOptions : Ref<VisibilityDetails[]> = ref([
-    {
-      visibility: 'private',
-      name: 'Privat',
-      icon: 'lock',
-      description: 'Endast du kan se detta event.',
-    },
+    // {
+    //   visibility: 'private',
+    //   name: 'Privat',
+    //   icon: 'lock',
+    //   description: 'Endast du kan se detta event.',
+    // },
     {
       visibility: 'unlisted',
-      name: 'Länk',
+      name: 'Olistad',
       icon: 'link',
       description: 'Alla med länken kan se och delta i eventet.',
     },

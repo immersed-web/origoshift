@@ -1,5 +1,10 @@
 <template>
   <div class="flex flex-col gap-4 mb-12">
+    <h2>
+      Välkommen <span class="underline decoration-dashed decoration-accent">
+        {{ authStore.username }}
+      </span>!
+    </h2>
     <div
       v-if="venuesOngoing.length"
       class="space-y-2"
@@ -81,7 +86,9 @@ import type { VenueId } from 'schemas';
 import { useRouter } from 'vue-router';
 import { isPast } from 'date-fns';
 import { venueConsideredActive } from '@/stores/venueStore';
+import { useAuthStore } from '@/stores/authStore';
 
+const authStore = useAuthStore();
 const router = useRouter();
 const venuesAllowed = ref<RouterOutputs['venue']['listAllowedVenues']>([]);
 // const venuesLoaded = ref<RouterOutputs['venue']['listLoadedVenuesPublicState']>();

@@ -56,6 +56,8 @@ import { useAuthStore } from '@/stores/authStore';
 import {useRouter} from 'vue-router';
 
 const router = useRouter();
+const fromRoute = router.currentRoute.value.redirectedFrom;
+console.log('fromRoute:', fromRoute);
 const authStore = useAuthStore();
 
 const guestUsername = ref<string>();
@@ -70,6 +72,11 @@ const guestContinue = async () => {
   await authStore.autoGuest(guestUsername.value);
   // const connectionStore = useConnectionStore();
   // connectionStore.createUserClient();
+  if(fromRoute?.name === 'userVenue'){
+    console.log('routing back to the venue');
+    router.push(fromRoute);
+    return;
+  }
   router.push({name: 'venueList'});
 };
 </script>

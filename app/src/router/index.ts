@@ -184,9 +184,12 @@ router.beforeEach(async (to, from) => {
       await authStore.restoreFromSession();
     }
     if(!authStore.isAuthenticated && to.meta.requiredRole === 'guest'){
-      console.log('creating guest because not logged in and route requires at least guest');
-
-      await authStore.autoGuest(authStore.persistedUsername);
+      if(authStore.persistedUsername !== undefined){
+        console.log('Found a persisted username. Creating a guest with that username');
+        await authStore.autoGuest(authStore.persistedUsername);
+      } else {
+        return {name: 'enter'};
+      }
     }
 
     if(!authStore.role || !hasAtLeastSecurityLevel(authStore.role, to.meta.requiredRole)){

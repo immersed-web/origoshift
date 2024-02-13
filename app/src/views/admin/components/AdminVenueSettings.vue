@@ -70,7 +70,10 @@
     </div>
 
     <!-- Lobby/VR start time -->
-    <div class="w-full max-w-xs mb-2 form-control bg-base-200 p-2 text-sm border">
+    <div
+      v-if="venueStore.currentVenue.vrSpace"
+      class="w-full max-w-xs mb-2 form-control bg-base-200 p-2 text-sm border"
+    >
       <div class="flex justify-between mb-2">
         <span class="label-text text-base">Lobby</span>
         <span class="material-icons">nightlife</span>
@@ -369,7 +372,7 @@ onMounted(() => {
   values.value.doorsAutoOpen = venueStore.currentVenue?.doorsAutoOpen;
   values.value.streamStartTime = venueStore.currentVenue?.streamStartTime ?  venueStore.currentVenue?.streamStartTime?.toLocaleDateString() + 'T' +venueStore.currentVenue?.streamStartTime?.toLocaleTimeString() : undefined;
   values.value.streamAutoStart = venueStore.currentVenue?.streamAutoStart;
-  watch(values.value, () => {
+  watch([values.value, useDoorsOpenTime], () => {
   // console.log('values updated!!!');
     debouncedVenueUpdate();
   }, {

@@ -16,6 +16,14 @@ export function createAdmin(username: string, password: string) {
   }));
 }
 
+export function createSender(username: string, password: string, venueId: string) {
+  return handleResponse<FetchedSender>(() => authEndpoint.post('/user/create-sender', {
+    venueId,
+    username,
+    password,
+  }));
+}
+
 export function updateUser(userData: {userId: string, username?: string, password?: string}) {
   return handleResponse(() => authEndpoint.post('/user/update', userData));
 }
@@ -27,6 +35,13 @@ export function deleteUser(userId: string) {
 type FetchedUsers = Omit<User, 'password'>[]
 export function getAdmins() {
   return handleResponse<FetchedUsers>(() => authEndpoint.get('/user/get-admins'));
+}
+
+type FetchedSender = Omit<User, 'password'>
+export function getSenderForVenue(venueId: string) {
+  return handleResponse<FetchedSender>(() => authEndpoint.post('/user/get-sender', {
+    venueId,
+  }));
 }
 
 

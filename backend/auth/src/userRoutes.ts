@@ -20,6 +20,7 @@ interface CreateUserRequest extends ExpressReq {
   }
 }
 
+
 const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
   const userData = req.session.user;
   console.log('create user request from:', userData);
@@ -106,6 +107,43 @@ const createUser: RequestHandler = async (req: CreateUserRequest, res) => {
   }
 
 };
+
+
+interface CreateSenderRequest extends ExpressReq {
+  body: {
+    username?: string,
+    password?: string,
+    venueId?: string,
+  }
+}
+const createSenderForVenue: RequestHandler = async (req : CreateSenderRequest, res) => {
+  const userData = req.session.user
+  console.log(userData);
+  const {password, username, venueId} = req.body 
+  try {
+    throwIfUnauthorized(userData!.role, 'admin');
+    if(!venueId || !username || !password) {
+      throw Error('invalid payload!');
+    }
+  } catch(e) {
+    res.status(400).send(extractMessageFromCatch(e, 'your request was no good!'));
+    return;
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const dbResponse = await prisma.user.create({
+    data: {
+      role: 'sender',
+      username,
+      password: hashedPassword,
+      ownedVenues: {
+        connect: {
+          venueId
+        }
+      }
+    }
+  })
+  res.send(dbResponse);
+}
 
 interface UpdateUserRequest extends ExpressReq {
   body: {
@@ -267,6 +305,70 @@ const getAdmins: RequestHandler = async (req, res) => {
   res.send(withoutPasswords);
 };
 
+
+interface GetSenderRequest extends ExpressReq {
+  body: {
+    venueId: string
+  }
+}
+const getSender: RequestHandler = async (req: GetSenderRequest, res) => {
+  const userData = req.session.user;
+
+  try {
+    if (!userData) {
+      throw new Error('no client userdata. unauthorized!');
+    }
+    if (!userData.role) {
+      throw new Error('you have no role! Thus you are not authorized!');
+    }
+  } catch (e) {
+    const msg = extractMessageFromCatch(e, 'You give bad data!!!!');
+    res.status(400).send(msg);
+    return;
+  }
+  const clientSecurityLevel = roleHierarchy.indexOf(userData.role);
+
+  try {
+    if (!hasAtLeastSecurityLevel(userData.role, 'admin')) {
+      throw new Error('Too low security clearance! You looose!');
+    }
+  } catch (e) {
+    const msg = extractMessageFromCatch(e, 'Go away. Not authorized');
+    res.status(401).send(msg);
+  }
+  const {venueId} = req.body
+  if(!venueId) {
+    res.status(400).send('no venueId provided. Bad payload');
+    return;
+  }
+  try {
+    // TODO: should we check owners, whitelisted or perhaps both?
+    const dbResponse = await prisma.venue.findUniqueOrThrow({
+      where: {
+        venueId,
+      },
+      include: {
+        owners: {
+          where: {
+            role: 'sender'
+          }
+        }
+      }
+    })
+    
+    if(dbResponse.owners.length > 0) {
+      const withoutPassword = exclude(dbResponse.owners[0], 'password')
+      res.send(withoutPassword);
+      return;
+    } else {
+      res.status(404).send('no sender for that venue')
+    }
+  } catch (e) {
+    res.status(500).send('db query failed')
+    return;
+  }
+}
+
 const loginUser: RequestHandler = async (req, res) => {
   // console.log('login req received');
   const username = req.body.username;
@@ -347,6 +449,8 @@ export default function createUserRouter() {
   userRouter.post('/update', isLoggedIn, updateUser);
   userRouter.post('/delete', isLoggedIn, deleteUser);
   userRouter.get('/get-admins', isLoggedIn, getAdmins);
+  userRouter.post('/get-sender', isLoggedIn, getSender);
+  userRouter.post('/create-sender', isLoggedIn, createSenderForVenue);
 
   userRouter.get('/me', isLoggedIn, getSelf);
 

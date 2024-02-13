@@ -145,21 +145,101 @@
               type="checkbox"
               v-model="values.streamAutoStart"
             >
-            <!-- <span class="material-icons">meeting_room</span> -->
           </label>
         </div>
-        <!-- <div class="w-full max-w-xs mb-2 form-control">
-        <label class="label">
-          <span class="label-text">Eventet/360-sändningen startar</span>
-          <span class="material-icons">curtains</span>
-        </label>
-        <input
-          v-model="values.streamStartTime"
-          type="datetime-local"
-          placeholder="Startdatum och -tid"
-          class="w-full max-w-xs input input-bordered"
+      </div>
+      <!-- Separate sender login -->
+      <div class="w-full max-w-xs mb-2 form-control bg-base-200 p-2 text-sm border">
+        <div class="flex justify-between mb-2">
+          <span class="label-text text-base">Separat sändarinloggning</span>
+          <span class="material-icons">person</span>
+        </div>
+        <button
+          class="btn btn-outline btn-primary"
+
+          v-if="!senderUser.userId && userEditingState !== 'creating'"
+          @click="userEditingState = 'creating'"
         >
-      </div> -->
+          Skapa sändaranvändare
+        </button>
+        <div
+          class="form-control gap-2"
+          v-if="userEditingState"
+        >
+          <form
+            class="flex flex-col gap-2 items-start"
+            @submit.prevent="userEditingState === 'creating'? createNewSender() : updateTheSender()"
+          >
+            <input
+              class="input input-sm"
+              placeholder="Användarnamn"
+              v-model="senderUser.username"
+            >
+            <div
+              :class="{tooltip: userEditingState === 'editing'}"
+              data-tip="Lämna blankt för att inte ändra"
+            >
+              <input
+                :required="userEditingState === 'creating'"
+                type="password"
+                class="input input-sm"
+                placeholder="Lösenord"
+                v-model="senderUser.password"
+              >
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="submit"
+                class="btn btn-sm btn-primary"
+              >
+                {{ userEditingState === 'creating' ? 'Skapa' : 'Spara' }}
+              </button>
+              <button
+                @click="userEditingState = undefined"
+                class="btn btn-sm btn-error"
+              >
+                Avbryt
+              </button>
+            </div>
+          </form>
+        </div>
+        <div
+          v-else-if="senderUser.userId"
+          class="flex gap-2 items-center"
+        >
+          <div class="grid grid-cols-2 gap-x-2">
+            <p>Användarnamn:</p>
+            <p class="font-bold">
+              {{ senderUser.username }}
+            </p>
+            <p>Lösenord:</p>
+            <p class="font-bold">
+              *****
+            </p>
+          </div>
+          <div
+            class="tooltip"
+            data-tip="Ändra inloggningen"
+          >
+            <button
+              @click="userEditingState = 'editing'"
+              class="btn btn-primary btn-circle btn-sm"
+            >
+              <span class="material-icons">edit</span>
+            </button>
+          </div>
+          <div
+            data-tip="Ta bort användaren"
+            class="tooltip"
+          >
+            <button
+              @click="deleteTheSender"
+              class="btn btn-error btn-circle btn-sm"
+            >
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
+        </div>
       </div>
       <div class="w-full max-w-xs form-control">
         <button
@@ -176,15 +256,61 @@
 <script setup lang="ts">
 import { useVenueStore } from '@/stores/venueStore';
 import { useConnectionStore } from '@/stores/connectionStore';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeMount, reactive, watch } from 'vue';
 import type { VenueUpdate } from 'schemas/esm';
 import {useRouter} from 'vue-router';
 import { autoResetRef } from '@vueuse/core';
+import { getSenderForVenue, createSender, updateUser, deleteUser } from '@/modules/authClient';
 
 // Use imports
 const venueStore = useVenueStore();
 const connection = useConnectionStore();
 const router = useRouter();
+
+
+const senderUser = reactive<{
+  userId: string,
+  password?: string,
+  username: string,
+}>({
+  userId: '',
+  password: undefined,
+  username: '',
+});
+
+const userEditingState = ref<'creating' | 'editing'>();
+
+async function createNewSender() {
+  const user = senderUser;
+  const venueId = venueStore.currentVenue?.venueId;
+  if(!user?.username || !user.password || !venueId) {
+    console.error('no data when creating new sender');
+    return;
+  }
+  const response = await createSender(user.username, user.password, venueId);
+  senderUser.username = response.username;
+  senderUser.userId = response.userId;
+  senderUser.password = undefined;
+  userEditingState.value = undefined;
+}
+
+async function updateTheSender() {
+  const { userId, username, password} = senderUser;
+  const response = await updateUser({  
+    userId,
+    password: password === '' ? undefined : password,
+    username,
+  });
+  senderUser.password = undefined;
+  userEditingState.value = undefined;
+}
+
+async function deleteTheSender() {
+  const response = await deleteUser(senderUser.userId);
+  senderUser.userId = '';
+  senderUser.username = '';
+  senderUser.password = undefined;
+}
 
 
 const linkCopyTooltip = autoResetRef('Klicka för att kopiera adressen', 3000);
@@ -222,6 +348,22 @@ type DatesAsStrings<T extends Record<string, unknown>> = {
 }
 
 const values = ref<DatesAsStrings<VenueUpdate>>({});
+
+watch(() => values.value, () => {
+  console.log('values updated!!!');
+  // updateVenue();
+});
+
+onBeforeMount(async () => {
+  const venueId = venueStore.currentVenue?.venueId;
+  if(!venueId) {
+    console.warn('no currentvenue. returning');
+    return;
+  }
+  const { userId, username} = await getSenderForVenue(venueId);
+  senderUser.userId = userId;
+  senderUser.username = username;
+});
 
 // TODO: could this perhaps fail? Should computed or watcher be used?
 onMounted(() => {

@@ -45,10 +45,7 @@
         id="navmesh"
         :src="venueStore.navmeshUrl"
         class="clickable"
-        @click="navmeshClicked"
         raycaster-listen
-        @raycast-change="navmeshHovered"
-        @raycast-out="navmeshNotHovered"
         model-opacity="0.7"
         :visible="showNavMesh"
       />
@@ -60,7 +57,7 @@
       radius="0.25"
     /> -->
 
-    <a-entity
+    <!-- <a-entity
       visible="false"
       id="teleportPreview"
     >
@@ -72,19 +69,19 @@
         scale="0.2 0.2 0.2"
         position="0 0.01 0"
       />
-    </a-entity>
+    </a-entity> -->
 
     <a-entity
       id="camera-rig"
       ref="playerOriginTag"
     >
-      <a-ring
+      <!-- <a-ring
         color="blue"
         rotation="-90 0 0"
         radius-outer="0.3"
         radius-inner="0.2"
         material="transparent: true; opacity: 0.4"
-      />
+      /> -->
       <a-camera
         @loaded="onCameraLoaded"
         id="camera"
@@ -390,33 +387,33 @@ const throttledTransformMutation = throttle(async () => {
 // Display message
 const displayMessage = ref('');
 
-function navmeshClicked(e: DetailEvent<{intersection?: THREE.Intersection}>) {
-  if(!e.detail.intersection?.point) return;
-  console.log(e.detail.intersection.point);
-  teleportTo(e.detail.intersection.point);
-}
-function navmeshHovered(e: DetailEvent<{intersection?: THREE.Intersection}>) {
-  // console.log('navmesh rayCasted:', e);
-  if(!e.detail.intersection?.point) return;
-  previewTeleport(e.detail.intersection.point);
-}
+// function navmeshClicked(e: DetailEvent<{intersection?: THREE.Intersection}>) {
+//   if(!e.detail.intersection?.point) return;
+//   console.log(e.detail.intersection.point);
+//   teleportTo(e.detail.intersection.point);
+// }
+// function navmeshHovered(e: DetailEvent<{intersection?: THREE.Intersection}>) {
+//   // console.log('navmesh rayCasted:', e);
+//   if(!e.detail.intersection?.point) return;
+//   previewTeleport(e.detail.intersection.point);
+// }
 
-function navmeshNotHovered() {
-  const teleportRing = document.querySelector('#teleportPreview');
-  teleportRing.setAttribute('visible', false);
-}
+// function navmeshNotHovered() {
+//   const teleportRing = document.querySelector('#teleportPreview');
+//   teleportRing.setAttribute('visible', false);
+// }
 
-function teleportTo (point: THREE.Vector3){
-  console.log(point);
-  playerOriginTag.value?.setAttribute('position', aframeUtils.coordinates.stringify(point));
-  playerTag.value?.object3D.position.setX(0);
-  playerTag.value?.object3D.position.setZ(0);
-}
+// function teleportTo (point: THREE.Vector3){
+//   console.log(point);
+//   playerOriginTag.value?.setAttribute('position', aframeUtils.coordinates.stringify(point));
+//   playerTag.value?.object3D.position.setX(0);
+//   playerTag.value?.object3D.position.setZ(0);
+// }
 
-function previewTeleport (point: THREE.Vector3){
-  const teleportRing = document.querySelector('#teleportPreview');
-  teleportRing.setAttribute('position', point);
-  teleportRing.setAttribute('visible', true);
-}
+// function previewTeleport (point: THREE.Vector3){
+//   const teleportRing = document.querySelector('#teleportPreview');
+//   teleportRing.setAttribute('position', point);
+//   teleportRing.setAttribute('visible', true);
+// }
 
 </script>

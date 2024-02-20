@@ -71,6 +71,12 @@
           </a-entity>
         </a-entity>
         <a-entity lock-rotation-axis>
+          <a-text
+            :value="props.clientInfo.username"
+            align="center"
+            width="2.5"
+            position="0 0.4 0"
+          />
           <a-entity
             @loaded="onBodyLoaded"
             gltf-model="#avatar-body-1"

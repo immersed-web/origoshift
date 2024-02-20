@@ -222,11 +222,10 @@ The following ports are required to be opened on the server:
 | 40000-49999 | UDP | ports for the SFU mediaserver |
 
 ## Credit
-The project to develop and create this software was initiated by Lèv Grunberg and Ranald Macdonald.
+The project to develop and create this software was initiated by Lèv Grunberg.
 The development was a collaboration between the following organisations:
 - Reasearch Institutes of Sweden (RISE)
 - Kungsbacka Kommun
-- Eskilstuna Kommun
 
 ## Copyright & License
 This codebase (excluding external dependencies, such as libraries and/or software frameworks) is written by me, Gunnar Oledal.

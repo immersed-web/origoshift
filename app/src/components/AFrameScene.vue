@@ -33,14 +33,92 @@
     <a-assets
       timeout="20000"
     >
+      <!-- TODO: Find a nice way to dynamically load the models we need. Preferably only when entering lobby and not 360-stream. -->
       <a-asset-item
-        id="avatar-asset"
+        id="avatar-body-1"
         src="/models/avatar/body/Body1.glb"
       />
-      <a-mixin
-        id="fade-to-from-black"
-        animation__to_black="property: components.material.material.color; type: color; to: #000; dur: 500; startEvents: fadeToBlack; easing: linear;"
-        animation__from_black="property: components.material.material.color; type: color; to: #fff; dur: 500; startEvents: fadeFromBlack; easing: linear;"
+
+      <a-asset-item
+        id="avatar-eyes-1"
+        src="/models/avatar/eyes/Eyes1.glb"
+      />
+      <a-asset-item
+        id="avatar-eyes-2"
+        src="/models/avatar/eyes/Eyes2.glb"
+      />
+      <a-asset-item
+        id="avatar-eyes-3"
+        src="/models/avatar/eyes/Eyes3.glb"
+      />
+      <a-asset-item
+        id="avatar-eyes-4"
+        src="/models/avatar/eyes/Eyes4.glb"
+      />
+      <a-asset-item
+        id="avatar-eyes-5"
+        src="/models/avatar/eyes/Eyes5.glb"
+      />
+
+      <a-asset-item
+        id="avatar-hand-1"
+        src="/models/avatar/hands/low_poly_gloved_hand.glb"
+      />
+
+      <a-asset-item
+        id="avatar-hat-1"
+        src="/models/avatar/hat/Hat1.glb"
+      />
+      <a-asset-item
+        id="avatar-hat-2"
+        src="/models/avatar/hat/Hat2.glb"
+      />
+      <a-asset-item
+        id="avatar-hat-3"
+        src="/models/avatar/hat/Hat3.glb"
+      />
+      <a-asset-item
+        id="avatar-hat-4"
+        src="/models/avatar/hat/Hat4.glb"
+      />
+
+      <a-asset-item
+        id="avatar-head-1"
+        src="/models/avatar/head/Head1.glb"
+      />
+
+      <a-asset-item
+        id="avatar-mouth-1"
+        src="/models/avatar/mouth/Mouth1.glb"
+      />
+      <a-asset-item
+        id="avatar-mouth-2"
+        src="/models/avatar/mouth/Mouth2.glb"
+      />
+      <a-asset-item
+        id="avatar-mouth-3"
+        src="/models/avatar/mouth/Mouth3.glb"
+      />
+      <a-asset-item
+        id="avatar-mouth-4"
+        src="/models/avatar/mouth/Mouth4.glb"
+      />
+      <a-asset-item
+        id="avatar-mouth-5"
+        src="/models/avatar/mouth/Mouth5.glb"
+      />
+      <a-asset-item
+        id="avatar-mouth-6"
+        src="/models/avatar/mouth/Mouth6.glb"
+      />
+      <a-asset-item
+        id="avatar-mouth-7"
+        src="/models/avatar/mouth/Mouth7.glb"
+      />
+
+      <a-asset-item
+        id="avatar-vehicle-1"
+        src="/models/avatar/vehicle/Vehicle1.glb"
       />
     </a-assets>
     <RouterView v-slot="{Component}">

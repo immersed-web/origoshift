@@ -46,33 +46,36 @@
         </a-entity>
       </a-entity>
       
-      <a-text
+      <!-- <a-text
         class="distance-debug"
         value="unset"
         position="1 1 0"
         side="double"
-      />
+      /> -->
       <a-entity
         rotation="0 180 0"
       >
         <a-entity position="0 0 0">
-          <a-entity gltf-model="url(/models/avatar/hat/Hat4.glb)" />
-          <a-entity gltf-model="url(/models/avatar/head/Head1.glb)" />
+          <a-entity gltf-model="#avatar-hat-1" />
+          <a-entity gltf-model="#avatar-head-1" />
           <!-- <a-entity :gltf-model="`url(/models/avatar/eyes/Eyes${Math.trunc(Math.random()+1.5)}.glb)`" /> -->
-          <a-entity gltf-model="url(/models/avatar/eyes/Eyes5.glb)" />
+          <a-entity gltf-model="#avatar-eyes-1" />
           <a-entity
             position="0 -0.05 0"
             class="audio-level"
           >
             <a-entity
               position="0 0.05 0.002"
-              gltf-model="url(/models/avatar/mouth/Mouth6.glb)"
+              gltf-model="#avatar-mouth-1"
             />
           </a-entity>
         </a-entity>
         <a-entity lock-rotation-axis>
-          <a-entity gltf-model="url(/models/avatar/body/Body1.glb)" />
-          <!-- <a-entity gltf-model="url(/models/avatar/vehicle/Vehicle1.glb)" /> -->
+          <a-entity
+            @loaded="onBodyLoaded"
+            gltf-model="#avatar-body-1"
+          />
+          <a-entity gltf-model="#avata-vehicle-1" />
         </a-entity>
       </a-entity>
       <audio
@@ -230,6 +233,10 @@ async function onAvatarEntityLoaded(e: DetailEvent<any>){
   }
   console.log('emitting mediastream to entity after avatar entity loaded', stream.value);
   remoteAvatar.value.emit('setMediaStream', {stream: stream.value});
+}
+
+function onBodyLoaded() {
+  console.log('body entity was loaded!');
 }
 
 async function getStreamFromProducerId(producerId?: ProducerId){

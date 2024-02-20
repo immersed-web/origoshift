@@ -25,8 +25,11 @@ export default () => {
         // this.worldToLocal.invert();
         
         // this.el.object3D.worldToLocal(this.followedWorldPos);
-        this.el.object3D.position.copy(this.followedWorldPos);
+        // this.el.object3D.position.copy(this.followedWorldPos);
         // console.log('copied position. new position:',  this.el.object3D.getWorldPosition(new THREE.Vector3()));
+        this.el.object3D.matrixWorld.setPosition(...this.followedWorldPos.toArray());
+      } else {
+        console.error('no entity to follow!');
       }
     },
   });

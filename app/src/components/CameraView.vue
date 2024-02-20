@@ -60,7 +60,7 @@
       id="rig"
     >
       <a-camera
-        wasd-controls-enabled="true"
+        wasd-controls-enabled="false"
         ref="cameraTag"
         id="camera"
         reverse-mouse-drag="true"
@@ -75,11 +75,11 @@
           animation__to_black="property: material.opacity; from: 0.0; to: 1.0; dur: 500; startEvents: fadeToBlack"
           animation__from_black="property: material.opacity; from: 1.0; to: 0.0; dur: 500; startEvents: fadeFromBlack"
         />
-        <a-text
+        <!-- <a-text
           :visible="debugMessage !== '' || debugMessage !== undefined"
           :value="debugMessage"
           position="0.2 0 -2"
-        />
+        /> -->
       </a-camera>
       <a-entity
         laser-controls="hand:left"
@@ -107,21 +107,26 @@
         <a-entity
           v-for="portal in freezeableCameraStore.portals"
           :key="portal.toCameraId"
-          :position="`${(portal.x-0.5)*fixedWidth} ${(-portal.y+0.5)*videoHeight} 0`"
+          :position="`${(portal.x-0.5)*fixedWidth} ${(-portal.y+0.5)*videoHeight} 0.1`"
         >
           <a-sphere
             hover-highlight
-            position="0 0 -0.1"
-            color="yellow"
+            position="0 0 0"
+            color="#ef2d5e"
             scale="0.2 0.2 0.2"
             class="clickable"
             @mousedown="onPortalMouseDown(portal, $event)"
           />
-          <a-text
-            value="Teeeext"
+          <a-entity
+            text="value:Hello; color:#FFFFFF; width: 4; align: center; shader: msdf; font:https://raw.githubusercontent.com/etiennepinchon/aframe-fonts/master/fonts/creepster/Creepster-Regular.json;"
+            position="0 -0.4 0"
+          />     
+          <!-- <a-text
+            v-if="portal.cameraName"
+            :value="portal.cameraName"
             align="center"
             position="0 -0.4 0"
-          />
+          /> -->
         </a-entity>
       </a-entity>
     </a-entity>

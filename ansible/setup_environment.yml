@@ -19,8 +19,16 @@
       ansible.builtin.apt:
         name: ntp
         state: latest
+    # - name: Check node version
+    #   become: true
+    #   ansible.builtin.command:
+    #     cmd: "node -v && echo -n NONODE "
+    #   ignore_errors: true
+    #   changed_when: false
+    #   register: node_version
     - name: Setup nodejs
       become: true
+      # when: node_version.stdout == 'NONODE'
       block:
         - name: Add nodejs apt key
           ansible.builtin.apt_key:
@@ -33,18 +41,22 @@
           ansible.builtin.apt:
             name: nodejs
             update_cache: true
-    - name: Setup pnpm
-      become: true
-      block:
         - name: Enable corepack
           ansible.builtin.command:
             cmd: corepack enable
+          changed_when: false
             # argv:
             #   - corepack enable
               # - --install-directory=
               # - "{{ ansible_env['HOME'] }}/corepack"
             # creates: "{{ ansible_env['HOME'] }}/corepack"
-          changed_when: true
+        #   register: corepack_enable
+        # - name: print corepack enable
+        #   ansible.builtin.debug:
+        #     var: corepack_enable
+    - name: Setup pnpm
+      become: true
+      block:
         # TODO: make this idempotent
         - name: Install and enable pnpm
           ansible.builtin.command:
@@ -77,6 +89,7 @@
         - name: Add caddy repo
           ansible.builtin.apt_repository:
             repo: deb https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main
+            filename: caddy-stable
             update_cache: true
         - name: Install caddy
           ansible.builtin.apt:
@@ -92,7 +105,8 @@
         - name: Give caddy permission to bind to lower ports
           community.general.capabilities:
             path: "{{ caddy_location.stdout }}"
-            capability: cap_net_bind_service=+eip
+            capability: cap_net_bind_service=eip
+            state: present
     - name: Setup docker
       become: true
       block:
@@ -103,6 +117,7 @@
           ansible.builtin.apt_repository:
             repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
             update_cache: true
+            filename: docker
         - name: Install docker
           ansible.builtin.apt:
             name:

@@ -4,7 +4,9 @@ import { ProfileLevelId, Profile, Level, profileLevelIdToString } from 'h264-pro
 
 const h264_Baseline_Max_Level = profileLevelIdToString(new ProfileLevelId(Profile.Baseline, Level.L5));
 const h264_ConstrainedBaseline_Max_Level = profileLevelIdToString(new ProfileLevelId(Profile.ConstrainedBaseline, Level.L5));
-const h264_Main_Max_Level = profileLevelIdToString(new ProfileLevelId(Profile.Main, Level.L5));
+
+// This one seems to allow hardware accelerated encoding on the sender side (on the laptops I've tried) 🚀
+const h264_Main_Level52 = profileLevelIdToString(new ProfileLevelId(Profile.Main, Level.L5_2));
 
 let publicIp = process.env.LISTEN_IP;
 let internalIp = process.env.INTERNAL_IP;
@@ -69,7 +71,7 @@ const router: mediasoupTypes.RouterOptions = {
       clockRate: 90000,
       parameters: {
         'packetization-mode': 1,
-        'profile-level-id': h264_ConstrainedBaseline_Max_Level, // At least Quest 3 supports this. Should check quest 2 and 1 too.
+        'profile-level-id': h264_Main_Level52, // At least Quest 3 supports this. Should check quest 2 and 1 too.
         'level-assymetry-allowed': 1
 
       }

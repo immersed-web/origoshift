@@ -1,5 +1,5 @@
 ---
-- name: Setup database
+- name: Reset database
   hosts: localhost
   tasks:
     - name: Compose up
@@ -9,5 +9,5 @@
       register: temp_compose_up
       changed_when: "'Started' in temp_compose_up.stdout or 'Started' in temp_compose_up.stderr"
     - name: Reset database
-      ansible.builtin.command: pnpm --filter=database db:push --accept-data-loss
+      ansible.builtin.command: pnpm --filter=database db:reset
       changed_when: true

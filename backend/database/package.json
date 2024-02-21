@@ -21,7 +21,8 @@
     "seed": "dotenv -e ../../.env -- prisma db seed",
     "seed:dev": " dotenv -e ../../.env -v DEVELOPMENT=true -- prisma db seed",
     "studio": "dotenv -e ../../.env -- prisma studio",
-    "db:push": "dotenv -e ../../.env -- prisma db push"
+    "db:push": "dotenv -e ../../.env -- prisma db push",
+    "db:reset": "dotenv -e ../../.env -- prisma db push --force-reset"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",

@@ -1,9 +1,0 @@
-{
-  "extends": "@quasar/app-vite/tsconfig-preset",
-  "compilerOptions": {
-    "baseUrl": "."
-    // "jsx": "preserve",
-    // "lib": ["DOM", "ES7", "DOM.Iterable"],
-    // "noErrorTruncation": true
-  }
-}

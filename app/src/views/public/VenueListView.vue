@@ -1,10 +1,21 @@
 <template>
-  <div class="flex flex-col gap-4 mb-12">
-    <h2>
-      Välkommen <span class="underline decoration-dashed decoration-accent">
-        {{ authStore.username }}
-      </span>!
-    </h2>
+  <div class="flex flex-col gap-4 mb-12 items-start">
+    <div class="flex gap-4 items-center">
+      <h2>
+        Välkommen <span class="underline decoration-dashed decoration-accent">
+          {{ authStore.username }}
+        </span>!
+      </h2>
+      <RouterLink :to="{name: 'adminHome'}">
+        <button
+          v-if="hasAtLeastSecurityLevel(authStore.role, 'admin')"
+          class="btn btn-sm btn-outline btn-primary"
+        >
+          Admininställningar
+          <span class="material-icons">arrow_right</span>
+        </button>
+      </RouterLink>
+    </div>
     <div
       v-if="venuesOngoing.length"
       class="space-y-2"
@@ -82,7 +93,7 @@ import type { RouterOutputs } from '@/modules/trpcClient';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { computed, onBeforeMount, ref } from 'vue';
 import VenueList from '@/components/venue/VenueList.vue';
-import type { VenueId } from 'schemas';
+import { type VenueId, hasAtLeastSecurityLevel } from 'schemas/esm';
 import { useRouter } from 'vue-router';
 import { isPast } from 'date-fns';
 import { venueConsideredActive } from '@/stores/venueStore';

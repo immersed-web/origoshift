@@ -36,6 +36,8 @@
       changed_when: "'Started' in temp_compose_up.stdout or 'Started' in temp_compose_up.stderr"
     - name: Migrate database
       ansible.builtin.command: pnpm --filter database migrate:deploy
+      register: migration_output
+      changed_when: "not 'No pending migrations' in migration_output.stdout"
     - name: Seed database
       ansible.builtin.command: pnpm --filter database seed
 - name: Build monorepo

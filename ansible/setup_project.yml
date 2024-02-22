@@ -34,6 +34,13 @@
         cmd: docker compose --ansi never --progress plain up -d
       register: temp_compose_up
       changed_when: "'Started' in temp_compose_up.stdout or 'Started' in temp_compose_up.stderr"
+    # - name: wait for postgres
+    #   community.postgresql.postgresql_ping:
+    #     login_password
+    - name: Wait for postgres to spin up
+      ansible.builtin.wait_for:
+        host: localhost
+        port: 5432
     - name: Migrate database
       ansible.builtin.command: pnpm --filter database migrate:deploy
       register: migration_output

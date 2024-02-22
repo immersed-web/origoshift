@@ -68,6 +68,19 @@ module.exports = {
       script: scripts.caddy,
       cwd: "./",
       env: envVars
+    },
+    {
+      name: 'database-backup',
+      instances: 1,
+      exec_mode: 'fork',
+      watch: false,
+      autorestart: false,
+      cron_restart: '0-59 * * * *',
+      env: {
+        PGPASSWORD: envVars['DATABASE_PASSWORD']
+      },
+      cwd: './db_backups/',
+      script: 'pg_dump -Fc -h localhost -d origoshift -p 5432 -U postgres > $(date +%F_%H-%M).dump;'
     }
   ]
 }

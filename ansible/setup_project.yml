@@ -17,7 +17,7 @@
     - name: Install all js dependencies
       community.general.pnpm:
         path: "{{ ansible_env.HOME }}/origoshift"
-- name: Build monorepo
+- name: Setup database
   hosts: localhost
   tasks:
     - name: Generate prisma client
@@ -28,13 +28,22 @@
           - database
           - generate
       changed_when: true
-    - name: Build database js bundle
-      ansible.builtin.command: pnpm --filter database build
-      changed_when: true
+    - name: Create/Start postgres DB
+      ansible.builtin.command:
+        chdir: "{{ playbook_dir }}/.."
+        cmd: docker compose --ansi never --progress plain up -d
+      register: temp_compose_up
+      changed_when: "'Started' in temp_compose_up.stdout or 'Started' in temp_compose_up.stderr"
     - name: Migrate database
       ansible.builtin.command: pnpm --filter database migrate:deploy
     - name: Seed database
       ansible.builtin.command: pnpm --filter database seed
+- name: Build monorepo
+  hosts: localhost
+  tasks:
+    - name: Build database js bundle
+      ansible.builtin.command: pnpm --filter database build
+      changed_when: true
     - name: Build shared packages
       ansible.builtin.command:
         chdir: "{{ playbook_dir }}/.."

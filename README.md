@@ -37,20 +37,14 @@ cp example.env .env
 - I strongly advice against using dollarsigns (\$) anywhere in the .env file as that might fuck up everything (\$ is used for variables in linux/bash/shells).
 - Should probably be careful with backslash (\\) too.
 
-The example file looks like this:
-```
-TODO: FILL OUT THIS ONE
-YOOOOO!
-```
-A normal setup would require setting new values for:
-- SERVER_URL
-- AUTH_URL
-- MEDIASOUP_URL
-- ADMIN_PASSWORD
+A normal setup would require setting values for:
+- EXPOSED_SERVER_URL
+- LISTEN_IP
+- setting INTERNAL_IP, or possibly, commenting it out
 - DATABASE_PASSWORD
 - SESSION_KEY
+- ADMIN_PASSWORD
 - JWT_SECRET
-- LISTEN_IP
 
 
 The rest could be left as is.
@@ -59,7 +53,7 @@ The rest could be left as is.
 You'll need the tool __Ansible__ in order to follow this step. Follow the installation instructions for installing "__ansible-core__" [here](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) and come back when you have Ansible successfully installed on the server.
 
 Now let's install and setup everything.
-cd into the folder with the ansible playbook files:
+cd into the ansible folder where all the playbook files are:
 ```bash
 cd ansible
 ```
@@ -74,24 +68,26 @@ ansible-playbook setup_project.yml
 ```
 
 ### 4. Now let's run the project 🚀:
-go back to project root folder
+Go back to project root folder
 ```bash
 cd ..
 ```
-run pm2 process manager in the project root (pm2 will pick up the file named ecosystem.config.js in the root, which specifies how to start and run the required processes)
+Run pm2 process manager in the project root (pm2 will pick up the file named ecosystem.config.js in the root, which specifies how to start and run the required processes)
 ```bash
 pm2 start
 ```
 
 ## Update to new version
-- go to ansible directory
-- run `ansible-playbook update.yml`
-- go to project root directory
-- run `pm2 start`
+- start in project root
+- stop all the processes: `pm2 delete all`
+- go to ansible directory: `cd ansible`
+- run the update script: `ansible-playbook sync_to_github_version.yml`
+- go to project root directory: `cd ..`
+- run the processes: `pm2 start`
 
 
 ## Monitoring
-The applications are run with a tool called pm2 that gets installed by the `setup-environment.ym` ansible script. You can interact directly with pm2 using the command line. Here's a few examples:
+The applications are run with a tool called pm2 that gets installed by the `setup-environment.yml` ansible script. You can interact directly with pm2 using the command line. Here's a few examples:
 
 To list the processes managed by pm2 and their status:
 ```

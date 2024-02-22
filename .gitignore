@@ -4,5 +4,5 @@ node_modules/
 !example.env
 dist/
 docker-data/
-db-backups/
+db_backups/
 *-gitignore

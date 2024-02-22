@@ -1,0 +1,13 @@
+---
+- name: Update from github
+  hosts: localhost
+  environment:
+    CI: "true"
+  tasks:
+  - name: Discard all untracked changes
+    ansible.builtin.command: git checkout -- .
+  - name: Pull latest version from github
+    ansible.builtin.git:
+      clone: false
+      update: true
+      repo: "https://github.com/inclubit/origoshift.git"

@@ -4,10 +4,18 @@
   environment:
     CI: "true"
   tasks:
-  - name: Discard all untracked changes
-    ansible.builtin.command: git checkout -- .
-  - name: Pull latest version from github
-    ansible.builtin.git:
-      clone: false
-      update: true
-      repo: "https://github.com/inclubit/origoshift.git"
+  # - name: Discard all untracked changes
+  #   ansible.builtin.command: git checkout -- .
+  # - name: Pull latest version from github
+  #   become: true
+  #   ansible.builtin.git:
+  #     clone: false
+  #     update: true
+  #     repo: "https://github.com/inclubit/origoshift.git"
+  #     version: main
+  # - name: Pull latest version from github
+  #   ansible.builtin.command: git pull 
+    - name: Fetch from origin
+      ansible.builtin.command: git fetch
+    - name: Hard reset to origin/main
+      ansible.builtin.command: git reset --hard origin/main

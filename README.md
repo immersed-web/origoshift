@@ -40,6 +40,12 @@ cp example.env .env
 The example file looks like this:
 ```
 TODO: FILL OUT THIS ONE
+
+
+
+
+
+YOOOOO!
 ```
 A normal setup would require setting new values for:
 - SERVER_URL

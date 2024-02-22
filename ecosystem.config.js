@@ -75,7 +75,7 @@ module.exports = {
       exec_mode: 'fork',
       watch: false,
       autorestart: false,
-      cron_restart: '0-59 * * * *',
+      cron_restart: '5 2 * * *',
       env: {
         PGPASSWORD: envVars['DATABASE_PASSWORD']
       },

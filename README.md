@@ -70,13 +70,9 @@ ansible-playbook setup_environment.yml
 
 Install the internal project dependencies and build the apps
 ```bash
-ansible-playbook install_dependencies.yml
+ansible-playbook setup_project.yml
 ```
 
-Now let's initialize the database
-```bash
-ansible-playbook setup_database.yml
-```
 ### 4. Now let's run the project 🚀:
 go back to project root folder
 ```bash

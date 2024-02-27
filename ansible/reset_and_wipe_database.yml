@@ -8,6 +8,11 @@
         cmd: docker compose --ansi never --progress plain up -d
       register: temp_compose_up
       changed_when: "'Started' in temp_compose_up.stdout or 'Started' in temp_compose_up.stderr"
+    - name: Wait for postgres to be ready
+      ansible.builtin.wait_for:
+        port: 5432
+        sleep: 2
+        active_connection_states: "ESTABLISHED"
     - name: Reset database
       ansible.builtin.command: pnpm --filter=database db:reset
       changed_when: true

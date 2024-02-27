@@ -126,8 +126,5 @@ The development was a collaboration between the following organisations:
 - Kungsbacka Kommun
 
 ## Copyright & License
-This codebase (excluding external dependencies, such as libraries and/or software frameworks) is written by me, Gunnar Oledal.
+This codebase (excluding external dependencies, such as libraries and/or software frameworks) is written by me, Gunnar Oledal. The project is licensed under MIT. The license text can be found in the file LICENSE in the project root.
 External dependencies, such as libraries and/or software frameworks in this repository, holds up to their own respective licenses.
-
-```
-```

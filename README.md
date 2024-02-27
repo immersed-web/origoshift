@@ -124,6 +124,7 @@ The project to develop and create this software was initiated by Lèv Grunberg.
 The development was a collaboration between the following organisations:
 - Reasearch Institutes of Sweden (RISE)
 - Kungsbacka Kommun
+
 3D modelse created by:
 - Nisa Tokmak
 - Jenn-Li Levin

@@ -16,6 +16,15 @@
   # - name: Pull latest version from github
   #   ansible.builtin.command: git pull 
     - name: Fetch from origin
-      ansible.builtin.command: git fetch
+      ansible.builtin.command: git fetch origin main -v
+      register: fetch_out
+      changed_when: "'up to date' not in fetch_out.stderr"
+    # - name: debug
+    #   debug:
+    #     var: fetch_out
+    - name: Init submodules
+      ansible.builtin.command: git submodule update --init --recursive
+      register: submodule_init_out
+      changed_when: submodule_init_out.stdout | length > 0
     - name: Hard reset to origin/main
       ansible.builtin.command: git reset --hard origin/main

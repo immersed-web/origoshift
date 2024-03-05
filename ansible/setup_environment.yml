@@ -62,9 +62,11 @@
             cmd: "pnpm -v && echo -n NOPNPM || corepack prepare pnpm@7.x --activate"
           register: pnpm_installed
           changed_when: pnpm_installed.stdout == 'NOPNPM'
-        # - name: Run pnpm setup command
-        #   ansible.builtin.command:
-        #     cmd: pnpm setup
+        - name: Run pnpm setup command
+          ansible.builtin.command:
+            cmd: pnpm setup
+          register: pnpm_setup_output
+          changed_when: "'Appended new lines' in pnpm_setup_output.stdout"
     - name: Install Mediasoup dependencies
       ansible.builtin.apt:
         name:

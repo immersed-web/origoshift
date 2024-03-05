@@ -50,7 +50,7 @@ A normal setup would require setting values for:
 The rest could be left as is.
 
 ### 3. Install and setup all da thingz!
-You'll need the tool __Ansible__ in order to follow this step. Follow the installation instructions for installing "__ansible-core__" [here](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) and come back when you have Ansible successfully installed on the server.
+You'll need the tool __Ansible__ in order to follow this step. Follow the installation instructions for installing ansible [here](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) and come back when you have Ansible successfully installed on the server.
 
 Now let's install and setup everything.
 cd into the ansible folder where all the playbook files are:

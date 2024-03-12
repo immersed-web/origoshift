@@ -36,7 +36,7 @@
         v-if="entrancePosString"
         :position="entrancePosString"
         :direction="entranceRotation"
-        message="Yoooooooo vad har du i kikaren??"
+        message="Till kameror"
       />
       <a-entity
         v-if="spawnPosString"

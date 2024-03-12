@@ -292,6 +292,7 @@ const getAdmins: RequestHandler = async (req, res) => {
   } catch (e) {
     const msg = extractMessageFromCatch(e, 'Go away. Not authorized');
     res.status(401).send(msg);
+    return;
   }
 
   const userSelect: Prisma.UserFindManyArgs & { where: Prisma.UserWhereInput } = {
@@ -389,10 +390,11 @@ const loginUser: RequestHandler = async (req, res) => {
     }
   } catch (e) {
     console.error(e);
-    // res.status(501).send('failed when trying to login');
-    // return;
+    res.status(501).send('failed when trying to login');
+    return;
   }
   res.status(403).send('You shall not pass!');
+  return;
 
 };
 

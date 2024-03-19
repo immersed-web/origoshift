@@ -117,16 +117,16 @@
             class="clickable"
             @mousedown="onPortalMouseDown(portal, $event)"
           />
-          <a-entity
+          <!-- <a-entity
             text="value:Hello; color:#FFFFFF; width: 4; align: center; shader: msdf; font:https://raw.githubusercontent.com/etiennepinchon/aframe-fonts/master/fonts/creepster/Creepster-Regular.json;"
             position="0 -0.4 0"
-          />     
-          <!-- <a-text
+          />      -->
+          <a-text
             v-if="portal.cameraName"
             :value="portal.cameraName"
             align="center"
             position="0 -0.4 0"
-          /> -->
+          />
         </a-entity>
       </a-entity>
     </a-entity>

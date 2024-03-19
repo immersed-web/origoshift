@@ -59,7 +59,7 @@
           <a-entity gltf-model="#avatar-hat-1" />
           <a-entity gltf-model="#avatar-head-1" />
           <!-- <a-entity :gltf-model="`url(/models/avatar/eyes/Eyes${Math.trunc(Math.random()+1.5)}.glb)`" /> -->
-          <a-entity gltf-model="#avatar-eyes-1" />
+          <a-entity gltf-model="#avatar-eyes-5" />
           <a-entity
             position="0 -0.05 0"
             class="audio-level"

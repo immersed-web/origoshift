@@ -53,7 +53,7 @@
         side="double"
       /> -->
       <a-entity
-        rotation="0 180 0"
+        rotation="0 0 0"
       >
         <a-entity position="0 0 0">
           <a-entity gltf-model="#avatar-hat-1" />
@@ -70,7 +70,9 @@
             />
           </a-entity>
         </a-entity>
-        <a-entity lock-rotation-axis>
+        <a-entity ref="lowerBodyTag">
+        <!-- <a-entity> -->
+          <a-box position="0 -0.5 0" scale="0.4 0.5 0.3" color="red" />
           <a-text
             :value="props.clientInfo.username"
             align="center"
@@ -97,10 +99,10 @@
 <script setup lang="ts">
 
 import type { Entity, DetailEvent } from 'aframe';
-import type { ConnectionId, Transform } from 'schemas';
+import type { ConnectionId, Transform } from 'schemas/esm';
 import { ref, computed, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue';
 import type { useVrSpaceStore } from '@/stores/vrSpaceStore';
-import type { ProducerId } from 'schemas/mediasoup';
+import type { ProducerId } from 'schemas/esm/mediasoup';
 import { useSoupStore } from '@/stores/soupStore';
 
 // Props & emits
@@ -144,6 +146,7 @@ onBeforeUnmount(async () => {
 
 const remoteAvatar = ref<Entity>();
 const avatarRootTag = ref<Entity>();
+const lowerBodyTag = ref<Entity>();
 const leftHandTag = ref<Entity>();
 const rightHandTag = ref<Entity>();
 const dummyAudioTag = ref<HTMLAudioElement>();
@@ -250,6 +253,8 @@ async function onAvatarEntityLoaded(e: DetailEvent<any>){
 
 function onBodyLoaded() {
   console.log('body entity was loaded!');
+  const lockRotationString = `#head-${props.clientInfo.connectionId}`
+  lowerBodyTag.value?.setAttribute('lock-rotation-axis', lockRotationString);
 }
 
 async function getStreamFromProducerId(producerId?: ProducerId){

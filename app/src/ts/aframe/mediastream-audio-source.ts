@@ -12,7 +12,7 @@ export default () => {
       rolloffFactor: { default: 1 },
       audioElement: {type: 'selector', default: '#completelyRandomAsIHopeyouneverhaveanidthisspecific'},
     },
-    positionalAudio: null as THREE.PositionalAudio | null,
+    // positionalAudio: null as THREE.PositionalAudio | null,
     analyzer: null as THREE.AudioAnalyser | null,
     audioLevel: 1,
     levelEntity: undefined as Entity | undefined,
@@ -26,8 +26,13 @@ export default () => {
         }
         console.log('Attaching new stream to entity');
         this.stream = e.detail.stream;
-        this.positionalAudio?.setMediaStreamSource(this.stream);
-        this.positionalAudio?.play();
+        const posAudio = this.el.getObject3D('posAudio');        
+        if(!(posAudio instanceof THREE.PositionalAudio)){
+          console.error('posaudio was undefined');
+          return;
+        }
+        posAudio.setMediaStreamSource(this.stream);
+        posAudio.play();
         if(!this.levelEntity){
           console.error('no level entity!!');
           return;
@@ -51,10 +56,10 @@ export default () => {
         });
       }
 
-      this.positionalAudio = new THREE.PositionalAudio(sceneEl.audioListener);
-      this.analyzer = new THREE.AudioAnalyser(this.positionalAudio, 32);
+      const positionalAudio = new THREE.PositionalAudio(sceneEl.audioListener);
+      this.analyzer = new THREE.AudioAnalyser(positionalAudio, 32);
 
-      el.setObject3D(this.attrName!, this.positionalAudio);
+      el.setObject3D('posAudio', positionalAudio);
 
       this.levelEntity = this.el.querySelector('.audio-level') as Entity;
       if(this.levelEntity){
@@ -87,11 +92,15 @@ export default () => {
     },
 
     setPannerProperties() {
-      if(!this.positionalAudio) return;
-      this.positionalAudio.setDistanceModel(this.data.distanceModel);
-      this.positionalAudio.setMaxDistance(this.data.maxDistance);
-      this.positionalAudio.setRefDistance(this.data.refDistance);
-      this.positionalAudio.setRolloffFactor(this.data.rolloffFactor);
+      const posAudio = this.el.getObject3D('posAudio');        
+      if(!(posAudio instanceof THREE.PositionalAudio)){
+        console.error('posaudio was undefined');
+        return;
+      }
+      posAudio.setDistanceModel(this.data.distanceModel);
+      posAudio.setMaxDistance(this.data.maxDistance);
+      posAudio.setRefDistance(this.data.refDistance);
+      posAudio.setRolloffFactor(this.data.rolloffFactor);
     },
 
     remove() {
@@ -99,13 +108,22 @@ export default () => {
     },
 
     destroySound() {
-      if (this.positionalAudio) {
-        this.positionalAudio.disconnect();
-        this.el.removeObject3D(this.attrName!);
-        this.positionalAudio = null;
+      const posAudio = this.el.getObject3D('posAudio');        
+      if(!(posAudio instanceof THREE.PositionalAudio)){
+        console.error('posaudio was undefined');
+        return;
+      }
+      try {
 
+        posAudio.disconnect();
+        this.el.removeObject3D('posAudio');
+        
         this.analyzer?.analyser.disconnect();
         this.analyzer = null;
+        console.log('destroy sound has run!');
+      } catch(e) {
+        console.error('error when destroying mediastream-audio-source');
+        console.error(e);
       }
     },
   });

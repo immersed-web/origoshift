@@ -81,7 +81,7 @@
             @loaded="onBodyLoaded"
             gltf-model="#avatar-body-1"
           />
-          <a-entity gltf-model="#avata-vehicle-1" />
+          <a-entity gltf-model="#avatar-vehicle-1" />
         </a-entity>
       </a-entity>
       <audio
@@ -170,9 +170,9 @@ function handleReceivedHandTransform(newTransform: Transform | undefined, oldTra
     handEntity.setAttribute('visible', false);
     return;
   }
+    handEntity.setAttribute('visible', true);
   // show hand and set transform directly if went from undefined to tansformdata
   if(!oldTransform) { 
-    handEntity.setAttribute('visible', true);
     handEntity.emit('setTransform', newTransform);
     return;
   }
@@ -182,14 +182,21 @@ function handleReceivedHandTransform(newTransform: Transform | undefined, oldTra
 }
 
 watch(() => props.clientInfo.transform?.leftHand, (newTrsfm, oldT) => {
-  // console.log('leftHand updated: ', newTrsfm);
-  if(!leftHandTag.value) return;
+  // console.log(`${props.clientInfo.username}, left hand updated ${newTrsfm?.position}`);
+  if(!leftHandTag.value) {
+    console.error('no hand model tag found');
+    return;
+  };
   handleReceivedHandTransform(newTrsfm, oldT, leftHandTag.value);
 });
 
 watch(() => props.clientInfo.transform?.rightHand, (newTrsfm, oldT) => {
-  // console.log('rightHand updated: ', newTrsfm);
-  if(!rightHandTag.value) return;
+  // console.log(`${props.clientInfo.username}, right hand updated ${newTrsfm?.position}`);
+  if(!rightHandTag.value) {
+
+    console.error('no hand model tag found');
+    return;
+  }
   handleReceivedHandTransform(newTrsfm, oldT, rightHandTag.value);
 });
 

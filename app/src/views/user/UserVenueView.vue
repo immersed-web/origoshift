@@ -2,17 +2,17 @@
   <div class="grid md:place-items-center h-screen">
     <div class="fixed top-0 left-0 z-50">
       <div class="p-4">
-        <RouterLink
-          class="flex gap-2 items-center"
-          :to="{name: 'venueList'}"
+        <a
+          @click="returnToVenueList"
+          class="flex gap-2 items-center cursor-pointer"
         >
-          <button class="btn btn-primary btn-outline btn-circle btn-sm">
+          <div class="btn btn-primary btn-outline btn-circle btn-sm">
             <span class="material-icons">arrow_back</span>
-          </button>
+          </div>
           <span class="text-primary">
             Tillbaka till evenemangslistan
           </span>
-        </RouterLink>
+        </a>
       </div>
     </div>
     <div class="card bg-base-200 p-6 md:m-6 rounded-none md:rounded-2xl">
@@ -96,7 +96,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 // import { useConnectionStore } from '@/stores/connectionStore';
-import type { VenueId } from 'schemas';
+import type { VenueId } from 'schemas/esm';
 import { computed, onMounted, watch } from 'vue';
 import { useVenueStore } from '@/stores/venueStore';
 import { useIntervalFn } from '@vueuse/core';
@@ -124,9 +124,10 @@ if(venueStore.currentVenue?.venueId !== props.venueId){
   }, 5000, { immediateCallback: true});
 }
 
-onMounted(async () =>{
-  // venueInfo.value = await connection.client.venue.getVenueListInfo.query({venueId: props.venueId});
-});
+async function returnToVenueList () {
+  await venueStore.leaveVenue();
+  router.replace({name: 'venueList'})
+}
 
 const timeLeftString = computed(() => {
   if(venueStore.secondsUntilDoorsOpen === undefined) return undefined;
@@ -141,8 +142,6 @@ watch(() => venueStore.secondsUntilDoorsOpen, (secondsLeft) => {
   }
 });
 function goToStream(){
-  // router.push({name: 'basicVR'});
-  // console.log('sphere clicked');
   if(!venueStore.currentVenue) return;
   let mainCameraId = venueStore.currentVenue.mainCameraId;
   if(!mainCameraId){

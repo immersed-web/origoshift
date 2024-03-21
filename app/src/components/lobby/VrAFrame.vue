@@ -110,23 +110,32 @@
         laser-controls="hand:left"
         raycaster="objects: .clickable"
         emit-move="interval: 20; relativeToCamera: true"
-      />
+      >
+          <a-entity
+            scale="0.05 0.05 0.05"
+            rotation="20 90 -140"
+            gltf-model="url(/models/avatar/hands/low_poly_gloved_hand.glb)"
+          />
+      </a-entity>
       <a-entity
         ref="rightHandTag"
         id="right-hand"
         oculus-touch-controls="hand:right"
         blink-controls="cameraRig: #camera-rig; teleportOrigin: #camera; collisionEntities: #navmesh;"
         emit-move="interval: 20; relativeToCamera: true"
-      />
+      >
+          <a-entity
+            scale="0.05 0.05 -0.05"
+            rotation="20 90 -140"
+            gltf-model="url(/models/avatar/hands/low_poly_gloved_hand.glb)"
+          />
+      </a-entity>
     </a-entity>
 
 
-    <!-- Avatar wrapper element -->
+    <!-- Avatars wrapper element -->
     <a-entity>
-      <!-- The camera / own avatar -->
-      <!-- The navmesh needs to refer to the actual entity, not only the asset -->
       <!-- The avatars -->
-      <a-entity v-if="true">
         <template
           v-for="(clientInfo, id) in clients"
           :key="id"
@@ -137,7 +146,6 @@
             :client-info="clientInfo"
           />
         </template>
-      </a-entity>
     </a-entity>
   </template>
 </template>

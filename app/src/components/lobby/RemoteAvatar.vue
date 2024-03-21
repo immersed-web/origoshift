@@ -40,9 +40,9 @@
             rotation="20 90 -140"
             gltf-model="url(/models/avatar/hands/low_poly_gloved_hand.glb)"
           />
-          <a-entity
+          <!-- <a-entity
             gltf-model="url(/models/controllers/oculus-touch-controller-right.gltf)"
-          />
+          /> -->
         </a-entity>
       </a-entity>
       
@@ -53,7 +53,7 @@
         side="double"
       /> -->
       <a-entity
-        rotation="0 0 0"
+        rotation="0 180 0"
       >
         <a-entity position="0 0 0">
           <a-entity gltf-model="#avatar-hat-1" />
@@ -72,7 +72,7 @@
         </a-entity>
         <a-entity ref="lowerBodyTag">
         <!-- <a-entity> -->
-          <a-box position="0 -0.5 0" scale="0.4 0.5 0.3" color="red" />
+          <!-- <a-box position="0 -0.5 0" scale="0.4 0.5 0.3" color="red" /> -->
           <a-text
             :value="props.clientInfo.username"
             align="center"
@@ -83,7 +83,7 @@
             @loaded="onBodyLoaded"
             gltf-model="#avatar-body-1"
           />
-          <a-entity gltf-model="#avatar-vehicle-1" />
+          <!-- <a-entity gltf-model="#avatar-vehicle-1" /> -->
         </a-entity>
       </a-entity>
       <audio
@@ -253,8 +253,8 @@ async function onAvatarEntityLoaded(e: DetailEvent<any>){
 
 function onBodyLoaded() {
   console.log('body entity was loaded!');
-  const lockRotationString = `#head-${props.clientInfo.connectionId}`
-  lowerBodyTag.value?.setAttribute('lock-rotation-axis', lockRotationString);
+  // const lockRotationString = `#head-${props.clientInfo.connectionId}`
+  lowerBodyTag.value?.setAttribute('lock-rotation-axis', true);
 }
 
 async function getStreamFromProducerId(producerId?: ProducerId){

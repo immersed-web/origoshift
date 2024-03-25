@@ -159,7 +159,7 @@ import type { ClientTransform } from 'schemas';
 import { useClientStore } from '@/stores/clientStore';
 import { useRouter } from 'vue-router';
 import { useVenueStore } from '@/stores/venueStore';
-// import { useAutoEnterXR } from '@/composables/autoEnterXR';
+import { useXRState } from '@/composables/XRState';
 import { throttle } from 'lodash-es';
 // import type { SubscriptionValue, RouterOutputs } from '@/modules/trpcClient';
 import { useSoupStore } from '@/stores/soupStore';
@@ -186,8 +186,8 @@ type Point = [number, number, number];
 
 // A-frame
 // const sceneTag = ref<Scene>();
-// useAutoEnterXR(sceneTag);
 const { sceneTag } = inject(aFrameSceneProvideKey)!;
+const { isImmersed } = useXRState(sceneTag);
 
 
 const modelTag = ref<Entity>();

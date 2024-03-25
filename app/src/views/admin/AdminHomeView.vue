@@ -94,7 +94,7 @@
                   </td>
                   <td class="flex gap-2 justify-end">
                     <button
-                      @submit.prevent="updateAdmin({userId: editedUserId, username: editedUsername, password: editedPassword === ''?undefined: editedPassword})"
+                      @click="updateAdmin({userId: editedUserId, username: editedUsername, password: editedPassword === ''?undefined: editedPassword})"
                       class="btn btn-primary"
                     >
                       <span class="material-icons">save</span>

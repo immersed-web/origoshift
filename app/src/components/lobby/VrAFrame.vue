@@ -107,11 +107,14 @@
       <a-entity
         ref="leftHandTag"
         id="left-hand"
+        @controllerconnected="leftControllerConnected = true"
+        @controllerdisconnected="leftControllerConnected = false"
         laser-controls="hand:left"
         raycaster="objects: .clickable"
         emit-move="interval: 20; relativeToCamera: true"
       >
           <a-entity
+            :visible="leftControllerConnected"
             scale="0.05 0.05 0.05"
             rotation="20 90 -140"
             gltf-model="url(/models/avatar/hands/low_poly_gloved_hand.glb)"
@@ -120,11 +123,14 @@
       <a-entity
         ref="rightHandTag"
         id="right-hand"
+        @controllerconnected="rightControllerConnected= true"
+        @controllerdisconnected="rightControllerConnected= false"
         oculus-touch-controls="hand:right"
         blink-controls="cameraRig: #camera-rig; teleportOrigin: #camera; collisionEntities: #navmesh;"
         emit-move="interval: 20; relativeToCamera: true"
       >
           <a-entity
+            :visible="rightControllerConnected"
             scale="0.05 0.05 -0.05"
             rotation="20 90 -140"
             gltf-model="url(/models/avatar/hands/low_poly_gloved_hand.glb)"
@@ -189,6 +195,8 @@ type Point = [number, number, number];
 const { sceneTag } = inject(aFrameSceneProvideKey)!;
 const { isImmersed } = useXRState(sceneTag);
 
+const rightControllerConnected = ref(false);
+const leftControllerConnected = ref(false);
 
 const modelTag = ref<Entity>();
 const playerTag = ref<Entity>();

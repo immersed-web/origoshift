@@ -44,9 +44,6 @@
         v-if="venueStore.navmeshUrl"
         id="navmesh"
         :src="venueStore.navmeshUrl"
-        class="clickable"
-        raycaster-listen
-        model-opacity="0.7"
         :visible="showNavMesh"
       />
     </a-entity>
@@ -117,7 +114,7 @@
             :visible="leftControllerConnected"
             scale="0.05 0.05 0.05"
             rotation="20 90 -140"
-            gltf-model="url(/models/avatar/hands/low_poly_gloved_hand.glb)"
+            gltf-model="#avatar-hand-1"
           />
       </a-entity>
       <a-entity
@@ -133,7 +130,7 @@
             :visible="rightControllerConnected"
             scale="0.05 0.05 -0.05"
             rotation="20 90 -140"
-            gltf-model="url(/models/avatar/hands/low_poly_gloved_hand.glb)"
+            gltf-model="#avatar-hand-1"
           />
       </a-entity>
     </a-entity>

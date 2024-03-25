@@ -21,11 +21,11 @@
           <a-entity
             scale="0.05 0.05 0.05"
             rotation="-20 90 -140"
-            gltf-model="url(/models/avatar/hands/low_poly_gloved_hand.glb)"
+            gltf-model="#avatar-hand-1"
           />
-          <a-entity
+          <!-- <a-entity
             gltf-model="url(/models/controllers/oculus-touch-controller-left.gltf)"
-          />
+          /> -->
         </a-entity>
       </a-entity>
       <a-entity scale="1 1 1">
@@ -38,7 +38,7 @@
           <a-entity
             scale="0.05 0.05 -0.05"
             rotation="20 90 -140"
-            gltf-model="url(/models/avatar/hands/low_poly_gloved_hand.glb)"
+            gltf-model="#avatar-hand-1"
           />
           <!-- <a-entity
             gltf-model="url(/models/controllers/oculus-touch-controller-right.gltf)"

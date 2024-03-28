@@ -31,6 +31,7 @@
     ref="sceneTag"
   >
     <a-assets
+      @loaded="assetsLoaded = true"
       timeout="20000"
     >
       <!-- TODO: Find a nice way to dynamically load the models we need. Preferably only when entering lobby and not 360-stream. -->
@@ -123,6 +124,7 @@
     </a-assets>
     <RouterView v-slot="{Component}">
       <component
+        v-if="assetsLoaded"
         :is="Component"
         @vue:before-unmount="onViewUnmounted"
       />
@@ -136,6 +138,7 @@ import type { Scene } from 'aframe';
 import { aFrameSceneProvideKey } from '@/modules/injectionKeys';
 
 const bundlesLoaded = ref(false);
+const assetsLoaded = ref(false);
 
 const sceneTag = ref<Scene>();
 const domOutlet = ref<HTMLDivElement>();

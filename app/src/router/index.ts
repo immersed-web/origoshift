@@ -50,6 +50,19 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: '/avatar',
+      name: 'avatarDesigner',
+      component: () => import('@/views/user/AvatarDesigner.vue')          
+      // component: () => import('@/components/AFrameScene.vue'),
+      // children: [
+      //   {
+      //     path: '',
+      //     name: 'avatarDesigner',
+      //     component: () => import('@/views/user/AvatarDesigner.vue')
+      //   },
+      // ]
+    },
     // guest/user routes
     {
       path: '/',

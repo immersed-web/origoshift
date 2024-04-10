@@ -44,6 +44,8 @@ export function closeClient() {
       // WE expect TRPC to error because for some reason their implementation wont allow any completing the observer by anyone else then the client through unsubscribe.
     }
   }
+  trpcClient.value = undefined;
+  currentClientType = undefined;
 }
 
 let currentClientType: ClientType | undefined;

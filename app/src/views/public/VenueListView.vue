@@ -160,9 +160,12 @@ async function goToVenue(venueId: VenueId){
 }
 
 async function updateUsername() {
-  await authStore.logout()
+  // await connection.close();
+  // await authStore.logout()
   await authStore.autoGuest(username.value);
+  // await connection.createUserClient();
   isEditingUsername.value = false;
+  window.location.reload();
 }
 
 </script>

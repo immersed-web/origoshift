@@ -371,7 +371,7 @@ function prepareSceneAndFadeFromBlack(){
   curtainTag.value?.emit('fadeFromBlack');
 }
 
-const cinemaDistance = ref(10);
+const cinemaDistance = ref(4);
 const fixedWidth = 10;
 const videoHeight = ref(1.0);
 function setVideoDimensionsFromTag(vTag: HTMLVideoElement){

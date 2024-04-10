@@ -29,9 +29,9 @@
     >
       <div
         v-if="venueStore.currentVenue?.vrSpace"
-        class="mt-4"
+        class="flex flex-col gap-4"
       >
-        <div class="flex items-center justify-start gap-2">
+        <div class="flex items-center justify-start gap-2 -mb-2">
           <h3>
             3D-modell 
           </h3>
@@ -133,6 +133,11 @@
             > -->
           </div>
         </div>
+        <div class="flex gap-4">
+          <h4>Färg på himmelen</h4>
+          <input class="rounded-md border-black border border-2" type="color" v-model="skyColor" >
+          <!-- <p>{{ skyColor }}</p> -->
+        </div>
       </div>
     </div>
   </div>
@@ -163,6 +168,8 @@ onMounted(() => {
   }
 
 });
+
+const skyColor = ref();
 
 const currentCursorType = ref<'spawnPosition' | 'entrancePosition' | undefined>();
 const entranceRotation = ref(0);

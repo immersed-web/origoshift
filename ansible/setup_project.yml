@@ -1,20 +1,10 @@
 ---
-- name: Install dependencies
+- name: node dependencies
   hosts: localhost
   environment:
     CI: "true" # Make pnpm not touch lockfile when running from ansible
   tasks:
-    - name: Global node packages
-      block:
-        - name: Add dotenv-cli
-          community.general.pnpm:
-            global: true
-            name: dotenv-cli
-        - name: Add pm2
-          community.general.pnpm:
-            global: true
-            name: pm2
-    - name: Install all js dependencies
+    - name: Install
       community.general.pnpm:
         path: "{{ ansible_env.HOME }}/origoshift"
 - name: Setup database

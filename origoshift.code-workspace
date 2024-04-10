@@ -60,6 +60,7 @@
       "editor.defaultFormatter": "vscode.json-language-features"
     },
     "terminal.integrated.enablePersistentSessions": true,
+    "ansible.python.interpreterPath": "/bin/python3",
   },
   "extensions": {
     "recommendations": [

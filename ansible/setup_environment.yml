@@ -67,6 +67,17 @@
             cmd: pnpm setup
           register: pnpm_setup_output
           changed_when: "'Appended new lines' in pnpm_setup_output.stdout"
+    - name: Install global node packages
+      become: true
+      block:
+        - name: Add dotenv-cli
+          community.general.pnpm:
+            global: true
+            name: dotenv-cli
+        - name: Add pm2
+          community.general.pnpm:
+            global: true
+            name: pm2
     - name: Install Mediasoup dependencies
       ansible.builtin.apt:
         name:
@@ -107,6 +118,20 @@
             path: "{{ caddy_location.stdout }}"
             capability: cap_net_bind_service=eip
             state: present
+    - name: Setup pm2 log rotation
+      become: true
+      block:
+        - name: Check if already installed
+          ansible.builtin.command:
+            cmd: pm2 describe pm2-logrotate
+          register: logrotate_install_status
+          changed_when: false
+          failed_when: false
+        - name: Install pm2-logrotate
+          ansible.builtin.command:
+            cmd: pm2 install pm2-logrotate
+          when: "'doesn\\'t exist' in logrotate_install_status.stderr"
+          changed_when: true
     - name: Setup docker
       become: true
       block:

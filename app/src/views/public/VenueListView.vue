@@ -4,7 +4,20 @@
       <h2>
         Välkommen&nbsp; 
       </h2>
-      <div class="flex gap-2 items-center" v-if="!isEditingUsername" >
+      <template v-if="authStore.role && hasAtLeastSecurityLevel(authStore.role, 'admin')">
+        <h2 class="inline">
+          <span class="underline decoration-dashed decoration-accent">
+          {{ authStore.username }}!
+          </span>
+        </h2>
+        <RouterLink :to="{name: 'adminHome'}">
+          <button class="btn btn-sm btn-outline btn-primary ml-4">
+            Admininställningar
+            <span class="material-icons">arrow_right</span>
+          </button>
+        </RouterLink>
+      </template>
+      <div class="flex gap-2 items-center" v-else-if="!isEditingUsername" >
         <h2 class="inline">
           <span class="underline decoration-dashed decoration-accent">
           {{ authStore.username }}!
@@ -14,20 +27,11 @@
           <span class="material-icons">edit</span>
         </button>
       </div>
-      <div class="flex gap-2 items-center" v-else>
-        <input v-model="username" class="input input-bordered input-sm">
-        <button @click="updateUsername" class="btn btn-primary btn-square btn-sm"><span class="material-icons">save</span></button>
-        <button @click="isEditingUsername = false" class="btn btn-error btn-square btn-sm"><span class="material-icons">cancel</span></button>
+      <div class="join" v-else>
+        <input @keypress.enter="updateUsername" v-model="username" class="input join-item input-bordered input">
+        <button @click="updateUsername" class="join-item btn btn-primary "><span class="material-icons">save</span></button>
+        <button @click="isEditingUsername = false" class="join-item btn btn-error"><span class="material-icons">cancel</span></button>
       </div>
-      <RouterLink :to="{name: 'adminHome'}">
-        <button
-          v-if="authStore.role && hasAtLeastSecurityLevel(authStore.role, 'admin')"
-          class="btn btn-sm btn-outline btn-primary"
-        >
-          Admininställningar
-          <span class="material-icons">arrow_right</span>
-        </button>
-      </RouterLink>
     </div>
     <div
       v-if="venuesOngoing.length"

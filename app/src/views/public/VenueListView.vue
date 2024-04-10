@@ -1,14 +1,27 @@
 <template>
   <div class="flex flex-col gap-4 mb-12 items-start">
-    <div class="flex gap-4 items-center">
+    <div class="flex items-center">
       <h2>
-        Välkommen <span class="underline decoration-dashed decoration-accent">
-          {{ authStore.username }}
-        </span>!
+        Välkommen&nbsp; 
       </h2>
+      <div class="flex gap-2 items-center" v-if="!isEditingUsername" >
+        <h2 class="inline">
+          <span class="underline decoration-dashed decoration-accent">
+          {{ authStore.username }}!
+          </span>
+        </h2>
+        <button @click="isEditingUsername = true" class="btn btn-sm btn-square">
+          <span class="material-icons">edit</span>
+        </button>
+      </div>
+      <div class="flex gap-2 items-center" v-else>
+        <input v-model="username" class="input input-bordered input-sm">
+        <button @click="updateUsername" class="btn btn-primary btn-square btn-sm"><span class="material-icons">save</span></button>
+        <button @click="isEditingUsername = false" class="btn btn-error btn-square btn-sm"><span class="material-icons">cancel</span></button>
+      </div>
       <RouterLink :to="{name: 'adminHome'}">
         <button
-          v-if="hasAtLeastSecurityLevel(authStore.role, 'admin')"
+          v-if="authStore.role && hasAtLeastSecurityLevel(authStore.role, 'admin')"
           class="btn btn-sm btn-outline btn-primary"
         >
           Admininställningar
@@ -99,7 +112,11 @@ import { isPast } from 'date-fns';
 import { venueConsideredActive } from '@/stores/venueStore';
 import { useAuthStore } from '@/stores/authStore';
 
+
 const authStore = useAuthStore();
+const username = ref(authStore.username);
+const isEditingUsername = ref(false);
+
 const router = useRouter();
 const venuesAllowed = ref<RouterOutputs['venue']['listAllowedVenues']>([]);
 // const venuesLoaded = ref<RouterOutputs['venue']['listLoadedVenuesPublicState']>();
@@ -136,6 +153,12 @@ const venuesUnscheduled = computed(() => {
 async function goToVenue(venueId: VenueId){
   // await venueStore.joinVenue(venueId);
   router.push({name: 'userVenue', params: { venueId }});
+}
+
+async function updateUsername() {
+  await authStore.logout()
+  await authStore.autoGuest(username.value);
+  isEditingUsername.value = false;
 }
 
 </script>

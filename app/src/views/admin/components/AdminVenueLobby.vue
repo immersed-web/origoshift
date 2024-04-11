@@ -150,6 +150,7 @@ import { useVenueStore } from '@/stores/venueStore';
 import AdminUploadModelForm from './AdminUploadModelForm.vue';
 import VrAFramePreview from '@/components/lobby/LobbyAFramePreview.vue';
 import { ref, watch, onMounted } from 'vue';
+import { throttle } from 'lodash-es';
 // import { useAdminStore } from '@/stores/adminStore';
 
 // Use imports
@@ -243,7 +244,7 @@ async function onSpawnRadiusCommited() {
   });
 }
 
-async function setSkyColor(evt: InputEvent) {
+const setSkyColor = throttle(async (evt: InputEvent) => {
   // console.log(evt.data);
   // console.log(evt.target);
   // return;
@@ -256,7 +257,7 @@ async function setSkyColor(evt: InputEvent) {
       skyColor: evt.target.value,
     }
   })
-}
+}, 800, {trailing: true});
 
 const openVirtualSpace = async () => {
 

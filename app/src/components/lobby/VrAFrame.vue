@@ -21,7 +21,7 @@
       />
     </a-assets> -->
 
-    <a-sky color="lightskyblue" />
+    <a-sky :color="skyColor" />
     <StreamEntrance
       :visible="venueStore.streamIsActive"
       v-if="entrancePosString"
@@ -231,6 +231,11 @@ const entranceRotation = computed(() => {
 const entranceMessage = computed(() => {
   return venueStore.currentVenue?.name??'Klicka för att hoppa in i sändningen';
 });
+
+const skyColor = computed(() => {
+  if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel.skyColor) return 'lightskyblue'
+  return venueStore.currentVenue?.vrSpace?.virtualSpace3DModel.skyColor;
+})
 
 onBeforeMount(async () => {
   // console.log('onBeforeMount');

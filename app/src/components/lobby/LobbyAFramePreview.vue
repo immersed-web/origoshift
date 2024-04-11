@@ -168,7 +168,7 @@ const spawnRadius = computed(() => {
 });
 
 const skyColor = computed(() => {
-  if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel.skyColor) return 'skyblue'
+  if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel.skyColor) return 'lightskyblue'
   return venueStore.currentVenue?.vrSpace?.virtualSpace3DModel.skyColor;
 })
 

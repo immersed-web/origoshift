@@ -224,6 +224,7 @@ const VirtualSpace3DModelUpdatePayloadSchema = z.object({
   entranceRotation: z.number().nullable().optional(),
   spawnPosition: z.tuple([z.number(), z.number(), z.number()]).optional(),
   spawnRadius: z.number().nullable().optional(),
+  skyColor: z.string().nullable().optional(),
 }) satisfies z.ZodType<Vr3DModelUpdatePayload>
 export const VirtualSpace3DModelUpdateSchema = z.object({
   vr3DModelId: Vr3DModelIdSchema,

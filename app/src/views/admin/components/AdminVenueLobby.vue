@@ -135,7 +135,7 @@
         </div>
         <div class="flex gap-4">
           <h4>Färg på himmelen</h4>
-          <input class="rounded-md border-black border border-2" type="color" v-model="skyColor" >
+          <input class="rounded-md border-black border border-2" type="color" :value="venueStore.currentVenue.vrSpace.virtualSpace3DModel.skyColor" @input="setSkyColor">
           <!-- <p>{{ skyColor }}</p> -->
         </div>
       </div>
@@ -241,6 +241,21 @@ async function onSpawnRadiusCommited() {
       spawnRadius: spawnRadius.value,
     },
   });
+}
+
+async function setSkyColor(evt: InputEvent) {
+  // console.log(evt.data);
+  // console.log(evt.target);
+  // return;
+  const modelId = venueStore.currentVenue?.vrSpace?.virtualSpace3DModelId;
+  if(!modelId) return;
+  await connectionStore.client.vr.update3DModel.mutate({
+    vr3DModelId: modelId,
+    reason: 'skycolor updated',
+    data: {
+      skyColor: evt.target.value,
+    }
+  })
 }
 
 const openVirtualSpace = async () => {

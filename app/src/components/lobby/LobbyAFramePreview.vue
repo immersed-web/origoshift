@@ -57,7 +57,7 @@
         camera
         ref="cameraTag"
       />
-      <a-sky color="lightskyblue" />
+      <a-sky :color="skyColor" />
 
       <!-- The model -->
       <a-entity>
@@ -166,6 +166,11 @@ const spawnRadius = computed(() => {
   if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel?.spawnRadius) return 0.2;
   return venueStore.currentVenue.vrSpace.virtualSpace3DModel.spawnRadius;
 });
+
+const skyColor = computed(() => {
+  if(!venueStore.currentVenue?.vrSpace?.virtualSpace3DModel.skyColor) return 'skyblue'
+  return venueStore.currentVenue?.vrSpace?.virtualSpace3DModel.skyColor;
+})
 
 function onIntersection(evt: DetailEvent<any>){
   console.log('model hovered',evt);

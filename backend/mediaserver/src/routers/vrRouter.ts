@@ -46,6 +46,7 @@ export const vrRouter = router({
   update3DModel: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).input(VirtualSpace3DModelUpdateSchema).mutation(({input, ctx}) => {
     ctx.vrSpace.Update3DModel(input);
   }),
+  // setSkyColor: currentVenueAdminP.use(isVenueOwnerM).use(currentVenueHasVrSpaceM).input({})
   subVrSpaceStateUpdated: p.use(isUserClientM).subscription(({ctx}) => {
     console.log(`${ctx.username} started subscription to vrSpaceStateUpdate`);
     return observable<NotifierInputData<typeof ctx.client.notify.vrSpaceStateUpdated>>(scriber => {

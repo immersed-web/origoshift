@@ -87,7 +87,6 @@ model VirtualSpace {
   vrId                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   extraSettings         Json?
   venue                 Venue                @relation(fields: [ownerVenueId], references: [venueId], onDelete: Cascade)
-  skyColor              String?
   ownerVenueId          String               @unique @db.Uuid
   virtualSpace3DModel   VirtualSpace3DModel? @relation(fields: [virtualSpace3DModelId], references: [modelId])
   virtualSpace3DModelId String?              @db.Uuid
@@ -109,6 +108,7 @@ model VirtualSpace3DModel {
   entranceRotation  Float?
   spawnPosition     Float[]
   spawnRadius       Float?
+  skyColor          String?
 }
 
 enum CameraType {

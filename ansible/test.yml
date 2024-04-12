@@ -1,0 +1,34 @@
+---
+- name: Setup environment
+  hosts: localhost
+  tasks:
+    - name: Enable corepack
+      ansible.builtin.shell: 
+        cmd: "mkdir {{ ansible_env['HOME'] }}/corepack && corepack enable --install-directory {{ ansible_env['HOME'] }}/corepack"
+        creates: "{{ ansible_env['HOME'] }}/corepack"
+    #   register: corepack_enable
+    # - name: print corepack enable
+    #   ansible.builtin.debug:
+    #     var: corepack_enable
+    - name: Setup pnpm
+      become: true
+      block:
+        # TODO: make this idempotent
+        - name: Install and enable pnpm
+          ansible.builtin.command:
+            cmd: "pnpm -v && echo -n NOPNPM || corepack prepare pnpm@7.x --activate"
+          register: pnpm_installed
+          changed_when: pnpm_installed.stdout == 'NOPNPM'
+        - name: Print pnpm_installed result
+          ansible.builtin.debug:
+            var: pnpm_installed
+        - name: Run pnpm setup command
+          when: pnpm_installed.stdout == 'NOPNPM'
+          ansible.builtin.command:
+            cmd: pnpm setup
+          register: pnpm_setup_output
+          changed_when: "'Appended new lines' in pnpm_setup_output.stdout"
+        - name: Source bashrc after pnpm was added to path
+          when: pnpm_installed.stdout == 'NOPNPM'
+          ansible.builtin.command:
+            cmd: "{{ pnpm_setup_output.stdout_lines[-1] }}"

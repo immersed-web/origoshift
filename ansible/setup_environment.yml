@@ -41,14 +41,9 @@
           ansible.builtin.apt:
             name: nodejs
         - name: Enable corepack
-          ansible.builtin.command:
-            cmd: corepack enable
-          changed_when: false
-            # argv:
-            #   - corepack enable
-              # - --install-directory=
-              # - "{{ ansible_env['HOME'] }}/corepack"
-            # creates: "{{ ansible_env['HOME'] }}/corepack"
+          ansible.builtin.shell: 
+            cmd: "mkdir {{ ansible_env['HOME'] }}/corepack && corepack enable --install-directory {{ ansible_env['HOME'] }}/corepack"
+            creates: "{{ ansible_env['HOME'] }}/corepack"
         #   register: corepack_enable
         # - name: print corepack enable
         #   ansible.builtin.debug:
@@ -59,7 +54,7 @@
         # TODO: make this idempotent
         - name: Install and enable pnpm
           ansible.builtin.command:
-            cmd: "pnpm -v && echo -n NOPNPM || corepack prepare pnpm@7.x --activate"
+            cmd: "yes n | pnpm -v && echo -n NOPNPM || corepack prepare pnpm@7.x --activate"
           register: pnpm_installed
           changed_when: pnpm_installed.stdout == 'NOPNPM'
         - name: Print pnpm_installed result

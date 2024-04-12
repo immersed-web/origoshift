@@ -24,7 +24,7 @@ cd ~
 ```
 Clone the repository from github and then go into the root directory of the project:
 ```
-git clone https://github.com/inclubit/origoshift.git
+git clone https://github.com/inclubit/origoshift.git --recurse-submodules
 cd origoshift
 ```
 

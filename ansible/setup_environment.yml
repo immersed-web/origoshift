@@ -63,10 +63,15 @@
           register: pnpm_installed
           changed_when: pnpm_installed.stdout == 'NOPNPM'
         - name: Run pnpm setup command
+          when: pnpm_installed.stdout == 'NOPNPM'
           ansible.builtin.command:
             cmd: pnpm setup
           register: pnpm_setup_output
           changed_when: "'Appended new lines' in pnpm_setup_output.stdout"
+        - name: Source bashrc after pnpm was added to path
+          when: pnpm_installed.stdout == 'NOPNPM'
+          ansible.builtin.command:
+            cmd: "{{ pnpm_setup_output.stdout_lines[-1] }}"
     - name: Install global node packages
       become: true
       block:

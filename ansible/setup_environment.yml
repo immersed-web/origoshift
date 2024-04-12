@@ -62,6 +62,9 @@
             cmd: "pnpm -v && echo -n NOPNPM || corepack prepare pnpm@7.x --activate"
           register: pnpm_installed
           changed_when: pnpm_installed.stdout == 'NOPNPM'
+        - name: Print pnpm_installed result
+          ansible.builtin.debug:
+            var: pnpm_installed
         - name: Run pnpm setup command
           when: pnpm_installed.stdout == 'NOPNPM'
           ansible.builtin.command:

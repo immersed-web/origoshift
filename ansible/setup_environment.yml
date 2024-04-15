@@ -40,10 +40,10 @@
         - name: Install Node 18
           ansible.builtin.apt:
             name: nodejs
-        - name: Enable corepack
-          ansible.builtin.shell:
-            cmd: "mkdir {{ ansible_env['HOME'] }}/corepack && corepack enable --install-directory {{ ansible_env['HOME'] }}/corepack"
-            creates: "{{ ansible_env['HOME'] }}/corepack"
+        # - name: Enable corepack
+        #   ansible.builtin.shell:
+        #     cmd: "mkdir {{ ansible_env['HOME'] }}/corepack && corepack enable --install-directory {{ ansible_env['HOME'] }}/corepack"
+        #     creates: "{{ ansible_env['HOME'] }}/corepack"
         #   register: corepack_enable
         # - name: print corepack enable
         #   ansible.builtin.debug:
@@ -53,22 +53,22 @@
       block:
         - name: Install and enable pnpm
           ansible.builtin.shell:
-            cmd: "command -v pnpm > /dev/null && echo -n PNPMAVAILABLE || corepack prepare pnpm@7.x --activate"
+            cmd: "command -v pnpm > /dev/null && echo -n PNPMAVAILABLE || corepack prepare pnpm@latest-7 --activate"
           register: pnpm_install
           changed_when: pnpm_install.stdout != 'PNPMAVAILABLE'
         - name: Print pnpm_install result
           ansible.builtin.debug:
             var: pnpm_install
-        - name: Run pnpm setup command
-          when: pnpm_install.changed
-          ansible.builtin.command:
-            cmd: pnpm setup
-          register: pnpm_setup_output
-          changed_when: "'Appended new lines' in pnpm_setup_output.stdout"
-        - name: Source bashrc after pnpm was added to path
-          when: pnpm_setup_output.changed
-          ansible.builtin.command:
-            cmd: "{{ pnpm_setup_output.stdout_lines[-1] }}"
+        # - name: Run pnpm setup command
+        #   when: pnpm_install.changed
+        #   ansible.builtin.command:
+        #     cmd: pnpm setup
+        #   register: pnpm_setup_output
+        #   changed_when: "'Appended new lines' in pnpm_setup_output.stdout"
+        # - name: Source bashrc after pnpm was added to path
+        #   when: pnpm_setup_output.changed
+        #   ansible.builtin.command:
+        #     cmd: "{{ pnpm_setup_output.stdout_lines[-1] }}"
     - name: Install global node packages
       become: true
       block:

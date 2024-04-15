@@ -59,6 +59,7 @@
         - name: Print pnpm_install result
           ansible.builtin.debug:
             var: pnpm_install
+          changed_when: false
         # - name: Run pnpm setup command
         #   when: pnpm_install.changed
         #   ansible.builtin.command:

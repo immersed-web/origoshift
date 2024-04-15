@@ -1,6 +1,7 @@
 ---
 - name: Setup environment
   hosts: localhost
+  connection: local
   tasks:
     # - name: Print all Ansible facts
     #   ansible.builtin.debug:
@@ -51,27 +52,35 @@
     - name: Setup pnpm
       become: true
       block:
-        - name: Install and enable pnpm
-          ansible.builtin.shell:
-            cmd: "command -v pnpm > /dev/null && echo -n PNPMAVAILABLE || corepack prepare pnpm@latest-7 --activate"
-          register: pnpm_install
-          changed_when: pnpm_install.stdout != 'PNPMAVAILABLE'
-        - name: Print pnpm_install result
-          ansible.builtin.debug:
-            var: pnpm_install
-          changed_when: false
+        # - name: Install and enable pnpm
+        #   ansible.builtin.shell:
+        #     cmd: "command -v pnpm > /dev/null && echo -n PNPMAVAILABLE || corepack prepare pnpm@latest-7 --activate"
+        #   register: pnpm_install
+        #   changed_when: pnpm_install.stdout != 'PNPMAVAILABLE'
+        # - name: Print pnpm_install result
+        #   ansible.builtin.debug:
+        #     var: pnpm_install
+        #   changed_when: false
         - name: Run pnpm setup command
-          when: pnpm_install.changed
+          when: corepack_enable.changed
           ansible.builtin.command:
             cmd: pnpm setup
           register: pnpm_setup_output
           changed_when: "'Appended new lines' in pnpm_setup_output.stdout"
-        - name: Source bashrc after pnpm was added to path
-          when: pnpm_setup_output.changed
-          ansible.builtin.command:
-            cmd: "{{ pnpm_setup_output.stdout_lines[-1] }}"
+        # - name: Source bashrc after pnpm was added to path
+        #   # when: pnpm_setup_output.changed
+        #   ansible.builtin.shell:
+        #     cmd: ". ~/.bashrc"
+        #     # cmd: "{{ pnpm_setup_output.stdout_lines[-1] }}"
+    - name: get PNPM_HOME
+      ansible.builtin.shell:
+        cmd: source ~/.bashrc && printenv PNPM_HOME
+        executable: /bin/bash
+      register: pnpm_home_path
     - name: Install global node packages
       become: true
+      environment:
+        PNPM_HOME: "{{ pnpm_home_path.stdout }}"
       block:
         - name: Add dotenv-cli
           community.general.pnpm:

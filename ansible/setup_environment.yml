@@ -41,6 +41,8 @@
         - name: Install Node 18
           ansible.builtin.apt:
             name: nodejs
+        # Since this will be run from witihn the project, the "packageManager" field in 
+        # the root package.json will be used and that version of pnpm will be installed automatically
         - name: Enable corepack
           ansible.builtin.shell:
             cmd: "touch {{ ansible_env['HOME'] }}/corepack_enabled_flag && corepack enable"

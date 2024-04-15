@@ -40,14 +40,14 @@
         - name: Install Node 18
           ansible.builtin.apt:
             name: nodejs
-        # - name: Enable corepack
-        #   ansible.builtin.shell:
-        #     cmd: "mkdir {{ ansible_env['HOME'] }}/corepack && corepack enable --install-directory {{ ansible_env['HOME'] }}/corepack"
-        #     creates: "{{ ansible_env['HOME'] }}/corepack"
-        #   register: corepack_enable
-        # - name: print corepack enable
-        #   ansible.builtin.debug:
-        #     var: corepack_enable
+        - name: Enable corepack
+          ansible.builtin.shell:
+            cmd: "touch {{ ansible_env['HOME'] }}/corepack_enabled_flag && corepack enable"
+            creates: "{{ ansible_env['HOME'] }}/corepack_enabled_flag"
+          register: corepack_enable
+        - name: Print corepack enable
+          ansible.builtin.debug:
+            var: corepack_enable
     - name: Setup pnpm
       become: true
       block:
@@ -60,16 +60,16 @@
           ansible.builtin.debug:
             var: pnpm_install
           changed_when: false
-        # - name: Run pnpm setup command
-        #   when: pnpm_install.changed
-        #   ansible.builtin.command:
-        #     cmd: pnpm setup
-        #   register: pnpm_setup_output
-        #   changed_when: "'Appended new lines' in pnpm_setup_output.stdout"
-        # - name: Source bashrc after pnpm was added to path
-        #   when: pnpm_setup_output.changed
-        #   ansible.builtin.command:
-        #     cmd: "{{ pnpm_setup_output.stdout_lines[-1] }}"
+        - name: Run pnpm setup command
+          when: pnpm_install.changed
+          ansible.builtin.command:
+            cmd: pnpm setup
+          register: pnpm_setup_output
+          changed_when: "'Appended new lines' in pnpm_setup_output.stdout"
+        - name: Source bashrc after pnpm was added to path
+          when: pnpm_setup_output.changed
+          ansible.builtin.command:
+            cmd: "{{ pnpm_setup_output.stdout_lines[-1] }}"
     - name: Install global node packages
       become: true
       block:

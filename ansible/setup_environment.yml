@@ -88,6 +88,7 @@
       become: true
       environment:
         PNPM_HOME: "{{ pnpm_home }}"
+        PATH: "{{pnpm_home}}:{{ansible_env.PATH}}"
       block:
         - name: Check pnpm_home
           shell:

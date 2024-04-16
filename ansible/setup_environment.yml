@@ -147,6 +147,9 @@
             state: present
     - name: Setup pm2 log rotation
       become: true
+      environment:
+        PNPM_HOME: "{{ pnpm_home }}"
+        PATH: "{{pnpm_home}}:{{ansible_env.PATH}}"
       block:
         - name: Check if already installed
           ansible.builtin.command:

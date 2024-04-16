@@ -90,10 +90,11 @@
         PNPM_HOME: "{{ pnpm_home }}"
         PATH: "{{pnpm_home}}:{{ansible_env.PATH}}"
       block:
-        - name: Check pnpm_home
-          shell:
-            cmd:  set | grep PNPM_HOME
-            executable: "/bin/bash"
+        # - name: Check pnpm_home
+        #   shell:
+        #     cmd:  set | grep PNPM_HOME
+        #     executable: "/bin/bash"
+        #   changed_when: false
         - name: Add dotenv-cli
           community.general.pnpm:
             global: true
@@ -102,8 +103,8 @@
           community.general.pnpm:
             global: true
             name: pm2
-    - name: Temp end play
-      ansible.builtin.meta: "end_play"
+    # - name: Temp end play
+    #   ansible.builtin.meta: "end_play"
     - name: Install Mediasoup dependencies
       ansible.builtin.apt:
         name:

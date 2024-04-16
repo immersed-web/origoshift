@@ -2,6 +2,11 @@
 - name: Setup environment
   hosts: localhost
   connection: local
+  vars:
+    pnpm_home: "{{ ansible_env.PNPM_HOME | default(fallback_pnpm_home) }}"
+    fallback_pnpm_home: "{{ansible_env.HOME}}/.local/share/pnpm"
+    # fallback_pnpm_home: "FALLLABACK"
+
   tasks:
     # - name: Print all Ansible facts
     #   ansible.builtin.debug:
@@ -41,7 +46,7 @@
         - name: Install Node 18
           ansible.builtin.apt:
             name: nodejs
-        # Since this will be run from witihn the project, the "packageManager" field in 
+        # Since this will be run from witihn the project, the "packageManager" field in
         # the root package.json will be used and that version of pnpm will be installed automatically
         - name: Enable corepack
           ansible.builtin.shell:
@@ -64,7 +69,7 @@
         #     var: pnpm_install
         #   changed_when: false
         - name: Run pnpm setup command
-          when: corepack_enable.changed
+          # when: corepack_enable.changed
           ansible.builtin.command:
             cmd: pnpm setup
           register: pnpm_setup_output
@@ -74,16 +79,20 @@
         #   ansible.builtin.shell:
         #     cmd: ". ~/.bashrc"
         #     # cmd: "{{ pnpm_setup_output.stdout_lines[-1] }}"
-    - name: get PNPM_HOME
-      ansible.builtin.shell:
-        cmd: source ~/.bashrc && printenv PNPM_HOME
-        executable: /bin/bash
-      register: pnpm_home_path
+    # - name: Get PNPM_HOME
+    #   ansible.builtin.shell:
+    #     cmd: source ~/.bashrc && printenv PNPM_HOME
+    #     executable: /bin/bash
+    #   register: pnpm_home_path
     - name: Install global node packages
       become: true
       environment:
-        PNPM_HOME: "{{ pnpm_home_path.stdout }}"
+        PNPM_HOME: "{{ pnpm_home }}"
       block:
+        - name: Check pnpm_home
+          shell:
+            cmd:  set | grep PNPM_HOME
+            executable: "/bin/bash"
         - name: Add dotenv-cli
           community.general.pnpm:
             global: true
@@ -92,6 +101,8 @@
           community.general.pnpm:
             global: true
             name: pm2
+    - name: Temp end play
+      ansible.builtin.meta: "end_play"
     - name: Install Mediasoup dependencies
       ansible.builtin.apt:
         name:

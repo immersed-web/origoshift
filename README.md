@@ -85,6 +85,8 @@ pm2 start
 - stop all the processes: `pm2 delete all`
 - go to ansible directory: `cd ansible`
 - run the update script: `ansible-playbook dangerous_sync_to_github_version.yml`
+- for good measure run: `ansible-playbook setup_environment.yml` (should usually not be needed, but in rare cases some edits are made to the environment/global dependencies)
+- run the project setup: `ansible-playbook setup_project.yml`
 - go to project root directory: `cd ..`
 - run the processes: `pm2 start`
 

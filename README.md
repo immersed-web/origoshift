@@ -11,6 +11,7 @@ Some of the key features:
 - Avatars in 3D evironment uses spatial audio so visitors can hear each other better when their avatars are standing close.
 
 ## Installation
+> [!NOTE]
 > **Prerequisites**: Initially you will need [Git](https://git-scm.com/) to be able to fetch the repository. Git is installed by default on most linux systems.
 Additionally this project use the tool [Ansible](https://www.ansible.com/) to install, update, setup and deploy the project on a server.
 To install ansible follow these instructions:
@@ -83,9 +84,14 @@ pm2 start
 - start in project root
 - stop all the processes: `pm2 delete all`
 - go to ansible directory: `cd ansible`
-- run the update script: `ansible-playbook sync_to_github_version.yml`
+- run the update script: `ansible-playbook dangerous_sync_to_github_version.yml`
+- for good measure run: `ansible-playbook setup_environment.yml` (should usually not be needed, but in rare cases some edits are made to the environment/global dependencies)
+- run the project setup: `ansible-playbook setup_project.yml`
 - go to project root directory: `cd ..`
 - run the processes: `pm2 start`
+
+> [!NOTE]
+> Note: The file is named **dangerous**_sync_to_github_version.yml because it throws away any local additions/edits to the codebase (including not yet pushed commits). Thus it's only "dangerous" for a development environment and not a production server simply running the application.
 
 
 ## Monitoring
@@ -127,7 +133,7 @@ The development was a collaboration between the following organisations:
 - Reasearch Institutes of Sweden (RISE)
 - Kungsbacka Kommun
 
-3D modelse created by:
+3D models created by:
 - Nisa Tokmak
 - Jenn-Li Levin
 

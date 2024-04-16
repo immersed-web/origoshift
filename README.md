@@ -62,6 +62,8 @@ Setup all the system wide tools and dependencies
 ansible-playbook setup_environment.yml
 ```
 
+__Log off and log back in__. This is needed because the previous script (setup_environment.yml) added some environment variables to the user/profile (.bashrc or equivalent) that only gets loaded when the shell starts. Alternatively, you can manually "source" the shell config manually. e.g. `source ~/.bashrc`, but it's probably more reliable to log off and on again.
+
 Install the internal project dependencies and build the apps
 ```bash
 ansible-playbook setup_project.yml

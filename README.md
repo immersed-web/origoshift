@@ -135,7 +135,7 @@ The development was a collaboration between the following organisations:
 
 3D models created by:
 - Nisa Tokmak
-- Jenn-Li Levin
+- Jenny-Li Levin
 
 ## Copyright & License
 This codebase (excluding external dependencies, such as libraries and/or software frameworks) is written by me, Gunnar Oledal. The project is licensed under MIT. The license text can be found in the file LICENSE in the project root.
